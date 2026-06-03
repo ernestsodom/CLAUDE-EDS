@@ -24,15 +24,29 @@ class InstagramAPI:
         params = params or {}
         params["access_token"] = self.token
         resp = self._retry(lambda: self._session.get(f"{GRAPH_URL}/{path}", params=params))
-        resp.raise_for_status()
+        self._check_response(resp)
         return resp.json()
 
     def _post(self, path: str, data: dict = None) -> dict:
         data = data or {}
         data["access_token"] = self.token
         resp = self._retry(lambda: self._session.post(f"{GRAPH_URL}/{path}", data=data))
-        resp.raise_for_status()
+        self._check_response(resp)
         return resp.json()
+
+    @staticmethod
+    def _check_response(resp) -> None:
+        """Raise with the actual Facebook error message instead of a generic HTTP error."""
+        if resp.status_code >= 400:
+            try:
+                err = resp.json().get("error", {})
+                msg = err.get("message", resp.text)
+                code = err.get("code", resp.status_code)
+                subcode = err.get("error_subcode", "")
+                detail = f"[code {code}{f'/{subcode}' if subcode else ''}] {msg}"
+            except Exception:
+                detail = f"HTTP {resp.status_code}: {resp.text}"
+            raise RuntimeError(detail)
 
     @staticmethod
     def _retry(fn, max_attempts: int = 4):
