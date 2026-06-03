@@ -279,3 +279,73 @@ def strategy(niche):
     console.print("\n[bold]Ejemplos de CTAs:[/bold]")
     for _ in range(3):
         console.print(f"  • {get_cta()}")
+
+
+@cli.command()
+@click.option("--topic", "-t", default="", help="Tema del post")
+@click.option("--query", "-q", default="", help="Palabras para buscar la imagen (por defecto usa el tema)")
+@click.option("--count", default=5, help="Cuántas imágenes mostrar para elegir")
+def preparar(topic, query, count):
+    """Genera caption con IA Y busca/descarga una imagen automáticamente. Listo para publicar."""
+    from .image_finder import ImageFinder
+    cfg, _, generator, *_ = _get_deps()
+
+    if not topic:
+        topic = click.prompt("¿Sobre qué trata el post?")
+
+    # 1) Buscar imágenes
+    finder = ImageFinder()
+    if not finder.is_configured():
+        console.print("[red]Falta UNSPLASH_ACCESS_KEY en tu .env.[/red]")
+        console.print("Consíguela gratis en [cyan]https://unsplash.com/developers[/cyan] "
+                      "y agrégala como: UNSPLASH_ACCESS_KEY=tu_clave")
+        sys.exit(1)
+
+    search_term = query or topic
+    console.print(f"[cyan]Buscando imágenes para:[/cyan] {search_term}")
+    try:
+        images = finder.search(search_term, count=count)
+    except Exception as exc:
+        console.print(f"[red]Error buscando imágenes: {exc}[/red]")
+        sys.exit(1)
+
+    if not images:
+        console.print("[yellow]No se encontraron imágenes. Prueba con otras palabras (--query).[/yellow]")
+        sys.exit(1)
+
+    # Mostrar opciones
+    table = Table("#", "Descripción", "Autor", box=box.ROUNDED)
+    for i, img in enumerate(images, 1):
+        table.add_row(str(i), (img["description"] or "")[:50], img["author"])
+    console.print(table)
+
+    choice = click.prompt(f"Elige una imagen (1-{len(images)})", type=int, default=1)
+    selected = images[max(1, min(choice, len(images))) - 1]
+
+    # 2) Descargar imagen
+    console.print("[cyan]Descargando imagen...[/cyan]")
+    path = finder.download(selected)
+    console.print(f"[green]✓ Imagen guardada en:[/green] {path}")
+    console.print(f"[dim]Foto por {selected['author']} en Unsplash[/dim]")
+
+    # 3) Generar caption
+    console.print("[cyan]Generando caption con IA...[/cyan]")
+    result = generator.generate_caption(topic)
+    console.print(Panel(result["caption"], title="Caption", border_style="green"))
+
+    # 4) Guardar todo junto en un archivo de texto
+    from pathlib import Path
+    out_dir = Path("posts_listos")
+    out_dir.mkdir(exist_ok=True)
+    safe = "".join(c for c in topic[:30] if c.isalnum() or c in " -_").strip().replace(" ", "_") or "post"
+    txt_path = out_dir / f"{safe}.txt"
+    txt_path.write_text(
+        f"TEMA: {topic}\n\nIMAGEN: {path}\nCrédito: Foto por {selected['author']} en Unsplash\n\n"
+        f"--- CAPTION ---\n{result['full_post']}\n",
+        encoding="utf-8",
+    )
+
+    console.print(f"\n[bold green]✓ Post listo![/bold green]")
+    console.print(f"  • Imagen: [cyan]{path}[/cyan]")
+    console.print(f"  • Texto:  [cyan]{txt_path}[/cyan]")
+    console.print("\nAhora súbelo a Instagram (o Metricool): usa esa imagen y pega el caption del .txt.")
