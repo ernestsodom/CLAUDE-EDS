@@ -17,6 +17,18 @@ body{font-family:'Inter',sans-serif;background:#000;height:100%}
 
 /* ── NAVIGATION ── */
 #progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--g-light),var(--gold));z-index:999;transition:width .3s}
+/* Mobile bottom bar */
+#mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:998;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);padding:8px 16px 12px;flex-direction:row;align-items:center;justify-content:space-between}
+#mob-bar .mob-prev,#mob-bar .mob-next{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;flex-shrink:0}
+.mob-dots{display:flex;gap:5px;flex:1;justify-content:center}
+.mob-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.3);transition:all .3s}
+.mob-dot.on{background:var(--gold);width:16px}
+@media(max-width:480px){
+  #mob-bar{display:flex}
+  #arrows{display:none}
+  #ctr{display:none}
+  #dots{display:none}
+}
 #dots{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
 .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);border:none;cursor:pointer;transition:all .3s}
 .dot.on{background:var(--gold);transform:scale(1.5)}
@@ -95,7 +107,7 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 .seg-card.featured{border-color:var(--gold);background:rgba(240,165,0,.08)}
 
 /* ── COUNTRY SLIDES ── */
-.slide-country{color:#fff}
+.slide-country{color:#fff;padding:40px 40px}
 .country-split{display:grid;grid-template-columns:1fr 1fr;gap:0;width:100%;max-width:1200px;height:80vh;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 .country-img{position:relative;background-size:cover;background-position:center}
 .country-img .overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.6),rgba(0,0,0,.3))}
@@ -173,7 +185,7 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 }
 #s13 h2{font-family:'Montserrat',sans-serif;font-size:clamp(32px,4vw,60px);font-weight:900;text-transform:uppercase;margin-bottom:16px}
 #s13 h2 span{color:var(--g-light)}
-#s13 p{font-size:18px;color:rgba(255,255,255,.7);max-width:600px;margin:0 auto 40px;line-height:1.6}
+#s13 p{font-size:clamp(13px,1.6vw,18px);color:rgba(255,255,255,.7);max-width:600px;margin:0 auto 40px;line-height:1.6}
 .next-steps{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:50px}
 .next-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:24px 28px;max-width:240px;backdrop-filter:blur(8px)}
 .next-card .n{font-family:'Montserrat',sans-serif;font-size:40px;font-weight:900;color:var(--g-light);line-height:1}
@@ -197,11 +209,148 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 .stagger.visible>*:nth-child(6){transition-delay:.6s}
 .stagger.visible>*:nth-child(7){transition-delay:.7s}
 
+/* ══ TABLET ≤ 900px ══ */
 @media(max-width:900px){
-  section{padding:30px 24px}
-  .counters,.comp-grid,.seg-grid,.phases{grid-template-columns:repeat(2,1fr)}
-  .country-split,.pos-grid{grid-template-columns:1fr}
-  .t-items{grid-template-columns:repeat(3,1fr)}
+  section{padding:50px 28px 90px}
+  .s-header{margin-bottom:28px}
+  .counters{grid-template-columns:repeat(2,1fr);gap:14px}
+  .comp-grid{grid-template-columns:repeat(2,1fr);gap:14px}
+  .seg-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .phases{grid-template-columns:1fr;gap:14px}
+  .country-split{grid-template-columns:1fr;height:auto;min-height:unset;border-radius:12px}
+  .country-img{min-height:240px}
+  .country-data{padding:24px;overflow-y:visible}
+  .pos-grid{grid-template-columns:1fr;gap:20px}
+  .t-items{grid-template-columns:repeat(3,1fr);gap:10px}
+  #s1 .stats-row{gap:24px}
+  .next-steps{gap:14px}
+  .next-card{max-width:200px;padding:18px}
+  .growth-bar{margin-top:16px}
+}
+
+/* ══ MOBILE ≤ 480px ══ */
+@media(max-width:480px){
+  html{scroll-snap-type:none}
+
+  section{
+    height:auto;min-height:100svh;
+    padding:64px 16px 86px;
+    overflow:visible;
+    justify-content:flex-start;
+    align-items:stretch
+  }
+
+  /* nav */
+  #dots{display:none}
+  #arrows{bottom:14px;gap:8px}
+  .arr{width:40px;height:40px;font-size:15px}
+  #ctr{bottom:16px;right:16px;font-size:10px}
+
+  /* ── slide 1 ── */
+  #s1{justify-content:center;align-items:center;text-align:center}
+  #s1 .tag{font-size:9px;letter-spacing:1px;padding:4px 12px;margin-bottom:14px}
+  #s1 h1{font-size:clamp(28px,8vw,38px);margin-bottom:10px;letter-spacing:0}
+  #s1 p{font-size:13px;margin-bottom:22px}
+  #s1 .stats-row{gap:10px;justify-content:center}
+  #s1 .stat{padding-left:10px}
+  #s1 .stat b{font-size:clamp(20px,6vw,26px)}
+  #s1 .stat small{font-size:9px}
+  .scroll-hint{bottom:76px;font-size:10px}
+
+  /* ── slide 2 ── */
+  #s2{align-items:center}
+  .s-header{margin-bottom:18px;text-align:center}
+  .s-header h2{font-size:clamp(18px,5vw,24px)}
+  .s-header .label{font-size:10px}
+  .counters{grid-template-columns:repeat(2,1fr);gap:10px;width:100%}
+  .counter-box{padding:14px 10px;border-radius:10px}
+  .counter-box .num{font-size:clamp(24px,7vw,32px)}
+  .counter-box .unit{font-size:11px}
+  .counter-box .desc{font-size:9px}
+  .growth-bar{padding:12px 14px;margin-top:12px;border-radius:10px}
+  .growth-bar h4{font-size:10px;margin-bottom:10px}
+  .bars{height:55px;gap:6px}
+  .bar-item span{font-size:8px}
+  .bar-item strong{font-size:9px}
+
+  /* ── slide 3 ── */
+  #s3{align-items:center}
+  .comp-grid{grid-template-columns:1fr;gap:10px;width:100%}
+  .comp-card{padding:14px}
+  .comp-card h4{font-size:13px}
+  .comp-card .origin{font-size:10px}
+  .comp-row{font-size:11px;padding:5px 0}
+
+  /* ── slide 4 ── */
+  #s4{align-items:center}
+  .seg-grid{grid-template-columns:repeat(2,1fr);gap:8px;width:100%}
+  .seg-card{padding:12px 10px;border-radius:10px}
+  .seg-icon{font-size:24px;margin-bottom:6px}
+  .seg-card h4{font-size:11px;margin-bottom:4px}
+  .seg-card .ticket{font-size:11px}
+  .seg-card p{font-size:10px}
+
+  /* ── country slides ── */
+  .slide-country{padding:0!important}
+  .country-split{
+    grid-template-columns:1fr;height:auto;
+    border-radius:0;width:100%;
+    box-shadow:none
+  }
+  .country-img{min-height:190px;max-height:210px}
+  .country-img-content{padding:18px 16px}
+  .country-flag{font-size:34px;margin-bottom:6px}
+  .country-img h2{font-size:clamp(26px,7vw,34px)}
+  .country-img .rank{font-size:11px;margin-top:4px}
+  .country-data{padding:18px 16px;overflow-y:visible}
+  .country-data h3{font-size:10px;margin-bottom:10px}
+  .kpi-grid{gap:8px;margin-bottom:14px}
+  .kpi{padding:8px;border-radius:8px}
+  .kpi b{font-size:18px}
+  .kpi span{font-size:9px}
+  .opp-bar{margin-bottom:12px}
+  .opp-bar .bar-label{font-size:10px;margin-bottom:4px}
+  .opp-track{height:6px}
+  .clients-list li{font-size:11px;padding:5px 0}
+
+  /* ── slide 10 ── */
+  #s10{align-items:center}
+  .phases{grid-template-columns:1fr;gap:10px;width:100%}
+  .phase{padding:16px;border-radius:10px}
+  .phase .period{font-size:16px;margin-bottom:12px}
+  .phase li{font-size:11px;padding:5px 0}
+  .phase h4{font-size:11px}
+
+  /* ── slide 11 ── */
+  #s11{align-items:center}
+  .pos-grid{grid-template-columns:1fr;gap:16px;width:100%}
+  .pos-prop{padding:18px;border-radius:14px}
+  .pos-prop .quote{font-size:13px;margin-bottom:16px}
+  .diff-list{gap:10px}
+  .diff-item{padding:12px;border-radius:10px}
+  .diff-num{width:32px;height:32px;font-size:14px;flex-shrink:0}
+  .diff-text h5{font-size:12px}
+  .diff-text p{font-size:10px}
+
+  /* ── slide 12 ── */
+  #s12{align-items:center}
+  .timeline::before{display:none}
+  .t-items{grid-template-columns:repeat(2,1fr);gap:8px;padding-top:8px}
+  .t-item::before{display:none}
+  .t-month{font-size:10px;margin-bottom:5px}
+  .t-card{padding:10px;font-size:10px;border-radius:8px}
+  .t-card strong{font-size:11px;margin-bottom:3px}
+
+  /* ── slide 13 ── */
+  #s13{justify-content:center;align-items:center}
+  #s13 h2{font-size:clamp(28px,8vw,36px)}
+  #s13 p{font-size:13px;margin-bottom:22px}
+  .next-steps{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:22px}
+  .next-card{max-width:100%;padding:14px 16px}
+  .next-card .n{font-size:28px}
+  .next-card h5{font-size:13px}
+  .next-card p{font-size:11px}
+  .cta-btn{font-size:12px;padding:14px 22px;letter-spacing:1px}
 }
 </style>
 </head>
@@ -214,6 +363,11 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 <div id="arrows">
   <button class="arr" id="prev">↑</button>
   <button class="arr" id="next">↓</button>
+</div>
+<div id="mob-bar">
+  <button class="mob-prev" id="mprev">←</button>
+  <div class="mob-dots" id="mdots"></div>
+  <button class="mob-next" id="mnext">→</button>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -810,7 +964,7 @@ const slides = document.querySelectorAll('section');
 const total = slides.length;
 let current = 0;
 
-// Create dots
+// Desktop dots
 const dotsEl = document.getElementById('dots');
 slides.forEach((_,i) => {
   const d = document.createElement('button');
@@ -819,6 +973,16 @@ slides.forEach((_,i) => {
   d.onclick = ()=>goTo(i);
   dotsEl.appendChild(d);
 });
+
+// Mobile dots
+const mdotsEl = document.getElementById('mdots');
+slides.forEach((_,i) => {
+  const d = document.createElement('div');
+  d.className = 'mob-dot' + (i===0?' on':'');
+  mdotsEl.appendChild(d);
+});
+document.getElementById('mprev').onclick = ()=>goTo(current-1);
+document.getElementById('mnext').onclick = ()=>goTo(current+1);
 
 function goTo(n){
   n = Math.max(0, Math.min(total-1, n));
@@ -834,6 +998,17 @@ document.addEventListener('keydown', e=>{
   if(e.key==='ArrowUp'||e.key==='ArrowLeft') goTo(current-1);
 });
 
+// Touch swipe
+let ty=0,tx=0;
+document.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dy=ty-e.changedTouches[0].clientY;
+  const dx=tx-e.changedTouches[0].clientX;
+  if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>55){
+    if(dy>0) goTo(current+1); else goTo(current-1);
+  }
+},{passive:true});
+
 // Intersection Observer for active slide
 const io = new IntersectionObserver(entries=>{
   entries.forEach(e=>{
@@ -841,6 +1016,7 @@ const io = new IntersectionObserver(entries=>{
       const i = Array.from(slides).indexOf(e.target);
       current = i;
       document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('on',j===i));
+      document.querySelectorAll('.mob-dot').forEach((d,j)=>d.classList.toggle('on',j===i));
       document.getElementById('ctr').textContent = String(i+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
       document.getElementById('progress').style.width = ((i+1)/total*100)+'%';
       // Trigger animations
