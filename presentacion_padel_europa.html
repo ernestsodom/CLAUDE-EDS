@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Comercial — Pádel Europa 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --g-dark:#0a2e1f;--g-main:#1a5f3c;--g-bright:#27ae60;--g-light:#2ecc71;
+  --gold:#f0a500;--gold-l:#f1c40f;--white:#fff;--off:#f0faf5;
+  --text:#0d1f15;--mid:#34495e;
+}
+html{scroll-snap-type:y mandatory;overflow-y:scroll;height:100%}
+body{font-family:'Inter',sans-serif;background:#000;height:100%}
+
+/* ── NAVIGATION ── */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--g-light),var(--gold));z-index:999;transition:width .3s}
+#dots{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);border:none;cursor:pointer;transition:all .3s}
+.dot.on{background:var(--gold);transform:scale(1.5)}
+#ctr{position:fixed;bottom:20px;right:28px;z-index:999;color:rgba(255,255,255,.55);font-size:11px;font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:1px}
+#arrows{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;display:flex;gap:12px}
+.arr{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:16px;transition:all .2s;backdrop-filter:blur(6px)}
+.arr:hover{background:rgba(255,255,255,.3)}
+
+/* ── SLIDES BASE ── */
+section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;padding:40px 60px}
+
+/* ── SLIDE 1: COVER ── */
+#s1{
+  background:linear-gradient(135deg,rgba(10,46,31,.9) 0%,rgba(0,0,0,.8) 100%),
+  url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  color:#fff;text-align:center
+}
+#s1 .tag{background:var(--gold);color:#000;font-size:11px;font-weight:700;letter-spacing:3px;padding:5px 16px;border-radius:20px;margin-bottom:28px;display:inline-block}
+#s1 h1{font-family:'Montserrat',sans-serif;font-size:clamp(36px,5vw,72px);font-weight:900;line-height:1.05;text-transform:uppercase;letter-spacing:-1px;margin-bottom:14px}
+#s1 h1 span{color:var(--g-light)}
+#s1 p{font-size:clamp(14px,1.5vw,20px);color:rgba(255,255,255,.75);font-weight:300;margin-bottom:50px;max-width:600px}
+#s1 .stats-row{display:flex;gap:50px;justify-content:center;flex-wrap:wrap}
+#s1 .stat{text-align:center;border-left:2px solid var(--gold);padding-left:20px}
+#s1 .stat b{display:block;font-family:'Montserrat',sans-serif;font-size:clamp(28px,3vw,42px);font-weight:900;color:var(--g-light)}
+#s1 .stat small{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:1px;text-transform:uppercase}
+.scroll-hint{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.4);font-size:12px;letter-spacing:2px;text-transform:uppercase;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ── SLIDE 2: MERCADO ── */
+#s2{background:linear-gradient(160deg,#0a2e1f 0%,#0d1f15 100%);color:#fff}
+.s-header{text-align:center;margin-bottom:50px}
+.s-header .label{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
+.s-header h2{font-family:'Montserrat',sans-serif;font-size:clamp(28px,3.5vw,48px);font-weight:900;color:#fff}
+.s-header h2 span{color:var(--g-light)}
+.counters{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;width:100%;max-width:1100px}
+.counter-box{background:rgba(255,255,255,.05);border:1px solid rgba(46,204,113,.2);border-radius:16px;padding:30px 20px;text-align:center;position:relative;overflow:hidden;transition:transform .3s}
+.counter-box:hover{transform:translateY(-4px);border-color:var(--g-light)}
+.counter-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g-bright),var(--g-light))}
+.counter-box .num{font-family:'Montserrat',sans-serif;font-size:clamp(32px,3vw,52px);font-weight:900;color:var(--g-light);display:block}
+.counter-box .unit{font-size:14px;color:var(--gold);font-weight:600;margin:4px 0}
+.counter-box .desc{font-size:12px;color:rgba(255,255,255,.55);line-height:1.4}
+.growth-bar{width:100%;max-width:1100px;margin-top:36px;background:rgba(255,255,255,.05);border-radius:12px;padding:22px 28px;border:1px solid rgba(46,204,113,.15)}
+.growth-bar h4{color:rgba(255,255,255,.7);font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.bars{display:flex;gap:16px;align-items:flex-end;height:80px}
+.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bar-fill{width:100%;background:linear-gradient(180deg,var(--g-light),var(--g-main));border-radius:4px 4px 0 0;transition:height 1.5s ease;position:relative}
+.bar-item span{font-size:10px;color:rgba(255,255,255,.5);font-weight:600}
+.bar-item strong{font-size:11px;color:var(--g-light);font-weight:700}
+
+/* ── SLIDE 3: COMPETENCIA ── */
+#s3{background:linear-gradient(160deg,#0f1e2a 0%,#0a1520 100%);color:#fff}
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;max-width:1100px}
+.comp-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:22px;transition:all .3s;position:relative}
+.comp-card:hover{transform:translateY(-3px);border-color:rgba(46,204,113,.4)}
+.comp-card.highlight{border-color:var(--gold);background:rgba(240,165,0,.08)}
+.comp-card.highlight::after{content:'NOSOTROS';position:absolute;top:-10px;right:16px;background:var(--gold);color:#000;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:1px}
+.comp-card h4{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px;color:#fff}
+.comp-card .origin{font-size:11px;color:var(--g-light);margin-bottom:12px;font-weight:500}
+.comp-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px}
+.comp-row:last-child{border:none}
+.comp-row .label{color:rgba(255,255,255,.5)}
+.comp-row .val{color:#fff;font-weight:600}
+.comp-row .val.good{color:var(--g-light)}
+.comp-row .val.bad{color:#e74c3c}
+.price-band{margin-top:10px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--g-main),var(--g-light))}
+
+/* ── SLIDE 4: CLIENTES ── */
+#s4{background:linear-gradient(160deg,#1a0a2e 0%,#0d0d1f 100%);color:#fff}
+.seg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:1100px}
+.seg-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px;text-align:center;transition:all .3s;cursor:default}
+.seg-card:hover{transform:translateY(-4px);background:rgba(46,204,113,.1);border-color:var(--g-light)}
+.seg-icon{font-size:32px;margin-bottom:10px;display:block}
+.seg-card h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px;font-family:'Montserrat',sans-serif}
+.seg-card .ticket{color:var(--gold);font-size:13px;font-weight:700;margin-bottom:6px}
+.seg-card p{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4}
+.seg-card.featured{border-color:var(--gold);background:rgba(240,165,0,.08)}
+
+/* ── COUNTRY SLIDES ── */
+.slide-country{color:#fff}
+.country-split{display:grid;grid-template-columns:1fr 1fr;gap:0;width:100%;max-width:1200px;height:80vh;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.country-img{position:relative;background-size:cover;background-position:center}
+.country-img .overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.6),rgba(0,0,0,.3))}
+.country-img-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:36px;z-index:1}
+.country-flag{font-size:56px;margin-bottom:12px;line-height:1}
+.country-img h2{font-family:'Montserrat',sans-serif;font-size:clamp(32px,3.5vw,52px);font-weight:900;text-transform:uppercase;letter-spacing:-1px;line-height:1}
+.country-img .rank{color:var(--gold);font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:8px}
+.country-data{background:#0d1f15;padding:36px;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.country-data h3{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.kpi{background:rgba(255,255,255,.05);border-radius:10px;padding:12px;border-left:3px solid var(--g-light)}
+.kpi b{display:block;font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;color:var(--g-light)}
+.kpi span{font-size:11px;color:rgba(255,255,255,.55)}
+.opp-bar{margin-bottom:20px}
+.opp-bar .bar-label{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.6);margin-bottom:5px}
+.opp-track{height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.opp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--g-main),var(--g-light));width:0;transition:width 1.2s ease .3s}
+.clients-list{list-style:none}
+.clients-list li{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:8px}
+.clients-list li::before{content:'→';color:var(--g-light);font-weight:700}
+
+/* ── SLIDE 10: ACCIONES ── */
+#s10{background:linear-gradient(160deg,#0a1f2e 0%,#050f18 100%);color:#fff}
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%;max-width:1100px}
+.phase{border-radius:14px;padding:26px;border-top:4px solid}
+.phase:nth-child(1){background:rgba(46,204,113,.08);border-color:var(--g-light)}
+.phase:nth-child(2){background:rgba(240,165,0,.08);border-color:var(--gold)}
+.phase:nth-child(3){background:rgba(52,152,219,.08);border-color:#3498db}
+.phase h4{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.phase:nth-child(1) h4{color:var(--g-light)}
+.phase:nth-child(2) h4{color:var(--gold)}
+.phase:nth-child(3) h4{color:#3498db}
+.phase .period{font-size:20px;font-weight:700;color:#fff;margin-bottom:18px}
+.phase ul{list-style:none}
+.phase li{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.75);line-height:1.4;display:flex;gap:8px}
+.phase li::before{content:'•';font-size:18px;line-height:1;flex-shrink:0}
+.phase:nth-child(1) li::before{color:var(--g-light)}
+.phase:nth-child(2) li::before{color:var(--gold)}
+.phase:nth-child(3) li::before{color:#3498db}
+.phase li:last-child{border:none}
+
+/* ── SLIDE 11: POSICIONAMIENTO ── */
+#s11{background:linear-gradient(160deg,#1a1a0a 0%,#0f0f05 100%);color:#fff}
+.pos-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:40px;width:100%;max-width:1100px;align-items:center}
+.pos-prop{background:linear-gradient(135deg,var(--g-dark),#0d2e1f);border:1px solid rgba(46,204,113,.3);border-radius:20px;padding:36px}
+.pos-prop .quote{font-family:'Montserrat',sans-serif;font-size:clamp(16px,1.8vw,22px);font-weight:700;line-height:1.5;color:#fff;font-style:italic;margin-bottom:24px}
+.pos-prop .quote em{color:var(--g-light);font-style:normal}
+.pos-tag{display:inline-block;background:var(--gold);color:#000;font-size:10px;font-weight:800;padding:4px 14px;border-radius:20px;letter-spacing:2px;text-transform:uppercase}
+.diff-list{display:flex;flex-direction:column;gap:14px}
+.diff-item{display:flex;gap:16px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.07);transition:all .3s}
+.diff-item:hover{border-color:rgba(46,204,113,.3);background:rgba(46,204,113,.05)}
+.diff-num{background:var(--g-main);color:#fff;font-family:'Montserrat',sans-serif;font-weight:900;font-size:18px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.diff-text h5{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px}
+.diff-text p{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4}
+
+/* ── SLIDE 12: CRONOGRAMA ── */
+#s12{background:linear-gradient(160deg,#0d1520 0%,#050a10 100%);color:#fff}
+.timeline{width:100%;max-width:1100px;position:relative;padding-top:20px}
+.timeline::before{content:'';position:absolute;top:50px;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g-light),var(--gold),#3498db)}
+.t-items{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;padding-top:60px}
+.t-item{position:relative;text-align:center}
+.t-item::before{content:'';position:absolute;top:-38px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;border:3px solid}
+.t-item:nth-child(-n+2)::before{border-color:var(--g-light);background:var(--g-dark)}
+.t-item:nth-child(n+3):nth-child(-n+4)::before{border-color:var(--gold);background:var(--g-dark)}
+.t-item:nth-child(n+5)::before{border-color:#3498db;background:var(--g-dark)}
+.t-month{font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:1px;margin-bottom:8px}
+.t-card{background:rgba(255,255,255,.05);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.75);line-height:1.5}
+.t-card strong{display:block;font-size:12px;color:#fff;margin-bottom:4px;font-family:'Montserrat',sans-serif}
+
+/* ── SLIDE 13: CIERRE ── */
+#s13{
+  background:linear-gradient(135deg,rgba(10,46,31,.95) 0%,rgba(0,0,0,.9) 100%),
+  url('https://images.unsplash.com/photo-1526676317768-d9b14f15615a?auto=format&fit=crop&w=1920&q=80') center/cover;
+  color:#fff;text-align:center
+}
+#s13 h2{font-family:'Montserrat',sans-serif;font-size:clamp(32px,4vw,60px);font-weight:900;text-transform:uppercase;margin-bottom:16px}
+#s13 h2 span{color:var(--g-light)}
+#s13 p{font-size:18px;color:rgba(255,255,255,.7);max-width:600px;margin:0 auto 40px;line-height:1.6}
+.next-steps{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:50px}
+.next-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:24px 28px;max-width:240px;backdrop-filter:blur(8px)}
+.next-card .n{font-family:'Montserrat',sans-serif;font-size:40px;font-weight:900;color:var(--g-light);line-height:1}
+.next-card h5{font-size:14px;font-weight:700;margin:8px 0 6px;color:#fff}
+.next-card p{font-size:12px;color:rgba(255,255,255,.55);line-height:1.4}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--g-main),var(--g-bright));color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:16px 40px;border-radius:40px;border:none;cursor:pointer;transition:all .3s;box-shadow:0 8px 30px rgba(46,204,113,.3)}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,204,113,.5)}
+
+/* ── ANIM HELPERS ── */
+.fade-up{opacity:0;transform:translateY(30px);transition:all .7s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+.fade-in{opacity:0;transition:opacity .8s ease}
+.fade-in.visible{opacity:1}
+.stagger>*{opacity:0;transform:translateY(20px);transition:all .6s ease}
+.stagger.visible>*{opacity:1;transform:translateY(0)}
+.stagger.visible>*:nth-child(1){transition-delay:.1s}
+.stagger.visible>*:nth-child(2){transition-delay:.2s}
+.stagger.visible>*:nth-child(3){transition-delay:.3s}
+.stagger.visible>*:nth-child(4){transition-delay:.4s}
+.stagger.visible>*:nth-child(5){transition-delay:.5s}
+.stagger.visible>*:nth-child(6){transition-delay:.6s}
+.stagger.visible>*:nth-child(7){transition-delay:.7s}
+
+@media(max-width:900px){
+  section{padding:30px 24px}
+  .counters,.comp-grid,.seg-grid,.phases{grid-template-columns:repeat(2,1fr)}
+  .country-split,.pos-grid{grid-template-columns:1fr}
+  .t-items{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- Fixed UI -->
+<div id="progress"></div>
+<div id="dots"></div>
+<div id="ctr">01 / 13</div>
+<div id="arrows">
+  <button class="arr" id="prev">↑</button>
+  <button class="arr" id="next">↓</button>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 1: PORTADA
+═══════════════════════════════════════════════ -->
+<section id="s1">
+  <div class="fade-up">
+    <span class="tag">ALICANTE, ESPAÑA · JUNIO 2026</span>
+    <h1>Plan Comercial<br><span>Pádel Europa</span><br>2026</h1>
+    <p>Empresa chilena de canchas de pádel premium.<br>Estrategia de expansión europea desde Alicante.</p>
+  </div>
+  <div class="stats-row fade-in">
+    <div class="stat"><b class="cnt" data-target="35">0</b><span>millones de jugadores</span></div>
+    <div class="stat"><b class="cnt" data-target="77300">0</b><span>canchas en el mundo</span></div>
+    <div class="stat"><b class="cnt" data-target="15">0</b><span>% crecimiento anual</span></div>
+    <div class="stat"><b class="cnt" data-target="51000">0</b><span>canchas en Europa</span></div>
+  </div>
+  <div class="scroll-hint">↓ &nbsp; desliza para explorar</div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 2: MERCADO GLOBAL
+═══════════════════════════════════════════════ -->
+<section id="s2">
+  <div class="s-header fade-up">
+    <div class="label">La Oportunidad</div>
+    <h2>El pádel es el deporte de mayor<br><span>crecimiento en Europa</span></h2>
+  </div>
+  <div class="counters stagger" style="max-width:1100px">
+    <div class="counter-box">
+      <span class="num cnt2" data-target="77300">0</span>
+      <div class="unit">canchas globales</div>
+      <div class="desc">+15,2% vs año anterior según FIP 2025</div>
+    </div>
+    <div class="counter-box">
+      <span class="num cnt2" data-target="35">0</span>
+      <div class="unit">millones de jugadores</div>
+      <div class="desc">+42% en membresías federadas en 2025</div>
+    </div>
+    <div class="counter-box">
+      <span class="num cnt2" data-target="225">0</span>
+      <div class="unit">millones USD mercado 2032</div>
+      <div class="desc">Desde USD 136M en 2025 · CAGR 7,5%</div>
+    </div>
+    <div class="counter-box">
+      <span class="num cnt2" data-target="24600">0</span>
+      <div class="unit">clubes en el mundo</div>
+      <div class="desc">+4.775 nuevos clubes solo en 2025</div>
+    </div>
+  </div>
+  <div class="growth-bar fade-in" style="max-width:1100px;margin-top:28px">
+    <h4>Canchas por país · Top 6 Europa (en miles)</h4>
+    <div class="bars" id="barChart">
+      <div class="bar-item"><div class="bar-fill" data-h="95" style="height:0px"></div><strong>España</strong><span>17.300</span></div>
+      <div class="bar-item"><div class="bar-fill" data-h="59" style="height:0px;background:linear-gradient(180deg,#e74c3c,#c0392b)"></div><strong>Italia</strong><span>10.220</span></div>
+      <div class="bar-item"><div class="bar-fill" data-h="24" style="height:0px;background:linear-gradient(180deg,#3498db,#2980b9)"></div><strong>Suecia</strong><span>4.220</span></div>
+      <div class="bar-item"><div class="bar-fill" data-h="23" style="height:0px;background:linear-gradient(180deg,#9b59b6,#8e44ad)"></div><strong>Francia</strong><span>4.000</span></div>
+      <div class="bar-item"><div class="bar-fill" data-h="21" style="height:0px;background:linear-gradient(180deg,#f39c12,#e67e22)"></div><strong>P. Bajos</strong><span>3.570</span></div>
+      <div class="bar-item"><div class="bar-fill" data-h="5" style="height:0px;background:linear-gradient(180deg,#95a5a6,#7f8c8d)"></div><strong>Alemania</strong><span>875</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 3: COMPETENCIA
+═══════════════════════════════════════════════ -->
+<section id="s3">
+  <div class="s-header fade-up">
+    <div class="label">Análisis Competitivo</div>
+    <h2>Quiénes son y <span>cómo superarlos</span></h2>
+  </div>
+  <div class="comp-grid stagger" style="max-width:1100px">
+    <div class="comp-card">
+      <h4>Portico Sport</h4><div class="origin">España · Líder global</div>
+      <div class="comp-row"><span class="label">Precio base</span><span class="val">€15.000–€25.000</span></div>
+      <div class="comp-row"><span class="label">Canchas inst.</span><span class="val">+4.000</span></div>
+      <div class="comp-row"><span class="label">Garantía</span><span class="val good">10 años</span></div>
+      <div class="comp-row"><span class="label">Financiamiento</span><span class="val good">Sí</span></div>
+      <div class="comp-row"><span class="label">Entrega</span><span class="val">6–10 semanas</span></div>
+      <div class="comp-row"><span class="label">Debilidad</span><span class="val bad">Precio alto</span></div>
+    </div>
+    <div class="comp-card">
+      <h4>VerdePadel</h4><div class="origin">España · 18 años</div>
+      <div class="comp-row"><span class="label">Precio base</span><span class="val">€15.000–€22.000</span></div>
+      <div class="comp-row"><span class="label">Canchas inst.</span><span class="val">+2.000</span></div>
+      <div class="comp-row"><span class="label">Garantía</span><span class="val">No publicada</span></div>
+      <div class="comp-row"><span class="label">Financiamiento</span><span class="val bad">No visible</span></div>
+      <div class="comp-row"><span class="label">Entrega</span><span class="val">6–8 semanas</span></div>
+      <div class="comp-row"><span class="label">Debilidad</span><span class="val bad">Sin leasing</span></div>
+    </div>
+    <div class="comp-card">
+      <h4>Padel Courts Deluxe</h4><div class="origin">Alicante · 10 años</div>
+      <div class="comp-row"><span class="label">Precio base</span><span class="val">€12.000–€20.000</span></div>
+      <div class="comp-row"><span class="label">Presencia</span><span class="val">España + Europa</span></div>
+      <div class="comp-row"><span class="label">Garantía</span><span class="val">No publicada</span></div>
+      <div class="comp-row"><span class="label">Financiamiento</span><span class="val bad">No visible</span></div>
+      <div class="comp-row"><span class="label">Entrega</span><span class="val">4–8 semanas</span></div>
+      <div class="comp-row"><span class="label">Debilidad</span><span class="val bad">Misma ciudad</span></div>
+    </div>
+    <div class="comp-card">
+      <h4>Global Padel Court</h4><div class="origin">España · Internacional</div>
+      <div class="comp-row"><span class="label">Precio base</span><span class="val">€14.000–€22.000</span></div>
+      <div class="comp-row"><span class="label">Presencia</span><span class="val">Mundial</span></div>
+      <div class="comp-row"><span class="label">Garantía</span><span class="val">No publicada</span></div>
+      <div class="comp-row"><span class="label">Financiamiento</span><span class="val bad">No visible</span></div>
+      <div class="comp-row"><span class="label">Entrega</span><span class="val">6–10 semanas</span></div>
+      <div class="comp-row"><span class="label">Debilidad</span><span class="val bad">Sin postventa local</span></div>
+    </div>
+    <div class="comp-card">
+      <h4>Youngpadel</h4><div class="origin">China · Low cost</div>
+      <div class="comp-row"><span class="label">Precio base</span><span class="val good">€8.000–€14.000</span></div>
+      <div class="comp-row"><span class="label">Presencia</span><span class="val">Global (online)</span></div>
+      <div class="comp-row"><span class="label">Garantía</span><span class="val bad">Limitada</span></div>
+      <div class="comp-row"><span class="label">Financiamiento</span><span class="val bad">No</span></div>
+      <div class="comp-row"><span class="label">Entrega</span><span class="val bad">12–20 semanas</span></div>
+      <div class="comp-row"><span class="label">Debilidad</span><span class="val bad">Calidad incierta</span></div>
+    </div>
+    <div class="comp-card highlight">
+      <h4>Nuestra Empresa</h4><div class="origin" style="color:var(--gold)">Chile · Alicante · Objetivo</div>
+      <div class="comp-row"><span class="label">Precio base</span><span class="val">€13.000–€22.000</span></div>
+      <div class="comp-row"><span class="label">Garantía</span><span class="val good">10 años</span></div>
+      <div class="comp-row"><span class="label">Financiamiento</span><span class="val good">Leasing propio</span></div>
+      <div class="comp-row"><span class="label">Entrega</span><span class="val good">4–6 semanas</span></div>
+      <div class="comp-row"><span class="label">Cert. FIP</span><span class="val good">Obligatoria</span></div>
+      <div class="comp-row"><span class="label">Ventaja</span><span class="val good">Precio + Velocidad</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 4: CLIENTES POTENCIALES
+═══════════════════════════════════════════════ -->
+<section id="s4">
+  <div class="s-header fade-up">
+    <div class="label">Segmentación de Mercado</div>
+    <h2>7 tipos de clientes <span>con potencial real</span></h2>
+  </div>
+  <div class="seg-grid stagger" style="max-width:1100px">
+    <div class="seg-card featured">
+      <span class="seg-icon">🏢</span>
+      <h4>Operadores de Clubes</h4>
+      <div class="ticket">€60K–€250K</div>
+      <p>3–12 canchas. ROI en 3 años. 70% ocupación media. Mayor volumen de compra.</p>
+    </div>
+    <div class="seg-card featured">
+      <span class="seg-icon">🏨</span>
+      <h4>Hoteles y Resorts</h4>
+      <div class="ticket">€30K–€80K</div>
+      <p>Pádel ya es amenity estándar 4/5 estrellas. Demanda activa en toda Europa.</p>
+    </div>
+    <div class="seg-card featured">
+      <span class="seg-icon">🏗️</span>
+      <h4>Promotoras Inmobiliarias</h4>
+      <div class="ticket">€80K–€300K</div>
+      <p>Pádel revaloriza el inmueble +30%. Proyectos residenciales premium.</p>
+    </div>
+    <div class="seg-card">
+      <span class="seg-icon">🏛️</span>
+      <h4>Municipios</h4>
+      <div class="ticket">€30K–€120K</div>
+      <p>Fondos EU disponibles. Francia, Polonia y Portugal muy activos en gasto deportivo.</p>
+    </div>
+    <div class="seg-card">
+      <span class="seg-icon">💪</span>
+      <h4>Gimnasios y Centros</h4>
+      <div class="ticket">€40K–€100K</div>
+      <p>Cadenas de fitness añaden pádel para retener socios. Fuerte en UK y Alemania.</p>
+    </div>
+    <div class="seg-card">
+      <span class="seg-icon">🔗</span>
+      <h4>Franquicias de Pádel</h4>
+      <div class="ticket">€200K–€1M</div>
+      <p>Cadenas en expansión necesitan proveedor con capacidad de volumen y estándar.</p>
+    </div>
+    <div class="seg-card">
+      <span class="seg-icon">🔧</span>
+      <h4>Renovación de Parque</h4>
+      <div class="ticket">€6K–€15K/cancha</div>
+      <p>17.300 canchas en España + 10.220 en Italia instaladas entre 2012–2016 están llegando a fin de vida útil.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 5: ALEMANIA
+═══════════════════════════════════════════════ -->
+<section id="s5" class="slide-country" style="background:linear-gradient(160deg,#0a0f1a 0%,#050a12 100%)">
+  <div class="country-split">
+    <div class="country-img" style="background:linear-gradient(135deg,rgba(0,20,60,.7),rgba(0,0,0,.6)),url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80') center/cover">
+      <div class="overlay"></div>
+      <div class="country-img-content">
+        <div class="country-flag">🇩🇪</div>
+        <h2>Alemania</h2>
+        <div class="rank">Prioridad #1 · Mayor potencial</div>
+      </div>
+    </div>
+    <div class="country-data">
+      <div>
+        <h3>KPIs del Mercado</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><b>84M</b><span>habitantes</span></div>
+          <div class="kpi"><b>875</b><span>canchas actuales</span></div>
+          <div class="kpi"><b>10,4</b><span>canchas/millón hab.</span></div>
+          <div class="kpi"><b>×35</b><span>potencial vs España</span></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Oportunidad de mercado</span><span>9/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="90"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Logística desde Alicante</span><span>7/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="70" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Poder adquisitivo</span><span>10/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="100" style="background:linear-gradient(90deg,#f1c40f,#f39c12)"></div></div>
+        </div>
+        <h3 style="margin-top:16px">Clientes Prioritarios</h3>
+        <ul class="clients-list">
+          <li>Clubes de tenis en reconversión (miles disponibles)</li>
+          <li>Cadenas McFit, FitX, Holmes Place</li>
+          <li>Desarrolladores premium en Berlín, Múnich, Frankfurt</li>
+          <li>Hoteles Marriott, Hilton, Melia (programas activos)</li>
+        </ul>
+      </div>
+      <div style="background:rgba(240,165,0,.1);border-radius:10px;padding:14px;border:1px solid rgba(240,165,0,.3);margin-top:14px">
+        <p style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5"><strong style="color:var(--gold)">Estrategia clave:</strong> Contratar agente comercial alemán con red en clubes de tenis. La barrera idiomática es el único obstáculo real. El mercado "hotspot" garantiza demanda.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 6: FRANCIA
+═══════════════════════════════════════════════ -->
+<section id="s6" class="slide-country" style="background:linear-gradient(160deg,#0a0a1f 0%,#050510 100%)">
+  <div class="country-split">
+    <div class="country-img" style="background:linear-gradient(135deg,rgba(0,20,80,.7),rgba(0,0,0,.6)),url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=900&q=80') center/cover">
+      <div class="overlay"></div>
+      <div class="country-img-content">
+        <div class="country-flag">🇫🇷</div>
+        <h2>Francia</h2>
+        <div class="rank">Prioridad #2 · Crecimiento récord</div>
+      </div>
+    </div>
+    <div class="country-data">
+      <div>
+        <h3>KPIs del Mercado</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><b>68M</b><span>habitantes</span></div>
+          <div class="kpi"><b>4.000</b><span>canchas actuales</span></div>
+          <div class="kpi"><b>+55%</b><span>crecimiento 18 meses</span></div>
+          <div class="kpi"><b>8h</b><span>desde Alicante</span></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Oportunidad de mercado</span><span>8/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="80"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Logística desde Alicante</span><span>9/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="90" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Afinidad idiomática</span><span>7/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="70" style="background:linear-gradient(90deg,#9b59b6,#8e44ad)"></div></div>
+        </div>
+        <h3 style="margin-top:16px">Clientes Prioritarios</h3>
+        <ul class="clients-list">
+          <li>Clubs omnisports en reconversión (Lyon, Bordeaux, Nantes)</li>
+          <li>Club Med, Accor, Barrière (amenities activos)</li>
+          <li>Municipios con programas deportivos 2026–2030</li>
+          <li>Promotoras en Costa Azul y Occitanie</li>
+        </ul>
+      </div>
+      <div style="background:rgba(52,152,219,.1);border-radius:10px;padding:14px;border:1px solid rgba(52,152,219,.3);margin-top:14px">
+        <p style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5"><strong style="color:#3498db">Ventaja única:</strong> El +55% de crecimiento en 18 meses indica demanda no satisfecha. A 8h de Alicante en camión, es el mercado más accesible logísticamente de toda la lista.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 7: REINO UNIDO
+═══════════════════════════════════════════════ -->
+<section id="s7" class="slide-country" style="background:linear-gradient(160deg,#0a0510 0%,#050208 100%)">
+  <div class="country-split">
+    <div class="country-img" style="background:linear-gradient(135deg,rgba(40,0,80,.7),rgba(0,0,0,.6)),url('https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=900&q=80') center/cover">
+      <div class="overlay"></div>
+      <div class="country-img-content">
+        <div class="country-flag">🇬🇧</div>
+        <h2>Reino Unido</h2>
+        <div class="rank">Prioridad #3 · Mayor valor por cancha</div>
+      </div>
+    </div>
+    <div class="country-data">
+      <div>
+        <h3>KPIs del Mercado</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><b>67M</b><span>habitantes</span></div>
+          <div class="kpi"><b>~800</b><span>canchas actuales</span></div>
+          <div class="kpi"><b>#1</b><span>valor monetario/cancha</span></div>
+          <div class="kpi"><b>+74%</b><span>valor desde 2023</span></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Oportunidad de mercado</span><span>9/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="90"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Logística (post-Brexit)</span><span>6/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="60" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Rentabilidad por proyecto</span><span>10/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="100" style="background:linear-gradient(90deg,#f1c40f,#f39c12)"></div></div>
+        </div>
+        <h3 style="margin-top:16px">Clientes Prioritarios</h3>
+        <ul class="clients-list">
+          <li>Padel boutique clubs (concepto de lujo muy exitoso en UK)</li>
+          <li>Premier League Football Clubs (academias con pádel)</li>
+          <li>Hilton, Marriott, IHG (programas de expansion activos)</li>
+          <li>Mixed-use developers en Londres, Manchester, Birmingham</li>
+        </ul>
+      </div>
+      <div style="background:rgba(155,89,182,.1);border-radius:10px;padding:14px;border:1px solid rgba(155,89,182,.3);margin-top:14px">
+        <p style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5"><strong style="color:#9b59b6">Nota operativa:</strong> Post-Brexit requiere declaraciones aduaneras adicionales pero el TLC UE-UK facilita comercio. Recomendado abrir filial UK o agente comercial en Londres para el mediano plazo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 8: BENELUX
+═══════════════════════════════════════════════ -->
+<section id="s8" class="slide-country" style="background:linear-gradient(160deg,#001a1a 0%,#000f0f 100%)">
+  <div class="country-split">
+    <div class="country-img" style="background:linear-gradient(135deg,rgba(0,60,60,.7),rgba(0,0,0,.6)),url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=900&q=80') center/cover">
+      <div class="overlay"></div>
+      <div class="country-img-content">
+        <div class="country-flag">🇳🇱🇧🇪</div>
+        <h2>Benelux</h2>
+        <div class="rank">Prioridad #4 · Sweet Spot</div>
+      </div>
+    </div>
+    <div class="country-data">
+      <div>
+        <h3>KPIs del Mercado</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><b>28M</b><span>hab. combinados</span></div>
+          <div class="kpi"><b>5.720</b><span>canchas NL+BE</span></div>
+          <div class="kpi"><b>+653</b><span>canchas recientes</span></div>
+          <div class="kpi"><b>€40K</b><span>PIB per cápita</span></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Poder adquisitivo</span><span>10/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="100"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Logística (Rotterdam/Amberes)</span><span>9/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="90" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Apertura comercial</span><span>9/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="90" style="background:linear-gradient(90deg,#1abc9c,#16a085)"></div></div>
+        </div>
+        <h3 style="margin-top:16px">Clientes Prioritarios</h3>
+        <ul class="clients-list">
+          <li>Padel centers independientes (Eindhoven, Utrecht, Gante, Lieja)</li>
+          <li>Centros deportivos municipales holandeses (bien financiados)</li>
+          <li>Promotoras de housing estates sostenibles (NL líder europeo)</li>
+          <li>Inversores privados con perfil sport &amp; leisure</li>
+        </ul>
+      </div>
+      <div style="background:rgba(26,188,156,.1);border-radius:10px;padding:14px;border:1px solid rgba(26,188,156,.3);margin-top:14px">
+        <p style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5"><strong style="color:#1abc9c">Ventaja logística:</strong> Rotterdam y Amberes son los puertos más grandes de Europa. Inglés ampliamente hablado en ambos países. Libre circulación UE sin fricciones.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 9: POLONIA
+═══════════════════════════════════════════════ -->
+<section id="s9" class="slide-country" style="background:linear-gradient(160deg,#1a0505 0%,#0f0202 100%)">
+  <div class="country-split">
+    <div class="country-img" style="background:linear-gradient(135deg,rgba(100,0,0,.7),rgba(0,0,0,.6)),url('https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=900&q=80') center/cover">
+      <div class="overlay"></div>
+      <div class="country-img-content">
+        <div class="country-flag">🇵🇱</div>
+        <h2>Polonia</h2>
+        <div class="rank">Prioridad #5 · Mercado virgen</div>
+      </div>
+    </div>
+    <div class="country-data">
+      <div>
+        <h3>KPIs del Mercado</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><b>38M</b><span>habitantes</span></div>
+          <div class="kpi"><b>&lt;10</b><span>canchas/millón hab.</span></div>
+          <div class="kpi"><b>€76B</b><span>fondos UE 2021–2027</span></div>
+          <div class="kpi"><b>+5%</b><span>PIB per cápita anual</span></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Mercado virgen (penetración)</span><span>10/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="100"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Logística (distancia)</span><span>4/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="40" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div>
+        </div>
+        <div class="opp-bar">
+          <div class="bar-label"><span>Crecimiento económico</span><span>8/10</span></div>
+          <div class="opp-track"><div class="opp-fill" data-w="80" style="background:linear-gradient(90deg,#e74c3c,#c0392b)"></div></div>
+        </div>
+        <h3 style="margin-top:16px">Clientes Prioritarios</h3>
+        <ul class="clients-list">
+          <li>Inversores que conocen pádel de vacaciones en España</li>
+          <li>Clubes de tenis en Varsovia y Cracovia (base de jugadores lista)</li>
+          <li>Desarrolladores "lifestyle real estate" en grandes ciudades</li>
+          <li>Municipios con fondos EU para infraestructura deportiva</li>
+        </ul>
+      </div>
+      <div style="background:rgba(231,76,60,.1);border-radius:10px;padding:14px;border:1px solid rgba(231,76,60,.3);margin-top:14px">
+        <p style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5"><strong style="color:#e74c3c">Ventaja de primer entrante:</strong> Con menos de 10 canchas por millón de habitantes, quien entre primero y bien captura el liderazgo de marca en Europa Central. Riesgo mayor, recompensa mayor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 10: PLAN DE ACCIÓN
+═══════════════════════════════════════════════ -->
+<section id="s10">
+  <div class="s-header fade-up">
+    <div class="label">Plan de Acción</div>
+    <h2>15 acciones en <span>3 fases de ejecución</span></h2>
+  </div>
+  <div class="phases stagger" style="max-width:1100px">
+    <div class="phase">
+      <h4>Fase 1</h4>
+      <div class="period">Meses 0–3</div>
+      <ul>
+        <li>Demo park Alicante (1 outdoor + 1 panorámica)</li>
+        <li>Certificación FIP obligatoria</li>
+        <li>Catálogo técnico en 4 idiomas (ES/EN/FR/DE)</li>
+        <li>Alta en Europages y portales B2B</li>
+        <li>Agente comercial en Alemania y Francia</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <h4>Fase 2</h4>
+      <div class="period">Meses 3–6</div>
+      <ul>
+        <li>ISPO Munich (enero) y MIPIM Cannes (marzo)</li>
+        <li>Campaña LinkedIn B2B Europa (€500–2.000/mes)</li>
+        <li>Estructurar financiamiento / leasing propio</li>
+        <li>Programa "Cancha Piloto" en 2 mercados virgen</li>
+        <li>Alianzas con estudios de arquitectura deportiva</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <h4>Fase 3</h4>
+      <div class="period">Meses 6–18</div>
+      <ul>
+        <li>Catálogo específico de renovación (España+Italia)</li>
+        <li>Expansión a UK y Benelux con agentes locales</li>
+        <li>Red de instaladores certificados por país</li>
+        <li>Campaña fondos EU para municipios</li>
+        <li>Software gestión clubs (SaaS o alianza Playtomic)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 11: POSICIONAMIENTO
+═══════════════════════════════════════════════ -->
+<section id="s11">
+  <div class="s-header fade-up" style="margin-bottom:36px">
+    <div class="label">Propuesta de Valor</div>
+    <h2>Dónde <span>competimos y ganamos</span></h2>
+  </div>
+  <div class="pos-grid" style="max-width:1100px">
+    <div class="pos-prop fade-in">
+      <div class="pos-tag">Propuesta de Valor Única</div>
+      <p class="quote" style="margin-top:20px">"El único proveedor integral de canchas de pádel con instalación en <em>6 semanas</em>, financiamiento en cuotas, <em>certificación FIP</em> y soporte post-venta en Europa Central y del Norte. Desde <em>Alicante</em> al mundo."</p>
+    </div>
+    <div class="diff-list stagger">
+      <div class="diff-item">
+        <div class="diff-num">1</div>
+        <div class="diff-text"><h5>Velocidad de entrega</h5><p>4–6 semanas desde pedido vs 12–20 semanas de fabricantes chinos. Ventaja decisiva en mercados con demanda activa (UK, Alemania).</p></div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">2</div>
+        <div class="diff-text"><h5>Financiamiento / Leasing</h5><p>Solo Portico Sport lo menciona vagamente. Ofrecer leasing triplica el universo de clientes accesibles en Europa Central y del Norte.</p></div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">3</div>
+        <div class="diff-text"><h5>Servicio integral 360°</h5><p>Diseño + permisos + instalación + mantenimiento + software de gestión. El comprador no necesita coordinar a múltiples proveedores.</p></div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">4</div>
+        <div class="diff-text"><h5>Segmento medio desatendido</h5><p>Portico va a proyectos grandes; China va a precio puro. El rango de 3–8 canchas (€60K–€160K) está libre de competencia premium.</p></div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">5</div>
+        <div class="diff-text"><h5>Identidad latinoamericana</h5><p>Origen chileno puede ser un activo de imagen diferencial en un mercado saturado de marcas españolas. "Pádel desde la fuente del deporte."</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 12: CRONOGRAMA
+═══════════════════════════════════════════════ -->
+<section id="s12">
+  <div class="s-header fade-up">
+    <div class="label">Hoja de Ruta</div>
+    <h2>Cronograma de <span>18 meses</span></h2>
+  </div>
+  <div class="timeline fade-in" style="max-width:1100px">
+    <div class="t-items">
+      <div class="t-item">
+        <div class="t-month">Mes 1–2</div>
+        <div class="t-card"><strong>Bases</strong>Demo park · Cert. FIP · Catálogo 4 idiomas</div>
+      </div>
+      <div class="t-item">
+        <div class="t-month">Mes 3</div>
+        <div class="t-card"><strong>Comercial</strong>Agentes DE+FR · Europages · LinkedIn B2B</div>
+      </div>
+      <div class="t-item">
+        <div class="t-month">Mes 4–5</div>
+        <div class="t-card"><strong>Ferias</strong>ISPO Munich · 1a Cancha Piloto × 2 países</div>
+      </div>
+      <div class="t-item">
+        <div class="t-month">Mes 6</div>
+        <div class="t-card"><strong>Primeras Ventas</strong>Contratos firmados · Financiamiento activo</div>
+      </div>
+      <div class="t-item">
+        <div class="t-month">Mes 8–10</div>
+        <div class="t-card"><strong>Expansión</strong>UK + Benelux · 1er instalador certificado local</div>
+      </div>
+      <div class="t-item">
+        <div class="t-month">Mes 12–18</div>
+        <div class="t-card"><strong>Escala</strong>Polonia · Renovaciones ES/IT · Red 5 países</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%;max-width:1100px;margin-top:30px" class="stagger">
+    <div style="text-align:center;background:rgba(46,204,113,.08);border-radius:12px;padding:20px;border:1px solid rgba(46,204,113,.2)">
+      <div style="font-family:Montserrat,sans-serif;font-size:32px;font-weight:900;color:var(--g-light)" class="cnt3" data-target="5">0</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">ventas objetivo mes 6</div>
+    </div>
+    <div style="text-align:center;background:rgba(240,165,0,.08);border-radius:12px;padding:20px;border:1px solid rgba(240,165,0,.2)">
+      <div style="font-family:Montserrat,sans-serif;font-size:32px;font-weight:900;color:var(--gold)" class="cnt3" data-target="25">0</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">ventas objetivo mes 12</div>
+    </div>
+    <div style="text-align:center;background:rgba(52,152,219,.08);border-radius:12px;padding:20px;border:1px solid rgba(52,152,219,.2)">
+      <div style="font-family:Montserrat,sans-serif;font-size:32px;font-weight:900;color:#3498db" class="cnt3" data-target="5">0</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">países activos mes 18</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 13: CIERRE
+═══════════════════════════════════════════════ -->
+<section id="s13">
+  <div class="fade-up">
+    <h2>El momento<br>es <span>ahora</span></h2>
+    <p>Europa construye 14.000 canchas al año. Alicante está a 8 horas de Francia y 24 de Alemania. El mercado espera al proveedor que llegue primero con el paquete completo.</p>
+  </div>
+  <div class="next-steps fade-in">
+    <div class="next-card">
+      <div class="n">01</div>
+      <h5>Certificar con FIP</h5>
+      <p>Sin esta certificación no existe acceso al mercado de clubes profesionales en Europa</p>
+    </div>
+    <div class="next-card">
+      <div class="n">02</div>
+      <h5>Demo Park Alicante</h5>
+      <p>Una cancha funcionando convierte prospectos en compradores. Es la inversión más rentable</p>
+    </div>
+    <div class="next-card">
+      <div class="n">03</div>
+      <h5>Agente en Alemania</h5>
+      <p>El idioma es la única barrera real en el mercado más grande y virgen de Europa</p>
+    </div>
+  </div>
+  <button class="cta-btn fade-in">COMENZAR EXPANSIÓN EUROPA 2026</button>
+</section>
+
+<script>
+const slides = document.querySelectorAll('section');
+const total = slides.length;
+let current = 0;
+
+// Create dots
+const dotsEl = document.getElementById('dots');
+slides.forEach((_,i) => {
+  const d = document.createElement('button');
+  d.className = 'dot' + (i===0?' on':'');
+  d.title = 'Slide '+(i+1);
+  d.onclick = ()=>goTo(i);
+  dotsEl.appendChild(d);
+});
+
+function goTo(n){
+  n = Math.max(0, Math.min(total-1, n));
+  current = n;
+  slides[n].scrollIntoView({behavior:'smooth'});
+}
+
+document.getElementById('prev').onclick = ()=>goTo(current-1);
+document.getElementById('next').onclick = ()=>goTo(current+1);
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowRight') goTo(current+1);
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft') goTo(current-1);
+});
+
+// Intersection Observer for active slide
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting && e.intersectionRatio > 0.5){
+      const i = Array.from(slides).indexOf(e.target);
+      current = i;
+      document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('on',j===i));
+      document.getElementById('ctr').textContent = String(i+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+      document.getElementById('progress').style.width = ((i+1)/total*100)+'%';
+      // Trigger animations
+      e.target.querySelectorAll('.fade-up,.fade-in').forEach(el=>el.classList.add('visible'));
+      e.target.querySelectorAll('.stagger').forEach(el=>el.classList.add('visible'));
+      // Trigger bar fills
+      e.target.querySelectorAll('.opp-fill').forEach(el=>{el.style.width=(el.dataset.w||0)+'%'});
+      // Trigger counter animations (slide 2)
+      if(i===1) animateCounters('.cnt2');
+      if(i===0) animateCounters('.cnt');
+      if(i===11) animateCounters('.cnt3');
+      // Trigger chart bars
+      if(i===1) animateBars();
+    }
+  });
+},{threshold:0.5});
+
+slides.forEach(s=>io.observe(s));
+
+// Trigger first slide immediately
+slides[0].querySelectorAll('.fade-up,.fade-in').forEach(el=>el.classList.add('visible'));
+animateCounters('.cnt');
+
+function animateCounters(selector){
+  document.querySelectorAll(selector).forEach(el=>{
+    const target = parseInt(el.dataset.target);
+    const duration = 1800;
+    const start = performance.now();
+    const update = now=>{
+      const p = Math.min((now-start)/duration, 1);
+      const ease = 1-Math.pow(1-p,3);
+      el.textContent = Math.floor(ease*target).toLocaleString('es-ES');
+      if(p<1) requestAnimationFrame(update);
+      else el.textContent = target.toLocaleString('es-ES');
+    };
+    requestAnimationFrame(update);
+  });
+}
+
+function animateBars(){
+  const maxH = 80;
+  document.querySelectorAll('#barChart .bar-fill').forEach(bar=>{
+    const h = parseInt(bar.dataset.h);
+    setTimeout(()=>{ bar.style.height = (h/100*maxH)+'px'; }, 200);
+  });
+}
+</script>
+</body>
+</html>
