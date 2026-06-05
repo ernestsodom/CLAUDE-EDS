@@ -38,7 +38,9 @@ body{font-family:'Inter',sans-serif;background:#000;height:100%}
 .arr:hover{background:rgba(255,255,255,.3)}
 
 /* ── SLIDES BASE ── */
-section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;padding:40px 60px}
+section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow-x:hidden;overflow-y:hidden;padding:40px 60px}
+/* Content-heavy slides: anchor to top so overflow clips at bottom, never over text */
+#s2,#s3,#s4,#s10,#s11,#s12{justify-content:flex-start;align-items:center;padding-top:clamp(44px,5.5vh,72px)}
 
 /* ── SLIDE 1: COVER ── */
 #s1{
@@ -59,41 +61,41 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 
 /* ── SLIDE 2: MERCADO ── */
 #s2{background:linear-gradient(160deg,#0a2e1f 0%,#0d1f15 100%);color:#fff}
-.s-header{text-align:center;margin-bottom:50px}
-.s-header .label{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
-.s-header h2{font-family:'Montserrat',sans-serif;font-size:clamp(28px,3.5vw,48px);font-weight:900;color:#fff}
+.s-header{text-align:center;margin-bottom:clamp(18px,3vh,44px)}
+.s-header .label{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.s-header h2{font-family:'Montserrat',sans-serif;font-size:clamp(22px,3vw,44px);font-weight:900;color:#fff}
 .s-header h2 span{color:var(--g-light)}
-.counters{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;width:100%;max-width:1100px}
-.counter-box{background:rgba(255,255,255,.05);border:1px solid rgba(46,204,113,.2);border-radius:16px;padding:30px 20px;text-align:center;position:relative;overflow:hidden;transition:transform .3s}
+.counters{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,1.8vw,24px);width:100%;max-width:1100px}
+.counter-box{background:rgba(255,255,255,.05);border:1px solid rgba(46,204,113,.2);border-radius:14px;padding:clamp(14px,2.2vh,28px) clamp(10px,1.5vw,20px);text-align:center;position:relative;overflow:hidden;transition:transform .3s}
 .counter-box:hover{transform:translateY(-4px);border-color:var(--g-light)}
 .counter-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g-bright),var(--g-light))}
-.counter-box .num{font-family:'Montserrat',sans-serif;font-size:clamp(32px,3vw,52px);font-weight:900;color:var(--g-light);display:block}
-.counter-box .unit{font-size:14px;color:var(--gold);font-weight:600;margin:4px 0}
-.counter-box .desc{font-size:12px;color:rgba(255,255,255,.55);line-height:1.4}
-.growth-bar{width:100%;max-width:1100px;margin-top:36px;background:rgba(255,255,255,.05);border-radius:12px;padding:22px 28px;border:1px solid rgba(46,204,113,.15)}
-.growth-bar h4{color:rgba(255,255,255,.7);font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
-.bars{display:flex;gap:16px;align-items:flex-end;height:80px}
-.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
-.bar-fill{width:100%;background:linear-gradient(180deg,var(--g-light),var(--g-main));border-radius:4px 4px 0 0;transition:height 1.5s ease;position:relative}
-.bar-item span{font-size:10px;color:rgba(255,255,255,.5);font-weight:600}
-.bar-item strong{font-size:11px;color:var(--g-light);font-weight:700}
+.counter-box .num{font-family:'Montserrat',sans-serif;font-size:clamp(26px,2.8vw,48px);font-weight:900;color:var(--g-light);display:block}
+.counter-box .unit{font-size:clamp(11px,1vw,14px);color:var(--gold);font-weight:600;margin:3px 0}
+.counter-box .desc{font-size:clamp(10px,.9vw,12px);color:rgba(255,255,255,.55);line-height:1.4}
+.growth-bar{width:100%;max-width:1100px;margin-top:clamp(12px,2vh,32px);background:rgba(255,255,255,.05);border-radius:12px;padding:clamp(14px,2vh,22px) clamp(16px,2vw,28px);border:1px solid rgba(46,204,113,.15)}
+.growth-bar h4{color:rgba(255,255,255,.7);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.bars{display:flex;gap:clamp(6px,1vw,16px);align-items:flex-end;height:clamp(50px,8vh,80px)}
+.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-fill{width:100%;background:linear-gradient(180deg,var(--g-light),var(--g-main));border-radius:4px 4px 0 0;transition:height 1.5s ease}
+.bar-item span{font-size:9px;color:rgba(255,255,255,.5);font-weight:600}
+.bar-item strong{font-size:clamp(9px,.9vw,11px);color:var(--g-light);font-weight:700}
 
 /* ── SLIDE 3: COMPETENCIA ── */
 #s3{background:linear-gradient(160deg,#0f1e2a 0%,#0a1520 100%);color:#fff}
-.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;max-width:1100px}
-.comp-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:22px;transition:all .3s;position:relative}
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,1.4vw,18px);width:100%;max-width:1100px}
+.comp-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:clamp(12px,1.6vh,20px) clamp(12px,1.4vw,20px);transition:all .3s;position:relative}
 .comp-card:hover{transform:translateY(-3px);border-color:rgba(46,204,113,.4)}
 .comp-card.highlight{border-color:var(--gold);background:rgba(240,165,0,.08)}
-.comp-card.highlight::after{content:'NOSOTROS';position:absolute;top:-10px;right:16px;background:var(--gold);color:#000;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:1px}
-.comp-card h4{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px;color:#fff}
-.comp-card .origin{font-size:11px;color:var(--g-light);margin-bottom:12px;font-weight:500}
-.comp-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px}
+.comp-card.highlight::after{content:'NOSOTROS';position:absolute;top:-10px;right:14px;background:var(--gold);color:#000;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:1px}
+.comp-card h4{font-family:'Montserrat',sans-serif;font-size:clamp(12px,1.1vw,15px);font-weight:700;margin-bottom:4px;color:#fff}
+.comp-card .origin{font-size:10px;color:var(--g-light);margin-bottom:8px;font-weight:500}
+.comp-row{display:flex;justify-content:space-between;align-items:center;padding:clamp(3px,.5vh,6px) 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:clamp(10px,.9vw,12px)}
 .comp-row:last-child{border:none}
 .comp-row .label{color:rgba(255,255,255,.5)}
 .comp-row .val{color:#fff;font-weight:600}
 .comp-row .val.good{color:var(--g-light)}
 .comp-row .val.bad{color:#e74c3c}
-.price-band{margin-top:10px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--g-main),var(--g-light))}
+.price-band{margin-top:8px;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--g-main),var(--g-light))}
 
 /* ── SLIDE 4: CLIENTES ── */
 #s4{background:linear-gradient(160deg,#1a0a2e 0%,#0d0d1f 100%);color:#fff}
@@ -131,19 +133,19 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 
 /* ── SLIDE 10: ACCIONES ── */
 #s10{background:linear-gradient(160deg,#0a1f2e 0%,#050f18 100%);color:#fff}
-.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%;max-width:1100px}
-.phase{border-radius:14px;padding:26px;border-top:4px solid}
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.6vw,20px);width:100%;max-width:1100px}
+.phase{border-radius:12px;padding:clamp(14px,2vh,24px) clamp(14px,1.6vw,22px);border-top:4px solid}
 .phase:nth-child(1){background:rgba(46,204,113,.08);border-color:var(--g-light)}
 .phase:nth-child(2){background:rgba(240,165,0,.08);border-color:var(--gold)}
 .phase:nth-child(3){background:rgba(52,152,219,.08);border-color:#3498db}
-.phase h4{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.phase h4{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
 .phase:nth-child(1) h4{color:var(--g-light)}
 .phase:nth-child(2) h4{color:var(--gold)}
 .phase:nth-child(3) h4{color:#3498db}
-.phase .period{font-size:20px;font-weight:700;color:#fff;margin-bottom:18px}
+.phase .period{font-size:clamp(16px,1.6vw,20px);font-weight:700;color:#fff;margin-bottom:clamp(10px,1.5vh,16px)}
 .phase ul{list-style:none}
-.phase li{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.75);line-height:1.4;display:flex;gap:8px}
-.phase li::before{content:'•';font-size:18px;line-height:1;flex-shrink:0}
+.phase li{padding:clamp(5px,.7vh,8px) 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:clamp(11px,.9vw,12px);color:rgba(255,255,255,.75);line-height:1.4;display:flex;gap:8px}
+.phase li::before{content:'•';font-size:16px;line-height:1;flex-shrink:0}
 .phase:nth-child(1) li::before{color:var(--g-light)}
 .phase:nth-child(2) li::before{color:var(--gold)}
 .phase:nth-child(3) li::before{color:#3498db}
@@ -151,17 +153,17 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 
 /* ── SLIDE 11: POSICIONAMIENTO ── */
 #s11{background:linear-gradient(160deg,#1a1a0a 0%,#0f0f05 100%);color:#fff}
-.pos-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:40px;width:100%;max-width:1100px;align-items:center}
-.pos-prop{background:linear-gradient(135deg,var(--g-dark),#0d2e1f);border:1px solid rgba(46,204,113,.3);border-radius:20px;padding:36px}
-.pos-prop .quote{font-family:'Montserrat',sans-serif;font-size:clamp(16px,1.8vw,22px);font-weight:700;line-height:1.5;color:#fff;font-style:italic;margin-bottom:24px}
+.pos-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(18px,2.5vw,40px);width:100%;max-width:1100px;align-items:start}
+.pos-prop{background:linear-gradient(135deg,var(--g-dark),#0d2e1f);border:1px solid rgba(46,204,113,.3);border-radius:16px;padding:clamp(18px,2.5vh,32px)}
+.pos-prop .quote{font-family:'Montserrat',sans-serif;font-size:clamp(13px,1.5vw,20px);font-weight:700;line-height:1.5;color:#fff;font-style:italic;margin-bottom:clamp(14px,2vh,22px)}
 .pos-prop .quote em{color:var(--g-light);font-style:normal}
 .pos-tag{display:inline-block;background:var(--gold);color:#000;font-size:10px;font-weight:800;padding:4px 14px;border-radius:20px;letter-spacing:2px;text-transform:uppercase}
-.diff-list{display:flex;flex-direction:column;gap:14px}
-.diff-item{display:flex;gap:16px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.07);transition:all .3s}
+.diff-list{display:flex;flex-direction:column;gap:clamp(8px,1vh,13px)}
+.diff-item{display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:clamp(10px,1.4vh,15px);border:1px solid rgba(255,255,255,.07);transition:all .3s}
 .diff-item:hover{border-color:rgba(46,204,113,.3);background:rgba(46,204,113,.05)}
-.diff-num{background:var(--g-main);color:#fff;font-family:'Montserrat',sans-serif;font-weight:900;font-size:18px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.diff-text h5{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px}
-.diff-text p{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4}
+.diff-num{background:var(--g-main);color:#fff;font-family:'Montserrat',sans-serif;font-weight:900;font-size:16px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.diff-text h5{font-size:clamp(11px,1vw,13px);font-weight:700;color:#fff;margin-bottom:2px}
+.diff-text p{font-size:clamp(10px,.9vw,11px);color:rgba(255,255,255,.5);line-height:1.4}
 
 /* ── SLIDE 12: CRONOGRAMA ── */
 #s12{background:linear-gradient(160deg,#0d1520 0%,#050a10 100%);color:#fff}
@@ -208,6 +210,34 @@ section{scroll-snap-align:start;height:100vh;min-height:100vh;position:relative;
 .stagger.visible>*:nth-child(5){transition-delay:.5s}
 .stagger.visible>*:nth-child(6){transition-delay:.6s}
 .stagger.visible>*:nth-child(7){transition-delay:.7s}
+
+/* ══ PANTALLA BAJA ≤ 700px alto (landscape / laptop pequeño) ══ */
+@media(max-height:700px) and (min-width:481px){
+  #s2,#s3,#s4,#s10,#s11,#s12{padding-top:32px}
+  .s-header{margin-bottom:12px}
+  .s-header h2{font-size:22px}
+  .counter-box{padding:10px 10px}
+  .counter-box .num{font-size:24px}
+  .counter-box .unit{font-size:10px;margin:2px 0}
+  .counter-box .desc{font-size:9px}
+  .growth-bar{margin-top:10px;padding:10px 14px}
+  .bars{height:44px}
+  .comp-card{padding:10px 12px}
+  .comp-row{padding:3px 0;font-size:11px}
+  .seg-card{padding:10px 8px}
+  .seg-icon{font-size:22px;margin-bottom:4px}
+  .seg-card h4{font-size:11px}
+  .seg-card p{font-size:9px}
+  .phase{padding:12px 14px}
+  .phase .period{font-size:15px;margin-bottom:8px}
+  .phase li{padding:4px 0;font-size:11px}
+  .diff-item{padding:9px 12px}
+  .diff-num{width:30px;height:30px;font-size:14px}
+  .pos-prop{padding:16px}
+  .pos-prop .quote{font-size:13px;margin-bottom:12px}
+  .t-card{padding:8px;font-size:10px}
+  .t-month{font-size:10px}
+}
 
 /* ══ TABLET ≤ 900px ══ */
 @media(max-width:900px){
