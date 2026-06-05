@@ -10,8 +10,6 @@ app = Flask(__name__)
 
 _store = {'records': None}
 
-DEMO_UPLOAD_PATH = '/root/.claude/uploads/71c77a0e-5c3b-45e6-af16-f142f27d9982/9193a1e5-pedidos_venta_1.xls'
-
 MONTH_NAMES = {1:'ENE',2:'FEB',3:'MAR',4:'ABR',5:'MAY',6:'JUN',
                7:'JUL',8:'AGO',9:'SEP',10:'OCT',11:'NOV',12:'DIC'}
 
@@ -97,17 +95,11 @@ def generate_demo_data():
 
 
 def get_records():
+    # Arranca con datos de demostración sintéticos (sin datos personales
+    # reales). El usuario sube su Excel real por la interfaz cuando lo
+    # necesita; esos registros viven solo en memoria de la sesión.
     if _store['records'] is None:
-        demo = generate_demo_data()
-        existing_ids = {r['N° Pedido'] for r in demo}
-        if os.path.exists(DEMO_UPLOAD_PATH):
-            uploaded = parse_xls_xml(DEMO_UPLOAD_PATH)
-            new = [r for r in uploaded
-                   if r.get('Estado Proceso') == 'Finalizado'
-                   and r.get('N° Pedido') not in existing_ids]
-            _store['records'] = demo + new
-        else:
-            _store['records'] = demo
+        _store['records'] = generate_demo_data()
     return _store['records']
 
 
@@ -276,4 +268,5 @@ def r3_participation():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, port=port, host='0.0.0.0')

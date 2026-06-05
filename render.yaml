@@ -1,0 +1,13 @@
+# Blueprint de despliegue para Render (https://render.com)
+# Render lee este archivo automáticamente al conectar el repositorio.
+services:
+  - type: web
+    name: dashboard-ventas
+    runtime: python
+    rootDir: dashboard
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --bind 0.0.0.0:$PORT --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
