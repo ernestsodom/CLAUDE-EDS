@@ -433,7 +433,16 @@ section{
   .next-card .n{font-size:28px}
   .cta-btn{font-size:12px;padding:13px 22px;letter-spacing:1px}
 }
+
+/* ── NO-JS / NO-ANIMATION FALLBACK ── */
+@media (prefers-reduced-motion:reduce){
+  .fade-up,.fade-in,.stagger>*{opacity:1!important;transform:none!important}
+}
 </style>
+<noscript><style>
+  .fade-up,.fade-in,.stagger>*{opacity:1!important;transform:none!important}
+  #dots,#slide-ctr,#mob-nav,#progress{display:none!important}
+</style></noscript>
 </head>
 <body>
 
@@ -924,13 +933,27 @@ const io=new IntersectionObserver(entries=>{
     if(i===1){animCounters('.cnt2'); animBars();}
     if(i===11) animCounters('.cnt3');
   });
-},{rootMargin:'-35% 0px -35% 0px',threshold:0});
+},{rootMargin:'0px 0px -5% 0px',threshold:0});
 
 slides.forEach(s=>io.observe(s));
 
-/* first slide immediate */
-slides[0].querySelectorAll('.fade-up,.fade-in').forEach(el=>el.classList.add('visible'));
+/* first slide immediate — show all animated elements */
+slides[0].querySelectorAll('.fade-up,.fade-in,.stagger').forEach(el=>el.classList.add('visible'));
 animCounters('.cnt');
+
+/* ── UNIVERSAL FALLBACK ───────────────────────────────────────────────
+   After 1 second, force-show every animated element regardless of
+   IntersectionObserver support (fixes WebView / offline / iOS quirks) */
+setTimeout(function(){
+  document.querySelectorAll('.fade-up,.fade-in,.stagger').forEach(function(el){
+    el.classList.add('visible');
+  });
+  document.querySelectorAll('.opp-fill').forEach(function(el){
+    if(!el.style.width) el.style.width=(el.dataset.w||0)+'%';
+  });
+  animBars();
+  animCounters('.cnt'); animCounters('.cnt2'); animCounters('.cnt3');
+},1000);
 
 /* ── keyboard nav ── */
 document.addEventListener('keydown',e=>{
