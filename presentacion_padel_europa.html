@@ -941,19 +941,33 @@ slides.forEach(s=>io.observe(s));
 slides[0].querySelectorAll('.fade-up,.fade-in,.stagger').forEach(el=>el.classList.add('visible'));
 animCounters('.cnt');
 
-/* ── UNIVERSAL FALLBACK ───────────────────────────────────────────────
-   After 1 second, force-show every animated element regardless of
-   IntersectionObserver support (fixes WebView / offline / iOS quirks) */
+/* ── UNIVERSAL FALLBACK ─────────────────────────────────────────────
+   Two-stage guarantee so values ALWAYS show on any device:
+   Stage 1 (300ms)  — show all content (opacity/visibility)
+   Stage 2 (2500ms) — set all data values directly, overriding any
+   incomplete animation (fixes iOS rAF throttling + WebView quirks) */
 setTimeout(function(){
   document.querySelectorAll('.fade-up,.fade-in,.stagger').forEach(function(el){
     el.classList.add('visible');
   });
-  document.querySelectorAll('.opp-fill').forEach(function(el){
-    if(!el.style.width) el.style.width=(el.dataset.w||0)+'%';
+},300);
+
+setTimeout(function(){
+  /* force-show content */
+  document.querySelectorAll('.fade-up,.fade-in,.stagger').forEach(function(el){
+    el.classList.add('visible');
   });
+  /* set ALL counter final values directly — no animation needed */
+  document.querySelectorAll('[data-target]').forEach(function(el){
+    el.textContent = (+el.dataset.target).toLocaleString('es-ES');
+  });
+  /* fill ALL horizontal progress bars (country slides) */
+  document.querySelectorAll('.opp-fill').forEach(function(el){
+    el.style.width = (el.dataset.w || 0) + '%';
+  });
+  /* fill vertical bar chart */
   animBars();
-  animCounters('.cnt'); animCounters('.cnt2'); animCounters('.cnt3');
-},1000);
+},2500);
 
 /* ── keyboard nav ── */
 document.addEventListener('keydown',e=>{
@@ -963,19 +977,10 @@ document.addEventListener('keydown',e=>{
 
 /* touch: natural scroll — no swipe intercept. Use bottom nav buttons. */
 
-/* ── animated counters ── */
+/* ── counters: set value directly (works on all devices/browsers) ── */
 function animCounters(sel){
-  document.querySelectorAll(sel).forEach(el=>{
-    const target=+el.dataset.target;
-    const dur=1800,start=performance.now();
-    const tick=now=>{
-      const p=Math.min((now-start)/dur,1);
-      const ease=1-Math.pow(1-p,3);
-      el.textContent=Math.floor(ease*target).toLocaleString('es-ES');
-      if(p<1)requestAnimationFrame(tick);
-      else el.textContent=target.toLocaleString('es-ES');
-    };
-    requestAnimationFrame(tick);
+  document.querySelectorAll(sel).forEach(function(el){
+    el.textContent = (+el.dataset.target).toLocaleString('es-ES');
   });
 }
 
