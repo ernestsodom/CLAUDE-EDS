@@ -110,8 +110,7 @@ section{
   height:clamp(90px,13vh,130px);overflow:hidden}
 .bar-col{flex:1;height:100%;display:flex;align-items:flex-end}
 .bar-fill{width:100%;border-radius:4px 4px 0 0;
-  background:linear-gradient(180deg,var(--g-light),var(--g-main));
-  transition:height 1.4s cubic-bezier(.22,.61,.36,1);height:0}
+  background:linear-gradient(180deg,var(--g-light),var(--g-main))}
 /* labels sit in a separate row BELOW the bars */
 .bar-labels{display:flex;gap:clamp(6px,1vw,14px);margin-top:8px}
 .bar-label-item{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -189,7 +188,7 @@ section{
 .opp-track{height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
 .opp-fill{height:100%;border-radius:4px;
   background:linear-gradient(90deg,var(--g-main),var(--g-light));
-  width:0;transition:width 1.2s ease .3s}
+  width:0}
 .clients-list{list-style:none}
 .clients-list li{padding:clamp(4px,.7vh,7px) 0;
   border-bottom:1px solid rgba(255,255,255,.07);
@@ -295,19 +294,7 @@ section{
 .cta-btn:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,204,113,.5)}
 
 /* ── ANIMATIONS ── */
-.fade-up{opacity:0;transform:translateY(28px);transition:all .65s ease}
-.fade-up.visible{opacity:1;transform:translateY(0)}
-.fade-in{opacity:0;transition:opacity .75s ease}
-.fade-in.visible{opacity:1}
-.stagger>*{opacity:0;transform:translateY(18px);transition:all .55s ease}
-.stagger.visible>*{opacity:1;transform:translateY(0)}
-.stagger.visible>*:nth-child(1){transition-delay:.08s}
-.stagger.visible>*:nth-child(2){transition-delay:.16s}
-.stagger.visible>*:nth-child(3){transition-delay:.24s}
-.stagger.visible>*:nth-child(4){transition-delay:.32s}
-.stagger.visible>*:nth-child(5){transition-delay:.40s}
-.stagger.visible>*:nth-child(6){transition-delay:.48s}
-.stagger.visible>*:nth-child(7){transition-delay:.56s}
+.fade-up,.fade-in,.stagger>*{opacity:1;transform:none}
 
 /* ══════════════════════════════
    RESPONSIVE — TABLET ≤ 900px
@@ -464,10 +451,10 @@ section{
     <p>Empresa chilena de canchas de pádel premium.<br>Estrategia de expansión europea desde Alicante.</p>
   </div>
   <div class="stats-row fade-in">
-    <div class="stat"><b class="cnt" data-target="35">0</b><small>millones de jugadores</small></div>
-    <div class="stat"><b class="cnt" data-target="77300">0</b><small>canchas en el mundo</small></div>
-    <div class="stat"><b class="cnt" data-target="15">0</b><small>% crecimiento anual</small></div>
-    <div class="stat"><b class="cnt" data-target="51000">0</b><small>canchas en Europa</small></div>
+    <div class="stat"><b class="cnt" data-target="35">35</b><small>millones de jugadores</small></div>
+    <div class="stat"><b class="cnt" data-target="77300">77.300</b><small>canchas en el mundo</small></div>
+    <div class="stat"><b class="cnt" data-target="15">15</b><small>% crecimiento anual</small></div>
+    <div class="stat"><b class="cnt" data-target="51000">51.000</b><small>canchas en Europa</small></div>
   </div>
   <div class="scroll-hint">↓ &nbsp;desliza para explorar</div>
 </section>
@@ -480,22 +467,22 @@ section{
   </div>
   <div class="counters stagger">
     <div class="counter-box">
-      <span class="num cnt2" data-target="77300">0</span>
+      <span class="num cnt2" data-target="77300">77.300</span>
       <div class="unit">canchas globales</div>
       <div class="desc">+15,2% vs año anterior · FIP 2025</div>
     </div>
     <div class="counter-box">
-      <span class="num cnt2" data-target="35">0</span>
+      <span class="num cnt2" data-target="35">35</span>
       <div class="unit">millones de jugadores</div>
       <div class="desc">+42% en membresías federadas en 2025</div>
     </div>
     <div class="counter-box">
-      <span class="num cnt2" data-target="225">0</span>
+      <span class="num cnt2" data-target="225">225</span>
       <div class="unit">millones USD mercado 2032</div>
       <div class="desc">Desde USD 136M en 2025 · CAGR 7,5%</div>
     </div>
     <div class="counter-box">
-      <span class="num cnt2" data-target="24600">0</span>
+      <span class="num cnt2" data-target="24600">24.600</span>
       <div class="unit">clubes en el mundo</div>
       <div class="desc">+4.775 nuevos clubes solo en 2025</div>
     </div>
@@ -503,12 +490,12 @@ section{
   <div class="growth-bar fade-in">
     <h4>Canchas por país · Top 6 Europa</h4>
     <div class="bars" id="barChart">
-      <div class="bar-col"><div class="bar-fill" data-pct="95"></div></div>
-      <div class="bar-col"><div class="bar-fill" data-pct="59" style="background:linear-gradient(180deg,#e74c3c,#c0392b)"></div></div>
-      <div class="bar-col"><div class="bar-fill" data-pct="24" style="background:linear-gradient(180deg,#3498db,#2980b9)"></div></div>
-      <div class="bar-col"><div class="bar-fill" data-pct="23" style="background:linear-gradient(180deg,#9b59b6,#8e44ad)"></div></div>
-      <div class="bar-col"><div class="bar-fill" data-pct="21" style="background:linear-gradient(180deg,#f39c12,#e67e22)"></div></div>
-      <div class="bar-col"><div class="bar-fill" data-pct="5" style="background:linear-gradient(180deg,#95a5a6,#7f8c8d)"></div></div>
+      <div class="bar-col"><div class="bar-fill" data-pct="95" style="height:95%"></div></div>
+      <div class="bar-col"><div class="bar-fill" data-pct="59" style="background:linear-gradient(180deg,#e74c3c,#c0392b);height:59%"></div></div>
+      <div class="bar-col"><div class="bar-fill" data-pct="24" style="background:linear-gradient(180deg,#3498db,#2980b9);height:24%"></div></div>
+      <div class="bar-col"><div class="bar-fill" data-pct="23" style="background:linear-gradient(180deg,#9b59b6,#8e44ad);height:23%"></div></div>
+      <div class="bar-col"><div class="bar-fill" data-pct="21" style="background:linear-gradient(180deg,#f39c12,#e67e22);height:21%"></div></div>
+      <div class="bar-col"><div class="bar-fill" data-pct="5" style="background:linear-gradient(180deg,#95a5a6,#7f8c8d);height:5%"></div></div>
     </div>
     <div class="bar-labels">
       <div class="bar-label-item"><strong>España</strong><span>17.300</span></div>
@@ -621,9 +608,9 @@ section{
           <div class="kpi"><b>10,4</b><span>canchas/millón hab.</span></div>
           <div class="kpi"><b>×35</b><span>potencial vs España</span></div>
         </div>
-        <div class="opp-bar"><div class="bar-label"><span>Oportunidad</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Logística desde Alicante</span><span>7/10</span></div><div class="opp-track"><div class="opp-fill" data-w="70" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Poder adquisitivo</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100" style="background:linear-gradient(90deg,#f1c40f,#f39c12)"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Oportunidad</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="width:90%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Logística desde Alicante</span><span>7/10</span></div><div class="opp-track"><div class="opp-fill" data-w="70" style="background:linear-gradient(90deg,#e67e22,#f39c12);width:70%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Poder adquisitivo</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100" style="background:linear-gradient(90deg,#f1c40f,#f39c12);width:100%"></div></div></div>
         <h3 style="margin-top:14px">Clientes Prioritarios</h3>
         <ul class="clients-list">
           <li>Clubes de tenis en reconversión (miles disponibles)</li>
@@ -655,9 +642,9 @@ section{
           <div class="kpi"><b>+55%</b><span>crecimiento 18 meses</span></div>
           <div class="kpi"><b>8h</b><span>desde Alicante</span></div>
         </div>
-        <div class="opp-bar"><div class="bar-label"><span>Oportunidad</span><span>8/10</span></div><div class="opp-track"><div class="opp-fill" data-w="80"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Logística desde Alicante</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Afinidad idiomática</span><span>7/10</span></div><div class="opp-track"><div class="opp-fill" data-w="70" style="background:linear-gradient(90deg,#9b59b6,#8e44ad)"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Oportunidad</span><span>8/10</span></div><div class="opp-track"><div class="opp-fill" data-w="80" style="width:80%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Logística desde Alicante</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="width:90%" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Afinidad idiomática</span><span>7/10</span></div><div class="opp-track"><div class="opp-fill" data-w="70" style="background:linear-gradient(90deg,#9b59b6,#8e44ad);width:70%"></div></div></div>
         <h3 style="margin-top:14px">Clientes Prioritarios</h3>
         <ul class="clients-list">
           <li>Clubs omnisports (Lyon, Bordeaux, Nantes)</li>
@@ -689,9 +676,9 @@ section{
           <div class="kpi"><b>#1</b><span>valor monetario/cancha</span></div>
           <div class="kpi"><b>+74%</b><span>valor desde 2023</span></div>
         </div>
-        <div class="opp-bar"><div class="bar-label"><span>Oportunidad</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Logística (post-Brexit)</span><span>6/10</span></div><div class="opp-track"><div class="opp-fill" data-w="60" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Rentabilidad por proyecto</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100" style="background:linear-gradient(90deg,#f1c40f,#f39c12)"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Oportunidad</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="width:90%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Logística (post-Brexit)</span><span>6/10</span></div><div class="opp-track"><div class="opp-fill" data-w="60" style="background:linear-gradient(90deg,#e67e22,#f39c12);width:60%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Rentabilidad por proyecto</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100" style="background:linear-gradient(90deg,#f1c40f,#f39c12);width:100%"></div></div></div>
         <h3 style="margin-top:14px">Clientes Prioritarios</h3>
         <ul class="clients-list">
           <li>Padel boutique clubs (concepto de lujo muy exitoso)</li>
@@ -723,9 +710,9 @@ section{
           <div class="kpi"><b>+653</b><span>canchas recientes</span></div>
           <div class="kpi"><b>€40K</b><span>PIB per cápita</span></div>
         </div>
-        <div class="opp-bar"><div class="bar-label"><span>Poder adquisitivo</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Logística (Rotterdam)</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Apertura comercial</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="background:linear-gradient(90deg,#1abc9c,#16a085)"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Poder adquisitivo</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100" style="width:100%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Logística (Rotterdam)</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="width:90%" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Apertura comercial</span><span>9/10</span></div><div class="opp-track"><div class="opp-fill" data-w="90" style="width:90%" style="background:linear-gradient(90deg,#1abc9c,#16a085)"></div></div></div>
         <h3 style="margin-top:14px">Clientes Prioritarios</h3>
         <ul class="clients-list">
           <li>Padel centers (Eindhoven, Utrecht, Gante, Lieja)</li>
@@ -757,9 +744,9 @@ section{
           <div class="kpi"><b>€76B</b><span>fondos UE 2021–2027</span></div>
           <div class="kpi"><b>+5%</b><span>PIB per cápita/año</span></div>
         </div>
-        <div class="opp-bar"><div class="bar-label"><span>Mercado virgen</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Logística (distancia)</span><span>4/10</span></div><div class="opp-track"><div class="opp-fill" data-w="40" style="background:linear-gradient(90deg,#e67e22,#f39c12)"></div></div></div>
-        <div class="opp-bar"><div class="bar-label"><span>Crecimiento económico</span><span>8/10</span></div><div class="opp-track"><div class="opp-fill" data-w="80" style="background:linear-gradient(90deg,#e74c3c,#c0392b)"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Mercado virgen</span><span>10/10</span></div><div class="opp-track"><div class="opp-fill" data-w="100" style="width:100%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Logística (distancia)</span><span>4/10</span></div><div class="opp-track"><div class="opp-fill" data-w="40" style="background:linear-gradient(90deg,#e67e22,#f39c12);width:40%"></div></div></div>
+        <div class="opp-bar"><div class="bar-label"><span>Crecimiento económico</span><span>8/10</span></div><div class="opp-track"><div class="opp-fill" data-w="80" style="background:linear-gradient(90deg,#e74c3c,#c0392b);width:80%"></div></div></div>
         <h3 style="margin-top:14px">Clientes Prioritarios</h3>
         <ul class="clients-list">
           <li>Inversores que conocen pádel de vacaciones en España</li>
@@ -852,15 +839,15 @@ section{
   </div>
   <div class="kpi-row stagger">
     <div class="kpi-cta" style="background:rgba(46,204,113,.08);border-color:rgba(46,204,113,.2)">
-      <div style="font-family:Montserrat,sans-serif;font-size:clamp(26px,3.5vw,36px);font-weight:900;color:var(--g-light)" class="cnt3" data-target="5">0</div>
+      <div style="font-family:Montserrat,sans-serif;font-size:clamp(26px,3.5vw,36px);font-weight:900;color:var(--g-light)" class="cnt3" data-target="5">5</div>
       <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">ventas objetivo mes 6</div>
     </div>
     <div class="kpi-cta" style="background:rgba(240,165,0,.08);border-color:rgba(240,165,0,.2)">
-      <div style="font-family:Montserrat,sans-serif;font-size:clamp(26px,3.5vw,36px);font-weight:900;color:var(--gold)" class="cnt3" data-target="25">0</div>
+      <div style="font-family:Montserrat,sans-serif;font-size:clamp(26px,3.5vw,36px);font-weight:900;color:var(--gold)" class="cnt3" data-target="25">25</div>
       <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">ventas objetivo mes 12</div>
     </div>
     <div class="kpi-cta" style="background:rgba(52,152,219,.08);border-color:rgba(52,152,219,.2)">
-      <div style="font-family:Montserrat,sans-serif;font-size:clamp(26px,3.5vw,36px);font-weight:900;color:#3498db" class="cnt3" data-target="5">0</div>
+      <div style="font-family:Montserrat,sans-serif;font-size:clamp(26px,3.5vw,36px);font-weight:900;color:#3498db" class="cnt3" data-target="5">5</div>
       <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">países activos mes 18</div>
     </div>
   </div>
@@ -885,118 +872,55 @@ const slides = Array.from(document.querySelectorAll('section'));
 const N = slides.length;
 let cur = 0;
 
-/* ── build desktop dots ── */
+/* desktop dots */
 const dotsEl = document.getElementById('dots');
-slides.forEach((_,i)=>{
-  const d=document.createElement('button');
-  d.className='dot'+(i===0?' on':'');
-  d.onclick=()=>goTo(i);
+slides.forEach(function(_,i){
+  const d = document.createElement('button');
+  d.className = 'dot' + (i===0 ? ' on' : '');
+  d.onclick = function(){ goTo(i); };
   dotsEl.appendChild(d);
 });
 
-/* ── build mobile pips ── */
+/* mobile pips */
 const pipsEl = document.getElementById('mpips');
-slides.forEach((_,i)=>{
-  const p=document.createElement('button');
-  p.className='mpip'+(i===0?' on':'');
-  p.onclick=()=>goTo(i);
+slides.forEach(function(_,i){
+  const p = document.createElement('button');
+  p.className = 'mpip' + (i===0 ? ' on' : '');
+  p.onclick = function(){ goTo(i); };
   pipsEl.appendChild(p);
 });
 
-document.getElementById('mprev').onclick=()=>goTo(cur-1);
-document.getElementById('mnext').onclick=()=>goTo(cur+1);
+document.getElementById('mprev').onclick = function(){ goTo(cur-1); };
+document.getElementById('mnext').onclick = function(){ goTo(cur+1); };
 
 function goTo(n){
-  n=Math.max(0,Math.min(N-1,n));
-  slides[n].scrollIntoView({behavior:'smooth',block:'start'});
+  n = Math.max(0, Math.min(N-1, n));
+  cur = n;
+  slides[n].scrollIntoView({behavior:'smooth', block:'start'});
+  updateNav(n);
 }
 
-/* ── IntersectionObserver: fires when section centre enters viewport ── */
-const io=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(!e.isIntersecting) return;
-    const i=slides.indexOf(e.target);
-    cur=i;
-    /* update dots */
-    document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('on',j===i));
-    document.querySelectorAll('.mpip').forEach((p,j)=>p.classList.toggle('on',j===i));
-    /* progress bar */
-    document.getElementById('progress').style.width=((i+1)/N*100)+'%';
-    document.getElementById('slide-ctr').textContent=
-      String(i+1).padStart(2,'0')+' / '+String(N).padStart(2,'0');
-    /* trigger animations */
-    e.target.querySelectorAll('.fade-up,.fade-in').forEach(el=>el.classList.add('visible'));
-    e.target.querySelectorAll('.stagger').forEach(el=>el.classList.add('visible'));
-    e.target.querySelectorAll('.opp-fill').forEach(el=>{el.style.width=(el.dataset.w||0)+'%'});
-    /* counters */
-    if(i===0) animCounters('.cnt');
-    if(i===1){animCounters('.cnt2'); animBars();}
-    if(i===11) animCounters('.cnt3');
-  });
-},{rootMargin:'0px 0px -5% 0px',threshold:0});
+function updateNav(i){
+  document.querySelectorAll('.dot').forEach(function(d,j){ d.classList.toggle('on', j===i); });
+  document.querySelectorAll('.mpip').forEach(function(p,j){ p.classList.toggle('on', j===i); });
+  document.getElementById('progress').style.width = ((i+1)/N*100) + '%';
+  document.getElementById('slide-ctr').textContent =
+    String(i+1).padStart(2,'0') + ' / ' + String(N).padStart(2,'0');
+}
 
-slides.forEach(s=>io.observe(s));
-
-/* first slide immediate — show all animated elements */
-slides[0].querySelectorAll('.fade-up,.fade-in,.stagger').forEach(el=>el.classList.add('visible'));
-animCounters('.cnt');
-
-/* ── UNIVERSAL FALLBACK ─────────────────────────────────────────────
-   Two-stage guarantee so values ALWAYS show on any device:
-   Stage 1 (300ms)  — show all content (opacity/visibility)
-   Stage 2 (2500ms) — set all data values directly, overriding any
-   incomplete animation (fixes iOS rAF throttling + WebView quirks) */
-setTimeout(function(){
-  document.querySelectorAll('.fade-up,.fade-in,.stagger').forEach(function(el){
-    el.classList.add('visible');
+/* Update nav indicator when user scrolls manually */
+const io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ cur = slides.indexOf(e.target); updateNav(cur); }
   });
-},300);
+},{rootMargin:'0px 0px -40% 0px', threshold:0});
+slides.forEach(function(s){ io.observe(s); });
 
-setTimeout(function(){
-  /* force-show content */
-  document.querySelectorAll('.fade-up,.fade-in,.stagger').forEach(function(el){
-    el.classList.add('visible');
-  });
-  /* set ALL counter final values directly — no animation needed */
-  document.querySelectorAll('[data-target]').forEach(function(el){
-    el.textContent = (+el.dataset.target).toLocaleString('es-ES');
-  });
-  /* fill ALL horizontal progress bars (country slides) */
-  document.querySelectorAll('.opp-fill').forEach(function(el){
-    el.style.width = (el.dataset.w || 0) + '%';
-  });
-  /* fill vertical bar chart */
-  animBars();
-},2500);
-
-/* ── keyboard nav ── */
-document.addEventListener('keydown',e=>{
+/* keyboard */
+document.addEventListener('keydown', function(e){
   if(e.key==='ArrowDown'||e.key==='ArrowRight') goTo(cur+1);
   if(e.key==='ArrowUp'||e.key==='ArrowLeft') goTo(cur-1);
 });
-
-/* touch: natural scroll — no swipe intercept. Use bottom nav buttons. */
-
-/* ── counters: set value directly (works on all devices/browsers) ── */
-function animCounters(sel){
-  document.querySelectorAll(sel).forEach(function(el){
-    el.textContent = (+el.dataset.target).toLocaleString('es-ES');
-  });
-}
-
-/* ── animated bar chart — reads actual container height ── */
-function animBars(){
-  const container=document.getElementById('barChart');
-  if(!container) return;
-  // wait one frame so the element has layout
-  requestAnimationFrame(()=>{
-    const maxH=container.offsetHeight||80;
-    container.querySelectorAll('.bar-fill').forEach(bar=>{
-      const pct=parseFloat(bar.dataset.pct)||0;
-      setTimeout(()=>{ bar.style.height=(pct/100*maxH)+'px'; },150);
-    });
-  });
-}
 </script>
 </body>
 </html>
