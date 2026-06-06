@@ -10,7 +10,7 @@ from PIL import Image
 import img2pdf
 
 HTML_PATH = Path(__file__).parent / "presentacion_padel_europa.html"
-PDF_PATH  = Path(__file__).parent / "presentacion_padel_europa.pdf"
+PDF_PATH  = Path(__file__).parent / "padel_europa_slides_HD.pdf"
 TMP_DIR   = Path(__file__).parent / "_slide_imgs"
 
 SECTION_IDS = [f"s{i}" for i in range(1, 14)]  # s1 … s13
