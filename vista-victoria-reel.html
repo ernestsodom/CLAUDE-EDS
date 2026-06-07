@@ -194,21 +194,20 @@
     filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
   }
   
-  /* STATS OVERLAY (shown on slide 2) */
-  .stats-overlay {
-    position: absolute;
-    bottom: clamp(6rem, 14vw, 9rem);
-    left: clamp(1.5rem, 5vw, 2.5rem);
-    right: clamp(1.5rem, 5vw, 2.5rem);
+
+  /* INLINE STATS (slide 2) */
+  .slide__stats {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.45rem;
+    margin-top: 1.1rem;
     opacity: 0;
-    transition: opacity 0.6s ease 1s;
-    pointer-events: none;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease 1s, transform 0.6s ease 1s;
   }
   
-  .slide--section:nth-child(2).active .stats-overlay {
-    opacity: 0; /* only show on slide idx 1 */
+  .slide.active .slide__stats {
+    opacity: 1;
+    transform: translateY(0);
   }
   
   .stat-item {
@@ -217,13 +216,13 @@
     border: 1px solid rgba(255,255,255,0.12);
     backdrop-filter: blur(10px);
     border-radius: 12px;
-    padding: 0.7em 0.5em;
+    padding: 0.65em 0.4em;
     text-align: center;
   }
   
   .stat-n {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(0.9rem, 2.8vw, 1.15rem);
+    font-size: clamp(0.75rem, 2.4vw, 0.95rem);
     font-weight: 600;
     color: var(--white);
     letter-spacing: -0.01em;
@@ -232,13 +231,12 @@
   
   .stat-l {
     font-family: 'Inter', sans-serif;
-    font-size: clamp(0.5rem, 1.5vw, 0.6rem);
+    font-size: clamp(0.42rem, 1.3vw, 0.55rem);
     color: rgba(255,255,255,0.55);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-top: 0.2em;
   }
-  
   /* PROGRESS BAR */
   .progress-bar {
     position: absolute;
@@ -416,6 +414,12 @@
         <span class="slide__eyebrow">El Proyecto</span>
         <h2 class="slide__title">Un proyecto<br>boutique</h2>
         <p class="slide__sub">Venta en verde · Reina Victoria 7001</p>
+        <div class="slide__stats">
+          <div class="stat-item"><div class="stat-n">6</div><div class="stat-l">Casas</div></div>
+          <div class="stat-item"><div class="stat-n">149 m²</div><div class="stat-l">Interior desde</div></div>
+          <div class="stat-item"><div class="stat-n">3 + 3</div><div class="stat-l">Dorm · Baños</div></div>
+          <div class="stat-item"><div class="stat-n">2028</div><div class="stat-l">Entrega</div></div>
+        </div>
         
       </div>
       
@@ -521,10 +525,6 @@
       
       
     </div>
-  
-  <!-- STATS OVERLAY on slide 2 (proj) -->
-  <div class="stats-overlay" id="statsOverlay">
-    <div class="stat-item"><div class="stat-n">6</div><div class="stat-l">Casas</div></div><div class="stat-item"><div class="stat-n">149 m²</div><div class="stat-l">Interior desde</div></div><div class="stat-item"><div class="stat-n">3 + 3</div><div class="stat-l">Dorm · Baños</div></div><div class="stat-item"><div class="stat-n">2028</div><div class="stat-l">Entrega</div></div>
   </div>
   
   <!-- PAUSE INDICATOR -->
@@ -550,7 +550,6 @@ let pauseTimeout = null;
 const slides = document.querySelectorAll('.slide');
 const segs = document.querySelectorAll('.progress-seg');
 const counter = document.getElementById('slideCounter');
-const statsOverlay = document.getElementById('statsOverlay');
 const pauseInd = document.getElementById('pauseInd');
 
 function goTo(n) {
@@ -573,15 +572,6 @@ function goTo(n) {
   segs[current].classList.add('active');
   
   counter.textContent = (current + 1) + ' / ' + TOTAL;
-  
-  // show stats overlay on slide index 1 (El Proyecto)
-  if (current === 1) {
-    statsOverlay.style.opacity = '1';
-    statsOverlay.style.transition = 'opacity 0.6s ease 1.2s';
-  } else {
-    statsOverlay.style.opacity = '0';
-    statsOverlay.style.transition = 'opacity 0.3s ease';
-  }
 }
 
 function advance() {
