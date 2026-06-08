@@ -12,14 +12,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 /* HEADER */
 .header{background:linear-gradient(135deg,#0f2d5e 0%,#1a56db 100%);color:white;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 12px rgba(0,0,0,.25);position:sticky;top:0;z-index:100}
 .header-brand{display:flex;align-items:center;gap:14px}
-.header-brand .brand-icon{font-size:28px}
-.brand-text{line-height:1.2}
+.brand-icon{font-size:28px}
 .brand-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
 .brand-sub{font-size:11px;opacity:.75;font-weight:400}
 .header-actions{display:flex;align-items:center;gap:10px}
 .upload-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:white;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:all .2s}
 .upload-btn:hover{background:rgba(255,255,255,.25)}
-.upload-status{font-size:12px;color:rgba(255,255,255,.7);min-width:120px}
+.upload-status{font-size:12px;color:rgba(255,255,255,.75);min-width:130px;text-align:right}
+
+/* DB STATUS BAR */
+.db-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 28px;background:#1e293b;color:#94a3b8;font-size:12px;gap:16px;flex-wrap:wrap}
+.db-bar .db-info{display:flex;align-items:center;gap:20px}
+.db-bar .db-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;box-shadow:0 0 6px #22c55e}
+.db-bar .db-dot.empty{background:#ef4444;box-shadow:0 0 6px #ef4444}
+.db-bar strong{color:#e2e8f0}
+.db-bar .db-actions{display:flex;gap:8px}
+.btn-ghost{background:transparent;border:1px solid #334155;color:#64748b;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s}
+.btn-ghost:hover{border-color:#94a3b8;color:#cbd5e1}
+.btn-ghost.danger:hover{border-color:#ef4444;color:#ef4444}
 
 /* KPI ROW */
 .kpi-row{display:flex;gap:14px;padding:20px 28px 0}
@@ -34,23 +44,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .kpi-sub{font-size:11px;color:#94a3b8;margin-top:4px}
 
 /* TABS */
-.tab-nav{display:flex;gap:4px;padding:18px 28px 0;border-bottom:none}
+.tab-nav{display:flex;gap:4px;padding:18px 28px 0}
 .tab-btn{padding:10px 22px;border-radius:10px 10px 0 0;cursor:pointer;font-size:13px;font-weight:600;background:#e2e8f0;color:#64748b;border:none;transition:all .2s;display:flex;align-items:center;gap:7px}
 .tab-btn:hover:not(.active){background:#cbd5e1;color:#475569}
 .tab-btn.active{background:white;color:#1e293b;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
-.tab-btn .tab-icon{font-size:16px}
 
 /* PANELS */
 .panels-wrapper{padding:0 28px 32px}
-.panel{display:none;background:white;border-radius:0 12px 12px 12px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.07);animation:fadeIn .25s ease}
+.panel{display:none;background:white;border-radius:0 12px 12px 12px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.07);animation:fadeIn .25s ease;position:relative}
 .panel.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* EMPTY STATE */
+.empty-overlay{display:none;position:absolute;inset:0;background:rgba(255,255,255,.96);border-radius:0 12px 12px 12px;z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:40px}
+.empty-overlay.show{display:flex}
+.empty-icon{font-size:56px;line-height:1}
+.empty-title{font-size:20px;font-weight:700;color:#1e293b}
+.empty-sub{font-size:14px;color:#64748b;max-width:360px;line-height:1.6}
+.btn-lg{padding:12px 28px;border:none;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700;background:#1a56db;color:white;transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-lg:hover{background:#1447c0;transform:translateY(-1px)}
 
 /* FILTER BAR */
 .filter-bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin-bottom:20px}
 .fg{display:flex;flex-direction:column;gap:4px}
 .fg label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
-.fg select,.fg input[type="date"],.fg input[type="number"]{padding:7px 11px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;color:#1e293b;background:white;min-width:130px;transition:border-color .2s}
+.fg select,.fg input[type="date"]{padding:7px 11px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;color:#1e293b;background:white;min-width:130px;transition:border-color .2s}
 .fg select:focus,.fg input:focus{outline:none;border-color:#1a56db}
 .btn{padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;display:flex;align-items:center;gap:6px}
 .btn-primary{background:#1a56db;color:white}.btn-primary:hover{background:#1447c0}
@@ -61,8 +79,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .rk{background:#f8fafc;border-radius:9px;padding:12px 18px;flex:1;border:1px solid #e2e8f0;text-align:center}
 .rk .rk-v{font-size:20px;font-weight:800;color:#0f172a;margin-bottom:2px}
 .rk .rk-l{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
-.rk.up .rk-v{color:#22c55e}
-.rk.down .rk-v{color:#ef4444}
 
 /* CHART GRIDS */
 .charts-row{display:flex;gap:16px;margin-top:4px}
@@ -75,12 +91,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .month-chip{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0;transition:all .15s;user-select:none}
 .month-chip.selected{background:#1a56db;color:white;border-color:#1a56db}
 
-/* GROWTH BADGE */
-.growth-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:700}
-.growth-badge.up{background:#dcfce7;color:#16a34a}
-.growth-badge.down{background:#fee2e2;color:#dc2626}
-.growth-badge.neutral{background:#f1f5f9;color:#64748b}
-
 /* SUMMARY TABLE */
 .summary-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
 .summary-table th{background:#f8fafc;padding:9px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#64748b;border-bottom:2px solid #e2e8f0}
@@ -91,23 +101,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pct-cell.pos{color:#22c55e;font-weight:700}
 .pct-cell.neg{color:#ef4444;font-weight:700}
 
-/* LOADING SPINNER */
-.spinner{display:none;text-align:center;padding:60px;color:#94a3b8;font-size:14px}
-.spinner.show{display:block}
+/* MODAL CONFIRM */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:200;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:white;border-radius:14px;padding:28px 32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:8px;color:#0f172a}
+.modal p{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.btn-danger{background:#ef4444;color:white;border:none}.btn-danger:hover{background:#dc2626}
 
-/* SCROLLBAR */
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#f1f5f9}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
 
-/* RESPONSIVE */
 @media(max-width:900px){
-  .kpi-row{flex-wrap:wrap}
+  .kpi-row,.report-kpis{flex-wrap:wrap}
   .kpi-card{min-width:calc(50% - 7px)}
   .charts-row{flex-direction:column}
-  .tab-btn span.tab-text{display:none}
-  .header-brand .brand-sub{display:none}
-  .report-kpis{flex-wrap:wrap}
+  .tab-btn .tab-text{display:none}
+  .brand-sub{display:none}
+  .db-bar{font-size:11px}
 }
 </style>
 </head>
@@ -131,12 +144,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </header>
 
+<!-- DB STATUS BAR -->
+<div class="db-bar">
+  <div class="db-info">
+    <div class="db-dot" id="db-dot"></div>
+    <span>Base de datos: <strong id="db-count">cargando…</strong></span>
+    <span id="db-range" style="color:#64748b"></span>
+  </div>
+  <div class="db-actions">
+    <button class="btn-ghost danger" onclick="confirmClear()">🗑 Limpiar historial</button>
+  </div>
+</div>
+
 <!-- GLOBAL KPIs -->
-<div class="kpi-row" id="global-kpis">
+<div class="kpi-row">
   <div class="kpi-card blue">
     <div class="kpi-label">Ventas Totales</div>
     <div class="kpi-value" id="g-total">—</div>
-    <div class="kpi-sub" id="g-total-sub">Cargando…</div>
+    <div class="kpi-sub" id="g-total-sub">—</div>
   </div>
   <div class="kpi-card ice">
     <div class="kpi-label">Transacciones</div>
@@ -158,25 +183,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- TAB NAVIGATION -->
 <div class="tab-nav">
   <button class="tab-btn active" id="tab1" onclick="showTab(1)">
-    <span class="tab-icon">📈</span>
-    <span class="tab-text">Ventas Históricas</span>
+    <span>📈</span><span class="tab-text">Ventas Históricas</span>
   </button>
   <button class="tab-btn" id="tab2" onclick="showTab(2)">
-    <span class="tab-icon">🔀</span>
-    <span class="tab-text">Ventas Comparativas</span>
+    <span>🔀</span><span class="tab-text">Ventas Comparativas</span>
   </button>
   <button class="tab-btn" id="tab3" onclick="showTab(3)">
-    <span class="tab-icon">🍩</span>
-    <span class="tab-text">Participación por Negocio</span>
+    <span>🍩</span><span class="tab-text">Participación por Negocio</span>
   </button>
 </div>
 
 <!-- PANELS -->
 <div class="panels-wrapper">
 
-  <!-- PANEL 1: HISTÓRICAS -->
+  <!-- ── PANEL 1: HISTÓRICAS ── -->
   <div class="panel active" id="panel-1">
-    <div class="filter-bar" id="r1-filters">
+
+    <div class="empty-overlay" id="empty-1">
+      <div class="empty-icon">📊</div>
+      <div class="empty-title">Sin datos históricos</div>
+      <div class="empty-sub">Carga tu archivo Excel de Softland para ver la evolución de ventas por período.</div>
+      <button class="btn-lg" onclick="document.getElementById('fileInput').click()">📁 Cargar Excel</button>
+    </div>
+
+    <div class="filter-bar">
       <div class="fg">
         <label>Negocio</label>
         <select id="r1-negocio" onchange="renderR1()"><option>Todos</option></select>
@@ -204,32 +234,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
 
     <div class="report-kpis">
-      <div class="rk">
-        <div class="rk-v" id="r1-total">—</div>
-        <div class="rk-l">Total Ventas</div>
-      </div>
-      <div class="rk">
-        <div class="rk-v" id="r1-avg">—</div>
-        <div class="rk-l">Promedio Mensual</div>
-      </div>
-      <div class="rk">
-        <div class="rk-v" id="r1-max">—</div>
-        <div class="rk-l">Mejor Mes</div>
-      </div>
-      <div class="rk">
-        <div class="rk-v" id="r1-trans">—</div>
-        <div class="rk-l">Transacciones</div>
-      </div>
+      <div class="rk"><div class="rk-v" id="r1-total">—</div><div class="rk-l">Total Ventas</div></div>
+      <div class="rk"><div class="rk-v" id="r1-avg">—</div><div class="rk-l">Promedio Mensual</div></div>
+      <div class="rk"><div class="rk-v" id="r1-max">—</div><div class="rk-l">Mejor Mes</div></div>
+      <div class="rk"><div class="rk-v" id="r1-trans">—</div><div class="rk-l">Transacciones</div></div>
     </div>
 
     <div class="chart-box">
       <h4>Evolución de Ventas por Período</h4>
-      <div id="chart-r1" style="height:380px"></div>
+      <div id="chart-r1" style="height:400px"></div>
     </div>
   </div>
 
-  <!-- PANEL 2: COMPARATIVAS -->
+  <!-- ── PANEL 2: COMPARATIVAS ── -->
   <div class="panel" id="panel-2">
+
+    <div class="empty-overlay" id="empty-2">
+      <div class="empty-icon">🔀</div>
+      <div class="empty-title">Sin datos para comparar</div>
+      <div class="empty-sub">Carga al menos un archivo Excel para habilitar el comparativo entre períodos.</div>
+      <button class="btn-lg" onclick="document.getElementById('fileInput').click()">📁 Cargar Excel</button>
+    </div>
+
     <div class="filter-bar">
       <div class="fg">
         <label>Negocio</label>
@@ -251,7 +277,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
     <div class="filter-bar" style="padding-top:10px;padding-bottom:10px">
       <div class="fg" style="flex:1">
-        <label>Meses a Comparar</label>
+        <label>Meses a comparar</label>
         <div class="months-grid" id="months-picker"></div>
       </div>
       <div style="display:flex;gap:8px;align-items:flex-end">
@@ -261,27 +287,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
 
     <div class="report-kpis">
-      <div class="rk" id="rk-tot1">
-        <div class="rk-v" id="r2-tot1">—</div>
-        <div class="rk-l" id="r2-lab1">Año Actual</div>
-      </div>
-      <div class="rk" id="rk-tot2">
-        <div class="rk-v" id="r2-tot2">—</div>
-        <div class="rk-l" id="r2-lab2">Año Anterior</div>
-      </div>
-      <div class="rk" id="rk-pct">
-        <div class="rk-v" id="r2-pct">—</div>
-        <div class="rk-l">Crecimiento Total</div>
-      </div>
-      <div class="rk">
-        <div class="rk-v" id="r2-best">—</div>
-        <div class="rk-l">Mejor Mes (% Crec.)</div>
-      </div>
+      <div class="rk"><div class="rk-v" id="r2-tot1">—</div><div class="rk-l" id="r2-lab1">Año Actual</div></div>
+      <div class="rk"><div class="rk-v" id="r2-tot2">—</div><div class="rk-l" id="r2-lab2">Año Anterior</div></div>
+      <div class="rk"><div class="rk-v" id="r2-pct">—</div><div class="rk-l">Crecimiento Total</div></div>
+      <div class="rk"><div class="rk-v" id="r2-best">—</div><div class="rk-l">Mejor Mes</div></div>
     </div>
 
     <div class="charts-row">
       <div class="chart-box main">
-        <h4 id="r2-chart-title">Comparativo de Ventas Mensual</h4>
+        <h4 id="r2-chart-title">Comparativo Mensual</h4>
         <div id="chart-r2-bars" style="height:360px"></div>
       </div>
       <div class="chart-box">
@@ -290,7 +304,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
     </div>
 
-    <table class="summary-table" id="r2-table">
+    <table class="summary-table">
       <thead>
         <tr>
           <th>Mes</th>
@@ -304,8 +318,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </table>
   </div>
 
-  <!-- PANEL 3: PARTICIPACIÓN -->
+  <!-- ── PANEL 3: PARTICIPACIÓN ── -->
   <div class="panel" id="panel-3">
+
+    <div class="empty-overlay" id="empty-3">
+      <div class="empty-icon">🍩</div>
+      <div class="empty-title">Sin datos de participación</div>
+      <div class="empty-sub">Carga tu archivo Excel para ver la participación de cada negocio sobre el total de ventas.</div>
+      <button class="btn-lg" onclick="document.getElementById('fileInput').click()">📁 Cargar Excel</button>
+    </div>
+
     <div class="filter-bar">
       <div class="fg">
         <label>Desde</label>
@@ -323,10 +345,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
 
     <div class="report-kpis">
-      <div class="rk">
-        <div class="rk-v" id="r3-total">—</div>
-        <div class="rk-l">Total Ventas</div>
-      </div>
+      <div class="rk"><div class="rk-v" id="r3-total">—</div><div class="rk-l">Total Ventas</div></div>
       <div class="rk" style="border-left:3px solid #f97316">
         <div class="rk-v" id="r3-tramp-pct" style="color:#f97316">—</div>
         <div class="rk-l">Trampoline Park %</div>
@@ -335,20 +354,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="rk-v" id="r3-cero-pct" style="color:#0ea5e9">—</div>
         <div class="rk-l">Cerogrado %</div>
       </div>
-      <div class="rk">
-        <div class="rk-v" id="r3-best-branch">—</div>
-        <div class="rk-l">Mejor Sucursal</div>
-      </div>
+      <div class="rk"><div class="rk-v" id="r3-best-branch">—</div><div class="rk-l">Mejor Sucursal</div></div>
     </div>
 
     <div class="charts-row">
-      <div class="chart-box" style="flex:1;max-width:340px">
+      <div class="chart-box" style="max-width:340px">
         <h4>Participación Global</h4>
-        <div id="chart-r3-donut" style="height:340px"></div>
+        <div id="chart-r3-donut" style="height:320px"></div>
       </div>
       <div class="chart-box main">
         <h4>Evolución Mensual por Negocio</h4>
-        <div id="chart-r3-monthly" style="height:340px"></div>
+        <div id="chart-r3-monthly" style="height:320px"></div>
       </div>
     </div>
 
@@ -364,351 +380,390 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-</div><!-- /panels-wrapper -->
+</div>
+
+<!-- MODAL CONFIRMAR LIMPIAR -->
+<div class="modal-bg" id="modal-clear">
+  <div class="modal">
+    <h3>⚠️ Limpiar historial completo</h3>
+    <p>Se eliminarán <strong id="modal-count">todos los registros</strong> de la base de datos. Esta acción <strong>no se puede deshacer</strong>.<br><br>Tendrás que volver a cargar los archivos Excel.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" onclick="clearData()">Sí, limpiar todo</button>
+    </div>
+  </div>
+</div>
 
 <script>
-// ── CONSTANTS & STATE ──────────────────────────────────────────────
+// ── CONSTANTES ───────────────────────────────────────────────────
 const COLORS = {
   'Trampoline Park': '#f97316',
   'Cerogrado':       '#0ea5e9',
   primary:           '#1a56db',
-  grid:              '#f1f5f9',
-  text:              '#374151',
 };
 const MONTH_LABELS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 let meta = null;
+let hasData = false;
 let selectedMonths = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
 
-// ── FORMATTERS ─────────────────────────────────────────────────────
+// ── FORMATTERS ───────────────────────────────────────────────────
 function fmtM(v){
+  if(!v && v!==0) return '—';
   if(v>=1e9) return '$'+(v/1e9).toFixed(2)+'B';
   if(v>=1e6) return '$'+(v/1e6).toFixed(1)+'M';
   if(v>=1e3) return '$'+(v/1e3).toFixed(0)+'K';
   return '$'+Math.round(v).toLocaleString('es-CL');
 }
-function fmtFull(v){return '$'+Math.round(v).toLocaleString('es-CL')}
-function fmtPct(v){return (v>0?'+':'')+v.toFixed(1)+'%'}
+function fmtFull(v){ return '$'+Math.round(v||0).toLocaleString('es-CL') }
+function fmtPct(v){
+  if(v===null||v===undefined) return 'N/D';
+  return (v>0?'+':'')+Number(v).toFixed(1)+'%';
+}
 
-// ── PLOTLY HELPERS ─────────────────────────────────────────────────
-function baseLayout(title){
+// ── PLOTLY BASE LAYOUT ───────────────────────────────────────────
+function baseLayout(){
   return {
-    title:{text:title,font:{size:13,color:COLORS.text},x:0},
-    margin:{l:60,r:20,t:36,b:50},
+    margin:{l:65,r:20,t:30,b:50},
     paper_bgcolor:'rgba(0,0,0,0)',
     plot_bgcolor:'rgba(0,0,0,0)',
-    font:{family:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',size:12,color:COLORS.text},
+    font:{family:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',size:12,color:'#374151'},
     xaxis:{gridcolor:'#f1f5f9',linecolor:'#e2e8f0',showgrid:false},
-    yaxis:{gridcolor:'#e8edf2',linecolor:'#e2e8f0',tickformat:',.0f',
-           tickprefix:'$',showgrid:true},
+    yaxis:{gridcolor:'#e8edf2',linecolor:'#e2e8f0',showgrid:true},
     legend:{orientation:'h',y:1.08,x:0,font:{size:12}},
     hovermode:'x unified',
-    hoverlabel:{bgcolor:'rgba(15,23,42,.9)',font:{color:'white',size:12},bordercolor:'rgba(0,0,0,0)'},
+    hoverlabel:{bgcolor:'rgba(15,23,42,.92)',font:{color:'white',size:12},bordercolor:'transparent'},
     barmode:'stack',
   };
 }
 const CFG = {responsive:true,displayModeBar:false};
 
-// ── INIT ──────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────
 async function init(){
-  try{
+  await refreshDbBar();
+  if(hasData){
     meta = await fetch('/api/meta').then(r=>r.json());
     populateFilters();
-    await loadGlobalKPIs();
+    loadGlobalKPIs();
     buildMonthsPicker();
-    await renderR1();
-  }catch(e){console.error('Init error',e)}
+    renderR1();
+  } else {
+    showEmptyAll();
+    loadGlobalKPIs();
+    buildMonthsPicker();
+  }
 }
 
+// ── DB BAR ───────────────────────────────────────────────────────
+async function refreshDbBar(){
+  const info = await fetch('/api/db_info').then(r=>r.json());
+  hasData = info.count > 0;
+  const dot = document.getElementById('db-dot');
+  dot.className = 'db-dot' + (hasData ? '' : ' empty');
+  document.getElementById('db-count').textContent =
+    hasData ? info.count.toLocaleString('es-CL')+' registros' : 'vacía';
+  document.getElementById('db-range').textContent =
+    (hasData && info.date_min)
+      ? `Período: ${info.date_min} → ${info.date_max}`
+      : 'Sube un archivo Excel para comenzar';
+  return info;
+}
+
+// ── EMPTY STATES ─────────────────────────────────────────────────
+function showEmptyAll(){
+  [1,2,3].forEach(n => document.getElementById('empty-'+n).classList.add('show'));
+}
+function hideEmptyAll(){
+  [1,2,3].forEach(n => document.getElementById('empty-'+n).classList.remove('show'));
+}
+
+// ── FILTROS ──────────────────────────────────────────────────────
 function populateFilters(){
   if(!meta) return;
-  ['r1','r2','r3'].forEach(prefix=>{
-    const neg = document.getElementById(prefix+'-negocio');
-    const suc = document.getElementById(prefix+'-sucursal');
-    if(neg){
-      neg.innerHTML='';
-      meta.negocios.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;neg.appendChild(o)});
-    }
-    if(suc){
-      suc.innerHTML='';
-      meta.sucursales.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;suc.appendChild(o)});
-    }
+  ['r1','r2','r3'].forEach(p=>{
+    const neg = document.getElementById(p+'-negocio');
+    const suc = document.getElementById(p+'-sucursal');
+    if(neg){ neg.innerHTML=''; meta.negocios.forEach(n=>neg.appendChild(opt(n))); }
+    if(suc){ suc.innerHTML=''; meta.sucursales.forEach(s=>suc.appendChild(opt(s))); }
   });
-  // Years for R2
+  // Años para R2
   const y1El=document.getElementById('r2-y1'), y2El=document.getElementById('r2-y2');
-  if(y1El && meta.years){
+  if(y1El && meta.years && meta.years.length){
     y1El.innerHTML=''; y2El.innerHTML='';
     [...meta.years].reverse().forEach(y=>{
-      [y1El,y2El].forEach(el=>{const o=document.createElement('option');o.value=y;o.textContent=y;el.appendChild(o)});
+      y1El.appendChild(opt(y)); y2El.appendChild(opt(y));
     });
     if(meta.years.length>=2){
-      y1El.value=meta.years[meta.years.length-1];
-      y2El.value=meta.years[meta.years.length-2];
+      y1El.value = meta.years[meta.years.length-1];
+      y2El.value = meta.years[meta.years.length-2];
+    } else {
+      y1El.value = y2El.value = meta.years[0];
     }
   }
-  // Default dates
+  // Fechas por defecto
   ['r1','r3'].forEach(p=>{
     const fr=document.getElementById(p+'-from'), to=document.getElementById(p+'-to');
     if(fr && meta.date_min) fr.value=meta.date_min;
     if(to && meta.date_max) to.value=meta.date_max;
   });
 }
+function opt(v){ const o=document.createElement('option'); o.value=o.textContent=v; return o; }
 
 function buildMonthsPicker(){
-  const container=document.getElementById('months-picker');
-  if(!container) return;
-  container.innerHTML='';
+  const c=document.getElementById('months-picker');
+  if(!c) return;
+  c.innerHTML='';
   MONTH_LABELS.forEach((name,i)=>{
-    const m=i+1;
-    const chip=document.createElement('div');
+    const m=i+1, chip=document.createElement('div');
     chip.className='month-chip selected';
     chip.textContent=name;
     chip.dataset.m=m;
     chip.onclick=()=>{
       if(selectedMonths.has(m)){selectedMonths.delete(m);chip.classList.remove('selected')}
       else{selectedMonths.add(m);chip.classList.add('selected')}
-      renderR2();
+      if(hasData) renderR2();
     };
-    container.appendChild(chip);
+    c.appendChild(chip);
   });
 }
-
-function toggleAllMonths(select){
-  selectedMonths=new Set(select?[1,2,3,4,5,6,7,8,9,10,11,12]:[]);
-  document.querySelectorAll('.month-chip').forEach(c=>{
-    if(select) c.classList.add('selected'); else c.classList.remove('selected');
-  });
-  renderR2();
+function toggleAllMonths(sel){
+  selectedMonths = new Set(sel?[1,2,3,4,5,6,7,8,9,10,11,12]:[]);
+  document.querySelectorAll('.month-chip').forEach(c=>c.classList.toggle('selected',sel));
+  if(hasData) renderR2();
 }
 
-// ── GLOBAL KPIs ───────────────────────────────────────────────────
+// ── GLOBAL KPIS ──────────────────────────────────────────────────
 async function loadGlobalKPIs(){
-  const d=await fetch('/api/kpis').then(r=>r.json());
-  document.getElementById('g-total').textContent=fmtM(d.total);
-  document.getElementById('g-total-sub').textContent=d.n_trans.toLocaleString()+' pedidos en total';
-  document.getElementById('g-trans').textContent=d.n_trans.toLocaleString('es-CL');
-  document.getElementById('g-suc').textContent=d.n_suc;
-  document.getElementById('g-neg').textContent=d.n_neg;
+  const d = await fetch('/api/kpis').then(r=>r.json());
+  document.getElementById('g-total').textContent = fmtM(d.total);
+  document.getElementById('g-total-sub').textContent =
+    d.n_trans > 0 ? d.n_trans.toLocaleString('es-CL')+' pedidos' : 'Sin datos cargados';
+  document.getElementById('g-trans').textContent = d.n_trans > 0 ? d.n_trans.toLocaleString('es-CL') : '0';
+  document.getElementById('g-suc').textContent = d.n_suc || '0';
+  document.getElementById('g-neg').textContent = d.n_neg || '0';
 }
 
-// ── TAB SWITCH ────────────────────────────────────────────────────
+// ── TABS ─────────────────────────────────────────────────────────
 function showTab(n){
   for(let i=1;i<=3;i++){
     document.getElementById('tab'+i).classList.toggle('active',i===n);
     document.getElementById('panel-'+i).classList.toggle('active',i===n);
   }
+  if(!hasData) return;
   if(n===1) renderR1();
   if(n===2) renderR2();
   if(n===3) renderR3();
 }
 
-// ── REPORT 1: HISTÓRICAS ──────────────────────────────────────────
+// ── REPORTE 1: HISTÓRICAS ─────────────────────────────────────────
 async function renderR1(){
-  const params={
-    negocio:document.getElementById('r1-negocio')?.value||'Todos',
-    sucursal:document.getElementById('r1-sucursal')?.value||'Todas',
-    date_from:document.getElementById('r1-from')?.value||null,
-    date_to:document.getElementById('r1-to')?.value||null,
-    granularity:document.getElementById('r1-gran')?.value||'monthly',
+  const p = {
+    negocio:     document.getElementById('r1-negocio')?.value||'Todos',
+    sucursal:    document.getElementById('r1-sucursal')?.value||'Todas',
+    date_from:   document.getElementById('r1-from')?.value||null,
+    date_to:     document.getElementById('r1-to')?.value||null,
+    granularity: document.getElementById('r1-gran')?.value||'monthly',
   };
-  const d=await post('/api/r1',params);
-  document.getElementById('r1-total').textContent=fmtM(d.total);
-  document.getElementById('r1-avg').textContent=fmtM(d.avg_monthly);
-  document.getElementById('r1-max').textContent=fmtM(d.max_month);
-  document.getElementById('r1-trans').textContent=d.n_trans.toLocaleString('es-CL');
+  const d = await post('/api/r1', p);
 
-  const negs=Object.keys(d.stacked||{});
+  const empty = !d.labels || d.labels.length === 0;
+  document.getElementById('empty-1').classList.toggle('show', empty);
+
+  document.getElementById('r1-total').textContent = fmtM(d.total);
+  document.getElementById('r1-avg').textContent   = fmtM(d.avg_monthly);
+  document.getElementById('r1-max').textContent   = fmtM(d.max_month);
+  document.getElementById('r1-trans').textContent = (d.n_trans||0).toLocaleString('es-CL');
+
+  if(empty) return;
+
+  const negs = Object.keys(d.stacked||{});
   let traces;
-  if(negs.length>1){
-    traces=negs.map(neg=>({
-      name:neg, type:'bar', x:d.labels,
-      y:d.stacked[neg],
+  if(negs.length > 1 && p.negocio==='Todos'){
+    traces = negs.map(neg=>({
+      name: neg, type:'bar', x:d.labels,
+      y: d.stacked[neg],
       marker:{color:COLORS[neg]||'#94a3b8'},
       hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>',
     }));
   } else {
-    traces=[{name:'Ventas',type:'bar',x:d.labels,y:d.values,
-             marker:{color:COLORS.primary,opacity:.85},
-             hovertemplate:'<b>%{x}</b><br>$%{y:,.0f}<extra></extra>'}];
+    traces = [{
+      name:'Ventas', type:'bar', x:d.labels, y:d.values,
+      marker:{color:COLORS.primary,opacity:.85},
+      hovertemplate:'<b>%{x}</b><br>$%{y:,.0f}<extra></extra>',
+    }];
   }
-  // Add trend line
-  if(d.values.length>1){
-    traces.push({name:'Tendencia',type:'scatter',mode:'lines',
-      x:d.labels,y:movingAvg(d.values,3),
+  if(d.values.length > 1){
+    traces.push({
+      name:'Tendencia', type:'scatter', mode:'lines',
+      x:d.labels, y:movingAvg(d.values,3),
       line:{color:'#7c3aed',width:2.5,dash:'dot'},
       hovertemplate:'Tendencia: $%{y:,.0f}<extra></extra>',
     });
   }
-  const layout={...baseLayout(''),
-    barmode:'stack',
-    yaxis:{...baseLayout('').yaxis,tickformat:',.0s',tickprefix:'$'},
+  const layout = {...baseLayout(),
+    yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'},
   };
-  Plotly.react('chart-r1',traces,layout,CFG);
+  Plotly.react('chart-r1', traces, layout, CFG);
 }
 function resetR1(){
-  if(meta){
-    document.getElementById('r1-from').value=meta.date_min||'';
-    document.getElementById('r1-to').value=meta.date_max||'';
-  }
+  if(meta){ document.getElementById('r1-from').value=meta.date_min||''; document.getElementById('r1-to').value=meta.date_max||''; }
   document.getElementById('r1-negocio').value='Todos';
   document.getElementById('r1-sucursal').value='Todas';
   document.getElementById('r1-gran').value='monthly';
   renderR1();
 }
 
-// ── REPORT 2: COMPARATIVAS ────────────────────────────────────────
+// ── REPORTE 2: COMPARATIVAS ───────────────────────────────────────
 async function renderR2(){
-  const y1=parseInt(document.getElementById('r2-y1')?.value||2026);
-  const y2=parseInt(document.getElementById('r2-y2')?.value||2025);
-  const months=Array.from(selectedMonths).sort((a,b)=>a-b);
-  if(months.length===0) return;
+  const y1 = parseInt(document.getElementById('r2-y1')?.value||0);
+  const y2 = parseInt(document.getElementById('r2-y2')?.value||0);
+  const months = Array.from(selectedMonths).sort((a,b)=>a-b);
+  if(!months.length || !y1 || !y2) return;
 
-  const params={
-    negocio:document.getElementById('r2-negocio')?.value||'Todos',
-    sucursal:document.getElementById('r2-sucursal')?.value||'Todas',
+  const p = {
+    negocio:  document.getElementById('r2-negocio')?.value||'Todos',
+    sucursal: document.getElementById('r2-sucursal')?.value||'Todas',
     year1:y1, year2:y2, months,
   };
-  const d=await post('/api/r2',params);
+  const d = await post('/api/r2', p);
 
-  // Update labels
-  document.getElementById('r2-lab1').textContent='Año '+d.y1;
-  document.getElementById('r2-lab2').textContent='Año '+d.y2;
-  document.getElementById('th-y1').textContent=d.y1;
-  document.getElementById('th-y2').textContent=d.y2;
-  document.getElementById('r2-chart-title').textContent=`Ventas ${d.y1} vs ${d.y2} por Mes`;
+  document.getElementById('r2-lab1').textContent = 'Año '+d.y1;
+  document.getElementById('r2-lab2').textContent = 'Año '+d.y2;
+  document.getElementById('th-y1').textContent = d.y1;
+  document.getElementById('th-y2').textContent = d.y2;
+  document.getElementById('r2-chart-title').textContent = `Ventas ${d.y1} vs ${d.y2} por Mes`;
 
-  document.getElementById('r2-tot1').textContent=fmtM(d.tot1);
-  document.getElementById('r2-tot2').textContent=fmtM(d.tot2);
-  const pctEl=document.getElementById('r2-pct');
-  pctEl.textContent=fmtPct(d.tot_pct);
-  pctEl.style.color=d.tot_pct>=0?'#22c55e':'#ef4444';
-  document.getElementById('r2-best').textContent=d.best?(d.best.month+' '+fmtPct(d.best.pct)):'—';
+  document.getElementById('r2-tot1').textContent = fmtM(d.tot1);
+  document.getElementById('r2-tot2').textContent = fmtM(d.tot2);
+  const pctEl = document.getElementById('r2-pct');
+  pctEl.textContent = fmtPct(d.tot_pct);
+  pctEl.style.color = d.tot_pct >= 0 ? '#22c55e' : '#ef4444';
+  document.getElementById('r2-best').textContent =
+    d.best ? `${d.best.month} ${fmtPct(d.best.pct)}` : '—';
 
-  const months_lbl=d.rows.map(r=>r.month);
-  const traces=[
-    {name:String(d.y1),type:'bar',x:months_lbl,y:d.rows.map(r=>r.actual),
+  const mlbl = d.rows.map(r=>r.month);
+  const actualVals   = d.rows.map(r=>r.actual);
+  const anteriorVals = d.rows.map(r=>r.anterior);
+
+  Plotly.react('chart-r2-bars',[
+    {name:String(d.y1),type:'bar',x:mlbl,y:actualVals,
      marker:{color:COLORS.primary},
      hovertemplate:'%{x} '+d.y1+': $%{y:,.0f}<extra></extra>'},
-    {name:String(d.y2),type:'bar',x:months_lbl,y:d.rows.map(r=>r.anterior),
+    {name:String(d.y2),type:'bar',x:mlbl,y:anteriorVals,
      marker:{color:'#94a3b8'},
      hovertemplate:'%{x} '+d.y2+': $%{y:,.0f}<extra></extra>'},
-  ];
-  Plotly.react('chart-r2-bars',traces,{...baseLayout(''),barmode:'group',yaxis:{...baseLayout('').yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
+  ],{...baseLayout(),barmode:'group',
+     yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
 
-  // Growth chart
-  const pcts=d.rows.map(r=>r.pct);
-  const growthTrace=[{
-    type:'bar',x:months_lbl,y:pcts,
-    marker:{color:pcts.map(v=>v>=0?'rgba(34,197,94,.8)':'rgba(239,68,68,.8)')},
+  const pcts = d.rows.map(r=>r.pct);
+  Plotly.react('chart-r2-growth',[{
+    type:'bar', x:mlbl, y:pcts,
+    marker:{color: pcts.map(v=>v===null?'#e2e8f0':v>=0?'rgba(34,197,94,.85)':'rgba(239,68,68,.85)')},
     hovertemplate:'%{x}: %{y:.1f}%<extra></extra>',
-    name:'Crecimiento %',
-  }];
-  const growthLayout={...baseLayout(''),
-    yaxis:{...baseLayout('').yaxis,tickformat:'.1f',ticksuffix:'%',tickprefix:'',zeroline:true,zerolinecolor:'#94a3b8'},
-    shapes:[{type:'line',x0:-0.5,x1:months_lbl.length-0.5,y0:0,y1:0,
-              line:{color:'#64748b',width:1.5,dash:'dot'}}],
-  };
-  Plotly.react('chart-r2-growth',growthTrace,growthLayout,CFG);
+    text: pcts.map(v=>v===null?'S/D':fmtPct(v)),
+    textposition:'outside',
+  }],{...baseLayout(),
+    yaxis:{...baseLayout().yaxis,tickformat:'.1f',ticksuffix:'%',tickprefix:'',zeroline:true,zerolinecolor:'#94a3b8'},
+    shapes:[{type:'line',x0:-.5,x1:mlbl.length-.5,y0:0,y1:0,line:{color:'#64748b',width:1.5,dash:'dot'}}],
+  },CFG);
 
-  // Table
-  const tbody=document.getElementById('r2-tbody');
+  // Tabla
+  const tbody = document.getElementById('r2-tbody');
   tbody.innerHTML='';
-  let sumA=0,sumB=0;
+  let sumA=0, sumB=0;
   d.rows.forEach(r=>{
     sumA+=r.actual; sumB+=r.anterior;
+    const cls = r.pct===null?'':r.pct>0?'pos':'neg';
     const tr=document.createElement('tr');
-    const cls=r.pct>0?'pos':r.pct<0?'neg':'';
-    tr.innerHTML=`<td>${r.month}</td><td>${fmtFull(r.actual)}</td><td>${fmtFull(r.anterior)}</td>
+    tr.innerHTML=`<td>${r.month}</td>
+      <td>${fmtFull(r.actual)}</td>
+      <td>${fmtFull(r.anterior)}</td>
       <td>${fmtFull(r.actual-r.anterior)}</td>
       <td class="pct-cell ${cls}">${fmtPct(r.pct)}</td>`;
     tbody.appendChild(tr);
   });
-  const totalPct=sumB>0?((sumA-sumB)/sumB*100):0;
+  const totPct = sumB>0 ? ((sumA-sumB)/sumB*100) : 0;
   const tfoot=document.createElement('tr');
-  const cls=totalPct>0?'pos':totalPct<0?'neg':'';
-  tfoot.innerHTML=`<td>TOTAL</td><td>${fmtFull(sumA)}</td><td>${fmtFull(sumB)}</td>
+  tfoot.innerHTML=`<td>TOTAL</td>
+    <td>${fmtFull(sumA)}</td><td>${fmtFull(sumB)}</td>
     <td>${fmtFull(sumA-sumB)}</td>
-    <td class="pct-cell ${cls}">${fmtPct(totalPct)}</td>`;
+    <td class="pct-cell ${totPct>=0?'pos':'neg'}">${fmtPct(totPct)}</td>`;
   tbody.appendChild(tfoot);
 }
 
-// ── REPORT 3: PARTICIPACIÓN ────────────────────────────────────────
+// ── REPORTE 3: PARTICIPACIÓN ──────────────────────────────────────
 async function renderR3(){
-  const params={
-    date_from:document.getElementById('r3-from')?.value||null,
-    date_to:document.getElementById('r3-to')?.value||null,
-    sucursal:document.getElementById('r3-sucursal')?.value||'Todas',
+  const p = {
+    date_from: document.getElementById('r3-from')?.value||null,
+    date_to:   document.getElementById('r3-to')?.value||null,
+    sucursal:  document.getElementById('r3-sucursal')?.value||'Todas',
   };
-  const d=await post('/api/r3',params);
+  const d = await post('/api/r3', p);
 
-  // KPIs
-  document.getElementById('r3-total').textContent=fmtM(d.total);
-  const trampEntry=d.pie.find(p=>p.label==='Trampoline Park');
-  const ceroEntry=d.pie.find(p=>p.label==='Cerogrado');
-  document.getElementById('r3-tramp-pct').textContent=trampEntry?(trampEntry.pct.toFixed(1)+'%'):'—';
-  document.getElementById('r3-cero-pct').textContent=ceroEntry?(ceroEntry.pct.toFixed(1)+'%'):'—';
-  // Best branch
+  const empty = !d.pie || d.pie.length === 0;
+  document.getElementById('empty-3').classList.toggle('show', empty);
+
+  document.getElementById('r3-total').textContent = fmtM(d.total);
+  const trampE = d.pie.find(p=>p.label==='Trampoline Park');
+  const ceroE  = d.pie.find(p=>p.label==='Cerogrado');
+  document.getElementById('r3-tramp-pct').textContent = trampE ? trampE.pct.toFixed(1)+'%' : '—';
+  document.getElementById('r3-cero-pct').textContent  = ceroE  ? ceroE.pct.toFixed(1)+'%'  : '—';
   if(d.branches){
-    const bTotals=Object.entries(d.branches).map(([s,nv])=>[s,Object.values(nv).reduce((a,b)=>a+b,0)]);
-    bTotals.sort((a,b)=>b[1]-a[1]);
-    document.getElementById('r3-best-branch').textContent=bTotals.length?bTotals[0][0].split(' ').slice(-1)[0]:'—';
+    const bTotals = Object.entries(d.branches)
+      .map(([s,nv])=>[s, Object.values(nv).reduce((a,b)=>a+b,0)])
+      .sort((a,b)=>b[1]-a[1]);
+    document.getElementById('r3-best-branch').textContent =
+      bTotals.length ? bTotals[0][0].split(' ').slice(-1)[0] : '—';
   }
+
+  if(empty) return;
 
   // Donut
   Plotly.react('chart-r3-donut',[{
     type:'pie',
-    labels:d.pie.map(p=>p.label),
-    values:d.pie.map(p=>p.value),
+    labels:d.pie.map(p=>p.label), values:d.pie.map(p=>p.value),
     hole:.55,
     marker:{colors:d.pie.map(p=>COLORS[p.label]||'#94a3b8')},
     texttemplate:'<b>%{percent:.1%}</b>',
     hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>',
     sort:false,
   }],{
-    ...baseLayout(''),
-    margin:{l:20,r:20,t:20,b:20},
+    ...baseLayout(),margin:{l:20,r:20,t:20,b:20},
     legend:{orientation:'h',y:-0.1,x:.5,xanchor:'center'},
-    annotations:[{text:`<b>${fmtM(d.total)}</b>`,showarrow:false,
-                  font:{size:15,color:COLORS.text},x:.5,y:.5,xref:'paper',yref:'paper'}],
+    annotations:[{text:'<b>'+fmtM(d.total)+'</b>',showarrow:false,
+                  font:{size:15,color:'#374151'},x:.5,y:.5,xref:'paper',yref:'paper'}],
   },CFG);
 
-  // Stacked monthly
-  const negs=Object.keys(d.monthly.stacked||{});
-  const stackedTraces=negs.map(neg=>({
-    name:neg, type:'bar', x:d.monthly.periods,
-    y:d.monthly.stacked[neg],
-    marker:{color:COLORS[neg]||'#94a3b8'},
-    hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>',
-  }));
-  Plotly.react('chart-r3-monthly',stackedTraces,{
-    ...baseLayout(''),barmode:'stack',
-    yaxis:{...baseLayout('').yaxis,tickformat:',.0s',tickprefix:'$'},
-  },CFG);
+  // Stacked mensual
+  const negs = Object.keys(d.monthly.stacked||{});
+  Plotly.react('chart-r3-monthly',
+    negs.map(neg=>({name:neg,type:'bar',x:d.monthly.periods,
+      y:d.monthly.stacked[neg],marker:{color:COLORS[neg]||'#94a3b8'},
+      hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'})),
+    {...baseLayout(),barmode:'stack',
+     yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
 
-  // Branches horizontal bar
+  // Sucursales horizontal
   if(d.branches){
-    const bData=Object.entries(d.branches);
-    bData.sort((a,b)=>{
-      const ta=Object.values(a[1]).reduce((s,v)=>s+v,0);
-      const tb=Object.values(b[1]).reduce((s,v)=>s+v,0);
-      return ta-tb;
-    });
-    const branchNegs=[...new Set(bData.flatMap(([,nv])=>Object.keys(nv)))];
-    const branchTraces=branchNegs.map(neg=>({
-      name:neg, type:'bar', orientation:'h',
-      y:bData.map(([s])=>s),
-      x:bData.map(([,nv])=>nv[neg]||0),
-      marker:{color:COLORS[neg]||'#94a3b8'},
-      hovertemplate:'<b>%{y}</b><br>'+neg+': $%{x:,.0f}<extra></extra>',
-    }));
-    Plotly.react('chart-r3-branches',branchTraces,{
-      ...baseLayout(''),barmode:'stack',
-      margin:{l:180,r:20,t:36,b:50},
-      yaxis:{...baseLayout('').yaxis,tickformat:'',tickprefix:''},
-      xaxis:{...baseLayout('').xaxis,tickformat:',.0s',tickprefix:'$',showgrid:true,gridcolor:'#e8edf2'},
-    },CFG);
+    const bData = Object.entries(d.branches)
+      .sort((a,b)=>{
+        const ta=Object.values(a[1]).reduce((s,v)=>s+v,0);
+        const tb=Object.values(b[1]).reduce((s,v)=>s+v,0);
+        return ta-tb;
+      });
+    const bNegs = [...new Set(bData.flatMap(([,nv])=>Object.keys(nv)))];
+    Plotly.react('chart-r3-branches',
+      bNegs.map(neg=>({name:neg,type:'bar',orientation:'h',
+        y:bData.map(([s])=>s), x:bData.map(([,nv])=>nv[neg]||0),
+        marker:{color:COLORS[neg]||'#94a3b8'},
+        hovertemplate:'<b>%{y}</b><br>'+neg+': $%{x:,.0f}<extra></extra>'})),
+      {...baseLayout(),barmode:'stack',
+       margin:{l:190,r:20,t:30,b:50},
+       yaxis:{...baseLayout().yaxis,tickformat:'',tickprefix:''},
+       xaxis:{...baseLayout().xaxis,tickformat:',.0s',tickprefix:'$',showgrid:true,gridcolor:'#e8edf2'}},
+      CFG);
   }
 
-  // Tipos donut
+  // Tipos
   if(d.tipo && d.tipo.length){
     Plotly.react('chart-r3-tipos',[{
       type:'pie', labels:d.tipo.map(t=>t.label), values:d.tipo.map(t=>t.value),
@@ -716,40 +771,78 @@ async function renderR3(){
       marker:{colors:['#1a56db','#0ea5e9','#f97316','#22c55e','#a855f7']},
       texttemplate:'<b>%{percent:.1%}</b>',
       hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>',
-    }],{...baseLayout(''),margin:{l:20,r:20,t:20,b:20},
+    }],{...baseLayout(),margin:{l:20,r:20,t:20,b:20},
         legend:{orientation:'h',y:-0.1,x:.5,xanchor:'center'}},CFG);
   }
 }
 function resetR3(){
-  if(meta){
-    document.getElementById('r3-from').value=meta.date_min||'';
-    document.getElementById('r3-to').value=meta.date_max||'';
-  }
+  if(meta){ document.getElementById('r3-from').value=meta.date_min||''; document.getElementById('r3-to').value=meta.date_max||''; }
   document.getElementById('r3-sucursal').value='Todas';
   renderR3();
 }
 
-// ── FILE UPLOAD ───────────────────────────────────────────────────
+// ── CARGA DE ARCHIVO ──────────────────────────────────────────────
 async function handleUpload(input){
   if(!input.files[0]) return;
-  const st=document.getElementById('upload-status');
-  st.textContent='Procesando…';
-  const fd=new FormData();
-  fd.append('file',input.files[0]);
+  const st = document.getElementById('upload-status');
+  st.textContent = '⏳ Procesando…';
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
   try{
-    const res=await fetch('/upload',{method:'POST',body:fd}).then(r=>r.json());
+    const res = await fetch('/upload',{method:'POST',body:fd}).then(r=>r.json());
     if(res.success){
-      st.textContent=`✓ +${res.new} registros (total: ${res.total.toLocaleString()})`;
+      const msg = res.new > 0
+        ? `✓ +${res.new.toLocaleString()} registros nuevos`
+        : `✓ Sin duplicados nuevos (${res.parsed} procesados)`;
+      st.textContent = msg;
+      hasData = true;
+      hideEmptyAll();
+      meta = await fetch('/api/meta').then(r=>r.json());
+      populateFilters();
+      await refreshDbBar();
       await loadGlobalKPIs();
-      showTab(1);
+      buildMonthsPicker();
+      // Re-render el tab activo
+      const active = [1,2,3].find(i=>document.getElementById('tab'+i).classList.contains('active'));
+      if(active===1) renderR1();
+      else if(active===2) renderR2();
+      else if(active===3) renderR3();
+    } else if(res.warning){
+      st.textContent = '⚠️ '+res.warning;
     } else {
-      st.textContent='Error: '+res.error;
+      st.textContent = '✗ Error: '+res.error;
     }
   }catch(e){
-    st.textContent='Error al cargar archivo';
+    st.textContent = '✗ Error al cargar archivo';
   }
   input.value='';
-  setTimeout(()=>st.textContent='',5000);
+  setTimeout(()=>st.textContent='', 7000);
+}
+
+// ── LIMPIAR BD ────────────────────────────────────────────────────
+function confirmClear(){
+  const count = document.getElementById('db-count').textContent;
+  document.getElementById('modal-count').textContent = count;
+  document.getElementById('modal-clear').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal-clear').classList.remove('show'); }
+async function clearData(){
+  closeModal();
+  await fetch('/api/clear',{method:'POST'});
+  hasData = false;
+  await refreshDbBar();
+  await loadGlobalKPIs();
+  showEmptyAll();
+  // Limpiar gráficos
+  ['chart-r1','chart-r2-bars','chart-r2-growth',
+   'chart-r3-donut','chart-r3-monthly','chart-r3-branches','chart-r3-tipos']
+   .forEach(id=>{ const el=document.getElementById(id); if(el) Plotly.purge(el); });
+  // Reset KPI reportes
+  ['r1-total','r1-avg','r1-max','r1-trans','r2-tot1','r2-tot2','r2-pct','r2-best',
+   'r3-total','r3-tramp-pct','r3-cero-pct','r3-best-branch'].forEach(id=>{
+     const el=document.getElementById(id); if(el) el.textContent='—';
+   });
+  document.getElementById('r2-tbody').innerHTML='';
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────
@@ -759,13 +852,13 @@ async function post(url,body){
 }
 function movingAvg(arr,n){
   return arr.map((_,i)=>{
-    const slice=arr.slice(Math.max(0,i-Math.floor(n/2)),Math.min(arr.length,i+Math.ceil(n/2)));
-    return slice.reduce((a,b)=>a+b,0)/slice.length;
+    const s=arr.slice(Math.max(0,i-Math.floor(n/2)),Math.min(arr.length,i+Math.ceil(n/2)));
+    return s.reduce((a,b)=>a+b,0)/s.length;
   });
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',init);
+// ── ARRANQUE ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

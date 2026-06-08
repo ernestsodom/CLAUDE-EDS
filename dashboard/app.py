@@ -3,27 +3,92 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 from io import BytesIO
 import os
-import random
-from datetime import datetime, timedelta
+import sqlite3
 
 app = Flask(__name__)
 
-_store = {'records': None}
+DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'ventas.db'))
 
 MONTH_NAMES = {1:'ENE',2:'FEB',3:'MAR',4:'ABR',5:'MAY',6:'JUN',
                7:'JUL',8:'AGO',9:'SEP',10:'OCT',11:'NOV',12:'DIC'}
 
-SUCURSALES_NEGOCIO = {
-    'Trampoline Park': ['TRAMPOLINE PARK LAS CONDES','TRAMPOLINE PARK BUENAVENTURA',
-                        'TRAMPOLINE PARK ALAMEDA','TRAMPOLINE PARK LA FLORIDA',
-                        'TRAMPOLINE PARK CONCEPCION','TRAMPOLINE PARK TEMUCO',
-                        'TRAMPOLINE PARK PUERTO MONTT'],
-    'Cerogrado': ['Parque Araucano','Arauco Buenaventura','Arauco Maipú',
-                  'Santa Amalia','Mall Plaza Bio Bio','Puerto Varas']
-}
+# ── BASE DE DATOS ──────────────────────────────────────────────────
 
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    with get_db() as conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ventas (
+                pedido_id  TEXT PRIMARY KEY,
+                tipo       TEXT,
+                fecha_hora TEXT,
+                monto      REAL,
+                forma_pago TEXT,
+                negocio    TEXT,
+                sucursal   TEXT,
+                estado     TEXT,
+                cargado_en TEXT DEFAULT (datetime('now'))
+            )
+        ''')
+        conn.commit()
+
+def load_records():
+    """Carga todos los registros de la BD como lista de dicts."""
+    init_db()
+    with get_db() as conn:
+        rows = conn.execute(
+            'SELECT * FROM ventas ORDER BY fecha_hora'
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+def save_records(raw_records):
+    """
+    Normaliza e inserta registros (ignora duplicados por pedido_id).
+    Acepta tanto el formato directo del Excel como el de la BD.
+    Retorna el número de filas efectivamente insertadas.
+    """
+    init_db()
+    inserted = 0
+    with get_db() as conn:
+        for r in raw_records:
+            pid = str(
+                r.get('N° Pedido') or r.get('pedido_id') or ''
+            ).strip()
+            if not pid:
+                continue
+            raw_monto = r.get('Monto $') or r.get('monto') or 0
+            try:
+                monto = float(str(raw_monto).replace(',', '.'))
+            except (ValueError, TypeError):
+                monto = 0.0
+            conn.execute('''
+                INSERT OR IGNORE INTO ventas
+                    (pedido_id, tipo, fecha_hora, monto,
+                     forma_pago, negocio, sucursal, estado)
+                VALUES (?,?,?,?,?,?,?,?)
+            ''', (
+                pid,
+                str(r.get('Tipo')          or r.get('tipo')       or '').strip(),
+                str(r.get('Fecha/Hora')    or r.get('fecha_hora') or '').strip(),
+                monto,
+                str(r.get('Forma Pago')    or r.get('forma_pago') or '').strip(),
+                str(r.get('Negocio')       or r.get('negocio')    or '').strip(),
+                str(r.get('Sucursal')      or r.get('sucursal')   or '').strip(),
+                str(r.get('Estado Proceso')or r.get('estado')     or '').strip(),
+            ))
+            if conn.execute('SELECT changes()').fetchone()[0]:
+                inserted += 1
+        conn.commit()
+    return inserted
+
+# ── PARSING ────────────────────────────────────────────────────────
 
 def parse_xls_xml(source):
+    """Parsea el formato XML que exporta Softland como .xls"""
     if isinstance(source, (bytes, bytearray)):
         tree = ET.parse(BytesIO(source))
     else:
@@ -32,156 +97,184 @@ def parse_xls_xml(source):
     ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
     ws = root.findall('.//ss:Worksheet', ns)[0]
     table = ws.find('ss:Table', ns)
-    rows = table.findall('ss:Row', ns)
     all_rows = []
-    for row in rows:
-        cells = row.findall('ss:Cell', ns)
+    for row in table.findall('ss:Row', ns):
         vals = []
-        for c in cells:
+        for c in row.findall('ss:Cell', ns):
             d = c.find('ss:Data', ns)
             vals.append(d.text if d is not None else None)
         all_rows.append(vals)
     if not all_rows:
         return []
     headers = all_rows[0]
-    return [dict(zip(headers, r + [None] * max(0, len(headers) - len(r)))) for r in all_rows[1:]]
+    return [
+        dict(zip(headers, r + [None] * max(0, len(headers) - len(r))))
+        for r in all_rows[1:]
+    ]
 
+# ── DATAFRAME ──────────────────────────────────────────────────────
 
 def build_df(records):
+    """
+    Construye un DataFrame a partir de registros de la BD.
+    Columnas de BD: pedido_id, tipo, fecha_hora, monto, negocio, sucursal, etc.
+    """
     df = pd.DataFrame(records)
     if df.empty:
         return df
-    if 'Fecha/Hora' in df.columns:
-        df['fecha'] = pd.to_datetime(df['Fecha/Hora'], format='%d-%m-%Y %H:%M', errors='coerce')
-        df['año'] = df['fecha'].dt.year.astype('Int64')
-        df['mes'] = df['fecha'].dt.month.astype('Int64')
-        df['mes_año'] = df['fecha'].dt.to_period('M').astype(str)
-    if 'Monto $' in df.columns:
-        df['monto'] = pd.to_numeric(df['Monto $'], errors='coerce').fillna(0)
+    df['fecha'] = pd.to_datetime(
+        df['fecha_hora'], format='%d-%m-%Y %H:%M', errors='coerce'
+    )
+    df['año']     = df['fecha'].dt.year.astype('Int64')
+    df['mes']     = df['fecha'].dt.month.astype('Int64')
+    df['mes_año'] = df['fecha'].dt.to_period('M').astype(str)
+    df['monto']   = pd.to_numeric(df['monto'], errors='coerce').fillna(0)
     return df
 
-
-def generate_demo_data():
-    random.seed(42)
-    tipos = ['Individual', 'Grupal', 'Cumpleaños', 'Clases', 'Adicional']
-    formas = ['Tarjeta Débito', 'Tarjeta Crédito', 'Efectivo', 'Transferencia']
-    montos = {'Individual': (10000, 25000), 'Grupal': (30000, 90000),
-              'Cumpleaños': (120000, 300000), 'Clases': (15000, 35000), 'Adicional': (5000, 15000)}
-    mm = {1: 0.90, 2: 0.85, 3: 0.92, 4: 0.80, 5: 0.88, 6: 0.72,
-          7: 0.68, 8: 0.75, 9: 0.88, 10: 0.93, 11: 0.97, 12: 1.25}
-    yg = {2024: 0.88, 2025: 1.0, 2026: 1.18}
-
-    data = []
-    n = 100000
-    d = datetime(2024, 1, 1)
-    while d <= datetime(2026, 5, 31):
-        mult = mm[d.month] * yg.get(d.year, 1.0)
-        num = max(3, int(28 * mult + random.gauss(0, 4)))
-        for _ in range(num):
-            neg = random.choices(list(SUCURSALES_NEGOCIO.keys()), weights=[0.55, 0.45])[0]
-            suc = random.choice(SUCURSALES_NEGOCIO[neg])
-            t = random.choices(tipos, weights=[0.50, 0.20, 0.10, 0.15, 0.05])[0]
-            mn, mx = montos[t]
-            m = random.randrange(mn, mx, 1000)
-            dt = d.replace(hour=random.randint(9, 21), minute=random.randint(0, 59))
-            data.append({'N° Pedido': str(n), 'Tipo': t,
-                         'Fecha/Hora': dt.strftime('%d-%m-%Y %H:%M'),
-                         'Monto $': str(m), 'Forma Pago': random.choice(formas),
-                         'Negocio': neg, 'Sucursal': suc,
-                         'Estado Proceso': 'Finalizado', 'Estado Emisión': 'Emitido'})
-            n += 1
-        d += timedelta(days=1)
-    return data
-
-
-def get_records():
-    # Arranca con datos de demostración sintéticos (sin datos personales
-    # reales). El usuario sube su Excel real por la interfaz cuando lo
-    # necesita; esos registros viven solo en memoria de la sesión.
-    if _store['records'] is None:
-        _store['records'] = generate_demo_data()
-    return _store['records']
-
-
 def apply_filters(df, params):
+    if df.empty:
+        return df
     if params.get('negocio', 'Todos') not in ('Todos', '', None):
-        df = df[df['Negocio'] == params['negocio']]
+        df = df[df['negocio'] == params['negocio']]
     if params.get('sucursal', 'Todas') not in ('Todas', '', None):
-        df = df[df['Sucursal'] == params['sucursal']]
-    if params.get('date_from'):
+        df = df[df['sucursal'] == params['sucursal']]
+    if params.get('date_from') and 'fecha' in df.columns:
         df = df[df['fecha'] >= pd.to_datetime(params['date_from'])]
-    if params.get('date_to'):
+    if params.get('date_to') and 'fecha' in df.columns:
         df = df[df['fecha'] <= pd.to_datetime(params['date_to'])]
     return df
 
+# ── RUTAS ──────────────────────────────────────────────────────────
 
 @app.route('/')
 def index():
-    get_records()
+    init_db()
     return render_template('index.html')
 
 
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
+        return jsonify({'error': 'No se recibió ningún archivo'}), 400
     f = request.files['file']
     try:
         content = f.read()
         if b'<?xml' in content[:200]:
-            records = parse_xls_xml(content)
+            raw = parse_xls_xml(content)
         else:
-            records = pd.read_excel(BytesIO(content)).to_dict('records')
-        finalized = [r for r in records if str(r.get('Estado Proceso', '')).strip() == 'Finalizado']
-        existing_ids = {r['N° Pedido'] for r in get_records()}
-        new = [r for r in finalized if str(r.get('N° Pedido', '')) not in existing_ids]
-        _store['records'].extend(new)
-        return jsonify({'success': True, 'new': len(new), 'total': len(_store['records'])})
+            raw = pd.read_excel(BytesIO(content)).to_dict('records')
+
+        finalized = [
+            r for r in raw
+            if str(r.get('Estado Proceso', '')).strip() == 'Finalizado'
+        ]
+        if not finalized:
+            return jsonify({
+                'success': False,
+                'warning': 'No se encontraron registros con estado "Finalizado" en el archivo.'
+            }), 200
+
+        inserted = save_records(finalized)
+        total = load_records().__len__()  # count after insert
+        with get_db() as conn:
+            total = conn.execute('SELECT COUNT(*) FROM ventas').fetchone()[0]
+
+        return jsonify({
+            'success': True,
+            'parsed': len(finalized),
+            'new': inserted,
+            'total': total,
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/db_info')
+def db_info():
+    """Info sobre el estado de la base de datos."""
+    init_db()
+    with get_db() as conn:
+        count = conn.execute('SELECT COUNT(*) FROM ventas').fetchone()[0]
+        if count == 0:
+            return jsonify({'count': 0, 'date_min': None, 'date_max': None,
+                            'negocios': [], 'sucursales': [], 'archivos': 0})
+        row = conn.execute(
+            "SELECT MIN(fecha_hora), MAX(fecha_hora) FROM ventas"
+        ).fetchone()
+        negs  = [r[0] for r in conn.execute('SELECT DISTINCT negocio FROM ventas WHERE negocio != ""').fetchall()]
+        sucs  = [r[0] for r in conn.execute('SELECT DISTINCT sucursal FROM ventas WHERE sucursal != ""').fetchall()]
+    df_dates = pd.to_datetime(
+        [row[0], row[1]], format='%d-%m-%Y %H:%M', errors='coerce'
+    )
+    return jsonify({
+        'count': count,
+        'date_min': df_dates[0].strftime('%Y-%m-%d') if pd.notna(df_dates[0]) else None,
+        'date_max': df_dates[1].strftime('%Y-%m-%d') if pd.notna(df_dates[1]) else None,
+        'negocios': sorted(negs),
+        'sucursales': sorted(sucs),
+    })
+
+
+@app.route('/api/clear', methods=['POST'])
+def clear_data():
+    """Borra todos los registros de la BD (acción irreversible)."""
+    with get_db() as conn:
+        conn.execute('DELETE FROM ventas')
+        conn.commit()
+    return jsonify({'success': True})
+
+
 @app.route('/api/meta')
 def meta():
-    df = build_df(get_records())
-    negocios = ['Todos'] + sorted(df['Negocio'].dropna().unique().tolist())
-    sucursales_all = ['Todas'] + sorted(df['Sucursal'].dropna().unique().tolist())
-    years = sorted(df['año'].dropna().astype(int).unique().tolist()) if 'año' in df else []
-    date_min = df['fecha'].min().strftime('%Y-%m-%d') if 'fecha' in df and len(df) else None
-    date_max = df['fecha'].max().strftime('%Y-%m-%d') if 'fecha' in df and len(df) else None
-    return jsonify({'negocios': negocios, 'sucursales': sucursales_all,
+    records = load_records()
+    df = build_df(records)
+    if df.empty:
+        return jsonify({'negocios': ['Todos'], 'sucursales': ['Todas'],
+                        'years': [], 'date_min': None, 'date_max': None})
+    negocios   = ['Todos'] + sorted(df['negocio'].dropna().unique().tolist())
+    sucursales = ['Todas'] + sorted(df['sucursal'].dropna().unique().tolist())
+    years      = sorted(df['año'].dropna().astype(int).unique().tolist())
+    date_min   = df['fecha'].min().strftime('%Y-%m-%d')
+    date_max   = df['fecha'].max().strftime('%Y-%m-%d')
+    return jsonify({'negocios': negocios, 'sucursales': sucursales,
                     'years': years, 'date_min': date_min, 'date_max': date_max})
 
 
 @app.route('/api/kpis')
 def kpis():
-    df = build_df(get_records())
-    total = float(df['monto'].sum())
-    n_trans = int(len(df))
-    n_suc = int(df['Sucursal'].nunique()) if 'Sucursal' in df else 0
-    n_neg = int(df['Negocio'].nunique()) if 'Negocio' in df else 0
-    return jsonify({'total': total, 'n_trans': n_trans, 'n_suc': n_suc, 'n_neg': n_neg})
+    df = build_df(load_records())
+    if df.empty:
+        return jsonify({'total': 0, 'n_trans': 0, 'n_suc': 0, 'n_neg': 0})
+    return jsonify({
+        'total':   float(df['monto'].sum()),
+        'n_trans': int(len(df)),
+        'n_suc':   int(df['sucursal'].nunique()),
+        'n_neg':   int(df['negocio'].nunique()),
+    })
 
 
 @app.route('/api/r1', methods=['POST'])
 def r1_historical():
-    p = request.json or {}
-    df = build_df(get_records())
-    df = apply_filters(df, p)
+    p  = request.json or {}
+    df = apply_filters(build_df(load_records()), p)
 
     gran = p.get('granularity', 'monthly')
+    if df.empty:
+        return jsonify({'labels': [], 'values': [], 'stacked': {},
+                        'total': 0, 'avg_monthly': 0, 'max_month': 0, 'n_trans': 0})
+
     if gran == 'yearly':
-        g = df.groupby('año')['monto'].sum().reset_index().sort_values('año')
+        g      = df.groupby('año')['monto'].sum().reset_index().sort_values('año')
         labels = g['año'].astype(str).tolist()
-        vals = [float(v) for v in g['monto'].tolist()]
+        vals   = [float(v) for v in g['monto']]
     else:
-        g = df.groupby('mes_año')['monto'].sum().reset_index().sort_values('mes_año')
+        g      = df.groupby('mes_año')['monto'].sum().reset_index().sort_values('mes_año')
         labels = g['mes_año'].tolist()
-        vals = [float(v) for v in g['monto'].tolist()]
+        vals   = [float(v) for v in g['monto']]
 
     stacked = {}
-    for neg in df['Negocio'].dropna().unique():
-        ndf = df[df['Negocio'] == neg]
+    for neg in df['negocio'].dropna().unique():
+        ndf = df[df['negocio'] == neg]
         if gran == 'yearly':
             ng = ndf.groupby('año')['monto'].sum().reset_index().sort_values('año')
             nd = dict(zip(ng['año'].astype(str), ng['monto']))
@@ -190,38 +283,44 @@ def r1_historical():
             nd = dict(zip(ng['mes_año'], ng['monto']))
         stacked[neg] = [float(nd.get(l, 0)) for l in labels]
 
-    total = float(df['monto'].sum())
-    avg = float(df.groupby('mes_año')['monto'].sum().mean()) if 'mes_año' in df and not df.empty else 0
-    max_month = float(df.groupby('mes_año')['monto'].sum().max()) if 'mes_año' in df and not df.empty else 0
-
-    return jsonify({'labels': labels, 'values': vals, 'stacked': stacked,
-                    'total': total, 'avg_monthly': avg, 'max_month': max_month,
-                    'n_trans': int(len(df))})
+    monthly_totals = df.groupby('mes_año')['monto'].sum()
+    return jsonify({
+        'labels':      labels,
+        'values':      vals,
+        'stacked':     stacked,
+        'total':       float(df['monto'].sum()),
+        'avg_monthly': float(monthly_totals.mean()) if not monthly_totals.empty else 0,
+        'max_month':   float(monthly_totals.max())  if not monthly_totals.empty else 0,
+        'n_trans':     int(len(df)),
+    })
 
 
 @app.route('/api/r2', methods=['POST'])
 def r2_comparative():
-    p = request.json or {}
-    df = build_df(get_records())
-    df = apply_filters(df, {k: p[k] for k in ('negocio', 'sucursal') if k in p})
+    p  = request.json or {}
+    df = apply_filters(
+        build_df(load_records()),
+        {k: p[k] for k in ('negocio', 'sucursal') if k in p}
+    )
 
-    y1 = int(p.get('year1', 2026))
-    y2 = int(p.get('year2', 2025))
+    y1     = int(p.get('year1', 0))
+    y2     = int(p.get('year2', 0))
     months = [int(m) for m in p.get('months', list(range(1, 13)))]
 
     rows = []
     for m in months:
-        v1 = float(df[(df['año'] == y1) & (df['mes'] == m)]['monto'].sum())
-        v2 = float(df[(df['año'] == y2) & (df['mes'] == m)]['monto'].sum())
-        pct = round((v1 - v2) / v2 * 100, 1) if v2 > 0 else 0
+        v1  = float(df[(df['año'] == y1) & (df['mes'] == m)]['monto'].sum())
+        v2  = float(df[(df['año'] == y2) & (df['mes'] == m)]['monto'].sum())
+        pct = round((v1 - v2) / v2 * 100, 1) if v2 > 0 else (0 if v1 == 0 else None)
         rows.append({'month': MONTH_NAMES.get(m, str(m)), 'm': m,
                      'actual': v1, 'anterior': v2, 'pct': pct})
 
-    tot1 = sum(r['actual'] for r in rows)
-    tot2 = sum(r['anterior'] for r in rows)
-    tot_pct = round((tot1 - tot2) / tot2 * 100, 1) if tot2 > 0 else 0
-    best = max(rows, key=lambda r: r['pct']) if rows else None
-    worst = min(rows, key=lambda r: r['pct']) if rows else None
+    tot1     = sum(r['actual']   for r in rows)
+    tot2     = sum(r['anterior'] for r in rows)
+    tot_pct  = round((tot1 - tot2) / tot2 * 100, 1) if tot2 > 0 else 0
+    valid    = [r for r in rows if r['pct'] is not None]
+    best     = max(valid, key=lambda r: r['pct']) if valid else None
+    worst    = min(valid, key=lambda r: r['pct']) if valid else None
 
     return jsonify({'rows': rows, 'y1': y1, 'y2': y2,
                     'tot1': tot1, 'tot2': tot2, 'tot_pct': tot_pct,
@@ -230,38 +329,44 @@ def r2_comparative():
 
 @app.route('/api/r3', methods=['POST'])
 def r3_participation():
-    p = request.json or {}
-    df = build_df(get_records())
-    df = apply_filters(df, p)
-
+    p     = request.json or {}
+    df    = apply_filters(build_df(load_records()), p)
     total = float(df['monto'].sum())
 
-    by_neg = df.groupby('Negocio')['monto'].sum().reset_index()
-    pie = [{'label': str(r['Negocio']),
+    if df.empty:
+        return jsonify({'pie': [], 'monthly': {'periods': [], 'stacked': {}},
+                        'branches': {}, 'tipo': [], 'total': 0})
+
+    by_neg = df.groupby('negocio')['monto'].sum().reset_index()
+    pie = [{'label': str(r['negocio']),
             'value': float(r['monto']),
-            'pct': round(float(r['monto']) / total * 100, 1) if total > 0 else 0}
+            'pct':   round(float(r['monto']) / total * 100, 1) if total > 0 else 0}
            for _, r in by_neg.iterrows()]
 
-    monthly = df.groupby(['mes_año', 'Negocio'])['monto'].sum().reset_index()
-    periods = sorted(monthly['mes_año'].unique().tolist())
-    negocios = df['Negocio'].dropna().unique().tolist()
-    stacked = {}
+    monthly  = df.groupby(['mes_año', 'negocio'])['monto'].sum().reset_index()
+    periods  = sorted(monthly['mes_año'].unique().tolist())
+    negocios = df['negocio'].dropna().unique().tolist()
+    stacked  = {}
     for neg in negocios:
-        nd = dict(zip(monthly[monthly['Negocio'] == neg]['mes_año'],
-                      monthly[monthly['Negocio'] == neg]['monto']))
+        nd = dict(zip(
+            monthly[monthly['negocio'] == neg]['mes_año'],
+            monthly[monthly['negocio'] == neg]['monto']
+        ))
         stacked[neg] = [float(nd.get(per, 0)) for per in periods]
 
-    by_branch = df.groupby(['Sucursal', 'Negocio'])['monto'].sum().reset_index()
-    branches = {}
+    by_branch = df.groupby(['sucursal', 'negocio'])['monto'].sum().reset_index()
+    branches  = {}
     for _, r in by_branch.iterrows():
-        s = str(r['Sucursal'])
+        s = str(r['sucursal'])
         if s not in branches:
             branches[s] = {}
-        branches[s][str(r['Negocio'])] = float(r['monto'])
+        branches[s][str(r['negocio'])] = float(r['monto'])
 
-    by_tipo = df.groupby('Tipo')['monto'].sum().reset_index() if 'Tipo' in df else pd.DataFrame()
-    tipo_data = [{'label': str(r['Tipo']), 'value': float(r['monto'])}
-                 for _, r in by_tipo.iterrows()] if not by_tipo.empty else []
+    tipo_data = []
+    if 'tipo' in df.columns:
+        by_tipo   = df.groupby('tipo')['monto'].sum().reset_index()
+        tipo_data = [{'label': str(r['tipo']), 'value': float(r['monto'])}
+                     for _, r in by_tipo.iterrows()]
 
     return jsonify({'pie': pie, 'monthly': {'periods': periods, 'stacked': stacked},
                     'branches': branches, 'tipo': tipo_data, 'total': total})
