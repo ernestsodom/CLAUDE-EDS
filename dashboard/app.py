@@ -18,6 +18,14 @@ DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'ven
 MONTH_NAMES = {1:'ENE',2:'FEB',3:'MAR',4:'ABR',5:'MAY',6:'JUN',
                7:'JUL',8:'AGO',9:'SEP',10:'OCT',11:'NOV',12:'DIC'}
 
+def _month_label(ym):
+    """'2026-01' → 'ENE 2026'."""
+    try:
+        y, m = ym.split('-')
+        return f"{MONTH_NAMES.get(int(m), m)} {y}"
+    except Exception:
+        return ym
+
 # ── CAPA DE ACCESO A DATOS ─────────────────────────────────────────
 
 def _is_pg():
@@ -334,24 +342,34 @@ def r1_historical():
     df = apply_filters(build_df(load_records()), p)
     if df.empty:
         return jsonify({'labels': [], 'values': [], 'stacked': {},
+                        'stacked_counts': {}, 'branches': {},
                         'total': 0, 'avg_monthly': 0, 'max_month': 0, 'n_trans': 0})
 
+    # Granularidad: diaria, mensual o anual. 'keys' agrupa; 'labels' se muestra.
     gran = p.get('granularity', 'monthly')
-    key  = 'año' if gran == 'yearly' else 'mes_año'
-    g      = df.groupby(key)['monto'].sum().reset_index().sort_values(key)
-    labels = g[key].astype(str).tolist()
-    vals   = [float(v) for v in g['monto']]
+    if gran == 'yearly':
+        df = df.assign(_k=df['año'].astype('Int64').astype(str))
+        keys   = sorted(k for k in df['_k'].unique() if k and k != '<NA>')
+        labels = keys
+    elif gran == 'daily':
+        df = df.assign(_k=df['dia'].dt.strftime('%Y-%m-%d'))
+        keys   = sorted(k for k in df['_k'].dropna().unique() if k and k != 'NaT')
+        labels = [datetime.strptime(k, '%Y-%m-%d').strftime('%d/%m/%Y') for k in keys]
+    else:  # monthly
+        df = df.assign(_k=df['mes_año'])
+        keys   = sorted(k for k in df['_k'].unique() if k and k != 'NaT')
+        labels = [_month_label(k) for k in keys]
 
-    stacked = {}
-    stacked_counts = {}
+    g    = df.groupby('_k')['monto'].sum()
+    vals = [float(g.get(k, 0)) for k in keys]
+
+    stacked, stacked_counts = {}, {}
     for neg in df['negocio'].dropna().unique():
         ndf = df[df['negocio'] == neg]
-        ng  = ndf.groupby(key)['monto'].sum()
-        nc  = ndf.groupby(key).size()
-        nd  = {str(k): float(v) for k, v in ng.items()}
-        ncd = {str(k): int(v)   for k, v in nc.items()}
-        stacked[str(neg)]        = [nd.get(l, 0)  for l in labels]
-        stacked_counts[str(neg)] = [ncd.get(l, 0) for l in labels]
+        ng  = ndf.groupby('_k')['monto'].sum()
+        nc  = ndf.groupby('_k').size()
+        stacked[str(neg)]        = [float(ng.get(k, 0)) for k in keys]
+        stacked_counts[str(neg)] = [int(nc.get(k, 0))   for k in keys]
 
     # Branch breakdown for the selected period (same format as r3)
     by_branch = df.groupby(['sucursal', 'negocio'])['monto'].sum().reset_index()

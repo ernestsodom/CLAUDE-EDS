@@ -212,7 +212,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="fg"><label>Sucursal</label><select id="r1-sucursal" onchange="renderR1()"><option>Todas</option></select></div>
       <div class="fg"><label>Desde</label><input type="date" id="r1-from" onchange="renderR1()"></div>
       <div class="fg"><label>Hasta</label><input type="date" id="r1-to" onchange="renderR1()"></div>
-      <div class="fg"><label>Granularidad</label><select id="r1-gran" onchange="renderR1()"><option value="monthly">Mensual</option><option value="yearly">Anual</option></select></div>
+      <div class="fg"><label>Granularidad</label><select id="r1-gran" onchange="renderR1()"><option value="daily">Diaria</option><option value="monthly" selected>Mensual</option><option value="yearly">Anual</option></select></div>
       <button class="btn btn-secondary" onclick="resetR1()">↺ Reiniciar</button>
       <div class="spacer"></div>
       <button class="btn btn-save" onclick="saveConsulta(1)">💾 Guardar consulta</button>
@@ -354,6 +354,11 @@ function fmtM(v){
   return '$'+Math.round(v).toLocaleString('es-CL');
 }
 function fmtPct(v){ return v===null||v===undefined ? 'N/D' : (v>0?'+':'')+Number(v).toFixed(1)+'%'; }
+function fmtPeriodLabel(s){   // 'YYYY-MM-DD'→dd/mm/yyyy · 'YYYY-MM'→'ENE 2026' · 'YYYY'→'YYYY'
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){ const[Y,M,D]=s.split('-'); return `${D}/${M}/${Y}`; }
+  if(/^\d{4}-\d{2}$/.test(s)){ const[Y,M]=s.split('-'); return `${MONTH_LABELS[+M-1]} ${Y}`; }
+  return s;
+}
 
 // ── PLOTLY ───────────────────────────────────────────────────────
 function baseLayout(){
@@ -446,14 +451,23 @@ async function loadGlobalKPIs(){
 }
 
 // ── TABS ─────────────────────────────────────────────────────────
-function showTab(n){
+async function showTab(n){
   for(let i=1;i<=4;i++){
     document.getElementById('tab'+i).classList.toggle('active',i===n);
     document.getElementById('panel-'+i).classList.toggle('active',i===n);
   }
   if(n===4){ loadConsultasList(); return; }
   if(!hasData) return;
-  if(n===1) renderR1(); else if(n===2) renderR2(); else if(n===3) renderR3();
+  // Redibuja y luego ajusta al ancho real del panel ya visible (evita gráficos
+  // dibujados con tamaño por defecto mientras el panel estaba oculto).
+  if(n===1) await renderR1(); else if(n===2) await renderR2(); else if(n===3) await renderR3();
+  resizePanelCharts(n);
+}
+function resizePanelCharts(n){
+  const map={1:['chart-r1','chart-r1-branches'],
+             2:['chart-r2-bars','chart-r2-growth'],
+             3:['chart-r3-donut','chart-r3-monthly','chart-r3-branches','chart-r3-tipos']};
+  (map[n]||[]).forEach(id=>{const el=document.getElementById(id); if(el&&el.data&&el.data.length) Plotly.Plots.resize(el);});
 }
 
 // Renderiza los 3 reportes (alimenta las 3 pestañas tras una carga)
@@ -500,6 +514,7 @@ function drawR1(elId, d, p){
     y:movingAvg(d.values,3),line:{color:'#7c3aed',width:2.5,dash:'dot'},
     hovertemplate:'Tendencia: $%{y:,.0f}<extra></extra>'});
   Plotly.react(elId,traces,{...baseLayout(),barmode:isGrouped?'group':'stack',
+    xaxis:{...baseLayout().xaxis,type:'category',automargin:true},
     yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
 }
 function resetR1(){
@@ -593,7 +608,8 @@ function drawR3Donut(elId, d, interactive){
     marker:{colors:d.pie.map(p=>COLORS[p.label]||'#94a3b8')},
     texttemplate:'<b>%{percent:.1%}</b>',pull:d.pie.map(()=>0),
     hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>',sort:false}],
-    {...baseLayout(),margin:{l:20,r:20,t:20,b:60},legend:{orientation:'h',y:-0.1,x:.5,xanchor:'center'},
+    {...baseLayout(),margin:{l:10,r:10,t:10,b:50},
+     legend:{orientation:'h',y:-0.06,x:.5,xanchor:'center',font:{size:11}},
      annotations:[{text:'<b>TOTAL</b><br>'+fmtM(d.total),showarrow:false,font:{size:15,color:'#374151'},x:.5,y:.5,xref:'paper',yref:'paper'}]},CFG);
   if(interactive){
     r3SelectedNeg=null;
@@ -627,9 +643,11 @@ function _resetDonut(elId, d){
 function drawR3Monthly(elId, d){
   // Barras AGRUPADAS (una al lado de la otra), comparando los negocios por mes
   const negs=Object.keys(d.monthly.grouped||{});
-  Plotly.react(elId, negs.map(neg=>({name:neg,type:'bar',x:d.monthly.periods,y:d.monthly.grouped[neg],
+  const labels=(d.monthly.periods||[]).map(fmtPeriodLabel);
+  Plotly.react(elId, negs.map(neg=>({name:neg,type:'bar',x:labels,y:d.monthly.grouped[neg],
     marker:{color:COLORS[neg]||'#94a3b8'},hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'})),
-    {...baseLayout(),barmode:'group',yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
+    {...baseLayout(),barmode:'group',xaxis:{...baseLayout().xaxis,type:'category',automargin:true},
+     yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
 }
 function drawBranches(elId, branchData){
   const bData=Object.entries(branchData).sort((a,b)=>{
@@ -638,10 +656,11 @@ function drawBranches(elId, branchData){
   Plotly.react(elId, bNegs.map(neg=>({name:neg,type:'bar',orientation:'h',y:bData.map(([s])=>s),
     x:bData.map(([,nv])=>nv[neg]||0),marker:{color:COLORS[neg]||'#94a3b8'},
     text:bData.map(([,nv])=>{const v=nv[neg]||0;return v>0?fmtM(v):''}),
-    textposition:'inside',textfont:{color:'white',size:11},
+    textposition:'inside',textfont:{color:'white',size:11},insidetextanchor:'middle',
     hovertemplate:'<b>%{y}</b><br>'+neg+': $%{x:,.0f}<extra></extra>'})),
-    {...baseLayout(),barmode:'stack',margin:{l:190,r:20,t:20,b:50},
-     yaxis:{...baseLayout().yaxis,tickformat:'',tickprefix:''},
+    {...baseLayout(),barmode:'stack',margin:{l:195,r:55,t:55,b:45},
+     legend:{orientation:'h',y:1.1,x:0,font:{size:12}},
+     yaxis:{...baseLayout().yaxis,tickformat:'',tickprefix:'',automargin:true},
      xaxis:{...baseLayout().xaxis,tickformat:',.0s',tickprefix:'$',showgrid:true,gridcolor:'#e8edf2'}},CFG);
 }
 function drawR3Branches(elId, d){ drawBranches(elId, d.branches); }
