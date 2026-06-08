@@ -11,3 +11,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
+      - key: DATABASE_URL
+        sync: false
+        # ↑ Pega aquí tu cadena de conexión de Supabase (postgresql://...)
+        # para tener historial permanente. Sin este valor, la app usa
+        # SQLite local (los datos se pierden al reiniciar el servicio).

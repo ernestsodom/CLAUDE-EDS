@@ -4,24 +4,65 @@ import pandas as pd
 from io import BytesIO
 import os
 import sqlite3
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 
+# ── CONFIGURACIÓN DE BD ────────────────────────────────────────────
+# LOCAL  → SQLite (ventas.db) sin configuración adicional.
+# NUBE   → PostgreSQL cuando DATABASE_URL está definida (Supabase, Render, etc.)
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'ventas.db'))
 
 MONTH_NAMES = {1:'ENE',2:'FEB',3:'MAR',4:'ABR',5:'MAY',6:'JUN',
                7:'JUL',8:'AGO',9:'SEP',10:'OCT',11:'NOV',12:'DIC'}
 
-# ── BASE DE DATOS ──────────────────────────────────────────────────
+# ── CAPA DE ACCESO A DATOS ─────────────────────────────────────────
 
-def get_db():
+def _is_pg():
+    return bool(DATABASE_URL)
+
+def _pg_url():
+    """Normaliza postgres:// → postgresql:// que exige psycopg2."""
+    url = DATABASE_URL
+    return url.replace('postgres://', 'postgresql://', 1) if url.startswith('postgres://') else url
+
+def get_conn():
+    if _is_pg():
+        import psycopg2
+        return psycopg2.connect(_pg_url())
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
+def _fetchall(sql, params=()):
+    conn = get_conn()
+    try:
+        if _is_pg():
+            import psycopg2.extras
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        else:
+            cur = conn.cursor()
+        cur.execute(sql, params)
+        return [dict(r) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+def _execute(sql, params=()):
+    conn = get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()
+
 def init_db():
-    with get_db() as conn:
-        conn.execute('''
+    conn = get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute('''
             CREATE TABLE IF NOT EXISTS ventas (
                 pedido_id  TEXT PRIMARY KEY,
                 tipo       TEXT,
@@ -31,71 +72,82 @@ def init_db():
                 negocio    TEXT,
                 sucursal   TEXT,
                 estado     TEXT,
-                cargado_en TEXT DEFAULT (datetime('now'))
+                cargado_en TEXT
             )
         ''')
         conn.commit()
+    finally:
+        conn.close()
 
 def load_records():
     """Carga todos los registros de la BD como lista de dicts."""
     init_db()
-    with get_db() as conn:
-        rows = conn.execute(
-            'SELECT * FROM ventas ORDER BY fecha_hora'
-        ).fetchall()
-    return [dict(r) for r in rows]
+    return _fetchall('SELECT * FROM ventas ORDER BY fecha_hora')
 
 def save_records(raw_records):
     """
-    Normaliza e inserta registros (ignora duplicados por pedido_id).
-    Acepta tanto el formato directo del Excel como el de la BD.
+    Normaliza e inserta registros ignorando duplicados por pedido_id.
+    Compatible con SQLite (INSERT OR IGNORE) y PostgreSQL (ON CONFLICT DO NOTHING).
     Retorna el número de filas efectivamente insertadas.
     """
     init_db()
+    ph  = '%s' if _is_pg() else '?'
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+
+    if _is_pg():
+        sql = (
+            f'INSERT INTO ventas '
+            f'(pedido_id,tipo,fecha_hora,monto,forma_pago,negocio,sucursal,estado,cargado_en) '
+            f'VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph}) '
+            f'ON CONFLICT (pedido_id) DO NOTHING'
+        )
+    else:
+        sql = (
+            f'INSERT OR IGNORE INTO ventas '
+            f'(pedido_id,tipo,fecha_hora,monto,forma_pago,negocio,sucursal,estado,cargado_en) '
+            f'VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph})'
+        )
+
     inserted = 0
-    with get_db() as conn:
+    conn = get_conn()
+    try:
+        cur = conn.cursor()
         for r in raw_records:
-            pid = str(
-                r.get('N° Pedido') or r.get('pedido_id') or ''
-            ).strip()
+            pid = str(r.get('N° Pedido') or r.get('pedido_id') or '').strip()
             if not pid:
                 continue
-            raw_monto = r.get('Monto $') or r.get('monto') or 0
             try:
-                monto = float(str(raw_monto).replace(',', '.'))
+                monto = float(str(r.get('Monto $') or r.get('monto') or 0).replace(',', '.'))
             except (ValueError, TypeError):
                 monto = 0.0
-            conn.execute('''
-                INSERT OR IGNORE INTO ventas
-                    (pedido_id, tipo, fecha_hora, monto,
-                     forma_pago, negocio, sucursal, estado)
-                VALUES (?,?,?,?,?,?,?,?)
-            ''', (
+            cur.execute(sql, (
                 pid,
-                str(r.get('Tipo')          or r.get('tipo')       or '').strip(),
-                str(r.get('Fecha/Hora')    or r.get('fecha_hora') or '').strip(),
+                str(r.get('Tipo')           or r.get('tipo')       or '').strip(),
+                str(r.get('Fecha/Hora')     or r.get('fecha_hora') or '').strip(),
                 monto,
-                str(r.get('Forma Pago')    or r.get('forma_pago') or '').strip(),
-                str(r.get('Negocio')       or r.get('negocio')    or '').strip(),
-                str(r.get('Sucursal')      or r.get('sucursal')   or '').strip(),
-                str(r.get('Estado Proceso')or r.get('estado')     or '').strip(),
+                str(r.get('Forma Pago')     or r.get('forma_pago') or '').strip(),
+                str(r.get('Negocio')        or r.get('negocio')    or '').strip(),
+                str(r.get('Sucursal')       or r.get('sucursal')   or '').strip(),
+                str(r.get('Estado Proceso') or r.get('estado')     or '').strip(),
+                now,
             ))
-            if conn.execute('SELECT changes()').fetchone()[0]:
-                inserted += 1
+            inserted += cur.rowcount
         conn.commit()
+    finally:
+        conn.close()
     return inserted
 
-# ── PARSING ────────────────────────────────────────────────────────
+# ── PARSING DE EXCEL ───────────────────────────────────────────────
 
 def parse_xls_xml(source):
-    """Parsea el formato XML que exporta Softland como .xls"""
+    """Parsea el formato XML-Excel que exporta Softland como .xls"""
     if isinstance(source, (bytes, bytearray)):
         tree = ET.parse(BytesIO(source))
     else:
         tree = ET.parse(source)
     root = tree.getroot()
-    ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
-    ws = root.findall('.//ss:Worksheet', ns)[0]
+    ns   = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
+    ws   = root.findall('.//ss:Worksheet', ns)[0]
     table = ws.find('ss:Table', ns)
     all_rows = []
     for row in table.findall('ss:Row', ns):
@@ -115,16 +167,10 @@ def parse_xls_xml(source):
 # ── DATAFRAME ──────────────────────────────────────────────────────
 
 def build_df(records):
-    """
-    Construye un DataFrame a partir de registros de la BD.
-    Columnas de BD: pedido_id, tipo, fecha_hora, monto, negocio, sucursal, etc.
-    """
     df = pd.DataFrame(records)
     if df.empty:
         return df
-    df['fecha'] = pd.to_datetime(
-        df['fecha_hora'], format='%d-%m-%Y %H:%M', errors='coerce'
-    )
+    df['fecha']   = pd.to_datetime(df['fecha_hora'], format='%d-%m-%Y %H:%M', errors='coerce')
     df['año']     = df['fecha'].dt.year.astype('Int64')
     df['mes']     = df['fecha'].dt.month.astype('Int64')
     df['mes_año'] = df['fecha'].dt.to_period('M').astype(str)
@@ -164,63 +210,50 @@ def upload():
         else:
             raw = pd.read_excel(BytesIO(content)).to_dict('records')
 
-        finalized = [
-            r for r in raw
-            if str(r.get('Estado Proceso', '')).strip() == 'Finalizado'
-        ]
+        finalized = [r for r in raw
+                     if str(r.get('Estado Proceso', '')).strip() == 'Finalizado']
         if not finalized:
             return jsonify({
                 'success': False,
                 'warning': 'No se encontraron registros con estado "Finalizado" en el archivo.'
-            }), 200
+            })
 
         inserted = save_records(finalized)
-        total = load_records().__len__()  # count after insert
-        with get_db() as conn:
-            total = conn.execute('SELECT COUNT(*) FROM ventas').fetchone()[0]
-
-        return jsonify({
-            'success': True,
-            'parsed': len(finalized),
-            'new': inserted,
-            'total': total,
-        })
+        total = _fetchall('SELECT COUNT(*) AS n FROM ventas')[0]['n']
+        return jsonify({'success': True, 'parsed': len(finalized),
+                        'new': inserted, 'total': total})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/db_info')
 def db_info():
-    """Info sobre el estado de la base de datos."""
     init_db()
-    with get_db() as conn:
-        count = conn.execute('SELECT COUNT(*) FROM ventas').fetchone()[0]
-        if count == 0:
-            return jsonify({'count': 0, 'date_min': None, 'date_max': None,
-                            'negocios': [], 'sucursales': [], 'archivos': 0})
-        row = conn.execute(
-            "SELECT MIN(fecha_hora), MAX(fecha_hora) FROM ventas"
-        ).fetchone()
-        negs  = [r[0] for r in conn.execute('SELECT DISTINCT negocio FROM ventas WHERE negocio != ""').fetchall()]
-        sucs  = [r[0] for r in conn.execute('SELECT DISTINCT sucursal FROM ventas WHERE sucursal != ""').fetchall()]
-    df_dates = pd.to_datetime(
-        [row[0], row[1]], format='%d-%m-%Y %H:%M', errors='coerce'
-    )
+    rows = _fetchall('SELECT COUNT(*) AS n FROM ventas')
+    count = rows[0]['n']
+    if count == 0:
+        return jsonify({'count': 0, 'date_min': None, 'date_max': None,
+                        'negocios': [], 'sucursales': [],
+                        'backend': 'PostgreSQL' if _is_pg() else 'SQLite'})
+    row  = _fetchall("SELECT MIN(fecha_hora) AS mn, MAX(fecha_hora) AS mx FROM ventas")[0]
+    negs = [r['negocio'] for r in
+            _fetchall("SELECT DISTINCT negocio FROM ventas WHERE negocio <> '' AND negocio IS NOT NULL")]
+    sucs = [r['sucursal'] for r in
+            _fetchall("SELECT DISTINCT sucursal FROM ventas WHERE sucursal <> '' AND sucursal IS NOT NULL")]
+    dates = pd.to_datetime([row['mn'], row['mx']], format='%d-%m-%Y %H:%M', errors='coerce')
     return jsonify({
-        'count': count,
-        'date_min': df_dates[0].strftime('%Y-%m-%d') if pd.notna(df_dates[0]) else None,
-        'date_max': df_dates[1].strftime('%Y-%m-%d') if pd.notna(df_dates[1]) else None,
-        'negocios': sorted(negs),
+        'count':    count,
+        'date_min': dates[0].strftime('%Y-%m-%d') if pd.notna(dates[0]) else None,
+        'date_max': dates[1].strftime('%Y-%m-%d') if pd.notna(dates[1]) else None,
+        'negocios':   sorted(negs),
         'sucursales': sorted(sucs),
+        'backend': 'PostgreSQL' if _is_pg() else 'SQLite',
     })
 
 
 @app.route('/api/clear', methods=['POST'])
 def clear_data():
-    """Borra todos los registros de la BD (acción irreversible)."""
-    with get_db() as conn:
-        conn.execute('DELETE FROM ventas')
-        conn.commit()
+    _execute('DELETE FROM ventas')
     return jsonify({'success': True})
 
 
@@ -231,13 +264,13 @@ def meta():
     if df.empty:
         return jsonify({'negocios': ['Todos'], 'sucursales': ['Todas'],
                         'years': [], 'date_min': None, 'date_max': None})
-    negocios   = ['Todos'] + sorted(df['negocio'].dropna().unique().tolist())
-    sucursales = ['Todas'] + sorted(df['sucursal'].dropna().unique().tolist())
-    years      = sorted(df['año'].dropna().astype(int).unique().tolist())
-    date_min   = df['fecha'].min().strftime('%Y-%m-%d')
-    date_max   = df['fecha'].max().strftime('%Y-%m-%d')
-    return jsonify({'negocios': negocios, 'sucursales': sucursales,
-                    'years': years, 'date_min': date_min, 'date_max': date_max})
+    return jsonify({
+        'negocios':   ['Todos']  + sorted(df['negocio'].dropna().unique().tolist()),
+        'sucursales': ['Todas']  + sorted(df['sucursal'].dropna().unique().tolist()),
+        'years':      sorted(df['año'].dropna().astype(int).unique().tolist()),
+        'date_min':   df['fecha'].min().strftime('%Y-%m-%d'),
+        'date_max':   df['fecha'].max().strftime('%Y-%m-%d'),
+    })
 
 
 @app.route('/api/kpis')
@@ -257,12 +290,11 @@ def kpis():
 def r1_historical():
     p  = request.json or {}
     df = apply_filters(build_df(load_records()), p)
-
-    gran = p.get('granularity', 'monthly')
     if df.empty:
         return jsonify({'labels': [], 'values': [], 'stacked': {},
                         'total': 0, 'avg_monthly': 0, 'max_month': 0, 'n_trans': 0})
 
+    gran = p.get('granularity', 'monthly')
     if gran == 'yearly':
         g      = df.groupby('año')['monto'].sum().reset_index().sort_values('año')
         labels = g['año'].astype(str).tolist()
@@ -289,8 +321,8 @@ def r1_historical():
         'values':      vals,
         'stacked':     stacked,
         'total':       float(df['monto'].sum()),
-        'avg_monthly': float(monthly_totals.mean()) if not monthly_totals.empty else 0,
-        'max_month':   float(monthly_totals.max())  if not monthly_totals.empty else 0,
+        'avg_monthly': float(monthly_totals.mean()),
+        'max_month':   float(monthly_totals.max()),
         'n_trans':     int(len(df)),
     })
 
@@ -302,7 +334,6 @@ def r2_comparative():
         build_df(load_records()),
         {k: p[k] for k in ('negocio', 'sucursal') if k in p}
     )
-
     y1     = int(p.get('year1', 0))
     y2     = int(p.get('year2', 0))
     months = [int(m) for m in p.get('months', list(range(1, 13)))]
@@ -315,16 +346,16 @@ def r2_comparative():
         rows.append({'month': MONTH_NAMES.get(m, str(m)), 'm': m,
                      'actual': v1, 'anterior': v2, 'pct': pct})
 
-    tot1     = sum(r['actual']   for r in rows)
-    tot2     = sum(r['anterior'] for r in rows)
-    tot_pct  = round((tot1 - tot2) / tot2 * 100, 1) if tot2 > 0 else 0
-    valid    = [r for r in rows if r['pct'] is not None]
-    best     = max(valid, key=lambda r: r['pct']) if valid else None
-    worst    = min(valid, key=lambda r: r['pct']) if valid else None
-
-    return jsonify({'rows': rows, 'y1': y1, 'y2': y2,
-                    'tot1': tot1, 'tot2': tot2, 'tot_pct': tot_pct,
-                    'best': best, 'worst': worst})
+    tot1    = sum(r['actual']   for r in rows)
+    tot2    = sum(r['anterior'] for r in rows)
+    tot_pct = round((tot1 - tot2) / tot2 * 100, 1) if tot2 > 0 else 0
+    valid   = [r for r in rows if r['pct'] is not None]
+    return jsonify({
+        'rows': rows, 'y1': y1, 'y2': y2,
+        'tot1': tot1, 'tot2': tot2, 'tot_pct': tot_pct,
+        'best':  max(valid, key=lambda r: r['pct'])  if valid else None,
+        'worst': min(valid, key=lambda r: r['pct'])  if valid else None,
+    })
 
 
 @app.route('/api/r3', methods=['POST'])
@@ -345,13 +376,10 @@ def r3_participation():
 
     monthly  = df.groupby(['mes_año', 'negocio'])['monto'].sum().reset_index()
     periods  = sorted(monthly['mes_año'].unique().tolist())
-    negocios = df['negocio'].dropna().unique().tolist()
     stacked  = {}
-    for neg in negocios:
-        nd = dict(zip(
-            monthly[monthly['negocio'] == neg]['mes_año'],
-            monthly[monthly['negocio'] == neg]['monto']
-        ))
+    for neg in df['negocio'].dropna().unique():
+        nd = dict(zip(monthly[monthly['negocio'] == neg]['mes_año'],
+                      monthly[monthly['negocio'] == neg]['monto']))
         stacked[neg] = [float(nd.get(per, 0)) for per in periods]
 
     by_branch = df.groupby(['sucursal', 'negocio'])['monto'].sum().reset_index()
