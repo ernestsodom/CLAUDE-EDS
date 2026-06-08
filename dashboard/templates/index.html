@@ -9,29 +9,25 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f4f8;color:#1a202c;min-height:100vh}
 
-/* HEADER */
 .header{background:linear-gradient(135deg,#0f2d5e 0%,#1a56db 100%);color:white;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 12px rgba(0,0,0,.25);position:sticky;top:0;z-index:100}
 .header-brand{display:flex;align-items:center;gap:14px}
 .brand-icon{font-size:28px}
 .brand-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
-.brand-sub{font-size:11px;opacity:.75;font-weight:400}
+.brand-sub{font-size:11px;opacity:.75}
 .header-actions{display:flex;align-items:center;gap:10px}
 .upload-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:white;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:all .2s}
 .upload-btn:hover{background:rgba(255,255,255,.25)}
-.upload-status{font-size:12px;color:rgba(255,255,255,.75);min-width:130px;text-align:right}
+.upload-status{font-size:12px;color:rgba(255,255,255,.85);max-width:280px;text-align:right}
 
-/* DB STATUS BAR */
 .db-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 28px;background:#1e293b;color:#94a3b8;font-size:12px;gap:16px;flex-wrap:wrap}
-.db-bar .db-info{display:flex;align-items:center;gap:20px}
-.db-bar .db-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;box-shadow:0 0 6px #22c55e}
-.db-bar .db-dot.empty{background:#ef4444;box-shadow:0 0 6px #ef4444}
+.db-info{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.db-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;box-shadow:0 0 6px #22c55e}
+.db-dot.empty{background:#ef4444;box-shadow:0 0 6px #ef4444}
 .db-bar strong{color:#e2e8f0}
-.db-bar .db-actions{display:flex;gap:8px}
 .btn-ghost{background:transparent;border:1px solid #334155;color:#64748b;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s}
 .btn-ghost:hover{border-color:#94a3b8;color:#cbd5e1}
 .btn-ghost.danger:hover{border-color:#ef4444;color:#ef4444}
 
-/* KPI ROW */
 .kpi-row{display:flex;gap:14px;padding:20px 28px 0}
 .kpi-card{background:white;border-radius:12px;padding:16px 20px;flex:1;box-shadow:0 2px 8px rgba(0,0,0,.07);border-left:4px solid;position:relative;overflow:hidden}
 .kpi-card::after{content:'';position:absolute;right:-10px;top:-10px;width:70px;height:70px;border-radius:50%;opacity:.06}
@@ -40,58 +36,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .kpi-card.tramp{border-color:#f97316}.kpi-card.tramp::after{background:#f97316}
 .kpi-card.green{border-color:#22c55e}.kpi-card.green::after{background:#22c55e}
 .kpi-label{font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
-.kpi-value{font-size:24px;font-weight:800;color:#0f172a;margin-top:4px;line-height:1}
+.kpi-value{font-size:23px;font-weight:800;color:#0f172a;margin-top:4px;line-height:1.05}
+.kpi-value.exact{font-size:21px}
 .kpi-sub{font-size:11px;color:#94a3b8;margin-top:4px}
 
-/* TABS */
-.tab-nav{display:flex;gap:4px;padding:18px 28px 0}
-.tab-btn{padding:10px 22px;border-radius:10px 10px 0 0;cursor:pointer;font-size:13px;font-weight:600;background:#e2e8f0;color:#64748b;border:none;transition:all .2s;display:flex;align-items:center;gap:7px}
+.tab-nav{display:flex;gap:4px;padding:18px 28px 0;flex-wrap:wrap}
+.tab-btn{padding:10px 20px;border-radius:10px 10px 0 0;cursor:pointer;font-size:13px;font-weight:600;background:#e2e8f0;color:#64748b;border:none;transition:all .2s;display:flex;align-items:center;gap:7px}
 .tab-btn:hover:not(.active){background:#cbd5e1;color:#475569}
 .tab-btn.active{background:white;color:#1e293b;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
 
-/* PANELS */
 .panels-wrapper{padding:0 28px 32px}
 .panel{display:none;background:white;border-radius:0 12px 12px 12px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.07);animation:fadeIn .25s ease;position:relative}
 .panel.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-/* EMPTY STATE */
 .empty-overlay{display:none;position:absolute;inset:0;background:rgba(255,255,255,.96);border-radius:0 12px 12px 12px;z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:40px}
 .empty-overlay.show{display:flex}
-.empty-icon{font-size:56px;line-height:1}
+.empty-icon{font-size:56px}
 .empty-title{font-size:20px;font-weight:700;color:#1e293b}
-.empty-sub{font-size:14px;color:#64748b;max-width:360px;line-height:1.6}
+.empty-sub{font-size:14px;color:#64748b;max-width:380px;line-height:1.6}
 .btn-lg{padding:12px 28px;border:none;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700;background:#1a56db;color:white;transition:all .2s;display:flex;align-items:center;gap:8px}
 .btn-lg:hover{background:#1447c0;transform:translateY(-1px)}
 
-/* FILTER BAR */
 .filter-bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin-bottom:20px}
 .fg{display:flex;flex-direction:column;gap:4px}
 .fg label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
-.fg select,.fg input[type="date"]{padding:7px 11px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;color:#1e293b;background:white;min-width:130px;transition:border-color .2s}
+.fg select,.fg input[type="date"]{padding:7px 11px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;color:#1e293b;background:white;min-width:130px}
 .fg select:focus,.fg input:focus{outline:none;border-color:#1a56db}
-.btn{padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;display:flex;align-items:center;gap:6px}
+.btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;display:flex;align-items:center;gap:6px}
 .btn-primary{background:#1a56db;color:white}.btn-primary:hover{background:#1447c0}
 .btn-secondary{background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0}.btn-secondary:hover{background:#e2e8f0}
+.btn-save{background:#16a34a;color:white}.btn-save:hover{background:#15803d}
+.spacer{flex:1}
 
-/* REPORT KPIS */
 .report-kpis{display:flex;gap:12px;margin-bottom:20px}
 .rk{background:#f8fafc;border-radius:9px;padding:12px 18px;flex:1;border:1px solid #e2e8f0;text-align:center}
-.rk .rk-v{font-size:20px;font-weight:800;color:#0f172a;margin-bottom:2px}
-.rk .rk-l{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
+.rk-v{font-size:19px;font-weight:800;color:#0f172a;margin-bottom:2px}
+.rk-l{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
 
-/* CHART GRIDS */
 .charts-row{display:flex;gap:16px;margin-top:4px}
 .chart-box{flex:1;border:1px solid #f1f5f9;border-radius:10px;padding:12px;background:#fafbfc}
 .chart-box.main{flex:2}
 .chart-box h4{font-size:13px;font-weight:700;color:#374151;margin-bottom:6px;padding-left:2px}
 
-/* MONTHS PICKER */
 .months-grid{display:flex;flex-wrap:wrap;gap:5px}
 .month-chip{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0;transition:all .15s;user-select:none}
 .month-chip.selected{background:#1a56db;color:white;border-color:#1a56db}
 
-/* SUMMARY TABLE */
 .summary-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
 .summary-table th{background:#f8fafc;padding:9px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#64748b;border-bottom:2px solid #e2e8f0}
 .summary-table th:first-child{text-align:left}
@@ -101,7 +92,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pct-cell.pos{color:#22c55e;font-weight:700}
 .pct-cell.neg{color:#ef4444;font-weight:700}
 
-/* MODAL CONFIRM */
+/* HISTORIAL */
+.hist-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.hist-item{display:flex;align-items:center;gap:14px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;cursor:pointer;transition:all .15s}
+.hist-item:hover{border-color:#1a56db;background:#eff6ff}
+.hist-item.active{border-color:#1a56db;background:#eff6ff;box-shadow:0 2px 8px rgba(26,86,219,.12)}
+.hist-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
+.hist-badge.r1{background:#dbeafe;color:#1e40af}
+.hist-badge.r2{background:#fef3c7;color:#92400e}
+.hist-badge.r3{background:#fce7f3;color:#9d174f}
+.hist-meta{flex:1;min-width:0}
+.hist-title{font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-date{font-size:11px;color:#94a3b8;margin-top:2px}
+.hist-del{background:transparent;border:none;color:#cbd5e1;cursor:pointer;font-size:16px;padding:4px 8px;border-radius:6px;flex-shrink:0}
+.hist-del:hover{color:#ef4444;background:#fef2f2}
+.hist-empty{text-align:center;padding:50px 20px;color:#94a3b8}
+.hist-detail{border:1px solid #e2e8f0;border-radius:10px;padding:18px;background:#fff;display:none}
+.hist-detail.show{display:block}
+.hist-detail-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.hist-detail-title{font-size:15px;font-weight:700;color:#0f172a}
+.hist-filters{font-size:12px;color:#64748b;background:#f8fafc;padding:8px 12px;border-radius:7px;margin-bottom:14px}
+
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:200;align-items:center;justify-content:center}
 .modal-bg.show{display:flex}
 .modal{background:white;border-radius:14px;padding:28px 32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
@@ -109,6 +120,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .modal p{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:20px}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end}
 .btn-danger{background:#ef4444;color:white;border:none}.btn-danger:hover{background:#dc2626}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#16a34a;color:white;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transition:all .3s;z-index:300}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#f1f5f9}
@@ -120,17 +134,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   .charts-row{flex-direction:column}
   .tab-btn .tab-text{display:none}
   .brand-sub{display:none}
-  .db-bar{font-size:11px}
 }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="header">
   <div class="header-brand">
     <div class="brand-icon">⛸</div>
-    <div class="brand-text">
+    <div>
       <div class="brand-title">Dashboard de Ventas</div>
       <div class="brand-sub">Cerogrado &amp; Trampoline Park · Gestión Comercial</div>
     </div>
@@ -144,29 +156,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </header>
 
-<!-- DB STATUS BAR -->
 <div class="db-bar">
   <div class="db-info">
     <div class="db-dot" id="db-dot"></div>
     <span>Base de datos: <strong id="db-count">cargando…</strong></span>
     <span id="db-range" style="color:#64748b"></span>
   </div>
-  <div class="db-actions">
+  <div>
     <button class="btn-ghost danger" onclick="confirmClear()">🗑 Limpiar historial</button>
   </div>
 </div>
 
-<!-- GLOBAL KPIs -->
 <div class="kpi-row">
   <div class="kpi-card blue">
     <div class="kpi-label">Ventas Totales</div>
-    <div class="kpi-value" id="g-total">—</div>
+    <div class="kpi-value exact" id="g-total">—</div>
     <div class="kpi-sub" id="g-total-sub">—</div>
   </div>
   <div class="kpi-card ice">
-    <div class="kpi-label">Transacciones</div>
+    <div class="kpi-label">Pedidos</div>
     <div class="kpi-value" id="g-trans">—</div>
-    <div class="kpi-sub">Pedidos finalizados</div>
+    <div class="kpi-sub">Total de pedidos cargados</div>
   </div>
   <div class="kpi-card tramp">
     <div class="kpi-label">Sucursales</div>
@@ -180,213 +190,140 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- TAB NAVIGATION -->
 <div class="tab-nav">
-  <button class="tab-btn active" id="tab1" onclick="showTab(1)">
-    <span>📈</span><span class="tab-text">Ventas Históricas</span>
-  </button>
-  <button class="tab-btn" id="tab2" onclick="showTab(2)">
-    <span>🔀</span><span class="tab-text">Ventas Comparativas</span>
-  </button>
-  <button class="tab-btn" id="tab3" onclick="showTab(3)">
-    <span>🍩</span><span class="tab-text">Participación por Negocio</span>
-  </button>
+  <button class="tab-btn active" id="tab1" onclick="showTab(1)"><span>📈</span><span class="tab-text">Ventas Históricas</span></button>
+  <button class="tab-btn" id="tab2" onclick="showTab(2)"><span>🔀</span><span class="tab-text">Ventas Comparativas</span></button>
+  <button class="tab-btn" id="tab3" onclick="showTab(3)"><span>🍩</span><span class="tab-text">Participación por Negocio</span></button>
+  <button class="tab-btn" id="tab4" onclick="showTab(4)"><span>📋</span><span class="tab-text">Historial de Consultas</span></button>
 </div>
 
-<!-- PANELS -->
 <div class="panels-wrapper">
 
   <!-- ── PANEL 1: HISTÓRICAS ── -->
   <div class="panel active" id="panel-1">
-
     <div class="empty-overlay" id="empty-1">
       <div class="empty-icon">📊</div>
       <div class="empty-title">Sin datos históricos</div>
       <div class="empty-sub">Carga tu archivo Excel de Softland para ver la evolución de ventas por período.</div>
       <button class="btn-lg" onclick="document.getElementById('fileInput').click()">📁 Cargar Excel</button>
     </div>
-
     <div class="filter-bar">
-      <div class="fg">
-        <label>Negocio</label>
-        <select id="r1-negocio" onchange="renderR1()"><option>Todos</option></select>
-      </div>
-      <div class="fg">
-        <label>Sucursal</label>
-        <select id="r1-sucursal" onchange="renderR1()"><option>Todas</option></select>
-      </div>
-      <div class="fg">
-        <label>Desde</label>
-        <input type="date" id="r1-from" onchange="renderR1()">
-      </div>
-      <div class="fg">
-        <label>Hasta</label>
-        <input type="date" id="r1-to" onchange="renderR1()">
-      </div>
-      <div class="fg">
-        <label>Granularidad</label>
-        <select id="r1-gran" onchange="renderR1()">
-          <option value="monthly">Mensual</option>
-          <option value="yearly">Anual</option>
-        </select>
-      </div>
+      <div class="fg"><label>Negocio</label><select id="r1-negocio" onchange="renderR1()"><option>Todos</option></select></div>
+      <div class="fg"><label>Sucursal</label><select id="r1-sucursal" onchange="renderR1()"><option>Todas</option></select></div>
+      <div class="fg"><label>Desde</label><input type="date" id="r1-from" onchange="renderR1()"></div>
+      <div class="fg"><label>Hasta</label><input type="date" id="r1-to" onchange="renderR1()"></div>
+      <div class="fg"><label>Granularidad</label><select id="r1-gran" onchange="renderR1()"><option value="monthly">Mensual</option><option value="yearly">Anual</option></select></div>
       <button class="btn btn-secondary" onclick="resetR1()">↺ Reiniciar</button>
+      <div class="spacer"></div>
+      <button class="btn btn-save" onclick="saveConsulta(1)">💾 Guardar consulta</button>
     </div>
-
     <div class="report-kpis">
       <div class="rk"><div class="rk-v" id="r1-total">—</div><div class="rk-l">Total Ventas</div></div>
       <div class="rk"><div class="rk-v" id="r1-avg">—</div><div class="rk-l">Promedio Mensual</div></div>
       <div class="rk"><div class="rk-v" id="r1-max">—</div><div class="rk-l">Mejor Mes</div></div>
-      <div class="rk"><div class="rk-v" id="r1-trans">—</div><div class="rk-l">Transacciones</div></div>
+      <div class="rk"><div class="rk-v" id="r1-trans">—</div><div class="rk-l">Pedidos</div></div>
     </div>
-
-    <div class="chart-box">
-      <h4>Evolución de Ventas por Período</h4>
-      <div id="chart-r1" style="height:400px"></div>
-    </div>
+    <div class="chart-box"><h4>Evolución de Ventas por Período</h4><div id="chart-r1" style="height:400px"></div></div>
   </div>
 
   <!-- ── PANEL 2: COMPARATIVAS ── -->
   <div class="panel" id="panel-2">
-
     <div class="empty-overlay" id="empty-2">
       <div class="empty-icon">🔀</div>
       <div class="empty-title">Sin datos para comparar</div>
       <div class="empty-sub">Carga al menos un archivo Excel para habilitar el comparativo entre períodos.</div>
       <button class="btn-lg" onclick="document.getElementById('fileInput').click()">📁 Cargar Excel</button>
     </div>
-
     <div class="filter-bar">
-      <div class="fg">
-        <label>Negocio</label>
-        <select id="r2-negocio" onchange="renderR2()"><option>Todos</option></select>
-      </div>
-      <div class="fg">
-        <label>Sucursal</label>
-        <select id="r2-sucursal" onchange="renderR2()"><option>Todas</option></select>
-      </div>
-      <div class="fg">
-        <label>Año Actual</label>
-        <select id="r2-y1" onchange="renderR2()"></select>
-      </div>
-      <div class="fg">
-        <label>Año Anterior</label>
-        <select id="r2-y2" onchange="renderR2()"></select>
-      </div>
+      <div class="fg"><label>Negocio</label><select id="r2-negocio" onchange="renderR2()"><option>Todos</option></select></div>
+      <div class="fg"><label>Sucursal</label><select id="r2-sucursal" onchange="renderR2()"><option>Todas</option></select></div>
+      <div class="fg"><label>Año Actual</label><select id="r2-y1" onchange="renderR2()"></select></div>
+      <div class="fg"><label>Año a Comparar</label><select id="r2-y2" onchange="renderR2()"></select></div>
     </div>
-
     <div class="filter-bar" style="padding-top:10px;padding-bottom:10px">
-      <div class="fg" style="flex:1">
-        <label>Meses a comparar</label>
-        <div class="months-grid" id="months-picker"></div>
-      </div>
+      <div class="fg" style="flex:1"><label>Meses a comparar</label><div class="months-grid" id="months-picker"></div></div>
       <div style="display:flex;gap:8px;align-items:flex-end">
         <button class="btn btn-secondary" onclick="toggleAllMonths(true)">Todos</button>
         <button class="btn btn-secondary" onclick="toggleAllMonths(false)">Ninguno</button>
+        <button class="btn btn-save" onclick="saveConsulta(2)">💾 Guardar consulta</button>
       </div>
     </div>
-
     <div class="report-kpis">
       <div class="rk"><div class="rk-v" id="r2-tot1">—</div><div class="rk-l" id="r2-lab1">Año Actual</div></div>
-      <div class="rk"><div class="rk-v" id="r2-tot2">—</div><div class="rk-l" id="r2-lab2">Año Anterior</div></div>
+      <div class="rk"><div class="rk-v" id="r2-tot2">—</div><div class="rk-l" id="r2-lab2">Año a Comparar</div></div>
       <div class="rk"><div class="rk-v" id="r2-pct">—</div><div class="rk-l">Crecimiento Total</div></div>
       <div class="rk"><div class="rk-v" id="r2-best">—</div><div class="rk-l">Mejor Mes</div></div>
     </div>
-
     <div class="charts-row">
-      <div class="chart-box main">
-        <h4 id="r2-chart-title">Comparativo Mensual</h4>
-        <div id="chart-r2-bars" style="height:360px"></div>
-      </div>
-      <div class="chart-box">
-        <h4>Crecimiento % por Mes</h4>
-        <div id="chart-r2-growth" style="height:360px"></div>
-      </div>
+      <div class="chart-box main"><h4 id="r2-chart-title">Comparativo Mensual</h4><div id="chart-r2-bars" style="height:360px"></div></div>
+      <div class="chart-box"><h4>Crecimiento % por Mes</h4><div id="chart-r2-growth" style="height:360px"></div></div>
     </div>
-
     <table class="summary-table">
-      <thead>
-        <tr>
-          <th>Mes</th>
-          <th id="th-y1">Año Actual</th>
-          <th id="th-y2">Año Anterior</th>
-          <th>Diferencia</th>
-          <th>Crecimiento %</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Mes</th><th id="th-y1">Año Actual</th><th id="th-y2">Año a Comparar</th><th>Diferencia</th><th>Crecimiento %</th></tr></thead>
       <tbody id="r2-tbody"></tbody>
     </table>
   </div>
 
   <!-- ── PANEL 3: PARTICIPACIÓN ── -->
   <div class="panel" id="panel-3">
-
     <div class="empty-overlay" id="empty-3">
       <div class="empty-icon">🍩</div>
       <div class="empty-title">Sin datos de participación</div>
       <div class="empty-sub">Carga tu archivo Excel para ver la participación de cada negocio sobre el total de ventas.</div>
       <button class="btn-lg" onclick="document.getElementById('fileInput').click()">📁 Cargar Excel</button>
     </div>
-
     <div class="filter-bar">
-      <div class="fg">
-        <label>Desde</label>
-        <input type="date" id="r3-from" onchange="renderR3()">
-      </div>
-      <div class="fg">
-        <label>Hasta</label>
-        <input type="date" id="r3-to" onchange="renderR3()">
-      </div>
-      <div class="fg">
-        <label>Sucursal</label>
-        <select id="r3-sucursal" onchange="renderR3()"><option>Todas</option></select>
-      </div>
+      <div class="fg"><label>Desde</label><input type="date" id="r3-from" onchange="renderR3()"></div>
+      <div class="fg"><label>Hasta</label><input type="date" id="r3-to" onchange="renderR3()"></div>
+      <div class="fg"><label>Sucursal</label><select id="r3-sucursal" onchange="renderR3()"><option>Todas</option></select></div>
       <button class="btn btn-secondary" onclick="resetR3()">↺ Reiniciar</button>
+      <div class="spacer"></div>
+      <button class="btn btn-save" onclick="saveConsulta(3)">💾 Guardar consulta</button>
     </div>
-
     <div class="report-kpis">
       <div class="rk"><div class="rk-v" id="r3-total">—</div><div class="rk-l">Total Ventas</div></div>
-      <div class="rk" style="border-left:3px solid #f97316">
-        <div class="rk-v" id="r3-tramp-pct" style="color:#f97316">—</div>
-        <div class="rk-l">Trampoline Park %</div>
-      </div>
-      <div class="rk" style="border-left:3px solid #0ea5e9">
-        <div class="rk-v" id="r3-cero-pct" style="color:#0ea5e9">—</div>
-        <div class="rk-l">Cerogrado %</div>
-      </div>
+      <div class="rk" style="border-left:3px solid #f97316"><div class="rk-v" id="r3-tramp-pct" style="color:#f97316">—</div><div class="rk-l">Trampoline Park %</div></div>
+      <div class="rk" style="border-left:3px solid #0ea5e9"><div class="rk-v" id="r3-cero-pct" style="color:#0ea5e9">—</div><div class="rk-l">Cerogrado %</div></div>
       <div class="rk"><div class="rk-v" id="r3-best-branch">—</div><div class="rk-l">Mejor Sucursal</div></div>
     </div>
-
     <div class="charts-row">
-      <div class="chart-box" style="max-width:340px">
-        <h4>Participación Global</h4>
-        <div id="chart-r3-donut" style="height:320px"></div>
-      </div>
-      <div class="chart-box main">
-        <h4>Evolución Mensual por Negocio</h4>
-        <div id="chart-r3-monthly" style="height:320px"></div>
-      </div>
+      <div class="chart-box" style="max-width:360px"><h4>Participación Global <span style="font-weight:400;color:#94a3b8">· clic en un negocio</span></h4><div id="chart-r3-donut" style="height:330px"></div></div>
+      <div class="chart-box main"><h4>Comparación Mensual por Negocio</h4><div id="chart-r3-monthly" style="height:330px"></div></div>
     </div>
-
     <div class="charts-row" style="margin-top:16px">
-      <div class="chart-box main">
-        <h4>Ventas por Sucursal</h4>
-        <div id="chart-r3-branches" style="height:380px"></div>
+      <div class="chart-box main"><h4>Ventas por Sucursal</h4><div id="chart-r3-branches" style="height:380px"></div></div>
+      <div class="chart-box"><h4>Ventas por Tipo de Pedido</h4><div id="chart-r3-tipos" style="height:380px"></div></div>
+    </div>
+  </div>
+
+  <!-- ── PANEL 4: HISTORIAL ── -->
+  <div class="panel" id="panel-4">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#0f172a">📋 Historial de Consultas Guardadas</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:2px">Cada consulta se guarda con su fecha y hora. Haz clic para visualizarla.</div>
       </div>
-      <div class="chart-box">
-        <h4>Ventas por Tipo de Pedido</h4>
-        <div id="chart-r3-tipos" style="height:380px"></div>
+      <button class="btn-ghost danger" onclick="deleteAllConsultas()" style="border-color:#e2e8f0;color:#94a3b8">🗑 Vaciar historial</button>
+    </div>
+    <div class="hist-list" id="hist-list"></div>
+    <div class="hist-detail" id="hist-detail">
+      <div class="hist-detail-head">
+        <div class="hist-detail-title" id="hist-detail-title">—</div>
+        <div class="hist-date" id="hist-detail-date"></div>
       </div>
+      <div class="hist-filters" id="hist-detail-filters"></div>
+      <div class="report-kpis" id="hist-detail-kpis"></div>
+      <div class="chart-box"><div id="hist-chart" style="height:400px"></div></div>
+      <div id="hist-table-wrap"></div>
     </div>
   </div>
 
 </div>
 
-<!-- MODAL CONFIRMAR LIMPIAR -->
 <div class="modal-bg" id="modal-clear">
   <div class="modal">
     <h3>⚠️ Limpiar historial completo</h3>
-    <p>Se eliminarán <strong id="modal-count">todos los registros</strong> de la base de datos. Esta acción <strong>no se puede deshacer</strong>.<br><br>Tendrás que volver a cargar los archivos Excel.</p>
+    <p>Se eliminarán <strong id="modal-count">todos los registros</strong> de ventas de la base de datos. Esta acción <strong>no se puede deshacer</strong>.<br><br>Tendrás que volver a cargar los archivos Excel.</p>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-danger" onclick="clearData()">Sí, limpiar todo</button>
@@ -394,19 +331,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
 // ── CONSTANTES ───────────────────────────────────────────────────
-const COLORS = {
-  'Trampoline Park': '#f97316',
-  'Cerogrado':       '#0ea5e9',
-  primary:           '#1a56db',
-};
+const COLORS = {'Trampoline Park':'#f97316','Cerogrado':'#0ea5e9',primary:'#1a56db'};
 const MONTH_LABELS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-let meta = null;
-let hasData = false;
+let meta=null, hasData=false;
 let selectedMonths = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+let lastQuery = {1:null,2:null,3:null};   // {filtros, resultado} por reporte
+let r3Total = 0;
 
 // ── FORMATTERS ───────────────────────────────────────────────────
+function fmtCLP(v){ return '$'+Math.round(v||0).toLocaleString('es-CL'); }   // EXACTO
 function fmtM(v){
   if(!v && v!==0) return '—';
   if(v>=1e9) return '$'+(v/1e9).toFixed(2)+'B';
@@ -414,450 +351,393 @@ function fmtM(v){
   if(v>=1e3) return '$'+(v/1e3).toFixed(0)+'K';
   return '$'+Math.round(v).toLocaleString('es-CL');
 }
-function fmtFull(v){ return '$'+Math.round(v||0).toLocaleString('es-CL') }
-function fmtPct(v){
-  if(v===null||v===undefined) return 'N/D';
-  return (v>0?'+':'')+Number(v).toFixed(1)+'%';
-}
+function fmtPct(v){ return v===null||v===undefined ? 'N/D' : (v>0?'+':'')+Number(v).toFixed(1)+'%'; }
 
-// ── PLOTLY BASE LAYOUT ───────────────────────────────────────────
+// ── PLOTLY ───────────────────────────────────────────────────────
 function baseLayout(){
-  return {
-    margin:{l:65,r:20,t:30,b:50},
-    paper_bgcolor:'rgba(0,0,0,0)',
-    plot_bgcolor:'rgba(0,0,0,0)',
+  return {margin:{l:65,r:20,t:30,b:50},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
     font:{family:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',size:12,color:'#374151'},
     xaxis:{gridcolor:'#f1f5f9',linecolor:'#e2e8f0',showgrid:false},
     yaxis:{gridcolor:'#e8edf2',linecolor:'#e2e8f0',showgrid:true},
-    legend:{orientation:'h',y:1.08,x:0,font:{size:12}},
-    hovermode:'x unified',
-    hoverlabel:{bgcolor:'rgba(15,23,42,.92)',font:{color:'white',size:12},bordercolor:'transparent'},
-    barmode:'stack',
-  };
+    legend:{orientation:'h',y:1.08,x:0,font:{size:12}},hovermode:'x unified',
+    hoverlabel:{bgcolor:'rgba(15,23,42,.92)',font:{color:'white',size:12},bordercolor:'transparent'},barmode:'stack'};
 }
-const CFG = {responsive:true,displayModeBar:false};
+const CFG={responsive:true,displayModeBar:false};
 
 // ── INIT ─────────────────────────────────────────────────────────
 async function init(){
   await refreshDbBar();
+  await loadGlobalKPIs();
+  buildMonthsPicker();
   if(hasData){
     meta = await fetch('/api/meta').then(r=>r.json());
     populateFilters();
-    loadGlobalKPIs();
-    buildMonthsPicker();
-    renderR1();
-  } else {
-    showEmptyAll();
-    loadGlobalKPIs();
-    buildMonthsPicker();
-  }
+    renderAll();
+  } else { showEmptyAll(); }
+  loadConsultasList();
 }
 
 // ── DB BAR ───────────────────────────────────────────────────────
 async function refreshDbBar(){
   const info = await fetch('/api/db_info').then(r=>r.json());
-  hasData = info.count > 0;
-  const dot = document.getElementById('db-dot');
-  dot.className = 'db-dot' + (hasData ? '' : ' empty');
-  document.getElementById('db-count').textContent =
-    hasData ? info.count.toLocaleString('es-CL')+' registros' : 'vacía';
-  document.getElementById('db-range').textContent =
-    (hasData && info.date_min)
-      ? `Período: ${info.date_min} → ${info.date_max}`
-      : 'Sube un archivo Excel para comenzar';
+  hasData = info.count>0;
+  document.getElementById('db-dot').className = 'db-dot'+(hasData?'':' empty');
+  document.getElementById('db-count').textContent = hasData ? info.count.toLocaleString('es-CL')+' pedidos' : 'vacía';
+  document.getElementById('db-range').textContent = (hasData && info.date_min)
+    ? `Período: ${info.date_min} → ${info.date_max}  ·  ${info.backend}`
+    : 'Sube un archivo Excel para comenzar';
   return info;
 }
 
-// ── EMPTY STATES ─────────────────────────────────────────────────
-function showEmptyAll(){
-  [1,2,3].forEach(n => document.getElementById('empty-'+n).classList.add('show'));
-}
-function hideEmptyAll(){
-  [1,2,3].forEach(n => document.getElementById('empty-'+n).classList.remove('show'));
-}
+// ── EMPTY ────────────────────────────────────────────────────────
+function showEmptyAll(){ [1,2,3].forEach(n=>document.getElementById('empty-'+n).classList.add('show')); }
+function hideEmptyAll(){ [1,2,3].forEach(n=>document.getElementById('empty-'+n).classList.remove('show')); }
 
 // ── FILTROS ──────────────────────────────────────────────────────
+function opt(v){ const o=document.createElement('option'); o.value=o.textContent=v; return o; }
 function populateFilters(){
   if(!meta) return;
   ['r1','r2','r3'].forEach(p=>{
-    const neg = document.getElementById(p+'-negocio');
-    const suc = document.getElementById(p+'-sucursal');
+    const neg=document.getElementById(p+'-negocio'), suc=document.getElementById(p+'-sucursal');
     if(neg){ neg.innerHTML=''; meta.negocios.forEach(n=>neg.appendChild(opt(n))); }
     if(suc){ suc.innerHTML=''; meta.sucursales.forEach(s=>suc.appendChild(opt(s))); }
   });
-  // Años para R2
-  const y1El=document.getElementById('r2-y1'), y2El=document.getElementById('r2-y2');
-  if(y1El && meta.years && meta.years.length){
-    y1El.innerHTML=''; y2El.innerHTML='';
-    [...meta.years].reverse().forEach(y=>{
-      y1El.appendChild(opt(y)); y2El.appendChild(opt(y));
-    });
-    if(meta.years.length>=2){
-      y1El.value = meta.years[meta.years.length-1];
-      y2El.value = meta.years[meta.years.length-2];
-    } else {
-      y1El.value = y2El.value = meta.years[0];
-    }
-  }
-  // Fechas por defecto
+  // Años: usar year_options (incluye años pasados aunque no tengan datos)
+  const yopts = (meta.year_options && meta.year_options.length) ? meta.year_options : meta.years;
+  const y1=document.getElementById('r2-y1'), y2=document.getElementById('r2-y2');
+  y1.innerHTML=''; y2.innerHTML='';
+  yopts.forEach(y=>{ y1.appendChild(opt(y)); y2.appendChild(opt(y)); });
+  if(yopts.length>=2){ y1.value=yopts[0]; y2.value=yopts[1]; }
+  else if(yopts.length){ y1.value=y2.value=yopts[0]; }
+  // Fechas por defecto: primer → último día de venta de la planilla
   ['r1','r3'].forEach(p=>{
     const fr=document.getElementById(p+'-from'), to=document.getElementById(p+'-to');
     if(fr && meta.date_min) fr.value=meta.date_min;
     if(to && meta.date_max) to.value=meta.date_max;
   });
 }
-function opt(v){ const o=document.createElement('option'); o.value=o.textContent=v; return o; }
-
 function buildMonthsPicker(){
-  const c=document.getElementById('months-picker');
-  if(!c) return;
+  const c=document.getElementById('months-picker'); if(!c) return;
   c.innerHTML='';
   MONTH_LABELS.forEach((name,i)=>{
     const m=i+1, chip=document.createElement('div');
-    chip.className='month-chip selected';
-    chip.textContent=name;
-    chip.dataset.m=m;
-    chip.onclick=()=>{
-      if(selectedMonths.has(m)){selectedMonths.delete(m);chip.classList.remove('selected')}
-      else{selectedMonths.add(m);chip.classList.add('selected')}
-      if(hasData) renderR2();
-    };
+    chip.className='month-chip selected'; chip.textContent=name;
+    chip.onclick=()=>{ if(selectedMonths.has(m)){selectedMonths.delete(m);chip.classList.remove('selected')}
+      else{selectedMonths.add(m);chip.classList.add('selected')} if(hasData) renderR2(); };
     c.appendChild(chip);
   });
 }
 function toggleAllMonths(sel){
-  selectedMonths = new Set(sel?[1,2,3,4,5,6,7,8,9,10,11,12]:[]);
+  selectedMonths=new Set(sel?[1,2,3,4,5,6,7,8,9,10,11,12]:[]);
   document.querySelectorAll('.month-chip').forEach(c=>c.classList.toggle('selected',sel));
   if(hasData) renderR2();
 }
 
-// ── GLOBAL KPIS ──────────────────────────────────────────────────
+// ── KPIS GLOBAL ──────────────────────────────────────────────────
 async function loadGlobalKPIs(){
-  const d = await fetch('/api/kpis').then(r=>r.json());
-  document.getElementById('g-total').textContent = fmtM(d.total);
-  document.getElementById('g-total-sub').textContent =
-    d.n_trans > 0 ? d.n_trans.toLocaleString('es-CL')+' pedidos' : 'Sin datos cargados';
-  document.getElementById('g-trans').textContent = d.n_trans > 0 ? d.n_trans.toLocaleString('es-CL') : '0';
-  document.getElementById('g-suc').textContent = d.n_suc || '0';
-  document.getElementById('g-neg').textContent = d.n_neg || '0';
+  const d=await fetch('/api/kpis').then(r=>r.json());
+  document.getElementById('g-total').textContent = d.n_trans>0 ? fmtCLP(d.total) : '$0';  // EXACTO
+  document.getElementById('g-total-sub').textContent = d.n_trans>0 ? d.n_trans.toLocaleString('es-CL')+' pedidos' : 'Sin datos cargados';
+  document.getElementById('g-trans').textContent = (d.n_trans||0).toLocaleString('es-CL');
+  document.getElementById('g-suc').textContent = d.n_suc||'0';
+  document.getElementById('g-neg').textContent = d.n_neg||'0';
 }
 
 // ── TABS ─────────────────────────────────────────────────────────
 function showTab(n){
-  for(let i=1;i<=3;i++){
+  for(let i=1;i<=4;i++){
     document.getElementById('tab'+i).classList.toggle('active',i===n);
     document.getElementById('panel-'+i).classList.toggle('active',i===n);
   }
+  if(n===4){ loadConsultasList(); return; }
   if(!hasData) return;
-  if(n===1) renderR1();
-  if(n===2) renderR2();
-  if(n===3) renderR3();
+  if(n===1) renderR1(); else if(n===2) renderR2(); else if(n===3) renderR3();
 }
 
-// ── REPORTE 1: HISTÓRICAS ─────────────────────────────────────────
+// Renderiza los 3 reportes (alimenta las 3 pestañas tras una carga)
+function renderAll(){ hideEmptyAll(); renderR1(); renderR2(); renderR3(); }
+
+// ── REPORTE 1 ────────────────────────────────────────────────────
+function r1Params(){
+  return {negocio:val('r1-negocio','Todos'),sucursal:val('r1-sucursal','Todas'),
+    date_from:val('r1-from',null),date_to:val('r1-to',null),granularity:val('r1-gran','monthly')};
+}
 async function renderR1(){
-  const p = {
-    negocio:     document.getElementById('r1-negocio')?.value||'Todos',
-    sucursal:    document.getElementById('r1-sucursal')?.value||'Todas',
-    date_from:   document.getElementById('r1-from')?.value||null,
-    date_to:     document.getElementById('r1-to')?.value||null,
-    granularity: document.getElementById('r1-gran')?.value||'monthly',
-  };
-  const d = await post('/api/r1', p);
-
-  const empty = !d.labels || d.labels.length === 0;
-  document.getElementById('empty-1').classList.toggle('show', empty);
-
-  document.getElementById('r1-total').textContent = fmtM(d.total);
-  document.getElementById('r1-avg').textContent   = fmtM(d.avg_monthly);
-  document.getElementById('r1-max').textContent   = fmtM(d.max_month);
-  document.getElementById('r1-trans').textContent = (d.n_trans||0).toLocaleString('es-CL');
-
-  if(empty) return;
-
-  const negs = Object.keys(d.stacked||{});
+  const p=r1Params(); const d=await post('/api/r1',p);
+  lastQuery[1]={filtros:p,resultado:d};
+  document.getElementById('empty-1').classList.toggle('show', !d.labels||!d.labels.length);
+  document.getElementById('r1-total').textContent=fmtCLP(d.total);
+  document.getElementById('r1-avg').textContent=fmtM(d.avg_monthly);
+  document.getElementById('r1-max').textContent=fmtM(d.max_month);
+  document.getElementById('r1-trans').textContent=(d.n_trans||0).toLocaleString('es-CL');
+  if(!d.labels||!d.labels.length){ Plotly.purge('chart-r1'); return; }
+  drawR1('chart-r1', d, p);
+}
+function drawR1(elId, d, p){
+  const negs=Object.keys(d.stacked||{});
   let traces;
-  if(negs.length > 1 && p.negocio==='Todos'){
-    traces = negs.map(neg=>({
-      name: neg, type:'bar', x:d.labels,
-      y: d.stacked[neg],
-      marker:{color:COLORS[neg]||'#94a3b8'},
-      hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>',
-    }));
+  if(negs.length>1 && (p.negocio==='Todos')){
+    traces=negs.map(neg=>({name:neg,type:'bar',x:d.labels,y:d.stacked[neg],
+      marker:{color:COLORS[neg]||'#94a3b8'},hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'}));
   } else {
-    traces = [{
-      name:'Ventas', type:'bar', x:d.labels, y:d.values,
-      marker:{color:COLORS.primary,opacity:.85},
-      hovertemplate:'<b>%{x}</b><br>$%{y:,.0f}<extra></extra>',
-    }];
+    traces=[{name:'Ventas',type:'bar',x:d.labels,y:d.values,marker:{color:COLORS.primary,opacity:.85},
+      hovertemplate:'<b>%{x}</b><br>$%{y:,.0f}<extra></extra>'}];
   }
-  if(d.values.length > 1){
-    traces.push({
-      name:'Tendencia', type:'scatter', mode:'lines',
-      x:d.labels, y:movingAvg(d.values,3),
-      line:{color:'#7c3aed',width:2.5,dash:'dot'},
-      hovertemplate:'Tendencia: $%{y:,.0f}<extra></extra>',
-    });
-  }
-  const layout = {...baseLayout(),
-    yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'},
-  };
-  Plotly.react('chart-r1', traces, layout, CFG);
+  if(d.values.length>1) traces.push({name:'Tendencia',type:'scatter',mode:'lines',x:d.labels,
+    y:movingAvg(d.values,3),line:{color:'#7c3aed',width:2.5,dash:'dot'},
+    hovertemplate:'Tendencia: $%{y:,.0f}<extra></extra>'});
+  Plotly.react(elId,traces,{...baseLayout(),yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
 }
 function resetR1(){
-  if(meta){ document.getElementById('r1-from').value=meta.date_min||''; document.getElementById('r1-to').value=meta.date_max||''; }
-  document.getElementById('r1-negocio').value='Todos';
-  document.getElementById('r1-sucursal').value='Todas';
-  document.getElementById('r1-gran').value='monthly';
-  renderR1();
+  if(meta){ setVal('r1-from',meta.date_min); setVal('r1-to',meta.date_max); }
+  setVal('r1-negocio','Todos'); setVal('r1-sucursal','Todas'); setVal('r1-gran','monthly'); renderR1();
 }
 
-// ── REPORTE 2: COMPARATIVAS ───────────────────────────────────────
+// ── REPORTE 2 ────────────────────────────────────────────────────
+function r2Params(){
+  return {negocio:val('r2-negocio','Todos'),sucursal:val('r2-sucursal','Todas'),
+    year1:parseInt(val('r2-y1',0)),year2:parseInt(val('r2-y2',0)),
+    months:Array.from(selectedMonths).sort((a,b)=>a-b)};
+}
 async function renderR2(){
-  const y1 = parseInt(document.getElementById('r2-y1')?.value||0);
-  const y2 = parseInt(document.getElementById('r2-y2')?.value||0);
-  const months = Array.from(selectedMonths).sort((a,b)=>a-b);
-  if(!months.length || !y1 || !y2) return;
-
-  const p = {
-    negocio:  document.getElementById('r2-negocio')?.value||'Todos',
-    sucursal: document.getElementById('r2-sucursal')?.value||'Todas',
-    year1:y1, year2:y2, months,
-  };
-  const d = await post('/api/r2', p);
-
-  document.getElementById('r2-lab1').textContent = 'Año '+d.y1;
-  document.getElementById('r2-lab2').textContent = 'Año '+d.y2;
-  document.getElementById('th-y1').textContent = d.y1;
-  document.getElementById('th-y2').textContent = d.y2;
-  document.getElementById('r2-chart-title').textContent = `Ventas ${d.y1} vs ${d.y2} por Mes`;
-
-  document.getElementById('r2-tot1').textContent = fmtM(d.tot1);
-  document.getElementById('r2-tot2').textContent = fmtM(d.tot2);
-  const pctEl = document.getElementById('r2-pct');
-  pctEl.textContent = fmtPct(d.tot_pct);
-  pctEl.style.color = d.tot_pct >= 0 ? '#22c55e' : '#ef4444';
-  document.getElementById('r2-best').textContent =
-    d.best ? `${d.best.month} ${fmtPct(d.best.pct)}` : '—';
-
-  const mlbl = d.rows.map(r=>r.month);
-  const actualVals   = d.rows.map(r=>r.actual);
-  const anteriorVals = d.rows.map(r=>r.anterior);
-
-  Plotly.react('chart-r2-bars',[
-    {name:String(d.y1),type:'bar',x:mlbl,y:actualVals,
-     marker:{color:COLORS.primary},
-     hovertemplate:'%{x} '+d.y1+': $%{y:,.0f}<extra></extra>'},
-    {name:String(d.y2),type:'bar',x:mlbl,y:anteriorVals,
-     marker:{color:'#94a3b8'},
-     hovertemplate:'%{x} '+d.y2+': $%{y:,.0f}<extra></extra>'},
-  ],{...baseLayout(),barmode:'group',
-     yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
-
-  const pcts = d.rows.map(r=>r.pct);
-  Plotly.react('chart-r2-growth',[{
-    type:'bar', x:mlbl, y:pcts,
-    marker:{color: pcts.map(v=>v===null?'#e2e8f0':v>=0?'rgba(34,197,94,.85)':'rgba(239,68,68,.85)')},
-    hovertemplate:'%{x}: %{y:.1f}%<extra></extra>',
-    text: pcts.map(v=>v===null?'S/D':fmtPct(v)),
-    textposition:'outside',
-  }],{...baseLayout(),
-    yaxis:{...baseLayout().yaxis,tickformat:'.1f',ticksuffix:'%',tickprefix:'',zeroline:true,zerolinecolor:'#94a3b8'},
-    shapes:[{type:'line',x0:-.5,x1:mlbl.length-.5,y0:0,y1:0,line:{color:'#64748b',width:1.5,dash:'dot'}}],
-  },CFG);
-
-  // Tabla
-  const tbody = document.getElementById('r2-tbody');
-  tbody.innerHTML='';
-  let sumA=0, sumB=0;
-  d.rows.forEach(r=>{
-    sumA+=r.actual; sumB+=r.anterior;
-    const cls = r.pct===null?'':r.pct>0?'pos':'neg';
+  const p=r2Params();
+  if(!p.months.length||!p.year1||!p.year2){ return; }
+  const d=await post('/api/r2',p);
+  lastQuery[2]={filtros:p,resultado:d};
+  document.getElementById('empty-2').classList.remove('show'); // siempre alimentada si hay datos en BD
+  document.getElementById('r2-lab1').textContent='Año '+d.y1;
+  document.getElementById('r2-lab2').textContent='Año '+d.y2;
+  document.getElementById('th-y1').textContent=d.y1;
+  document.getElementById('th-y2').textContent=d.y2;
+  document.getElementById('r2-chart-title').textContent=`Ventas ${d.y1} vs ${d.y2} por Mes`;
+  document.getElementById('r2-tot1').textContent=fmtCLP(d.tot1);
+  document.getElementById('r2-tot2').textContent=fmtCLP(d.tot2);
+  const pe=document.getElementById('r2-pct'); pe.textContent=fmtPct(d.tot_pct);
+  pe.style.color=d.tot_pct>=0?'#22c55e':'#ef4444';
+  document.getElementById('r2-best').textContent=d.best?`${d.best.month} ${fmtPct(d.best.pct)}`:'—';
+  drawR2('chart-r2-bars','chart-r2-growth', d);
+  drawR2Table('r2-tbody', d);
+}
+function drawR2(barsId, growthId, d){
+  const lbl=d.rows.map(r=>r.month);
+  Plotly.react(barsId,[
+    {name:String(d.y1),type:'bar',x:lbl,y:d.rows.map(r=>r.actual),marker:{color:COLORS.primary},hovertemplate:'%{x} '+d.y1+': $%{y:,.0f}<extra></extra>'},
+    {name:String(d.y2),type:'bar',x:lbl,y:d.rows.map(r=>r.anterior),marker:{color:'#94a3b8'},hovertemplate:'%{x} '+d.y2+': $%{y:,.0f}<extra></extra>'},
+  ],{...baseLayout(),barmode:'group',yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
+  if(growthId){
+    const pcts=d.rows.map(r=>r.pct);
+    Plotly.react(growthId,[{type:'bar',x:lbl,y:pcts,
+      marker:{color:pcts.map(v=>v===null?'#e2e8f0':v>=0?'rgba(34,197,94,.85)':'rgba(239,68,68,.85)')},
+      text:pcts.map(v=>v===null?'S/D':fmtPct(v)),textposition:'outside',
+      hovertemplate:'%{x}: %{y:.1f}%<extra></extra>'}],
+      {...baseLayout(),yaxis:{...baseLayout().yaxis,tickformat:'.1f',ticksuffix:'%',tickprefix:'',zeroline:true,zerolinecolor:'#94a3b8'},
+       shapes:[{type:'line',x0:-.5,x1:lbl.length-.5,y0:0,y1:0,line:{color:'#64748b',width:1.5,dash:'dot'}}]},CFG);
+  }
+}
+function drawR2Table(tbodyId, d){
+  const tb=document.getElementById(tbodyId); tb.innerHTML='';
+  let sa=0,sb=0;
+  d.rows.forEach(r=>{ sa+=r.actual; sb+=r.anterior;
+    const cls=r.pct===null?'':r.pct>0?'pos':'neg';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.month}</td>
-      <td>${fmtFull(r.actual)}</td>
-      <td>${fmtFull(r.anterior)}</td>
-      <td>${fmtFull(r.actual-r.anterior)}</td>
-      <td class="pct-cell ${cls}">${fmtPct(r.pct)}</td>`;
-    tbody.appendChild(tr);
+    tr.innerHTML=`<td>${r.month}</td><td>${fmtCLP(r.actual)}</td><td>${fmtCLP(r.anterior)}</td><td>${fmtCLP(r.actual-r.anterior)}</td><td class="pct-cell ${cls}">${fmtPct(r.pct)}</td>`;
+    tb.appendChild(tr);
   });
-  const totPct = sumB>0 ? ((sumA-sumB)/sumB*100) : 0;
-  const tfoot=document.createElement('tr');
-  tfoot.innerHTML=`<td>TOTAL</td>
-    <td>${fmtFull(sumA)}</td><td>${fmtFull(sumB)}</td>
-    <td>${fmtFull(sumA-sumB)}</td>
-    <td class="pct-cell ${totPct>=0?'pos':'neg'}">${fmtPct(totPct)}</td>`;
-  tbody.appendChild(tfoot);
+  const tp=sb>0?((sa-sb)/sb*100):0;
+  const tf=document.createElement('tr');
+  tf.innerHTML=`<td>TOTAL</td><td>${fmtCLP(sa)}</td><td>${fmtCLP(sb)}</td><td>${fmtCLP(sa-sb)}</td><td class="pct-cell ${tp>=0?'pos':'neg'}">${fmtPct(tp)}</td>`;
+  tb.appendChild(tf);
 }
 
-// ── REPORTE 3: PARTICIPACIÓN ──────────────────────────────────────
+// ── REPORTE 3 ────────────────────────────────────────────────────
+function r3Params(){
+  return {date_from:val('r3-from',null),date_to:val('r3-to',null),sucursal:val('r3-sucursal','Todas')};
+}
 async function renderR3(){
-  const p = {
-    date_from: document.getElementById('r3-from')?.value||null,
-    date_to:   document.getElementById('r3-to')?.value||null,
-    sucursal:  document.getElementById('r3-sucursal')?.value||'Todas',
-  };
-  const d = await post('/api/r3', p);
-
-  const empty = !d.pie || d.pie.length === 0;
-  document.getElementById('empty-3').classList.toggle('show', empty);
-
-  document.getElementById('r3-total').textContent = fmtM(d.total);
-  const trampE = d.pie.find(p=>p.label==='Trampoline Park');
-  const ceroE  = d.pie.find(p=>p.label==='Cerogrado');
-  document.getElementById('r3-tramp-pct').textContent = trampE ? trampE.pct.toFixed(1)+'%' : '—';
-  document.getElementById('r3-cero-pct').textContent  = ceroE  ? ceroE.pct.toFixed(1)+'%'  : '—';
+  const p=r3Params(); const d=await post('/api/r3',p);
+  lastQuery[3]={filtros:p,resultado:d};
+  document.getElementById('empty-3').classList.toggle('show', !d.pie||!d.pie.length);
+  document.getElementById('r3-total').textContent=fmtCLP(d.total);
+  const tr=d.pie.find(x=>x.label==='Trampoline Park'), ce=d.pie.find(x=>x.label==='Cerogrado');
+  document.getElementById('r3-tramp-pct').textContent=tr?tr.pct.toFixed(1)+'%':'—';
+  document.getElementById('r3-cero-pct').textContent=ce?ce.pct.toFixed(1)+'%':'—';
   if(d.branches){
-    const bTotals = Object.entries(d.branches)
-      .map(([s,nv])=>[s, Object.values(nv).reduce((a,b)=>a+b,0)])
-      .sort((a,b)=>b[1]-a[1]);
-    document.getElementById('r3-best-branch').textContent =
-      bTotals.length ? bTotals[0][0].split(' ').slice(-1)[0] : '—';
+    const bt=Object.entries(d.branches).map(([s,nv])=>[s,Object.values(nv).reduce((a,b)=>a+b,0)]).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('r3-best-branch').textContent=bt.length?bt[0][0].split(' ').slice(-1)[0]:'—';
   }
-
-  if(empty) return;
-
-  // Donut
-  Plotly.react('chart-r3-donut',[{
-    type:'pie',
-    labels:d.pie.map(p=>p.label), values:d.pie.map(p=>p.value),
-    hole:.55,
+  if(!d.pie||!d.pie.length){ ['chart-r3-donut','chart-r3-monthly','chart-r3-branches','chart-r3-tipos'].forEach(id=>Plotly.purge(id)); return; }
+  r3Total=d.total;
+  drawR3Donut('chart-r3-donut', d, true);
+  drawR3Monthly('chart-r3-monthly', d);
+  drawR3Branches('chart-r3-branches', d);
+  drawR3Tipos('chart-r3-tipos', d);
+}
+function drawR3Donut(elId, d, interactive){
+  const el=document.getElementById(elId);
+  Plotly.react(elId,[{type:'pie',labels:d.pie.map(p=>p.label),values:d.pie.map(p=>p.value),hole:.58,
     marker:{colors:d.pie.map(p=>COLORS[p.label]||'#94a3b8')},
-    texttemplate:'<b>%{percent:.1%}</b>',
-    hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>',
-    sort:false,
-  }],{
-    ...baseLayout(),margin:{l:20,r:20,t:20,b:20},
-    legend:{orientation:'h',y:-0.1,x:.5,xanchor:'center'},
-    annotations:[{text:'<b>'+fmtM(d.total)+'</b>',showarrow:false,
-                  font:{size:15,color:'#374151'},x:.5,y:.5,xref:'paper',yref:'paper'}],
-  },CFG);
-
-  // Stacked mensual
-  const negs = Object.keys(d.monthly.stacked||{});
-  Plotly.react('chart-r3-monthly',
-    negs.map(neg=>({name:neg,type:'bar',x:d.monthly.periods,
-      y:d.monthly.stacked[neg],marker:{color:COLORS[neg]||'#94a3b8'},
-      hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'})),
-    {...baseLayout(),barmode:'stack',
-     yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
-
-  // Sucursales horizontal
-  if(d.branches){
-    const bData = Object.entries(d.branches)
-      .sort((a,b)=>{
-        const ta=Object.values(a[1]).reduce((s,v)=>s+v,0);
-        const tb=Object.values(b[1]).reduce((s,v)=>s+v,0);
-        return ta-tb;
-      });
-    const bNegs = [...new Set(bData.flatMap(([,nv])=>Object.keys(nv)))];
-    Plotly.react('chart-r3-branches',
-      bNegs.map(neg=>({name:neg,type:'bar',orientation:'h',
-        y:bData.map(([s])=>s), x:bData.map(([,nv])=>nv[neg]||0),
-        marker:{color:COLORS[neg]||'#94a3b8'},
-        hovertemplate:'<b>%{y}</b><br>'+neg+': $%{x:,.0f}<extra></extra>'})),
-      {...baseLayout(),barmode:'stack',
-       margin:{l:190,r:20,t:30,b:50},
-       yaxis:{...baseLayout().yaxis,tickformat:'',tickprefix:''},
-       xaxis:{...baseLayout().xaxis,tickformat:',.0s',tickprefix:'$',showgrid:true,gridcolor:'#e8edf2'}},
-      CFG);
+    texttemplate:'<b>%{percent:.1%}</b>',pull:d.pie.map(()=>0),
+    hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>',sort:false}],
+    {...baseLayout(),margin:{l:20,r:20,t:20,b:20},legend:{orientation:'h',y:-0.08,x:.5,xanchor:'center'},
+     annotations:[{text:'<b>TOTAL</b><br>'+fmtM(d.total),showarrow:false,font:{size:15,color:'#374151'},x:.5,y:.5,xref:'paper',yref:'paper'}]},CFG);
+  // Donut dinámico: al hacer clic en un negocio, el centro muestra su venta en millones
+  if(interactive){
+    el.removeAllListeners && el.removeAllListeners('plotly_click');
+    el.on('plotly_click', ev=>{
+      const pt=ev.points[0];
+      Plotly.relayout(elId,{'annotations[0].text':
+        '<b>'+pt.label+'</b><br>'+fmtM(pt.value)+'<br><span style="font-size:11px;color:#94a3b8">'+(pt.percent*100).toFixed(1)+'%</span>'});
+      // resaltar segmento
+      const pull=d.pie.map(p=>p.label===pt.label?0.08:0);
+      Plotly.restyle(elId,{pull:[pull]});
+    });
   }
-
-  // Tipos
-  if(d.tipo && d.tipo.length){
-    Plotly.react('chart-r3-tipos',[{
-      type:'pie', labels:d.tipo.map(t=>t.label), values:d.tipo.map(t=>t.value),
-      hole:.45,
-      marker:{colors:['#1a56db','#0ea5e9','#f97316','#22c55e','#a855f7']},
-      texttemplate:'<b>%{percent:.1%}</b>',
-      hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>',
-    }],{...baseLayout(),margin:{l:20,r:20,t:20,b:20},
-        legend:{orientation:'h',y:-0.1,x:.5,xanchor:'center'}},CFG);
-  }
+}
+function drawR3Monthly(elId, d){
+  // Barras AGRUPADAS (una al lado de la otra), comparando los negocios por mes
+  const negs=Object.keys(d.monthly.grouped||{});
+  Plotly.react(elId, negs.map(neg=>({name:neg,type:'bar',x:d.monthly.periods,y:d.monthly.grouped[neg],
+    marker:{color:COLORS[neg]||'#94a3b8'},hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'})),
+    {...baseLayout(),barmode:'group',yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
+}
+function drawR3Branches(elId, d){
+  const bData=Object.entries(d.branches).sort((a,b)=>{
+    const ta=Object.values(a[1]).reduce((s,v)=>s+v,0), tb=Object.values(b[1]).reduce((s,v)=>s+v,0); return ta-tb;});
+  const bNegs=[...new Set(bData.flatMap(([,nv])=>Object.keys(nv)))];
+  Plotly.react(elId, bNegs.map(neg=>({name:neg,type:'bar',orientation:'h',y:bData.map(([s])=>s),
+    x:bData.map(([,nv])=>nv[neg]||0),marker:{color:COLORS[neg]||'#94a3b8'},
+    hovertemplate:'<b>%{y}</b><br>'+neg+': $%{x:,.0f}<extra></extra>'})),
+    {...baseLayout(),barmode:'stack',margin:{l:190,r:20,t:30,b:50},
+     yaxis:{...baseLayout().yaxis,tickformat:'',tickprefix:''},
+     xaxis:{...baseLayout().xaxis,tickformat:',.0s',tickprefix:'$',showgrid:true,gridcolor:'#e8edf2'}},CFG);
+}
+function drawR3Tipos(elId, d){
+  if(!d.tipo||!d.tipo.length){ Plotly.purge(elId); return; }
+  Plotly.react(elId,[{type:'pie',labels:d.tipo.map(t=>t.label),values:d.tipo.map(t=>t.value),hole:.45,
+    marker:{colors:['#1a56db','#0ea5e9','#f97316','#22c55e','#a855f7']},texttemplate:'<b>%{percent:.1%}</b>',
+    hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>'}],
+    {...baseLayout(),margin:{l:20,r:20,t:20,b:20},legend:{orientation:'h',y:-0.08,x:.5,xanchor:'center'}},CFG);
 }
 function resetR3(){
-  if(meta){ document.getElementById('r3-from').value=meta.date_min||''; document.getElementById('r3-to').value=meta.date_max||''; }
-  document.getElementById('r3-sucursal').value='Todas';
-  renderR3();
+  if(meta){ setVal('r3-from',meta.date_min); setVal('r3-to',meta.date_max); }
+  setVal('r3-sucursal','Todas'); renderR3();
 }
 
-// ── CARGA DE ARCHIVO ──────────────────────────────────────────────
+// ── CARGA DE ARCHIVO ─────────────────────────────────────────────
 async function handleUpload(input){
   if(!input.files[0]) return;
-  const st = document.getElementById('upload-status');
-  st.textContent = '⏳ Procesando…';
-  const fd = new FormData();
-  fd.append('file', input.files[0]);
+  const st=document.getElementById('upload-status'); st.textContent='⏳ Procesando…';
+  const fd=new FormData(); fd.append('file',input.files[0]);
   try{
-    const res = await fetch('/upload',{method:'POST',body:fd}).then(r=>r.json());
+    const res=await fetch('/upload',{method:'POST',body:fd}).then(r=>r.json());
     if(res.success){
-      const msg = res.new > 0
-        ? `✓ +${res.new.toLocaleString()} registros nuevos`
-        : `✓ Sin duplicados nuevos (${res.parsed} procesados)`;
-      st.textContent = msg;
-      hasData = true;
-      hideEmptyAll();
-      meta = await fetch('/api/meta').then(r=>r.json());
+      const per=res.periodo?` · Período ${res.periodo.desde} → ${res.periodo.hasta}`:'';
+      st.textContent=(res.new>0?`✓ +${res.new.toLocaleString('es-CL')} pedidos nuevos`:`✓ Sin pedidos nuevos (${res.parsed} ya estaban)`)+per;
+      hasData=true; hideEmptyAll();
+      meta=await fetch('/api/meta').then(r=>r.json());
       populateFilters();
-      await refreshDbBar();
-      await loadGlobalKPIs();
-      buildMonthsPicker();
-      // Re-render el tab activo
-      const active = [1,2,3].find(i=>document.getElementById('tab'+i).classList.contains('active'));
-      if(active===1) renderR1();
-      else if(active===2) renderR2();
-      else if(active===3) renderR3();
-    } else if(res.warning){
-      st.textContent = '⚠️ '+res.warning;
-    } else {
-      st.textContent = '✗ Error: '+res.error;
-    }
-  }catch(e){
-    st.textContent = '✗ Error al cargar archivo';
-  }
-  input.value='';
-  setTimeout(()=>st.textContent='', 7000);
+      await refreshDbBar(); await loadGlobalKPIs();
+      renderAll();              // ← alimenta las 3 pestañas siempre
+    } else if(res.warning){ st.textContent='⚠️ '+res.warning; }
+    else { st.textContent='✗ Error: '+res.error; }
+  }catch(e){ st.textContent='✗ Error al cargar archivo'; }
+  input.value=''; setTimeout(()=>st.textContent='',9000);
 }
 
-// ── LIMPIAR BD ────────────────────────────────────────────────────
-function confirmClear(){
-  const count = document.getElementById('db-count').textContent;
-  document.getElementById('modal-count').textContent = count;
-  document.getElementById('modal-clear').classList.add('show');
-}
+// ── LIMPIAR BD ───────────────────────────────────────────────────
+function confirmClear(){ document.getElementById('modal-count').textContent=document.getElementById('db-count').textContent; document.getElementById('modal-clear').classList.add('show'); }
 function closeModal(){ document.getElementById('modal-clear').classList.remove('show'); }
 async function clearData(){
-  closeModal();
-  await fetch('/api/clear',{method:'POST'});
-  hasData = false;
-  await refreshDbBar();
-  await loadGlobalKPIs();
-  showEmptyAll();
-  // Limpiar gráficos
-  ['chart-r1','chart-r2-bars','chart-r2-growth',
-   'chart-r3-donut','chart-r3-monthly','chart-r3-branches','chart-r3-tipos']
-   .forEach(id=>{ const el=document.getElementById(id); if(el) Plotly.purge(el); });
-  // Reset KPI reportes
-  ['r1-total','r1-avg','r1-max','r1-trans','r2-tot1','r2-tot2','r2-pct','r2-best',
-   'r3-total','r3-tramp-pct','r3-cero-pct','r3-best-branch'].forEach(id=>{
-     const el=document.getElementById(id); if(el) el.textContent='—';
-   });
+  closeModal(); await fetch('/api/clear',{method:'POST'});
+  hasData=false; await refreshDbBar(); await loadGlobalKPIs(); showEmptyAll();
+  ['chart-r1','chart-r2-bars','chart-r2-growth','chart-r3-donut','chart-r3-monthly','chart-r3-branches','chart-r3-tipos']
+    .forEach(id=>{const el=document.getElementById(id); if(el&&el.data) Plotly.purge(el);});
+  ['r1-total','r1-avg','r1-max','r1-trans','r2-tot1','r2-tot2','r2-pct','r2-best','r3-total','r3-tramp-pct','r3-cero-pct','r3-best-branch']
+    .forEach(id=>{const el=document.getElementById(id); if(el) el.textContent='—';});
   document.getElementById('r2-tbody').innerHTML='';
 }
 
-// ── UTILS ─────────────────────────────────────────────────────────
-async function post(url,body){
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  return r.json();
+// ── HISTORIAL DE CONSULTAS ───────────────────────────────────────
+const REP_NAME={1:'Históricas',2:'Comparativas',3:'Participación'};
+const REP_KEY ={1:'r1',2:'r2',3:'r3'};
+function buildTitulo(n){
+  const f=lastQuery[n]?.filtros||{};
+  if(n===1) return `Históricas · ${f.negocio} · ${f.sucursal} · ${f.granularity==='yearly'?'Anual':'Mensual'} · ${f.date_from} a ${f.date_to}`;
+  if(n===2) return `Comparativa · ${f.negocio} · ${f.sucursal} · ${f.year1} vs ${f.year2} · ${f.months.length} mes(es)`;
+  return `Participación · ${f.sucursal} · ${f.date_from} a ${f.date_to}`;
 }
-function movingAvg(arr,n){
-  return arr.map((_,i)=>{
-    const s=arr.slice(Math.max(0,i-Math.floor(n/2)),Math.min(arr.length,i+Math.ceil(n/2)));
-    return s.reduce((a,b)=>a+b,0)/s.length;
-  });
+async function saveConsulta(n){
+  if(!hasData || !lastQuery[n]){ showToast('Primero genera una consulta',true); return; }
+  await fetch('/api/consultas/save',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({reporte:REP_KEY[n],titulo:buildTitulo(n),filtros:lastQuery[n].filtros,resultado:lastQuery[n].resultado})});
+  showToast('✓ Consulta guardada en el historial');
+  loadConsultasList();
+}
+async function loadConsultasList(){
+  const list=await fetch('/api/consultas').then(r=>r.json());
+  const cont=document.getElementById('hist-list');
+  if(!list.length){ cont.innerHTML='<div class="hist-empty">📭 Aún no hay consultas guardadas.<br>Genera una consulta en cualquier reporte y pulsa "💾 Guardar consulta".</div>';
+    document.getElementById('hist-detail').classList.remove('show'); return; }
+  const badge={r1:'r1',r2:'r2',r3:'r3'}, name={r1:'Históricas',r2:'Comparativas',r3:'Participación'};
+  cont.innerHTML=list.map(c=>`
+    <div class="hist-item" onclick="viewConsulta(${c.id})" id="hist-item-${c.id}">
+      <span class="hist-badge ${badge[c.reporte]||'r1'}">${name[c.reporte]||c.reporte}</span>
+      <div class="hist-meta"><div class="hist-title">${escapeHtml(c.titulo)}</div><div class="hist-date">🕒 ${fmtDateTime(c.creado_en)}</div></div>
+      <button class="hist-del" onclick="event.stopPropagation();deleteConsulta(${c.id})">🗑</button>
+    </div>`).join('');
+}
+async function viewConsulta(id){
+  const c=await fetch('/api/consultas/'+id).then(r=>r.json());
+  document.querySelectorAll('.hist-item').forEach(e=>e.classList.remove('active'));
+  document.getElementById('hist-item-'+id)?.classList.add('active');
+  const det=document.getElementById('hist-detail'); det.classList.add('show');
+  const name={r1:'Ventas Históricas',r2:'Ventas Comparativas',r3:'Participación por Negocio'};
+  document.getElementById('hist-detail-title').textContent=name[c.reporte]||c.reporte;
+  document.getElementById('hist-detail-date').textContent='🕒 '+fmtDateTime(c.creado_en);
+  document.getElementById('hist-detail-filters').innerHTML='<b>Filtros:</b> '+escapeHtml(c.titulo);
+  const d=c.resultado, kpis=document.getElementById('hist-detail-kpis'), tw=document.getElementById('hist-table-wrap');
+  kpis.innerHTML=''; tw.innerHTML='';
+  if(c.reporte==='r1'){
+    kpis.innerHTML=`<div class="rk"><div class="rk-v">${fmtCLP(d.total)}</div><div class="rk-l">Total Ventas</div></div>
+      <div class="rk"><div class="rk-v">${fmtM(d.avg_monthly)}</div><div class="rk-l">Prom. Mensual</div></div>
+      <div class="rk"><div class="rk-v">${fmtM(d.max_month)}</div><div class="rk-l">Mejor Mes</div></div>
+      <div class="rk"><div class="rk-v">${(d.n_trans||0).toLocaleString('es-CL')}</div><div class="rk-l">Pedidos</div></div>`;
+    drawR1('hist-chart', d, c.filtros);
+  } else if(c.reporte==='r2'){
+    kpis.innerHTML=`<div class="rk"><div class="rk-v">${fmtCLP(d.tot1)}</div><div class="rk-l">Año ${d.y1}</div></div>
+      <div class="rk"><div class="rk-v">${fmtCLP(d.tot2)}</div><div class="rk-l">Año ${d.y2}</div></div>
+      <div class="rk"><div class="rk-v" style="color:${d.tot_pct>=0?'#22c55e':'#ef4444'}">${fmtPct(d.tot_pct)}</div><div class="rk-l">Crecimiento</div></div>`;
+    drawR2('hist-chart', null, d);
+    tw.innerHTML='<table class="summary-table"><thead><tr><th>Mes</th><th>'+d.y1+'</th><th>'+d.y2+'</th><th>Dif.</th><th>%</th></tr></thead><tbody id="hist-r2-tbody"></tbody></table>';
+    drawR2Table('hist-r2-tbody', d);
+  } else if(c.reporte==='r3'){
+    const tr=d.pie.find(x=>x.label==='Trampoline Park'), ce=d.pie.find(x=>x.label==='Cerogrado');
+    kpis.innerHTML=`<div class="rk"><div class="rk-v">${fmtCLP(d.total)}</div><div class="rk-l">Total</div></div>
+      <div class="rk"><div class="rk-v" style="color:#f97316">${tr?tr.pct.toFixed(1)+'%':'—'}</div><div class="rk-l">Trampoline %</div></div>
+      <div class="rk"><div class="rk-v" style="color:#0ea5e9">${ce?ce.pct.toFixed(1)+'%':'—'}</div><div class="rk-l">Cerogrado %</div></div>`;
+    drawR3Donut('hist-chart', d, false);
+  }
+  document.getElementById('hist-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function deleteConsulta(id){
+  await fetch('/api/consultas/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  document.getElementById('hist-detail').classList.remove('show'); loadConsultasList();
+}
+async function deleteAllConsultas(){
+  if(!confirm('¿Vaciar todo el historial de consultas guardadas?')) return;
+  await fetch('/api/consultas/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({all:true})});
+  document.getElementById('hist-detail').classList.remove('show'); loadConsultasList();
 }
 
-// ── ARRANQUE ──────────────────────────────────────────────────────
+// ── UTILS ────────────────────────────────────────────────────────
+function val(id,def){ const e=document.getElementById(id); return e&&e.value!==''?e.value:def; }
+function setVal(id,v){ const e=document.getElementById(id); if(e&&v!=null) e.value=v; }
+async function post(url,body){ return (await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json(); }
+function movingAvg(a,n){ return a.map((_,i)=>{const s=a.slice(Math.max(0,i-Math.floor(n/2)),Math.min(a.length,i+Math.ceil(n/2)));return s.reduce((x,y)=>x+y,0)/s.length;}); }
+function fmtDateTime(s){ if(!s) return ''; const[d,t]=s.split(' '); const[Y,M,D]=d.split('-'); return `${D}/${M}/${Y} ${t?t.slice(0,5):''}`; }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function showToast(msg,err){ const t=document.getElementById('toast'); t.textContent=msg; t.style.background=err?'#ef4444':'#16a34a'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
+
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
