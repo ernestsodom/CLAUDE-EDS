@@ -75,7 +75,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .rk-l{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
 
 .charts-row{display:flex;gap:16px;margin-top:4px}
-.chart-box{flex:1;border:1px solid #f1f5f9;border-radius:10px;padding:12px;background:#fafbfc}
+.chart-box{flex:1;border:1px solid #f1f5f9;border-radius:10px;padding:12px;background:#fafbfc;overflow:hidden}
 .chart-box.main{flex:2}
 .chart-box h4{font-size:13px;font-weight:700;color:#374151;margin-bottom:6px;padding-left:2px}
 
@@ -223,7 +223,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="rk"><div class="rk-v" id="r1-max">—</div><div class="rk-l">Mejor Mes</div></div>
       <div class="rk"><div class="rk-v" id="r1-trans">—</div><div class="rk-l">Pedidos</div></div>
     </div>
-    <div class="chart-box"><h4>Evolución de Ventas por Período</h4><div id="chart-r1" style="height:400px"></div></div>
+    <div class="chart-box"><h4>Evolución de Ventas por Período <span style="font-weight:400;color:#94a3b8;font-size:11px">— Línea punteada: promedio móvil de 3 períodos</span></h4><div id="chart-r1" style="height:400px"></div></div>
+    <div class="chart-box" id="r1-branch-box" style="margin-top:16px;display:none"><h4>Ventas por Sucursal en el Período</h4><div id="chart-r1-branches" style="height:300px"></div></div>
   </div>
 
   <!-- ── PANEL 2: COMPARATIVAS ── -->
@@ -286,9 +287,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="rk" style="border-left:3px solid #0ea5e9"><div class="rk-v" id="r3-cero-pct" style="color:#0ea5e9">—</div><div class="rk-l">Cerogrado %</div></div>
       <div class="rk"><div class="rk-v" id="r3-best-branch">—</div><div class="rk-l">Mejor Sucursal</div></div>
     </div>
-    <div class="charts-row">
-      <div class="chart-box" style="max-width:360px"><h4>Participación Global <span style="font-weight:400;color:#94a3b8">· clic en un negocio</span></h4><div id="chart-r3-donut" style="height:330px"></div></div>
-      <div class="chart-box main"><h4>Comparación Mensual por Negocio</h4><div id="chart-r3-monthly" style="height:330px"></div></div>
+    <div class="charts-row" style="align-items:flex-start">
+      <div class="chart-box" style="flex:0 0 370px"><h4>Participación Global <span style="font-weight:400;color:#94a3b8">· clic en segmento o leyenda</span></h4><div id="chart-r3-donut" style="height:380px"></div></div>
+      <div class="chart-box main"><h4>Comparación Mensual por Negocio</h4><div id="chart-r3-monthly" style="height:380px"></div></div>
     </div>
     <div class="charts-row" style="margin-top:16px">
       <div class="chart-box main"><h4>Ventas por Sucursal</h4><div id="chart-r3-branches" style="height:380px"></div></div>
@@ -341,6 +342,7 @@ let meta=null, hasData=false;
 let selectedMonths = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
 let lastQuery = {1:null,2:null,3:null};   // {filtros, resultado} por reporte
 let r3Total = 0;
+let r3SelectedNeg = null;
 
 // ── FORMATTERS ───────────────────────────────────────────────────
 function fmtCLP(v){ return '$'+Math.round(v||0).toLocaleString('es-CL'); }   // EXACTO
@@ -470,23 +472,35 @@ async function renderR1(){
   document.getElementById('r1-avg').textContent=fmtM(d.avg_monthly);
   document.getElementById('r1-max').textContent=fmtM(d.max_month);
   document.getElementById('r1-trans').textContent=(d.n_trans||0).toLocaleString('es-CL');
-  if(!d.labels||!d.labels.length){ Plotly.purge('chart-r1'); return; }
+  if(!d.labels||!d.labels.length){ Plotly.purge('chart-r1'); Plotly.purge('chart-r1-branches'); document.getElementById('r1-branch-box').style.display='none'; return; }
   drawR1('chart-r1', d, p);
+  if(d.branches && Object.keys(d.branches).length){
+    document.getElementById('r1-branch-box').style.display='block';
+    drawBranches('chart-r1-branches', d.branches);
+  } else {
+    document.getElementById('r1-branch-box').style.display='none';
+  }
 }
 function drawR1(elId, d, p){
   const negs=Object.keys(d.stacked||{});
-  let traces;
+  let traces, isGrouped=false;
   if(negs.length>1 && (p.negocio==='Todos')){
+    isGrouped=true;
+    const counts=d.stacked_counts||{};
     traces=negs.map(neg=>({name:neg,type:'bar',x:d.labels,y:d.stacked[neg],
-      marker:{color:COLORS[neg]||'#94a3b8'},hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'}));
+      marker:{color:COLORS[neg]||'#94a3b8'},
+      text:(counts[neg]||[]).map(c=>c>0?c+' ped.':''),
+      textposition:'outside',
+      hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'}));
   } else {
     traces=[{name:'Ventas',type:'bar',x:d.labels,y:d.values,marker:{color:COLORS.primary,opacity:.85},
       hovertemplate:'<b>%{x}</b><br>$%{y:,.0f}<extra></extra>'}];
   }
-  if(d.values.length>1) traces.push({name:'Tendencia',type:'scatter',mode:'lines',x:d.labels,
+  if(d.values.length>1) traces.push({name:'Tendencia (prom. móvil 3 per.)',type:'scatter',mode:'lines',x:d.labels,
     y:movingAvg(d.values,3),line:{color:'#7c3aed',width:2.5,dash:'dot'},
     hovertemplate:'Tendencia: $%{y:,.0f}<extra></extra>'});
-  Plotly.react(elId,traces,{...baseLayout(),yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
+  Plotly.react(elId,traces,{...baseLayout(),barmode:isGrouped?'group':'stack',
+    yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
 }
 function resetR1(){
   if(meta){ setVal('r1-from',meta.date_min); setVal('r1-to',meta.date_max); }
@@ -504,7 +518,7 @@ async function renderR2(){
   if(!p.months.length||!p.year1||!p.year2){ return; }
   const d=await post('/api/r2',p);
   lastQuery[2]={filtros:p,resultado:d};
-  document.getElementById('empty-2').classList.remove('show'); // siempre alimentada si hay datos en BD
+  document.getElementById('empty-2').classList.remove('show');
   document.getElementById('r2-lab1').textContent='Año '+d.y1;
   document.getElementById('r2-lab2').textContent='Año '+d.y2;
   document.getElementById('th-y1').textContent=d.y1;
@@ -512,9 +526,10 @@ async function renderR2(){
   document.getElementById('r2-chart-title').textContent=`Ventas ${d.y1} vs ${d.y2} por Mes`;
   document.getElementById('r2-tot1').textContent=fmtCLP(d.tot1);
   document.getElementById('r2-tot2').textContent=fmtCLP(d.tot2);
-  const pe=document.getElementById('r2-pct'); pe.textContent=fmtPct(d.tot_pct);
-  pe.style.color=d.tot_pct>=0?'#22c55e':'#ef4444';
-  document.getElementById('r2-best').textContent=d.best?`${d.best.month} ${fmtPct(d.best.pct)}`:'—';
+  const pe=document.getElementById('r2-pct');
+  if(d.tot_pct===null||d.tot_pct===undefined){ pe.textContent='N/D'; pe.style.color='#94a3b8'; }
+  else { pe.textContent=fmtPct(d.tot_pct); pe.style.color=d.tot_pct>=0?'#22c55e':'#ef4444'; }
+  document.getElementById('r2-best').textContent=d.best?`${d.best.month} · ${fmtM(d.best.valor)}`:'—';
   drawR2('chart-r2-bars','chart-r2-growth', d);
   drawR2Table('r2-tbody', d);
 }
@@ -543,9 +558,9 @@ function drawR2Table(tbodyId, d){
     tr.innerHTML=`<td>${r.month}</td><td>${fmtCLP(r.actual)}</td><td>${fmtCLP(r.anterior)}</td><td>${fmtCLP(r.actual-r.anterior)}</td><td class="pct-cell ${cls}">${fmtPct(r.pct)}</td>`;
     tb.appendChild(tr);
   });
-  const tp=sb>0?((sa-sb)/sb*100):0;
+  const tp=sb>0?((sa-sb)/sb*100):null;
   const tf=document.createElement('tr');
-  tf.innerHTML=`<td>TOTAL</td><td>${fmtCLP(sa)}</td><td>${fmtCLP(sb)}</td><td>${fmtCLP(sa-sb)}</td><td class="pct-cell ${tp>=0?'pos':'neg'}">${fmtPct(tp)}</td>`;
+  tf.innerHTML=`<td>TOTAL</td><td>${fmtCLP(sa)}</td><td>${fmtCLP(sb)}</td><td>${fmtCLP(sa-sb)}</td><td class="pct-cell ${tp===null?'':tp>=0?'pos':'neg'}">${fmtPct(tp)}</td>`;
   tb.appendChild(tf);
 }
 
@@ -563,7 +578,7 @@ async function renderR3(){
   document.getElementById('r3-cero-pct').textContent=ce?ce.pct.toFixed(1)+'%':'—';
   if(d.branches){
     const bt=Object.entries(d.branches).map(([s,nv])=>[s,Object.values(nv).reduce((a,b)=>a+b,0)]).sort((a,b)=>b[1]-a[1]);
-    document.getElementById('r3-best-branch').textContent=bt.length?bt[0][0].split(' ').slice(-1)[0]:'—';
+    document.getElementById('r3-best-branch').textContent=bt.length?bt[0][0]:'—';
   }
   if(!d.pie||!d.pie.length){ ['chart-r3-donut','chart-r3-monthly','chart-r3-branches','chart-r3-tipos'].forEach(id=>Plotly.purge(id)); return; }
   r3Total=d.total;
@@ -578,20 +593,36 @@ function drawR3Donut(elId, d, interactive){
     marker:{colors:d.pie.map(p=>COLORS[p.label]||'#94a3b8')},
     texttemplate:'<b>%{percent:.1%}</b>',pull:d.pie.map(()=>0),
     hovertemplate:'<b>%{label}</b><br>$%{value:,.0f}<br>%{percent:.1%}<extra></extra>',sort:false}],
-    {...baseLayout(),margin:{l:20,r:20,t:20,b:20},legend:{orientation:'h',y:-0.08,x:.5,xanchor:'center'},
+    {...baseLayout(),margin:{l:20,r:20,t:20,b:60},legend:{orientation:'h',y:-0.1,x:.5,xanchor:'center'},
      annotations:[{text:'<b>TOTAL</b><br>'+fmtM(d.total),showarrow:false,font:{size:15,color:'#374151'},x:.5,y:.5,xref:'paper',yref:'paper'}]},CFG);
-  // Donut dinámico: al hacer clic en un negocio, el centro muestra su venta en millones
   if(interactive){
+    r3SelectedNeg=null;
     el.removeAllListeners && el.removeAllListeners('plotly_click');
+    el.removeAllListeners && el.removeAllListeners('plotly_legendclick');
+    // Clic en segmento del donut
     el.on('plotly_click', ev=>{
       const pt=ev.points[0];
-      Plotly.relayout(elId,{'annotations[0].text':
-        '<b>'+pt.label+'</b><br>'+fmtM(pt.value)+'<br><span style="font-size:11px;color:#94a3b8">'+(pt.percent*100).toFixed(1)+'%</span>'});
-      // resaltar segmento
-      const pull=d.pie.map(p=>p.label===pt.label?0.08:0);
-      Plotly.restyle(elId,{pull:[pull]});
+      if(r3SelectedNeg===pt.label){ r3SelectedNeg=null; _resetDonut(elId,d); }
+      else { r3SelectedNeg=pt.label; _selectDonut(elId,d,pt.label); }
+    });
+    // Clic en leyenda del donut — aísla ese negocio en el centro
+    el.on('plotly_legendclick', ev=>{
+      const item=d.pie[ev.curveNumber];
+      if(!item) return true;
+      if(r3SelectedNeg===item.label){ r3SelectedNeg=null; _resetDonut(elId,d); }
+      else { r3SelectedNeg=item.label; _selectDonut(elId,d,item.label); }
+      return false; // impide que Plotly oculte el segmento
     });
   }
+}
+function _selectDonut(elId, d, label){
+  const item=d.pie.find(p=>p.label===label); if(!item) return;
+  Plotly.relayout(elId,{'annotations[0].text':'<b>'+label+'</b><br>'+fmtM(item.value)+'<br><span style="font-size:11px;color:#94a3b8">'+item.pct.toFixed(1)+'%</span>'});
+  Plotly.restyle(elId,{pull:[d.pie.map(p=>p.label===label?0.08:0)]});
+}
+function _resetDonut(elId, d){
+  Plotly.relayout(elId,{'annotations[0].text':'<b>TOTAL</b><br>'+fmtM(d.total)});
+  Plotly.restyle(elId,{pull:[d.pie.map(()=>0)]});
 }
 function drawR3Monthly(elId, d){
   // Barras AGRUPADAS (una al lado de la otra), comparando los negocios por mes
@@ -600,17 +631,20 @@ function drawR3Monthly(elId, d){
     marker:{color:COLORS[neg]||'#94a3b8'},hovertemplate:'<b>%{x}</b><br>'+neg+': $%{y:,.0f}<extra></extra>'})),
     {...baseLayout(),barmode:'group',yaxis:{...baseLayout().yaxis,tickformat:',.0s',tickprefix:'$'}},CFG);
 }
-function drawR3Branches(elId, d){
-  const bData=Object.entries(d.branches).sort((a,b)=>{
+function drawBranches(elId, branchData){
+  const bData=Object.entries(branchData).sort((a,b)=>{
     const ta=Object.values(a[1]).reduce((s,v)=>s+v,0), tb=Object.values(b[1]).reduce((s,v)=>s+v,0); return ta-tb;});
   const bNegs=[...new Set(bData.flatMap(([,nv])=>Object.keys(nv)))];
   Plotly.react(elId, bNegs.map(neg=>({name:neg,type:'bar',orientation:'h',y:bData.map(([s])=>s),
     x:bData.map(([,nv])=>nv[neg]||0),marker:{color:COLORS[neg]||'#94a3b8'},
+    text:bData.map(([,nv])=>{const v=nv[neg]||0;return v>0?fmtM(v):''}),
+    textposition:'inside',textfont:{color:'white',size:11},
     hovertemplate:'<b>%{y}</b><br>'+neg+': $%{x:,.0f}<extra></extra>'})),
-    {...baseLayout(),barmode:'stack',margin:{l:190,r:20,t:30,b:50},
+    {...baseLayout(),barmode:'stack',margin:{l:190,r:20,t:20,b:50},
      yaxis:{...baseLayout().yaxis,tickformat:'',tickprefix:''},
      xaxis:{...baseLayout().xaxis,tickformat:',.0s',tickprefix:'$',showgrid:true,gridcolor:'#e8edf2'}},CFG);
 }
+function drawR3Branches(elId, d){ drawBranches(elId, d.branches); }
 function drawR3Tipos(elId, d){
   if(!d.tipo||!d.tipo.length){ Plotly.purge(elId); return; }
   Plotly.react(elId,[{type:'pie',labels:d.tipo.map(t=>t.label),values:d.tipo.map(t=>t.value),hole:.45,

@@ -343,15 +343,27 @@ def r1_historical():
     vals   = [float(v) for v in g['monto']]
 
     stacked = {}
+    stacked_counts = {}
     for neg in df['negocio'].dropna().unique():
         ndf = df[df['negocio'] == neg]
         ng  = ndf.groupby(key)['monto'].sum()
+        nc  = ndf.groupby(key).size()
         nd  = {str(k): float(v) for k, v in ng.items()}
-        stacked[neg] = [nd.get(l, 0) for l in labels]
+        ncd = {str(k): int(v)   for k, v in nc.items()}
+        stacked[str(neg)]        = [nd.get(l, 0)  for l in labels]
+        stacked_counts[str(neg)] = [ncd.get(l, 0) for l in labels]
+
+    # Branch breakdown for the selected period (same format as r3)
+    by_branch = df.groupby(['sucursal', 'negocio'])['monto'].sum().reset_index()
+    branches = {}
+    for _, r in by_branch.iterrows():
+        s = str(r['sucursal'])
+        branches.setdefault(s, {})[str(r['negocio'])] = float(r['monto'])
 
     monthly_totals = df.groupby('mes_año')['monto'].sum()
     return jsonify({
         'labels': labels, 'values': vals, 'stacked': stacked,
+        'stacked_counts': stacked_counts, 'branches': branches,
         'total':       float(df['monto'].sum()),
         'avg_monthly': float(monthly_totals.mean()),
         'max_month':   float(monthly_totals.max()),
@@ -381,12 +393,26 @@ def r2_comparative():
 
     tot1    = sum(r['actual']   for r in rows)
     tot2    = sum(r['anterior'] for r in rows)
-    tot_pct = round((tot1 - tot2) / tot2 * 100, 1) if tot2 > 0 else 0
-    valid   = [r for r in rows if r['pct'] is not None]
+    if tot2 > 0:
+        tot_pct = round((tot1 - tot2) / tot2 * 100, 1)
+    else:
+        tot_pct = None  # no base-year data → growth not calculable
+
+    # "Best month" = month with highest revenue in y1
+    y1_months = [(r['month'], r['actual']) for r in rows if r['actual'] > 0]
+    if y1_months:
+        best_month, best_valor = max(y1_months, key=lambda x: x[1])
+        best_row = next((r for r in rows if r['month'] == best_month), None)
+        best = {'month': best_month, 'valor': float(best_valor),
+                'pct': best_row['pct'] if best_row else None}
+    else:
+        best = None
+
+    valid = [r for r in rows if r['anterior'] > 0 and r['pct'] is not None]
     return jsonify({
         'rows': rows, 'y1': y1, 'y2': y2,
         'tot1': tot1, 'tot2': tot2, 'tot_pct': tot_pct,
-        'best':  max(valid, key=lambda r: r['pct']) if valid else None,
+        'best':  best,
         'worst': min(valid, key=lambda r: r['pct']) if valid else None,
     })
 
