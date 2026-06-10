@@ -1,0 +1,12 @@
+# Configuración de Streamlit para ejecución detrás del proxy de Render.
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#1f77b4"

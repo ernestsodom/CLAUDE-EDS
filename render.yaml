@@ -1,0 +1,18 @@
+# Blueprint de Render para la herramienta de Licitaciones de Mercado Público.
+# Render detecta este archivo en la raíz del repo. El servicio vive en la
+# subcarpeta mercado-publico/ (rootDir), aislado del bot de Instagram.
+services:
+  - type: web
+    name: mercado-publico-licitaciones
+    runtime: python
+    rootDir: mercado-publico
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      # Tu ticket de la API de Mercado Público. Se define en el panel de Render
+      # (Environment) para no exponerlo en el repositorio.
+      - key: MP_TICKET
+        sync: false
