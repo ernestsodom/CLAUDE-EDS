@@ -26,6 +26,56 @@ def _month_label(ym):
     except Exception:
         return ym
 
+# ── NORMALIZACIÓN DE COLUMNAS ──────────────────────────────────────
+# Permite cargar archivos con nombres de columnas distintos al formato Softland.
+_COL_ALIASES = {
+    'n° pedido':'pedido_id', 'n° de pedido':'pedido_id', 'nro pedido':'pedido_id',
+    'numero pedido':'pedido_id', 'n pedido':'pedido_id', 'pedido':'pedido_id',
+    'order':'pedido_id', 'order id':'pedido_id', 'id pedido':'pedido_id',
+    'tipo':'tipo', 'type':'tipo', 'tipo pedido':'tipo',
+    'fecha/hora':'fecha_hora', 'fecha hora':'fecha_hora', 'fecha':'fecha_hora',
+    'date':'fecha_hora', 'datetime':'fecha_hora', 'fecha y hora':'fecha_hora',
+    'monto $':'monto', 'monto':'monto', 'total':'monto', 'amount':'monto',
+    'valor':'monto', 'precio':'monto', 'importe':'monto',
+    'forma pago':'forma_pago', 'forma de pago':'forma_pago', 'pago':'forma_pago',
+    'payment':'forma_pago', 'medio pago':'forma_pago',
+    'negocio':'negocio', 'business':'negocio', 'empresa':'negocio',
+    'sucursal':'sucursal', 'branch':'sucursal', 'local':'sucursal',
+    'tienda':'sucursal', 'sede':'sucursal',
+    'estado proceso':'estado', 'estado':'estado', 'status':'estado',
+    'estado boleta':'estado', 'estado venta':'estado',
+}
+
+_DATE_FMTS = ['%d-%m-%Y %H:%M', '%d/%m/%Y %H:%M', '%Y-%m-%d %H:%M:%S',
+              '%Y-%m-%d %H:%M', '%d-%m-%Y', '%d/%m/%Y', '%Y-%m-%d']
+
+def _normalize_fecha(fh):
+    """Convierte cualquier formato de fecha al interno 'dd-mm-YYYY HH:MM'."""
+    if fh is None or (isinstance(fh, float) and pd.isna(fh)):
+        return None
+    if hasattr(fh, 'strftime'):          # pandas Timestamp / datetime object
+        return fh.strftime('%d-%m-%Y %H:%M')
+    s = str(fh).strip()
+    for fmt in _DATE_FMTS:
+        try:
+            return datetime.strptime(s, fmt).strftime('%d-%m-%Y %H:%M')
+        except ValueError:
+            pass
+    return s                             # devuelve tal cual; build_df filtrará si es inválida
+
+def normalize_records(raw_records):
+    """Renombra columnas del archivo (con cualquier grafía) a nombres internos."""
+    if not raw_records:
+        return raw_records
+    alias = {}
+    for col in raw_records[0].keys():
+        key = str(col).strip().lower()
+        if key in _COL_ALIASES:
+            alias[col] = _COL_ALIASES[key]
+    if not alias:
+        return raw_records
+    return [{alias.get(c, c): v for c, v in r.items()} for r in raw_records]
+
 # ── CAPA DE ACCESO A DATOS ─────────────────────────────────────────
 
 def _is_pg():
@@ -104,51 +154,56 @@ def load_records():
 
 def save_records(raw_records):
     """
-    Inserta TODOS los pedidos del archivo (sin importar el estado de la
-    boleta). Ignora duplicados por pedido_id. Retorna filas insertadas.
+    Inserta TODOS los pedidos ignorando duplicados por pedido_id.
+    Usa inserciones en lote (execute_values / executemany) para manejar
+    archivos grandes sin timeout. Retorna número de filas enviadas al DB.
+    Los registros ya deben estar normalizados (normalize_records).
     """
     init_db()
-    ph  = '%s' if _is_pg() else '?'
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
-    if _is_pg():
-        sql = (f'INSERT INTO ventas '
-               f'(pedido_id,tipo,fecha_hora,monto,forma_pago,negocio,sucursal,estado,cargado_en) '
-               f'VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph}) '
-               f'ON CONFLICT (pedido_id) DO NOTHING')
-    else:
-        sql = (f'INSERT OR IGNORE INTO ventas '
-               f'(pedido_id,tipo,fecha_hora,monto,forma_pago,negocio,sucursal,estado,cargado_en) '
-               f'VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph})')
+    rows = []
+    for r in raw_records:
+        pid = str(r.get('pedido_id') or r.get('N° Pedido') or '').strip()
+        if not pid:
+            continue
+        try:
+            monto = float(str(r.get('monto') or r.get('Monto $') or 0).replace(',', '.').replace('\xa0', ''))
+        except (ValueError, TypeError):
+            monto = 0.0
+        rows.append((
+            pid,
+            str(r.get('tipo')       or r.get('Tipo')           or '').strip(),
+            _normalize_fecha(r.get('fecha_hora') or r.get('Fecha/Hora')) or '',
+            monto,
+            str(r.get('forma_pago') or r.get('Forma Pago')     or '').strip(),
+            str(r.get('negocio')    or r.get('Negocio')        or '').strip(),
+            str(r.get('sucursal')   or r.get('Sucursal')       or '').strip(),
+            str(r.get('estado')     or r.get('Estado Proceso') or '').strip(),
+            now,
+        ))
 
-    inserted = 0
+    if not rows:
+        return 0
+
     conn = get_conn()
     try:
         cur = conn.cursor()
-        for r in raw_records:
-            pid = str(r.get('N° Pedido') or r.get('pedido_id') or '').strip()
-            if not pid:
-                continue
-            try:
-                monto = float(str(r.get('Monto $') or r.get('monto') or 0).replace(',', '.'))
-            except (ValueError, TypeError):
-                monto = 0.0
-            cur.execute(sql, (
-                pid,
-                str(r.get('Tipo')           or r.get('tipo')       or '').strip(),
-                str(r.get('Fecha/Hora')     or r.get('fecha_hora') or '').strip(),
-                monto,
-                str(r.get('Forma Pago')     or r.get('forma_pago') or '').strip(),
-                str(r.get('Negocio')        or r.get('negocio')    or '').strip(),
-                str(r.get('Sucursal')       or r.get('sucursal')   or '').strip(),
-                str(r.get('Estado Proceso') or r.get('estado')     or '').strip(),
-                now,
-            ))
-            inserted += cur.rowcount
+        if _is_pg():
+            from psycopg2.extras import execute_values
+            sql = ('INSERT INTO ventas '
+                   '(pedido_id,tipo,fecha_hora,monto,forma_pago,negocio,sucursal,estado,cargado_en) '
+                   'VALUES %s ON CONFLICT (pedido_id) DO NOTHING')
+            execute_values(cur, sql, rows, page_size=1000)
+        else:
+            sql = ('INSERT OR IGNORE INTO ventas '
+                   '(pedido_id,tipo,fecha_hora,monto,forma_pago,negocio,sucursal,estado,cargado_en) '
+                   'VALUES (?,?,?,?,?,?,?,?,?)')
+            cur.executemany(sql, rows)
         conn.commit()
     finally:
         conn.close()
-    return inserted
+    return len(rows)
 
 # ── CONSULTAS GUARDADAS ────────────────────────────────────────────
 
@@ -236,31 +291,43 @@ def upload():
         if b'<?xml' in content[:200]:
             raw = parse_xls_xml(content)
         else:
-            raw = pd.read_excel(BytesIO(content)).to_dict('records')
+            raw = pd.read_excel(BytesIO(content), engine='openpyxl').to_dict('records')
 
-        # Se consideran TODOS los pedidos, sin filtrar por estado de boleta.
-        # Solo se descartan filas sin fecha válida (p.ej. la fila de totales
-        # que Softland agrega al final del archivo).
-        def _valid(r):
-            pid = str(r.get('N° Pedido') or r.get('pedido_id') or '').strip()
-            if not pid:
-                return False
-            fh = r.get('Fecha/Hora') or r.get('fecha_hora')
-            return pd.notna(pd.to_datetime(fh, format='%d-%m-%Y %H:%M', errors='coerce'))
+        # Normalizar columnas (admite nombres variados de columnas)
+        raw = normalize_records(raw)
 
-        registros = [r for r in raw if _valid(r)]
+        # Validación vectorizada con pandas (mucho más rápido que fila por fila)
+        tmp = pd.DataFrame(raw)
+        pid_col  = next((c for c in ['pedido_id', 'N° Pedido'] if c in tmp.columns), None)
+        fh_col   = next((c for c in ['fecha_hora', 'Fecha/Hora'] if c in tmp.columns), None)
+        if pid_col is None or fh_col is None:
+            return jsonify({'success': False,
+                            'warning': 'No se encontraron columnas de N° de Pedido y/o Fecha. '
+                                       'Revisa que el archivo tenga esas columnas.'})
+
+        # Normalizar fechas a string estándar antes de validar
+        tmp['_fecha_norm'] = tmp[fh_col].apply(_normalize_fecha)
+
+        valid_pid  = tmp[pid_col].astype(str).str.strip().replace({'nan':'','None':''}) != ''
+        valid_date = pd.to_datetime(tmp['_fecha_norm'], format='%d-%m-%Y %H:%M',
+                                    errors='coerce').notna()
+        mask = valid_pid & valid_date
+
+        registros = tmp[mask].rename(columns={pid_col:'pedido_id', fh_col:'fecha_hora'}) \
+                              .assign(fecha_hora=tmp.loc[mask,'_fecha_norm']) \
+                              .drop(columns=['_fecha_norm'], errors='ignore') \
+                              .to_dict('records')
         if not registros:
             return jsonify({'success': False,
-                            'warning': 'El archivo no contiene pedidos válidos (sin fecha o N° de Pedido).'})
+                            'warning': 'El archivo no contiene pedidos válidos. '
+                                       'Verifica que haya columnas de N° Pedido y Fecha.'})
 
         inserted = save_records(registros)
 
         # Período del archivo recién cargado
-        fechas = pd.to_datetime(
-            [r.get('Fecha/Hora') or r.get('fecha_hora') for r in registros],
-            format='%d-%m-%Y %H:%M', errors='coerce'
-        )
-        fechas = fechas.dropna()
+        fechas_norm = [_normalize_fecha(r.get('fecha_hora') or r.get('Fecha/Hora'))
+                       for r in registros]
+        fechas = pd.to_datetime(fechas_norm, format='%d-%m-%Y %H:%M', errors='coerce').dropna()
         periodo = None
         if len(fechas):
             periodo = {'desde': _fmt_ddmmyyyy(fechas.min()),
