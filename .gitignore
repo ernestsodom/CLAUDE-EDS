@@ -9,3 +9,12 @@ data/
 *.sqlite
 *.xlsx
 *.csv
+
+# .NET / Visual Studio
+SistemaTickets/**/bin/
+SistemaTickets/**/obj/
+SistemaTickets/**/*.user
+SistemaTickets/**/.vs/
+SistemaTickets/**/*.suo
+SistemaTickets/**/TestResults/
+SistemaTickets/**/.idea/
