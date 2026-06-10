@@ -29,9 +29,14 @@ conecta mediante tu **ticket** gratuito de la API.
 
 ---
 
+> **Proyecto autocontenido.** Todo lo necesario vive dentro de esta carpeta
+> (`mercado-publico/`), aislado de cualquier otro código del repositorio.
+> Ejecuta todos los comandos **desde dentro de esta carpeta**.
+
 ## 🚀 Instalación
 
 ```bash
+cd mercado-publico
 pip install -r requirements.txt
 ```
 
@@ -108,3 +113,28 @@ mp.py             # punto de entrada de la CLI
 - El filtrado por **rubro** se basa en los códigos de categoría UNSPSC de los
   ítems de cada licitación, agrupados por su **segmento** (2 primeros dígitos).
 - Los datos del caché (`data/`, `*.sqlite`) están en `.gitignore`.
+
+---
+
+## 📦 Extraer a su propio repositorio
+
+Esta carpeta es un proyecto independiente y puede vivir en su propio repo de
+GitHub. Desde tu máquina:
+
+```bash
+# 1. Crea un repositorio vacío en GitHub (web) llamado, por ej., mercado-publico-licitaciones
+
+# 2. Copia esta carpeta a un lugar nuevo y conviértela en repo
+cp -r mercado-publico ~/mercado-publico-licitaciones
+cd ~/mercado-publico-licitaciones
+git init
+git add .
+git commit -m "init: herramienta de licitaciones de Mercado Público"
+
+# 3. Conéctala a tu repo de GitHub y sube
+git remote add origin git@github.com:TU-USUARIO/mercado-publico-licitaciones.git
+git branch -M main
+git push -u origin main
+```
+
+A partir de ahí queda 100% separado del resto.
