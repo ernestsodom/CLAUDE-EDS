@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SistemaTickets.Infrastructure.Data;
 using SistemaTickets.Infrastructure.Extensions;
