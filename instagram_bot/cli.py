@@ -231,6 +231,71 @@ def insights(days):
         console.print(Panel(table, title="Posts recientes"))
 
 
+@cli.command("post-reel")
+@click.argument("video_path")
+@click.option("--caption", "-c", default="", help="Caption personalizado (omite para generar con IA)")
+@click.option("--topic", "-t", default="", help="Tema para generar caption con IA")
+def post_reel(video_path, caption, topic):
+    """Sube un video local a Cloudinary y lo publica como Reel en Instagram.
+
+    VIDEO_PATH puede ser una ruta local (.mp4) o una URL pública ya alojada.
+    """
+    from .video_uploader import CloudinaryUploader
+
+    cfg, api, generator, *_ = _get_deps()
+
+    # Resolver URL pública del video
+    if video_path.startswith("http://") or video_path.startswith("https://"):
+        public_url = video_path
+        console.print(f"[dim]Usando URL existente: {public_url}[/dim]")
+    else:
+        uploader = CloudinaryUploader()
+        if not uploader.is_configured():
+            console.print("[bold red]✗ Cloudinary no configurado.[/bold red]")
+            console.print(
+                "\nAgrega estas 3 líneas a tu [bold].env[/bold]:\n"
+                "  [cyan]CLOUDINARY_CLOUD_NAME[/cyan]=tu_cloud_name\n"
+                "  [cyan]CLOUDINARY_API_KEY[/cyan]=tu_api_key\n"
+                "  [cyan]CLOUDINARY_API_SECRET[/cyan]=tu_api_secret\n"
+                "\nCómo obtenerlas (es gratis):\n"
+                "  1. Ve a [link=https://cloudinary.com]https://cloudinary.com[/link] → Sign Up Free\n"
+                "  2. En el Dashboard copia Cloud Name, API Key y API Secret\n"
+                "  3. Pégalos en el .env y vuelve a ejecutar este comando"
+            )
+            sys.exit(1)
+
+        console.print(f"[cyan]Subiendo video a Cloudinary...[/cyan] {video_path}")
+        try:
+            public_url = uploader.upload(video_path, resource_type="video")
+        except Exception as exc:
+            console.print(f"[bold red]✗ Error subiendo video:[/bold red] {exc}")
+            sys.exit(1)
+        console.print(f"[green]✓ Video alojado:[/green] {public_url}")
+
+    # Generar caption si no se proporcionó
+    if not caption:
+        if not topic:
+            topic = click.prompt("Describe el tema del reel (para generar caption con IA)")
+        console.print("[cyan]Generando caption con IA...[/cyan]")
+        result = generator.generate_caption(topic, post_type="reel")
+        caption = result["full_post"]
+        console.print(Panel(result["caption"], title="Caption generado", border_style="green"))
+        if not click.confirm("¿Publicar con este caption?", default=True):
+            caption = click.edit(caption) or caption
+
+    # Publicar
+    console.print("[cyan]Publicando Reel en Instagram...[/cyan]")
+    result = api.publish_reel(public_url, caption)
+
+    if result.success:
+        console.print(f"[bold green]✓ Reel publicado![/bold green]")
+        if result.permalink:
+            console.print(f"  [link={result.permalink}]{result.permalink}[/link]")
+    else:
+        console.print(f"[bold red]✗ Error:[/bold red] {result.error}")
+        sys.exit(1)
+
+
 @cli.command()
 def run_scheduler():
     """Start the scheduler daemon — processes the queue every 15 minutes."""
