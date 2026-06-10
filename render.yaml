@@ -12,7 +12,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.8"
-      # Tu ticket de la API de Mercado Público. Se define en el panel de Render
-      # (Environment) para no exponerlo en el repositorio.
-      - key: MP_TICKET
-        sync: false
+      # MP_TICKET NO se define aquí a propósito: así el deploy arranca de un clic
+      # usando el ticket de DEMOSTRACIÓN (cuota limitada). Cuando tengas tu propio
+      # ticket, agrégalo en Render → Environment → Add: MP_TICKET = tu-ticket
+      # y el servicio se redesplegará usándolo automáticamente.

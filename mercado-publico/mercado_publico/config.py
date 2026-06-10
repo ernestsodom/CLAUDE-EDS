@@ -30,7 +30,8 @@ TICKET_DEMO = "F8537A18-6766-4DEF-9E59-426B4FEE2844"
 class Settings:
     """Parámetros de ejecución, configurables por variables de entorno."""
 
-    ticket: str = field(default_factory=lambda: os.getenv("MP_TICKET", TICKET_DEMO))
+    # Si MP_TICKET no está definido O está vacío, se usa el ticket de demo.
+    ticket: str = field(default_factory=lambda: os.getenv("MP_TICKET") or TICKET_DEMO)
     timeout: int = int(os.getenv("MP_TIMEOUT", "30"))
     max_retries: int = int(os.getenv("MP_MAX_RETRIES", "4"))
     # Pausa entre llamadas para respetar el rate-limit de la API pública.
