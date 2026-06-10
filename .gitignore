@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+
+# Caché y datos locales de Mercado Público
+data/
+*.sqlite
+*.xlsx
+*.csv
