@@ -1,0 +1,113 @@
+@page "/tickets/nuevo"
+@attribute [Authorize]
+@inject TicketService TicketSvc
+@inject ClienteService ClienteSvc
+@inject UsuarioService UsuarioSvc
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>Nuevo Ticket — SistemaTickets</PageTitle>
+
+<div class="page-header">
+    <h1>Nuevo Ticket</h1>
+    <a href="/tickets" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="form-card">
+    <EditForm Model="modelo" OnValidSubmit="HandleCrear" FormName="TicketForm">
+        <DataAnnotationsValidator />
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-error">@error</div>
+        }
+
+        <div class="form-row">
+            <div class="form-group form-group-full">
+                <label>Título <span class="required">*</span></label>
+                <InputText @bind-Value="modelo.Titulo" class="form-control" placeholder="Descripción breve del problema" />
+                <ValidationMessage For="() => modelo.Titulo" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group form-group-full">
+                <label>Descripción <span class="required">*</span></label>
+                <InputTextArea @bind-Value="modelo.Descripcion" class="form-control" rows="5"
+                               placeholder="Detalle el problema..." />
+                <ValidationMessage For="() => modelo.Descripcion" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Cliente <span class="required">*</span></label>
+                <InputSelect @bind-Value="modelo.ClienteId" class="form-control">
+                    <option value="0">— Seleccionar cliente —</option>
+                    @foreach (var c in clientes)
+                    {
+                        <option value="@c.Id">@c.Nombre</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="form-group">
+                <label>Prioridad</label>
+                <InputSelect @bind-Value="modelo.Prioridad" class="form-control">
+                    <option value="@PrioridadTicket.Baja">Baja</option>
+                    <option value="@PrioridadTicket.Media">Media</option>
+                    <option value="@PrioridadTicket.Alta">Alta</option>
+                    <option value="@PrioridadTicket.Critica">Crítica</option>
+                </InputSelect>
+            </div>
+
+            <div class="form-group">
+                <label>Asignar a</label>
+                <InputSelect @bind-Value="modelo.AsignadoAId" class="form-control">
+                    <option value="">— Sin asignar —</option>
+                    @foreach (var u in usuarios)
+                    {
+                        <option value="@u.Id">@u.Nombre</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" disabled="@cargando">
+                @(cargando ? "Guardando..." : "Crear Ticket")
+            </button>
+            <a href="/tickets" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private CrearTicketDto modelo = new();
+    private List<Cliente> clientes = [];
+    private List<Usuario> usuarios = [];
+    private string? error;
+    private bool cargando;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientes = await ClienteSvc.ObtenerTodosAsync();
+        usuarios = await UsuarioSvc.ObtenerTodosAsync();
+    }
+
+    private async Task HandleCrear()
+    {
+        if (modelo.ClienteId == 0)
+        {
+            error = "Debe seleccionar un cliente.";
+            return;
+        }
+
+        cargando = true;
+        var authState = await AuthState.GetAuthenticationStateAsync();
+        var usuarioId = AuthService.ObtenerUsuarioId(authState.User) ?? 0;
+
+        await TicketSvc.CrearAsync(modelo, usuarioId);
+        Nav.NavigateTo("/tickets");
+    }
+}

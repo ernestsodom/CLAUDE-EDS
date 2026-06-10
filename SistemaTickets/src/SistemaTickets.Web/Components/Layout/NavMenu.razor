@@ -1,0 +1,52 @@
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <span class="logo-icon">🎫</span>
+            <span class="logo-text">SistemaTickets</span>
+        </div>
+    </div>
+
+    <ul class="nav-links">
+        <li>
+            <NavLink href="/" Match="NavLinkMatch.All" class="nav-link">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </NavLink>
+        </li>
+        <li>
+            <NavLink href="/tickets" class="nav-link">
+                <span class="nav-icon">🎫</span>
+                <span>Tickets</span>
+            </NavLink>
+        </li>
+        <li>
+            <NavLink href="/clientes" class="nav-link">
+                <span class="nav-icon">👥</span>
+                <span>Clientes</span>
+            </NavLink>
+        </li>
+        <li>
+            <NavLink href="/usuarios" class="nav-link">
+                <span class="nav-icon">👤</span>
+                <span>Usuarios</span>
+            </NavLink>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <AuthorizeView>
+            <Authorized>
+                <div class="user-info">
+                    <span class="user-name">@context.User.Identity?.Name</span>
+                    <form method="post" action="/logout">
+                        <AntiforgeryToken />
+                        <button type="submit" class="btn-logout">Salir</button>
+                    </form>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</nav>

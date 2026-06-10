@@ -1,0 +1,89 @@
+@page "/tickets"
+@attribute [Authorize]
+@inject TicketService TicketSvc
+
+<PageTitle>Tickets — SistemaTickets</PageTitle>
+
+<div class="page-header">
+    <h1>Tickets</h1>
+    <a href="/tickets/nuevo" class="btn btn-primary">+ Nuevo Ticket</a>
+</div>
+
+<div class="filter-bar">
+    <select class="form-control form-control-sm" @onchange="FiltrarPorEstado">
+        <option value="">Todos los estados</option>
+        <option value="1">Abierto</option>
+        <option value="2">En Proceso</option>
+        <option value="3">Resuelto</option>
+        <option value="4">Cerrado</option>
+    </select>
+    <input type="text" class="form-control form-control-sm" placeholder="Buscar por título..."
+           @bind="textoBusqueda" @bind:event="oninput" />
+</div>
+
+@if (ticketsFiltrados.Count == 0)
+{
+    <div class="empty-state">No se encontraron tickets.</div>
+}
+else
+{
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Título</th>
+                <th>Cliente</th>
+                <th>Asignado a</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in ticketsFiltrados)
+            {
+                <tr>
+                    <td class="id-cell">@t.Id</td>
+                    <td class="title-cell"><a href="/tickets/@t.Id">@t.Titulo</a></td>
+                    <td>@t.Cliente?.Nombre</td>
+                    <td>@(t.AsignadoA?.Nombre ?? "—")</td>
+                    <td><PriorityBadge Prioridad="t.Prioridad" /></td>
+                    <td><StatusBadge Estado="t.Estado" /></td>
+                    <td class="date-cell">@t.FechaCreacion.ToString("dd/MM/yy")</td>
+                    <td><a href="/tickets/@t.Id" class="btn btn-sm">Ver</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Ticket> tickets = [];
+    private List<Ticket> ticketsFiltrados = [];
+    private string textoBusqueda = string.Empty;
+    private int? estadoFiltro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tickets = await TicketSvc.ObtenerTodosAsync();
+        Filtrar();
+    }
+
+    private void FiltrarPorEstado(ChangeEventArgs e)
+    {
+        estadoFiltro = string.IsNullOrEmpty(e.Value?.ToString())
+            ? null
+            : int.Parse(e.Value.ToString()!);
+        Filtrar();
+    }
+
+    private void Filtrar()
+    {
+        ticketsFiltrados = tickets
+            .Where(t => estadoFiltro is null || (int)t.Estado == estadoFiltro)
+            .Where(t => string.IsNullOrEmpty(textoBusqueda) ||
+                        t.Titulo.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+}

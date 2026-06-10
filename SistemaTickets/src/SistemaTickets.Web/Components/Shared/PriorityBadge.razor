@@ -1,0 +1,25 @@
+@using SistemaTickets.Domain.Enums
+
+<span class="badge badge-priority-@CssClass">@Label</span>
+
+@code {
+    [Parameter] public PrioridadTicket Prioridad { get; set; }
+
+    private string Label => Prioridad switch
+    {
+        PrioridadTicket.Baja    => "Baja",
+        PrioridadTicket.Media   => "Media",
+        PrioridadTicket.Alta    => "Alta",
+        PrioridadTicket.Critica => "Crítica",
+        _ => Prioridad.ToString()
+    };
+
+    private string CssClass => Prioridad switch
+    {
+        PrioridadTicket.Baja    => "low",
+        PrioridadTicket.Media   => "medium",
+        PrioridadTicket.Alta    => "high",
+        PrioridadTicket.Critica => "critical",
+        _ => "default"
+    };
+}

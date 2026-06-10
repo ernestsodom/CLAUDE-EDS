@@ -1,0 +1,90 @@
+@page "/"
+@attribute [Authorize]
+@inject TicketService TicketSvc
+
+<PageTitle>Dashboard — SistemaTickets</PageTitle>
+
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <p class="page-subtitle">Resumen general del sistema de soporte</p>
+</div>
+
+@if (resumen is null)
+{
+    <div class="loading">Cargando...</div>
+}
+else
+{
+    <div class="stats-grid">
+        <div class="stat-card stat-open">
+            <div class="stat-number">@resumen.Abiertos</div>
+            <div class="stat-label">Abiertos</div>
+        </div>
+        <div class="stat-card stat-progress">
+            <div class="stat-number">@resumen.EnProceso</div>
+            <div class="stat-label">En Proceso</div>
+        </div>
+        <div class="stat-card stat-resolved">
+            <div class="stat-number">@resumen.Resueltos</div>
+            <div class="stat-label">Resueltos</div>
+        </div>
+        <div class="stat-card stat-closed">
+            <div class="stat-number">@resumen.Cerrados</div>
+            <div class="stat-label">Cerrados</div>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2>Últimos tickets</h2>
+            <a href="/tickets/nuevo" class="btn btn-primary">+ Nuevo Ticket</a>
+        </div>
+
+        @if (ultimosTickets.Count == 0)
+        {
+            <div class="empty-state">No hay tickets registrados.</div>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Título</th>
+                        <th>Cliente</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in ultimosTickets)
+                    {
+                        <tr>
+                            <td class="id-cell">@t.Id</td>
+                            <td class="title-cell">@t.Titulo</td>
+                            <td>@t.Cliente?.Nombre</td>
+                            <td><PriorityBadge Prioridad="t.Prioridad" /></td>
+                            <td><StatusBadge Estado="t.Estado" /></td>
+                            <td class="date-cell">@t.FechaCreacion.ToString("dd/MM/yy")</td>
+                            <td><a href="/tickets/@t.Id" class="btn btn-sm">Ver</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+@code {
+    private DashboardResumenDto? resumen;
+    private List<Ticket> ultimosTickets = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        resumen = await TicketSvc.ObtenerResumenAsync();
+        var todos = await TicketSvc.ObtenerTodosAsync();
+        ultimosTickets = todos.Take(10).ToList();
+    }
+}

@@ -1,0 +1,101 @@
+@page "/usuarios/nuevo"
+@page "/usuarios/{Id:int}"
+@attribute [Authorize(Roles = "Administrador")]
+@inject UsuarioService UsuarioSvc
+@inject NavigationManager Nav
+
+<PageTitle>@(Id.HasValue ? "Editar Usuario" : "Nuevo Usuario") — SistemaTickets</PageTitle>
+
+<div class="page-header">
+    <h1>@(Id.HasValue ? "Editar Usuario" : "Nuevo Usuario")</h1>
+    <a href="/usuarios" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="form-card">
+    <EditForm Model="modelo" OnValidSubmit="HandleGuardar" FormName="UsuarioForm">
+        <DataAnnotationsValidator />
+
+        @if (!string.IsNullOrEmpty(mensaje))
+        {
+            <div class="alert @(esError ? "alert-error" : "alert-success")">@mensaje</div>
+        }
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nombre <span class="required">*</span></label>
+                <InputText @bind-Value="modelo.Nombre" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Correo <span class="required">*</span></label>
+                <InputText @bind-Value="modelo.Correo" class="form-control" type="email" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Rol</label>
+                <InputSelect @bind-Value="modelo.Rol" class="form-control">
+                    <option value="@RolUsuario.Desarrollador">Desarrollador</option>
+                    <option value="@RolUsuario.Administrador">Administrador</option>
+                </InputSelect>
+            </div>
+            @if (!Id.HasValue)
+            {
+                <div class="form-group">
+                    <label>Contraseña <span class="required">*</span></label>
+                    <InputText @bind-Value="modelo.Password" class="form-control" type="password" />
+                </div>
+            }
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" disabled="@cargando">
+                @(cargando ? "Guardando..." : "Guardar")
+            </button>
+            <a href="/usuarios" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private CrearUsuarioDto modelo = new();
+    private string? mensaje;
+    private bool esError;
+    private bool cargando;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var u = await UsuarioSvc.ObtenerPorIdAsync(Id.Value);
+            if (u is not null)
+            {
+                modelo.Nombre = u.Nombre;
+                modelo.Correo = u.Correo;
+                modelo.Rol = u.Rol;
+            }
+        }
+    }
+
+    private async Task HandleGuardar()
+    {
+        cargando = true;
+        try
+        {
+            if (Id.HasValue)
+                await UsuarioSvc.ActualizarAsync(Id.Value, modelo.Nombre, modelo.Correo);
+            else
+                await UsuarioSvc.CrearAsync(modelo);
+
+            Nav.NavigateTo("/usuarios");
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+            esError = true;
+        }
+        finally { cargando = false; }
+    }
+}

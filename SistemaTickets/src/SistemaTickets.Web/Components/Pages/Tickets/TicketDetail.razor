@@ -1,0 +1,161 @@
+@page "/tickets/{Id:int}"
+@attribute [Authorize]
+@inject TicketService TicketSvc
+@inject UsuarioService UsuarioSvc
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>Ticket #@Id — SistemaTickets</PageTitle>
+
+@if (ticket is null)
+{
+    <div class="loading">Cargando ticket...</div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>@ticket.Titulo</h1>
+            <span class="ticket-id">#@ticket.Id</span>
+        </div>
+        <a href="/tickets" class="btn btn-secondary">← Volver</a>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-main">
+            <div class="card">
+                <h3>Descripción</h3>
+                <p class="ticket-description">@ticket.Descripcion</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Seguimiento (@ticket.Seguimientos.Count)</h3>
+                </div>
+
+                @if (ticket.Seguimientos.Any())
+                {
+                    <div class="seguimientos">
+                        @foreach (var s in ticket.Seguimientos.OrderBy(x => x.FechaCreacion))
+                        {
+                            <div class="seguimiento-item">
+                                <div class="seguimiento-header">
+                                    <strong>@s.Usuario?.Nombre</strong>
+                                    <span class="date-cell">@s.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                <p>@s.Comentario</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="seguimiento-form">
+                    <textarea class="form-control" rows="3" placeholder="Agregar comentario..."
+                              @bind="nuevoComentario"></textarea>
+                    <button class="btn btn-primary" @onclick="AgregarSeguimiento"
+                            disabled="@(string.IsNullOrWhiteSpace(nuevoComentario))">
+                        Agregar Comentario
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-sidebar">
+            <div class="card">
+                <h3>Detalles</h3>
+                <dl class="detail-list">
+                    <dt>Estado</dt>
+                    <dd><StatusBadge Estado="ticket.Estado" /></dd>
+                    <dt>Prioridad</dt>
+                    <dd><PriorityBadge Prioridad="ticket.Prioridad" /></dd>
+                    <dt>Cliente</dt>
+                    <dd>@ticket.Cliente?.Nombre</dd>
+                    <dt>Creado por</dt>
+                    <dd>@ticket.CreadoPor?.Nombre</dd>
+                    <dt>Asignado a</dt>
+                    <dd>@(ticket.AsignadoA?.Nombre ?? "Sin asignar")</dd>
+                    <dt>Fecha creación</dt>
+                    <dd>@ticket.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</dd>
+                    @if (ticket.FechaCierre.HasValue)
+                    {
+                        <dt>Fecha cierre</dt>
+                        <dd>@ticket.FechaCierre.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                    }
+                </dl>
+            </div>
+
+            <div class="card">
+                <h3>Acciones</h3>
+                <div class="actions-stack">
+                    <div class="form-group">
+                        <label>Cambiar estado</label>
+                        <select class="form-control" @onchange="CambiarEstado">
+                            <option value="1" selected="@(ticket.Estado == EstadoTicket.Abierto)">Abierto</option>
+                            <option value="2" selected="@(ticket.Estado == EstadoTicket.EnProceso)">En Proceso</option>
+                            <option value="3" selected="@(ticket.Estado == EstadoTicket.Resuelto)">Resuelto</option>
+                            <option value="4" selected="@(ticket.Estado == EstadoTicket.Cerrado)">Cerrado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Reasignar</label>
+                        <select class="form-control" @onchange="Reasignar">
+                            <option value="">— Sin asignar —</option>
+                            @foreach (var u in usuarios)
+                            {
+                                <option value="@u.Id" selected="@(ticket.AsignadoAId == u.Id)">@u.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Ticket? ticket;
+    private List<Usuario> usuarios = [];
+    private string nuevoComentario = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+        usuarios = await UsuarioSvc.ObtenerTodosAsync();
+    }
+
+    private async Task CargarDatos()
+    {
+        ticket = await TicketSvc.ObtenerPorIdAsync(Id);
+    }
+
+    private async Task AgregarSeguimiento()
+    {
+        if (string.IsNullOrWhiteSpace(nuevoComentario) || ticket is null) return;
+
+        var authState = await AuthState.GetAuthenticationStateAsync();
+        var usuarioId = AuthService.ObtenerUsuarioId(authState.User) ?? 0;
+
+        await TicketSvc.AgregarSeguimientoAsync(ticket.Id, nuevoComentario, usuarioId);
+        nuevoComentario = string.Empty;
+        await CargarDatos();
+    }
+
+    private async Task CambiarEstado(ChangeEventArgs e)
+    {
+        if (ticket is null || !int.TryParse(e.Value?.ToString(), out var val)) return;
+        await TicketSvc.CambiarEstadoAsync(ticket.Id, (EstadoTicket)val);
+        await CargarDatos();
+    }
+
+    private async Task Reasignar(ChangeEventArgs e)
+    {
+        if (ticket is null) return;
+        var val = e.Value?.ToString();
+        int? uid = string.IsNullOrEmpty(val) ? null : int.Parse(val);
+        await TicketSvc.AsignarAsync(ticket.Id, uid);
+        await CargarDatos();
+    }
+}

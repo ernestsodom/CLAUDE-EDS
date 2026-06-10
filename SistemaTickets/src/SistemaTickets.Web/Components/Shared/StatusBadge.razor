@@ -1,0 +1,25 @@
+@using SistemaTickets.Domain.Enums
+
+<span class="badge badge-@CssClass">@Label</span>
+
+@code {
+    [Parameter] public EstadoTicket Estado { get; set; }
+
+    private string Label => Estado switch
+    {
+        EstadoTicket.Abierto   => "Abierto",
+        EstadoTicket.EnProceso => "En Proceso",
+        EstadoTicket.Resuelto  => "Resuelto",
+        EstadoTicket.Cerrado   => "Cerrado",
+        _ => Estado.ToString()
+    };
+
+    private string CssClass => Estado switch
+    {
+        EstadoTicket.Abierto   => "open",
+        EstadoTicket.EnProceso => "progress",
+        EstadoTicket.Resuelto  => "resolved",
+        EstadoTicket.Cerrado   => "closed",
+        _ => "default"
+    };
+}

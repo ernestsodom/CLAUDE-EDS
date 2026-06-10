@@ -1,0 +1,96 @@
+@page "/clientes/nuevo"
+@page "/clientes/{Id:int}"
+@attribute [Authorize]
+@inject ClienteService ClienteSvc
+@inject NavigationManager Nav
+
+<PageTitle>@(Id.HasValue ? "Editar Cliente" : "Nuevo Cliente") — SistemaTickets</PageTitle>
+
+<div class="page-header">
+    <h1>@(Id.HasValue ? "Editar Cliente" : "Nuevo Cliente")</h1>
+    <a href="/clientes" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="form-card">
+    <EditForm Model="modelo" OnValidSubmit="HandleGuardar" FormName="ClienteForm">
+        <DataAnnotationsValidator />
+
+        @if (!string.IsNullOrEmpty(mensaje))
+        {
+            <div class="alert @(esError ? "alert-error" : "alert-success")">@mensaje</div>
+        }
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nombre <span class="required">*</span></label>
+                <InputText @bind-Value="modelo.Nombre" class="form-control" placeholder="Nombre del contacto" />
+            </div>
+            <div class="form-group">
+                <label>Empresa</label>
+                <InputText @bind-Value="modelo.Empresa" class="form-control" placeholder="Nombre de la empresa" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Correo</label>
+                <InputText @bind-Value="modelo.Correo" class="form-control" type="email" />
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <InputText @bind-Value="modelo.Telefono" class="form-control" placeholder="+56 9 1234 5678" />
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" disabled="@cargando">
+                @(cargando ? "Guardando..." : "Guardar")
+            </button>
+            <a href="/clientes" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private CrearClienteDto modelo = new();
+    private string? mensaje;
+    private bool esError;
+    private bool cargando;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var c = await ClienteSvc.ObtenerPorIdAsync(Id.Value);
+            if (c is not null)
+            {
+                modelo.Nombre = c.Nombre;
+                modelo.Correo = c.Correo;
+                modelo.Telefono = c.Telefono;
+                modelo.Empresa = c.Empresa;
+            }
+        }
+    }
+
+    private async Task HandleGuardar()
+    {
+        cargando = true;
+        try
+        {
+            if (Id.HasValue)
+                await ClienteSvc.ActualizarAsync(Id.Value, modelo);
+            else
+                await ClienteSvc.CrearAsync(modelo);
+
+            Nav.NavigateTo("/clientes");
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+            esError = true;
+        }
+        finally { cargando = false; }
+    }
+}
