@@ -6,6 +6,7 @@ from typing import Any
 
 import pandas as pd
 
+from .perfil import COMPETIDORES, PALABRAS_CLAVE_TI, RUBROS_OBJETIVO
 from .rubros import RUBROS
 
 
@@ -15,11 +16,13 @@ def a_dataframe(registros: list[dict[str, Any]]) -> pd.DataFrame:
     if df.empty:
         return df
 
-    for col in ("monto_estimado", "monto_adjudicado", "n_oferentes", "n_items"):
+    for col in ("monto_estimado", "monto_adjudicado", "n_oferentes", "n_items",
+                "es_municipalidad", "ganada_proexsi"):
         if col in df:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    for col in ("fecha_publicacion", "fecha_cierre", "fecha_adjudicacion"):
+    for col in ("fecha_publicacion", "fecha_cierre", "fecha_adjudicacion",
+                "fecha_termino_contrato"):
         if col in df:
             df[col] = pd.to_datetime(df[col], errors="coerce")
 
@@ -37,11 +40,39 @@ def filtrar(
     monto_max: float | None = None,
     fecha_desde: Any = None,
     fecha_hasta: Any = None,
+    solo_municipalidades: bool = False,
+    solo_perfil_ti: bool = False,
+    competidores: list[str] | None = None,
+    proveedor: str | None = None,
 ) -> pd.DataFrame:
     """Aplica filtros combinados sobre el DataFrame de licitaciones."""
     if df.empty:
         return df
     out = df
+
+    if solo_municipalidades and "es_municipalidad" in out:
+        out = out[out["es_municipalidad"].fillna(0) == 1]
+
+    if solo_perfil_ti:
+        # Licitaciones del perfil Proexsi: rubros TI o palabras clave de software/hardware.
+        def es_perfil(row: pd.Series) -> bool:
+            segs = set(str(row.get("rubros", "")).split(","))
+            if segs & set(RUBROS_OBJETIVO):
+                return True
+            texto = f"{row.get('nombre','')} {row.get('descripcion','')}".lower()
+            return any(p in texto for p in PALABRAS_CLAVE_TI)
+
+        out = out[out.apply(es_perfil, axis=1)]
+
+    if competidores and "competidor" in out:
+        out = out[out["competidor"].isin(competidores)]
+
+    if proveedor and "proveedores_adjudicados" in out:
+        p = proveedor.lower()
+        out = out[
+            out["proveedores_adjudicados"].astype(str).str.lower().str.contains(p, na=False)
+            | out["proveedor_adjudicado"].astype(str).str.lower().str.contains(p, na=False)
+        ]
 
     if texto:
         t = texto.lower()
@@ -181,3 +212,88 @@ def compras_similares(
     tmp = df.copy()
     tmp["similitud"] = tmp.apply(score, axis=1)
     return tmp[tmp["similitud"] > 0].sort_values("similitud", ascending=False).head(top)
+
+
+# ---------------------------------------------------------------------- #
+# Inteligencia comercial (Proexsi)
+# ---------------------------------------------------------------------- #
+def por_competidor(df: pd.DataFrame) -> pd.DataFrame:
+    """Ranking de competidores por licitaciones adjudicadas y monto."""
+    if df.empty or "competidor" not in df:
+        return pd.DataFrame(columns=["competidor", "adjudicadas", "monto_total"])
+    comp = df[df["competidor"].astype(str).str.len() > 0]
+    if comp.empty:
+        return pd.DataFrame(columns=["competidor", "adjudicadas", "monto_total"])
+    g = comp.groupby("competidor").agg(
+        adjudicadas=("codigo", "count"),
+        monto_total=("monto_adjudicado", "sum"),
+    ).reset_index()
+    return g.sort_values("monto_total", ascending=False)
+
+
+def licitaciones_de_competidor(df: pd.DataFrame, nombre: str) -> pd.DataFrame:
+    """Todas las licitaciones adjudicadas a un competidor concreto."""
+    if df.empty or "competidor" not in df:
+        return df.head(0)
+    return df[df["competidor"] == nombre].sort_values(
+        "fecha_adjudicacion", ascending=False, na_position="last"
+    )
+
+
+def ultimo_adjudicado(df: pd.DataFrame, codigo: str, top: int = 5) -> dict[str, Any]:
+    """
+    Para una licitación, devuelve el último proveedor que ganó un servicio similar
+    (y un pequeño historial), clave para negociar/posicionarse.
+    """
+    similares = compras_similares(df, codigo, top=50)
+    adj = similares[
+        (similares.get("estado") == "Adjudicada")
+        & (similares["proveedor_adjudicado"].astype(str).str.len() > 0)
+    ] if not similares.empty else similares
+    if adj.empty:
+        return {"ultimo": None, "historial": adj}
+    adj = adj.sort_values("fecha_adjudicacion", ascending=False, na_position="last")
+    fila = adj.iloc[0]
+    return {
+        "ultimo": {
+            "proveedor": fila.get("proveedor_adjudicado"),
+            "competidor": fila.get("competidor") or "—",
+            "monto": fila.get("monto_adjudicado"),
+            "comprador": fila.get("comprador"),
+            "codigo": fila.get("codigo"),
+            "fecha": fila.get("fecha_adjudicacion"),
+        },
+        "historial": adj.head(top),
+    }
+
+
+def contratos_por_terminar(df: pd.DataFrame, dias: int = 180) -> pd.DataFrame:
+    """
+    Licitaciones adjudicadas cuyo contrato termina dentro de `dias` (o ya venció
+    hace poco): oportunidades de relicitación / renovación.
+    """
+    if df.empty or "fecha_termino_contrato" not in df:
+        return df.head(0)
+    hoy = pd.Timestamp.now().normalize()
+    limite = hoy + pd.Timedelta(days=dias)
+    tmp = df.dropna(subset=["fecha_termino_contrato"]).copy()
+    if tmp.empty:
+        return tmp
+    # Desde 30 días atrás (recién vencidos) hasta el límite futuro.
+    mask = (tmp["fecha_termino_contrato"] >= hoy - pd.Timedelta(days=30)) & (
+        tmp["fecha_termino_contrato"] <= limite
+    )
+    out = tmp[mask].copy()
+    out["dias_para_terminar"] = (out["fecha_termino_contrato"] - hoy).dt.days
+    return out.sort_values("dias_para_terminar")
+
+
+def resumen_competencia(df: pd.DataFrame) -> dict[str, Any]:
+    """KPIs de la pestaña de competencia."""
+    nombres = [c.nombre for c in COMPETIDORES]
+    comp = df[df["competidor"].isin(nombres)] if "competidor" in df else df.head(0)
+    return {
+        "competidores_activos": int(comp["competidor"].nunique()) if not comp.empty else 0,
+        "licitaciones_competencia": len(comp),
+        "monto_competencia": float(comp.get("monto_adjudicado", pd.Series(dtype=float)).fillna(0).sum()),
+    }

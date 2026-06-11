@@ -31,6 +31,7 @@ def init_db() -> None:
                 moneda TEXT,
                 monto_estimado REAL,
                 comprador TEXT,
+                es_municipalidad INTEGER,
                 unidad_compra TEXT,
                 rut_comprador TEXT,
                 region TEXT,
@@ -38,8 +39,14 @@ def init_db() -> None:
                 fecha_publicacion TEXT,
                 fecha_cierre TEXT,
                 fecha_adjudicacion TEXT,
+                fecha_termino_contrato TEXT,
                 n_oferentes INTEGER,
                 monto_adjudicado REAL,
+                proveedor_adjudicado TEXT,
+                rut_adjudicado TEXT,
+                proveedores_adjudicados TEXT,
+                competidor TEXT,
+                ganada_proexsi INTEGER,
                 rubros TEXT,
                 rubros_nombres TEXT,
                 n_items INTEGER,
@@ -49,6 +56,8 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_lic_estado ON licitaciones(estado);
             CREATE INDEX IF NOT EXISTS idx_lic_region ON licitaciones(region);
             CREATE INDEX IF NOT EXISTS idx_lic_comprador ON licitaciones(comprador);
+            CREATE INDEX IF NOT EXISTS idx_lic_muni ON licitaciones(es_municipalidad);
+            CREATE INDEX IF NOT EXISTS idx_lic_competidor ON licitaciones(competidor);
 
             CREATE TABLE IF NOT EXISTS preferencias (
                 clave TEXT PRIMARY KEY,
@@ -63,9 +72,11 @@ def guardar_licitaciones(registros: Iterable[dict[str, Any]]) -> int:
     init_db()
     columnas = [
         "codigo", "nombre", "descripcion", "estado", "codigo_estado", "tipo",
-        "moneda", "monto_estimado", "comprador", "unidad_compra", "rut_comprador",
-        "region", "comuna", "fecha_publicacion", "fecha_cierre",
-        "fecha_adjudicacion", "n_oferentes", "monto_adjudicado", "rubros",
+        "moneda", "monto_estimado", "comprador", "es_municipalidad",
+        "unidad_compra", "rut_comprador", "region", "comuna", "fecha_publicacion",
+        "fecha_cierre", "fecha_adjudicacion", "fecha_termino_contrato",
+        "n_oferentes", "monto_adjudicado", "proveedor_adjudicado", "rut_adjudicado",
+        "proveedores_adjudicados", "competidor", "ganada_proexsi", "rubros",
         "rubros_nombres", "n_items", "actualizado_en",
     ]
     placeholders = ",".join("?" for _ in columnas)

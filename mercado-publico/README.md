@@ -1,8 +1,9 @@
-# 📊 Herramienta de Licitaciones de Mercado Público
+# 🎯 Radar de Licitaciones — Proexsi (Mercado Público)
 
-Plataforma para **consultar, analizar y exportar licitaciones de Mercado Público
-(ChileCompra)** por rubro, estado, proveedor y comprador (cliente), con filtros
-potentes, gráficos, dashboards y exportación de datos.
+Plataforma de **inteligencia comercial** sobre Mercado Público (ChileCompra),
+**dirigida a Proexsi**: enfocada en **municipalidades** y rubro **TI
+(software / hardware)**, con vigilancia de la **competencia**, compras similares,
+último proveedor adjudicado y contratos por terminar.
 
 Usa la **API oficial** de Mercado Público (`api.mercadopublico.cl`). Tu usuario se
 conecta mediante tu **ticket** gratuito de la API.
@@ -11,21 +12,49 @@ conecta mediante tu **ticket** gratuito de la API.
 
 ## ✨ Funcionalidades
 
-- 🔑 **Conecta tu usuario** pegando tu ticket de la API (se guarda localmente).
-- 🗂️ **Consulta por rubros específicos** (clasificación UNSPSC: salud, médico,
-  construcción, alimentos, TI, etc.).
-- 🚦 **Licitaciones en todos los estados**: publicada, cerrada, **desierta**,
-  adjudicada, revocada, suspendida.
-- 🏢 **Gestión por cliente (comprador)** y por **proveedor adjudicado**.
-- 🔁 **Compras similares anteriores**: encuentra licitaciones parecidas por rubro
-  y texto.
-- 🏜️ **Vista dedicada a licitaciones desiertas** con desglose por rubro.
-- 🔎 **Filtros potentes**: texto, rubro, estado, región, comprador, rango de monto
-  y fechas.
-- 📈 **Dashboards y gráficos**: KPIs, distribución por estado/rubro/región,
-  evolución temporal y ranking de compradores.
-- ⬇️ **Vaciado de información** a CSV y Excel.
-- 💾 **Caché local SQLite** para análisis rápido sin golpear la API.
+### Foco comercial Proexsi
+- 🏛️ **Filtro municipalidades** activado por defecto (detecta municipalidades,
+  corporaciones municipales, DAEM, etc.).
+- 💻 **Perfil TI** (software/hardware): rubros UNSPSC **43** y **81** + palabras
+  clave (ERP, licencias, servidores, ciberseguridad, nube…).
+- 🥊 **Vigilancia de competencia** por RUT y nombre:
+  **CAS-Chile** (`96.525.030-1`), **SMC** (`89.906.900-5`),
+  **Insico** (`79.560.740-4`). Editable en `mercado_publico/perfil.py`.
+- 🏆 **Último proveedor adjudicado** para servicios similares (¿quién ganó y por
+  cuánto?), clave para posicionar tu oferta.
+- ⏰ **Contratos por terminar**: estima el término del contrato para detectar
+  oportunidades de relicitación/renovación.
+- 🎯 **Radar**: oportunidades abiertas en municipalidades + TI en un vistazo,
+  marcando las **ganadas por Proexsi**.
+
+### Base
+- 🔑 **Conecta tu usuario** con tu ticket de la API.
+- 🗂️ **Consulta por rubros** (clasificación UNSPSC completa).
+- 🚦 **Todos los estados**: publicada, cerrada, **desierta**, adjudicada,
+  revocada, suspendida.
+- 🔁 **Compras similares anteriores** por rubro y texto.
+- 🔎 **Filtros potentes**: municipalidades, perfil TI, competidor, proveedor,
+  texto, rubro, estado, región, monto, fechas.
+- 📈 **Dashboards y gráficos** + ⬇️ **exportación** a CSV y Excel.
+- 💾 **Caché local SQLite**.
+
+---
+
+## 🥊 Competencia vigilada (editable)
+
+| Empresa | RUT | Foco |
+|---|---|---|
+| **Proexsi** (tú) | 85.825.700-K | ERP / IT municipal |
+| **CAS-Chile** | 96.525.030-1 | Software gestión pública |
+| **SMC** | 89.906.900-5 | TI municipal |
+| **Insico** | 79.560.740-4 | ERP municipal |
+
+Para añadir/quitar competidores, edita la lista `COMPETIDORES` en
+`mercado_publico/perfil.py`.
+
+> ⚠️ **Sobre "contratos por terminar":** la API pública no siempre publica la
+> duración del contrato. La fecha de término se **estima** a partir de la fecha de
+> adjudicación + duración declarada cuando está disponible; si no, no aparece.
 
 ---
 
