@@ -27,6 +27,23 @@ conecta mediante tu **ticket** gratuito de la API.
 - 🎯 **Radar**: oportunidades abiertas en municipalidades + TI en un vistazo,
   marcando las **ganadas por Proexsi**.
 
+### Ficha completa e investigación (estilo LicitaLab)
+- 🗂️ **Ficha detallada** por licitación: comprador, fechas clave (publicación,
+  preguntas, apertura, cierre, adjudicación), **ítems** solicitados, montos,
+  **proveedores adjudicados** y datos de contacto.
+- 📄 **Documentación**: enlace a la ficha y bases en Mercado Público + **acta de
+  adjudicación** (PDF) cuando la API la expone.
+- 💰 **Valores de compras similares**: rango y promedio de lo estimado y
+  adjudicado en servicios parecidos (para fijar tu precio).
+- 🏆 **Último proveedor adjudicado** en servicios similares.
+- 🕘 **Últimas compras del comprador** (historial del cliente).
+
+> ⚠️ **Carga rápida vs. datos completos:** la API de listado NO entrega comprador
+> ni proveedor. Para filtrar por municipalidad/competencia con velocidad, usa el
+> **importador masivo** (CSV de Datos Abiertos) o la sincronización **con detalle**
+> (en paralelo). La API pública **no entrega archivos adjuntos** (bases/anexos):
+> se abren desde la ficha oficial enlazada.
+
 ### Base
 - 🔑 **Conecta tu usuario** con tu ticket de la API.
 - 🗂️ **Consulta por rubros** (clasificación UNSPSC completa).

@@ -16,7 +16,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from mercado_publico import analytics, bulk_import, export, storage
+from mercado_publico import analytics, bulk_import, export, ficha, storage
 from mercado_publico.config import settings
 from mercado_publico.api_client import ESTADOS_FILTRO
 from mercado_publico.perfil import COMPETIDORES, PROEXSI, RUBROS_OBJETIVO
@@ -71,7 +71,10 @@ def sidebar() -> None:
     with st.sidebar.expander("⚡ Velocidad de carga", expanded=False):
         rapida = st.toggle(
             "Carga rápida (sin detalle)", value=False,
-            help="Llena la tabla al instante con el resumen. Sin rubros/montos/competencia.",
+            help="Vistazo instantáneo: sólo código, nombre, estado y cierre. "
+                 "OJO: la API NO entrega comprador ni proveedor en este modo, así "
+                 "que los filtros de municipalidad/competencia NO funcionan. Para "
+                 "tener esos datos rápido, usa '📦 Importar histórico masivo'.",
         )
         workers = st.slider(
             "Descargas en paralelo", 1, 20, 8,
@@ -286,8 +289,15 @@ def vista_contratos(df: pd.DataFrame) -> None:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
+def _money(v: Any) -> str:
+    try:
+        return f"${float(v):,.0f}"
+    except (TypeError, ValueError):
+        return "—"
+
+
 def vista_ficha(df: pd.DataFrame) -> None:
-    st.subheader("🗂️ Ficha, compras similares y último adjudicado")
+    st.subheader("🗂️ Ficha completa, documentación e investigación")
     if df.empty:
         st.info("Sin datos.")
         return
@@ -295,15 +305,83 @@ def vista_ficha(df: pd.DataFrame) -> None:
     if not codigo:
         return
     fila = df[df["codigo"] == codigo].iloc[0]
-    c = st.columns(4)
-    c[0].metric("Estado", fila.get("estado", "—"))
-    c[1].metric("Monto est.", f"${(fila.get('monto_estimado') or 0):,.0f}")
-    c[2].metric("Oferentes", fila.get("n_oferentes") or "—")
-    c[3].metric("Adjudicada a", fila.get("proveedor_adjudicado") or "—")
-    st.write(f"**{fila.get('nombre','')}**")
-    st.caption(
-        f"Comprador: {fila.get('comprador','—')} · Región: {fila.get('region','—')} · "
-        f"Rubros: {fila.get('rubros_nombres','—')}")
+
+    # --- Detalle completo desde la API (ítems, fechas, adjudicación, acta) ---
+    detalle = None
+    try:
+        detalle = detalle_completo(codigo, ticket=ticket_actual())
+    except Exception as exc:  # noqa: BLE001
+        st.warning(f"No se pudo traer el detalle desde la API: {exc}")
+
+    st.markdown(
+        f"### {fila.get('nombre','')}\n"
+        f"`{codigo}` · **{fila.get('estado','—')}**")
+
+    if detalle:
+        g = ficha.datos_generales(detalle)
+        comp = ficha.datos_comprador(detalle)
+        adj = ficha.adjudicacion(detalle)
+
+        c = st.columns(4)
+        c[0].metric("Monto estimado", _money(g["monto_estimado"]))
+        c[1].metric("Tipo", g["tipo"] or "—")
+        c[2].metric("Oferentes", adj["n_oferentes"] or "—")
+        c[3].metric("Monto adjudicado", _money(adj["monto_total"]))
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("#### 🏛️ Comprador (cliente)")
+            st.write(f"**{comp['organismo'] or '—'}**")
+            st.caption(
+                f"Unidad: {comp['unidad'] or '—'} · RUT: {comp['rut_unidad'] or '—'}\n\n"
+                f"{comp['direccion'] or ''} {comp['comuna'] or ''}, {comp['region'] or ''}\n\n"
+                f"Contacto: {comp['usuario'] or '—'} ({comp['cargo'] or '—'})")
+            if g["descripcion"]:
+                st.markdown("#### 📝 Descripción")
+                st.write(g["descripcion"])
+        with col2:
+            st.markdown("#### 📅 Fechas clave")
+            for label, valor in ficha.fechas(detalle):
+                st.write(f"- **{label}:** {valor}")
+
+        st.markdown("#### 📦 Ítems solicitados")
+        items = ficha.items_df(detalle)
+        if not items.empty:
+            st.dataframe(items, use_container_width=True)
+        else:
+            st.caption("Sin ítems en el detalle.")
+
+        if adj["proveedores"]:
+            st.markdown("#### 🏆 Proveedores adjudicados")
+            st.dataframe(pd.DataFrame(adj["proveedores"]), use_container_width=True)
+
+        # --- Documentación / enlaces ---
+        st.markdown("#### 📄 Documentación")
+        cols = st.columns(2)
+        cols[0].link_button("🔗 Ver ficha y bases en Mercado Público",
+                            ficha.link_ficha_publica(codigo))
+        if adj.get("url_acta"):
+            cols[1].link_button("📑 Acta de adjudicación (PDF)", adj["url_acta"])
+        st.caption(
+            "ℹ️ La API pública no entrega los archivos adjuntos (bases, anexos). "
+            "Se abren desde la ficha oficial enlazada arriba.")
+
+    # --- Investigación: valores de similares + último adjudicado ---
+    st.divider()
+    st.markdown("#### 💰 Valores de compras similares")
+    est = analytics.estadisticas_similares(df, codigo)
+    if est.get("n"):
+        m = st.columns(3)
+        m[0].metric("Similares (n)", est["n"])
+        m[1].metric("Adjudicado promedio",
+                    _money(est.get("adjudicado_prom")))
+        m[2].metric("Rango adjudicado",
+                    f"{_money(est.get('adjudicado_min'))} – {_money(est.get('adjudicado_max'))}")
+        st.caption(
+            f"Estimado en similares: {_money(est.get('estimado_min'))} – "
+            f"{_money(est.get('estimado_max'))} (prom. {_money(est.get('estimado_prom'))})")
+    else:
+        st.info("Aún no hay suficientes similares en el caché para estimar valores.")
 
     st.markdown("#### 🏆 Último proveedor adjudicado en servicios similares")
     info = analytics.ultimo_adjudicado(df, codigo)
@@ -311,7 +389,7 @@ def vista_ficha(df: pd.DataFrame) -> None:
     if u:
         st.success(
             f"**{u['proveedor']}** ({u['competidor']}) ganó *{u['comprador']}* "
-            f"por ${(u['monto'] or 0):,.0f} — licitación {u['codigo']}")
+            f"por {_money(u['monto'])} — licitación {u['codigo']}")
         st.dataframe(
             info["historial"][["codigo", "comprador", "proveedor_adjudicado",
                                "competidor", "monto_adjudicado", "fecha_adjudicacion"]],
@@ -325,13 +403,17 @@ def vista_ficha(df: pd.DataFrame) -> None:
         st.info("Sin licitaciones similares en el caché.")
     else:
         _tabla(similares, cols=["codigo", "nombre", "estado", "comprador",
-                                "proveedor_adjudicado", "monto_estimado", "similitud"])
+                                "proveedor_adjudicado", "monto_estimado",
+                                "monto_adjudicado", "similitud"])
 
-    if st.button("Ver detalle completo desde la API"):
-        try:
-            st.json(detalle_completo(codigo, ticket=ticket_actual()))
-        except Exception as exc:  # noqa: BLE001
-            st.error(f"No se pudo obtener el detalle: {exc}")
+    # --- Últimas compras del comprador ---
+    comprador = fila.get("comprador")
+    if comprador:
+        st.markdown(f"#### 🕘 Últimas compras de *{comprador}*")
+        hist = analytics.historial_comprador(df, comprador)
+        _tabla(hist, cols=["codigo", "nombre", "estado", "rubros_nombres",
+                           "monto_estimado", "proveedor_adjudicado",
+                           "fecha_publicacion"])
 
 
 def vista_tabla(df: pd.DataFrame) -> None:

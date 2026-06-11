@@ -288,6 +288,38 @@ def contratos_por_terminar(df: pd.DataFrame, dias: int = 180) -> pd.DataFrame:
     return out.sort_values("dias_para_terminar")
 
 
+def estadisticas_similares(df: pd.DataFrame, codigo: str) -> dict[str, Any]:
+    """
+    Estadísticas de VALORES de compras similares: cuánto se ha estimado y
+    adjudicado históricamente por servicios parecidos (rango y promedio).
+    """
+    sim = compras_similares(df, codigo, top=100)
+    if sim.empty:
+        return {"n": 0}
+    est = sim["monto_estimado"].dropna() if "monto_estimado" in sim else pd.Series(dtype=float)
+    adj = sim[sim.get("estado") == "Adjudicada"]["monto_adjudicado"].dropna() \
+        if "monto_adjudicado" in sim else pd.Series(dtype=float)
+    return {
+        "n": len(sim),
+        "n_adjudicadas": int((sim.get("estado") == "Adjudicada").sum()) if "estado" in sim else 0,
+        "estimado_min": float(est.min()) if len(est) else None,
+        "estimado_prom": float(est.mean()) if len(est) else None,
+        "estimado_max": float(est.max()) if len(est) else None,
+        "adjudicado_min": float(adj.min()) if len(adj) else None,
+        "adjudicado_prom": float(adj.mean()) if len(adj) else None,
+        "adjudicado_max": float(adj.max()) if len(adj) else None,
+    }
+
+
+def historial_comprador(df: pd.DataFrame, comprador: str, top: int = 30) -> pd.DataFrame:
+    """Últimas compras/licitaciones de un comprador (cliente), de más nueva a más vieja."""
+    if df.empty or "comprador" not in df or not comprador:
+        return df.head(0)
+    sub = df[df["comprador"] == comprador]
+    orden = "fecha_publicacion" if "fecha_publicacion" in sub else "codigo"
+    return sub.sort_values(orden, ascending=False, na_position="last").head(top)
+
+
 def resumen_competencia(df: pd.DataFrame) -> dict[str, Any]:
     """KPIs de la pestaña de competencia."""
     nombres = [c.nombre for c in COMPETIDORES]
