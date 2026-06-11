@@ -65,9 +65,32 @@ def sidebar() -> None:
     hasta = st.sidebar.date_input("Hasta", hoy)
     estado_sync = st.sidebar.selectbox("Estado", ["(todos)"] + ESTADOS_FILTRO, index=0)
     limite = st.sidebar.number_input(
-        "Máx. detalles", 50, 5000, 600, step=50,
-        help="Tope de licitaciones a enriquecer (rubros, montos, adjudicación).",
+        "Máx. detalles", min_value=1, max_value=5000, value=600, step=10,
+        help="Tope de licitaciones a enriquecer. Puedes poner menos de 50 "
+             "(p. ej. 10) para una sincronización chica y rápida.",
     )
+    with st.sidebar.expander("🎯 Filtrar sincronización", expanded=False):
+        st.caption(
+            "Estado se filtra en origen. Rubro y proveedor se aplican tras traer "
+            "el detalle (sólo se guardan las que coinciden)."
+        )
+        usar_proexsi = st.toggle(
+            "Sólo mis rubros TI (Proexsi)", value=False,
+            help="Atajo: filtra por los rubros objetivo de Proexsi (43, 81, 32, 44).",
+        )
+        rubros_opts = opciones_rubros()
+        rubros_filtro = st.multiselect(
+            "Rubros (segmentos)", options=[c for c, _ in rubros_opts],
+            default=RUBROS_OBJETIVO if usar_proexsi else [],
+            format_func=lambda c: dict(rubros_opts)[c],
+            disabled=usar_proexsi,
+        )
+        if usar_proexsi:
+            rubros_filtro = RUBROS_OBJETIVO
+        proveedor_filtro = st.text_input(
+            "Proveedor adjudicado (texto)",
+            help="Ej.: CAS, INSICO, SMC. Sólo guarda las adjudicadas a ese proveedor.",
+        )
     with st.sidebar.expander("⚡ Velocidad de carga", expanded=False):
         rapida = st.toggle(
             "Carga rápida (sin detalle)", value=False,
@@ -94,12 +117,15 @@ def sidebar() -> None:
                 estado=None if estado_sync == "(todos)" else estado_sync,
                 enriquecer=not rapida, limite_detalle=int(limite),
                 workers=int(workers), saltar_cacheadas=incremental,
+                rubros_filtro=rubros_filtro or None,
+                proveedor_filtro=proveedor_filtro or None,
                 progreso=lambda p, t: barra.progress(min(p, 1.0), text=t),
                 ticket=ticket_actual(),
             )
             st.sidebar.success(
                 f"Encontradas {res['encontradas']} · "
                 f"Detalle {res['detalles_descargados']} · "
+                f"Descartadas filtro {res.get('descartadas_filtro', 0)} · "
                 f"Saltadas {res.get('omitidas_cache', 0)} · "
                 f"Caché {res['total_en_cache']}"
             )

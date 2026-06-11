@@ -45,17 +45,20 @@ def sincronizar_licitaciones(
     ticket: str | None = None,
     workers: int = 8,
     saltar_cacheadas: bool = True,
+    rubros_filtro: list[str] | None = None,
+    proveedor_filtro: str | None = None,
 ) -> dict[str, Any]:
     """
     Descarga licitaciones en un rango de fechas y las guarda en el caché.
 
-    - `estado`: filtra por estado (activas, desierta, adjudicada, ...).
-    - `enriquecer`: si True, descarga el detalle de cada licitación (rubros,
-      comprador, montos, adjudicación). Si False, carga sólo el resumen (instantáneo).
-    - `limite_detalle`: tope de detalles a descargar para proteger la cuota.
-    - `workers`: nº de descargas de detalle en paralelo (clave para la velocidad).
-    - `saltar_cacheadas`: omite las licitaciones cuyo detalle ya está en caché,
-      de modo que re-sincronizar es casi instantáneo.
+    - `estado`: filtra por estado EN ORIGEN (activas, desierta, adjudicada, ...).
+    - `enriquecer`: si True, descarga el detalle (rubros, comprador, adjudicación).
+    - `limite_detalle`: tope de detalles a descargar.
+    - `workers`: nº de descargas de detalle en paralelo.
+    - `saltar_cacheadas`: omite las que ya están en caché.
+    - `rubros_filtro`: lista de segmentos (ej. ['43','81']); sólo guarda las que
+      tengan alguno de esos rubros. Requiere `enriquecer=True`.
+    - `proveedor_filtro`: texto; sólo guarda las adjudicadas a ese proveedor.
     Devuelve un resumen de la operación.
     """
     client = MercadoPublicoClient(ticket=ticket)
@@ -107,16 +110,34 @@ def sincronizar_licitaciones(
             pass
         return normalizar_resumen(resumenes[cod])
 
+    rubros_set = set(rubros_filtro) if rubros_filtro else None
+    prov_lower = proveedor_filtro.lower() if proveedor_filtro else None
+
+    def _coincide(reg: dict[str, Any]) -> bool:
+        if rubros_set:
+            segs = set((reg.get("rubros") or "").split(","))
+            if not (segs & rubros_set):
+                return False
+        if prov_lower:
+            campos = f"{reg.get('proveedores_adjudicados','')} {reg.get('proveedor_adjudicado','')}".lower()
+            if prov_lower not in campos:
+                return False
+        return True
+
     # Descarga de detalles en paralelo (gran salto de velocidad).
     hechos = 0
+    descartadas = 0
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
         futuros = {pool.submit(_bajar, cod): cod for cod in codigos}
         for fut in as_completed(futuros):
             reg = fut.result()
-            registros.append(reg)
+            hechos += 1
             if reg.get("rubros") is not None or reg.get("comprador"):
                 detalles_ok += 1
-            hechos += 1
+            if _coincide(reg):
+                registros.append(reg)
+            else:
+                descartadas += 1
             if progreso and (hechos % 10 == 0 or hechos == total):
                 progreso(0.3 + hechos / total * 0.7,
                          f"Detalle {hechos}/{total} (×{workers} en paralelo)")
@@ -129,6 +150,7 @@ def sincronizar_licitaciones(
         "encontradas": len(resumenes),
         "detalles_descargados": detalles_ok,
         "omitidas_cache": omitidas,
+        "descartadas_filtro": descartadas,
         "guardadas": guardados,
         "total_en_cache": storage.contar(),
     }
