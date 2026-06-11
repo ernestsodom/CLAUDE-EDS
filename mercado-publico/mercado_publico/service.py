@@ -7,6 +7,8 @@ de alto nivel que consume la interfaz (Streamlit o CLI).
 
 from __future__ import annotations
 
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
 from typing import Any, Callable
 
@@ -20,6 +22,19 @@ def _rango_fechas(desde: date, hasta: date) -> list[date]:
     return [desde + timedelta(days=i) for i in range(dias + 1)]
 
 
+# Cliente por hilo: requests.Session no se comparte entre hilos.
+_local = threading.local()
+
+
+def _client_hilo(ticket: str | None) -> MercadoPublicoClient:
+    cli = getattr(_local, "cli", None)
+    if cli is None:
+        # delay=0: en modo paralelo la concurrencia ya espacia las llamadas.
+        cli = MercadoPublicoClient(ticket=ticket, delay=0)
+        _local.cli = cli
+    return cli
+
+
 def sincronizar_licitaciones(
     desde: date,
     hasta: date,
@@ -28,14 +43,19 @@ def sincronizar_licitaciones(
     limite_detalle: int = 400,
     progreso: Callable[[float, str], None] | None = None,
     ticket: str | None = None,
+    workers: int = 8,
+    saltar_cacheadas: bool = True,
 ) -> dict[str, Any]:
     """
     Descarga licitaciones en un rango de fechas y las guarda en el caché.
 
     - `estado`: filtra por estado (activas, desierta, adjudicada, ...).
-    - `enriquecer`: si True, descarga el detalle de cada licitación para obtener
-      rubros, comprador, montos y adjudicación (necesario para filtrar por rubro).
+    - `enriquecer`: si True, descarga el detalle de cada licitación (rubros,
+      comprador, montos, adjudicación). Si False, carga sólo el resumen (instantáneo).
     - `limite_detalle`: tope de detalles a descargar para proteger la cuota.
+    - `workers`: nº de descargas de detalle en paralelo (clave para la velocidad).
+    - `saltar_cacheadas`: omite las licitaciones cuyo detalle ya está en caché,
+      de modo que re-sincronizar es casi instantáneo.
     Devuelve un resumen de la operación.
     """
     client = MercadoPublicoClient(ticket=ticket)
@@ -44,7 +64,7 @@ def sincronizar_licitaciones(
     resumenes: dict[str, dict[str, Any]] = {}
     for i, dia in enumerate(dias):
         if progreso:
-            progreso(i / max(len(dias), 1) * 0.4, f"Listando {dia.isoformat()}…")
+            progreso(i / max(len(dias), 1) * 0.3, f"Listando {dia.isoformat()}…")
         try:
             for r in client.listar_licitaciones(fecha=dia, estado=estado):
                 cod = r.get("CodigoExterno")
@@ -52,26 +72,54 @@ def sincronizar_licitaciones(
                     resumenes[cod] = r
         except Exception as exc:  # noqa: BLE001 - se reporta, no se aborta todo
             if progreso:
-                progreso(i / max(len(dias), 1) * 0.4, f"⚠ {dia}: {exc}")
+                progreso(i / max(len(dias), 1) * 0.3, f"⚠ {dia}: {exc}")
 
     registros: list[dict[str, Any]] = []
     detalles_ok = 0
 
-    if enriquecer:
-        codigos = list(resumenes.keys())[:limite_detalle]
-        total = max(len(codigos), 1)
-        for j, cod in enumerate(codigos):
-            if progreso:
-                progreso(0.4 + j / total * 0.6, f"Detalle {cod} ({j+1}/{len(codigos)})")
-            try:
-                detalle = client.detalle_licitacion(cod)
-                if detalle:
-                    registros.append(normalizar_licitacion(detalle))
-                    detalles_ok += 1
-            except Exception:  # noqa: BLE001
-                registros.append(normalizar_resumen(resumenes[cod]))
-    else:
+    if not enriquecer:
         registros = [normalizar_resumen(r) for r in resumenes.values()]
+        guardados = storage.guardar_licitaciones(registros)
+        if progreso:
+            progreso(1.0, "Listo (carga rápida sin detalle)")
+        return {
+            "encontradas": len(resumenes), "detalles_descargados": 0,
+            "guardadas": guardados, "omitidas_cache": 0,
+            "total_en_cache": storage.contar(),
+        }
+
+    codigos = list(resumenes.keys())
+    omitidas = 0
+    if saltar_cacheadas:
+        ya = storage.codigos_cacheados()
+        nuevos = [c for c in codigos if c not in ya]
+        omitidas = len(codigos) - len(nuevos)
+        codigos = nuevos
+    codigos = codigos[:limite_detalle]
+    total = max(len(codigos), 1)
+
+    def _bajar(cod: str) -> dict[str, Any]:
+        try:
+            detalle = _client_hilo(ticket).detalle_licitacion(cod)
+            if detalle:
+                return normalizar_licitacion(detalle)
+        except Exception:  # noqa: BLE001
+            pass
+        return normalizar_resumen(resumenes[cod])
+
+    # Descarga de detalles en paralelo (gran salto de velocidad).
+    hechos = 0
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        futuros = {pool.submit(_bajar, cod): cod for cod in codigos}
+        for fut in as_completed(futuros):
+            reg = fut.result()
+            registros.append(reg)
+            if reg.get("rubros") is not None or reg.get("comprador"):
+                detalles_ok += 1
+            hechos += 1
+            if progreso and (hechos % 10 == 0 or hechos == total):
+                progreso(0.3 + hechos / total * 0.7,
+                         f"Detalle {hechos}/{total} (×{workers} en paralelo)")
 
     guardados = storage.guardar_licitaciones(registros)
     if progreso:
@@ -80,6 +128,7 @@ def sincronizar_licitaciones(
     return {
         "encontradas": len(resumenes),
         "detalles_descargados": detalles_ok,
+        "omitidas_cache": omitidas,
         "guardadas": guardados,
         "total_en_cache": storage.contar(),
     }

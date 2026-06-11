@@ -33,10 +33,12 @@ def verificar(ticket: str | None) -> None:
 @click.option("--desde", help="Fecha inicio YYYY-MM-DD (por defecto: hace 7 días).")
 @click.option("--hasta", help="Fecha fin YYYY-MM-DD (por defecto: hoy).")
 @click.option("--estado", help="Estado: " + "activas/desierta/adjudicada/…")
-@click.option("--sin-detalle", is_flag=True, help="No descargar detalle (más rápido).")
-@click.option("--limite", default=400, help="Máx. detalles a descargar.")
+@click.option("--sin-detalle", is_flag=True, help="Carga rápida: sólo resumen.")
+@click.option("--limite", default=600, help="Máx. detalles a descargar.")
+@click.option("--workers", default=8, help="Descargas de detalle en paralelo.")
+@click.option("--rehacer", is_flag=True, help="No saltar las ya cacheadas.")
 @click.option("--ticket", help="Ticket de la API.")
-def sincronizar(desde, hasta, estado, sin_detalle, limite, ticket) -> None:
+def sincronizar(desde, hasta, estado, sin_detalle, limite, workers, rehacer, ticket) -> None:
     """Descarga licitaciones y las guarda en el caché local."""
     d = _parse(desde) if desde else date.today() - timedelta(days=7)
     h = _parse(hasta) if hasta else date.today()
@@ -47,11 +49,13 @@ def sincronizar(desde, hasta, estado, sin_detalle, limite, ticket) -> None:
     res = sincronizar_licitaciones(
         desde=d, hasta=h, estado=estado,
         enriquecer=not sin_detalle, limite_detalle=limite,
+        workers=workers, saltar_cacheadas=not rehacer,
         progreso=cb, ticket=ticket,
     )
     click.echo(
         f"\nEncontradas: {res['encontradas']} · "
         f"Detalles: {res['detalles_descargados']} · "
+        f"Saltadas: {res.get('omitidas_cache', 0)} · "
         f"Caché total: {res['total_en_cache']}"
     )
 

@@ -46,8 +46,11 @@ ESTADOS_FILTRO = [
 class MercadoPublicoClient:
     """Wrapper con reintentos y manejo de errores sobre la API REST."""
 
-    def __init__(self, ticket: str | None = None):
+    def __init__(self, ticket: str | None = None, delay: float | None = None):
         self.ticket = ticket or settings.ticket
+        # Pausa por llamada; en modo paralelo se pasa delay=0 (la concurrencia
+        # ya espacia las peticiones).
+        self.delay = settings.request_delay if delay is None else delay
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": "claude-eds-mp/0.1"})
 
@@ -71,7 +74,8 @@ class MercadoPublicoClient:
                         "Verifica tu ticket de la API de Mercado Público."
                     )
                 resp.raise_for_status()
-                time.sleep(settings.request_delay)
+                if self.delay:
+                    time.sleep(self.delay)
                 return resp.json()
             except MercadoPublicoError:
                 raise

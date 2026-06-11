@@ -65,9 +65,23 @@ def sidebar() -> None:
     hasta = st.sidebar.date_input("Hasta", hoy)
     estado_sync = st.sidebar.selectbox("Estado", ["(todos)"] + ESTADOS_FILTRO, index=0)
     limite = st.sidebar.number_input(
-        "Máx. detalles", 50, 3000, 600, step=50,
+        "Máx. detalles", 50, 5000, 600, step=50,
         help="Tope de licitaciones a enriquecer (rubros, montos, adjudicación).",
     )
+    with st.sidebar.expander("⚡ Velocidad de carga", expanded=False):
+        rapida = st.toggle(
+            "Carga rápida (sin detalle)", value=False,
+            help="Llena la tabla al instante con el resumen. Sin rubros/montos/competencia.",
+        )
+        workers = st.slider(
+            "Descargas en paralelo", 1, 20, 8,
+            help="Más hilos = más rápido. Con ticket propio puedes subirlo; "
+                 "con el ticket demo, mantenlo bajo.",
+        )
+        incremental = st.toggle(
+            "Saltar las ya cacheadas", value=True,
+            help="Re-sincronizar es casi instantáneo: sólo baja las nuevas.",
+        )
 
     if st.sidebar.button("🔄 Sincronizar", type="primary"):
         barra = st.sidebar.progress(0.0, text="Iniciando…")
@@ -75,13 +89,16 @@ def sidebar() -> None:
             res = sincronizar_licitaciones(
                 desde=desde, hasta=hasta,
                 estado=None if estado_sync == "(todos)" else estado_sync,
-                enriquecer=True, limite_detalle=int(limite),
+                enriquecer=not rapida, limite_detalle=int(limite),
+                workers=int(workers), saltar_cacheadas=incremental,
                 progreso=lambda p, t: barra.progress(min(p, 1.0), text=t),
                 ticket=ticket_actual(),
             )
             st.sidebar.success(
-                f"Encontradas {res['encontradas']} · Detalle {res['detalles_descargados']} "
-                f"· Caché {res['total_en_cache']}"
+                f"Encontradas {res['encontradas']} · "
+                f"Detalle {res['detalles_descargados']} · "
+                f"Saltadas {res.get('omitidas_cache', 0)} · "
+                f"Caché {res['total_en_cache']}"
             )
         except Exception as exc:  # noqa: BLE001
             st.sidebar.error(f"Error: {exc}")
