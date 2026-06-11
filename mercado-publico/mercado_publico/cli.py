@@ -80,6 +80,23 @@ def exportar(rubro, estado, salida) -> None:
 
 
 @cli.command()
+@click.argument("archivo")
+def importar(archivo: str) -> None:
+    """Importa un CSV/ZIP mensual de Datos Abiertos de ChileCompra al caché."""
+    from . import bulk_import
+
+    def cb(p: float, txt: str) -> None:
+        click.echo(f"[{p*100:5.1f}%] {txt}")
+
+    res = bulk_import.importar(archivo, progreso=cb)
+    click.echo(
+        f"\nLicitaciones: {res['licitaciones']:,} (de {res['filas']:,} filas) · "
+        f"Caché total: {res['total_en_cache']:,}"
+    )
+    click.echo(f"Columnas detectadas: {list(res['columnas_detectadas'])}")
+
+
+@cli.command()
 def estado() -> None:
     """Muestra cuántas licitaciones hay en el caché."""
     click.echo(f"Licitaciones en caché: {storage.contar()}")

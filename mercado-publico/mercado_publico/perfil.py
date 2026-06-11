@@ -60,7 +60,7 @@ class Empresa:
         """True si un proveedor adjudicado corresponde a esta empresa."""
         if rut and normalizar_rut(rut) == self.rut_norm:
             return True
-        if nombre:
+        if nombre and isinstance(nombre, str):
             texto = nombre.upper()
             if self.nombre.upper() in texto:
                 return True

@@ -16,7 +16,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from mercado_publico import analytics, export, storage
+from mercado_publico import analytics, bulk_import, export, storage
 from mercado_publico.config import settings
 from mercado_publico.api_client import ESTADOS_FILTRO
 from mercado_publico.perfil import COMPETIDORES, PROEXSI, RUBROS_OBJETIVO
@@ -102,6 +102,30 @@ def sidebar() -> None:
             )
         except Exception as exc:  # noqa: BLE001
             st.sidebar.error(f"Error: {exc}")
+
+    st.sidebar.divider()
+    st.sidebar.subheader("📦 Importar histórico masivo")
+    st.sidebar.caption(
+        "Sube un CSV/ZIP mensual de [Datos Abiertos]"
+        "(https://datos-abiertos.chilecompra.cl/descargas). "
+        "Carga miles de licitaciones al instante."
+    )
+    archivo = st.sidebar.file_uploader(
+        "Archivo de licitaciones (.csv / .zip)", type=["csv", "zip"]
+    )
+    if archivo is not None and st.sidebar.button("📥 Importar archivo"):
+        barra = st.sidebar.progress(0.0, text="Importando…")
+        try:
+            res = bulk_import.importar(
+                archivo.getvalue(),
+                progreso=lambda p, t: barra.progress(min(p, 1.0), text=t),
+            )
+            st.sidebar.success(
+                f"Importadas {res['licitaciones']:,} licitaciones "
+                f"({res['filas']:,} filas) · Caché {res['total_en_cache']:,}"
+            )
+        except Exception as exc:  # noqa: BLE001
+            st.sidebar.error(f"Error al importar: {exc}")
 
     st.sidebar.divider()
     st.sidebar.metric("Licitaciones en caché", storage.contar())
