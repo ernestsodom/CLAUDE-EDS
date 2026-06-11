@@ -97,6 +97,24 @@ def importar(archivo: str) -> None:
 
 
 @cli.command()
+@click.argument("codigo")
+def documentos(codigo: str) -> None:
+    """Lista los documentos (bases, anexos, acta) de una licitación vía OCDS."""
+    from . import ocds
+
+    try:
+        docs = ocds.documentos_licitacion(codigo)
+    except ocds.OCDSError as exc:
+        click.echo(f"❌ {exc}")
+        return
+    if not docs:
+        click.echo("Sin documentos publicados.")
+        return
+    for d in docs:
+        click.echo(f"- {d['titulo']} [{d['tipo']}] -> {d['url']}")
+
+
+@cli.command()
 def estado() -> None:
     """Muestra cuántas licitaciones hay en el caché."""
     click.echo(f"Licitaciones en caché: {storage.contar()}")

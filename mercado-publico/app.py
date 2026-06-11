@@ -16,7 +16,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from mercado_publico import analytics, bulk_import, export, ficha, storage
+from mercado_publico import analytics, bulk_import, export, ficha, ocds, storage
 from mercado_publico.config import settings
 from mercado_publico.api_client import ESTADOS_FILTRO
 from mercado_publico.perfil import COMPETIDORES, PROEXSI, RUBROS_OBJETIVO
@@ -356,15 +356,35 @@ def vista_ficha(df: pd.DataFrame) -> None:
             st.dataframe(pd.DataFrame(adj["proveedores"]), use_container_width=True)
 
         # --- Documentación / enlaces ---
-        st.markdown("#### 📄 Documentación")
+        st.markdown("#### 📄 Documentación (bases, anexos, actas)")
         cols = st.columns(2)
-        cols[0].link_button("🔗 Ver ficha y bases en Mercado Público",
+        cols[0].link_button("🔗 Ver ficha en Mercado Público",
                             ficha.link_ficha_publica(codigo))
         if adj.get("url_acta"):
             cols[1].link_button("📑 Acta de adjudicación (PDF)", adj["url_acta"])
+
+        if st.button("📥 Buscar documentos de esta licitación", key=f"docs_{codigo}"):
+            with st.spinner("Consultando documentos (API OCDS)…"):
+                try:
+                    docs = ocds.documentos_licitacion(codigo)
+                    if not docs:
+                        st.info("No se encontraron documentos publicados para esta licitación.")
+                    else:
+                        st.success(f"{len(docs)} documento(s) encontrados:")
+                        for d in docs:
+                            etiqueta = f"⬇️ {d['titulo']}"
+                            extra = " · ".join(x for x in (d["tipo"], d["formato"], d["fecha"]) if x)
+                            dc = st.columns([3, 2])
+                            dc[0].link_button(etiqueta, d["url"])
+                            if extra:
+                                dc[1].caption(extra)
+                except ocds.OCDSError as exc:
+                    st.warning(
+                        f"{exc}\n\nUsa el botón 'Ver ficha en Mercado Público' para "
+                        "descargar las bases desde el portal oficial.")
         st.caption(
-            "ℹ️ La API pública no entrega los archivos adjuntos (bases, anexos). "
-            "Se abren desde la ficha oficial enlazada arriba.")
+            "ℹ️ Los documentos provienen de la API OCDS de ChileCompra. Si tu red "
+            "bloquea el host, usa el enlace a la ficha oficial.")
 
     # --- Investigación: valores de similares + último adjudicado ---
     st.divider()
