@@ -11,13 +11,14 @@ import {
 // Estado
 // ----------------------------------------------------------------------------
 const state = {
-  tipo: 'panoramica',
-  entorno: 'outdoor',
+  tipo: 'panoramica',        // panoramica | semi | normal
+  entorno: 'estudio',        // estudio | patio | club | campo | azotea | indoor
   momento: 'dia',
   cesped: '#15161a',
   estructura: '#0e0f12',
+  postesLuz: '#0e0f12',
   acento: '#ff5a00',
-  luces: 'curvo',
+  luces: 'curvo',            // curvo | mastil | esquina | rielLED
   logoData: null,
   logoPos: 'pista',
   logoSize: 2.4,
@@ -25,10 +26,18 @@ const state = {
 };
 
 const PRESETS = {
-  fluor:     { cesped: '#15161a', estructura: '#0e0f12', acento: '#ff5a00' },
-  azulpro:   { cesped: '#1f4fd8', estructura: '#0e0f12', acento: '#eaff00' },
-  verdeclub: { cesped: '#2e7d32', estructura: '#1d3a2a', acento: '#ffffff' },
-  ice:       { cesped: '#b9bfc7', estructura: '#f2f3f5', acento: '#00b3d6' },
+  fluor:      { label: 'Negro Flúor',     cesped: '#15161a', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ff5a00' },
+  azulpro:    { label: 'Azul Pro',        cesped: '#1f4fd8', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#eaff00' },
+  verdeclub:  { label: 'Verde Club',      cesped: '#2e7d32', estructura: '#1d3a2a', postesLuz: '#1d3a2a', acento: '#ffffff' },
+  ice:        { label: 'White Ice',       cesped: '#b9bfc7', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#00b3d6' },
+  premier:    { label: 'Premier Red',     cesped: '#15161a', estructura: '#0e0f12', postesLuz: '#1a1c20', acento: '#ff1744' },
+  mundial:    { label: 'Mundial WPT',     cesped: '#1f4fd8', estructura: '#0e0f12', postesLuz: '#f2f3f5', acento: '#ffffff' },
+  terracota:  { label: 'Terracota',       cesped: '#b3502b', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ff5a00' },
+  rosaurbana: { label: 'Rosa Urbana',     cesped: '#d6447e', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#ffffff' },
+  grafito:    { label: 'Grafito Lima',    cesped: '#2b2e33', estructura: '#3a3f46', postesLuz: '#3a3f46', acento: '#39ff14' },
+  marino:     { label: 'Marino Gold',     cesped: '#14306e', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#ffc400' },
+  bosque:     { label: 'Bosque',          cesped: '#1c4a26', estructura: '#1d3a2a', postesLuz: '#0e0f12', acento: '#eaff00' },
+  totalblack: { label: 'Total Black',     cesped: '#101113', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ffffff' },
 };
 
 // ----------------------------------------------------------------------------
@@ -44,7 +53,6 @@ function canvasTexture(draw, w = 256, h = 256) {
 }
 
 function gridTexture() {
-  // celda 50x50mm; el lienzo representa 0.5m
   const t = canvasTexture((ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = '#ffffff';
@@ -61,7 +69,6 @@ function gridTexture() {
 }
 
 function netTexture() {
-  // celda 45mm; lienzo = 0.45m
   const t = canvasTexture((ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = '#111316';
@@ -103,22 +110,35 @@ function blobShadowTexture() {
   });
 }
 
-function skyTexture(night) {
+function skyTexture(stops) {
   const t = canvasTexture((ctx, w, h) => {
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    if (night) {
-      g.addColorStop(0, '#04060c');
-      g.addColorStop(0.62, '#0c1119');
-      g.addColorStop(1, '#161c26');
-    } else {
-      g.addColorStop(0, '#bcccdf');
-      g.addColorStop(0.55, '#dfe7ef');
-      g.addColorStop(1, '#f2f4f6');
-    }
+    for (const [p, c] of stops) g.addColorStop(p, c);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   }, 4, 512);
   t.mapping = THREE.EquirectangularReflectionMapping;
+  return t;
+}
+
+function windowsTexture() {
+  // grilla de ventanas para edificios (emissiveMap)
+  const t = canvasTexture((ctx, w, h) => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, w, h);
+    const cols = 6, rows = 22;
+    const cw = w / cols, ch = h / rows;
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows; r++) {
+        if (rnd() < 0.55) {
+          ctx.fillStyle = rnd() < 0.8 ? '#ffd9a0' : '#bcd4ff';
+          ctx.fillRect(c * cw + cw * 0.2, r * ch + ch * 0.22, cw * 0.6, ch * 0.5);
+        }
+      }
+    }
+  }, 128, 512);
   return t;
 }
 
@@ -149,15 +169,15 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(42, 2, 0.1, 500);
+const camera = new THREE.PerspectiveCamera(42, 2, 0.1, 800);
 camera.position.set(17.5, 11.0, 21.5);
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(0, 0.9, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
-controls.minDistance = 6;
-controls.maxDistance = 55;
+controls.minDistance = 5;
+controls.maxDistance = 60;
 controls.maxPolarAngle = Math.PI * 0.495;
 controls.autoRotateSpeed = 1.1;
 
@@ -179,9 +199,9 @@ const hemi = new THREE.HemisphereLight(0xe9eef6, 0x83878c, 0.95);
 scene.add(hemi);
 
 const indoorLights = new THREE.Group();
-for (const px of [-8, 0, 8]) {
-  const p = new THREE.PointLight(0xf2f5ff, 0, 40, 2);
-  p.position.set(px, 8.2, 0);
+for (const px of [-10, 0, 10]) {
+  const p = new THREE.PointLight(0xf2f5ff, 0, 60, 2);
+  p.position.set(px, 12.6, 0);
   indoorLights.add(p);
 }
 scene.add(indoorLights);
@@ -191,16 +211,20 @@ const tex = {
   grid: gridTexture(),
   net: netTexture(),
   turfBump: turfBumpTexture(),
+  windows: windowsTexture(),
 };
-const skyDay = skyTexture(false);
-const skyNight = skyTexture(true);
+const SKIES = {
+  estudio: skyTexture([[0, '#bcccdf'], [0.55, '#dfe7ef'], [1, '#f2f4f6']]),
+  exterior: skyTexture([[0, '#79a3d6'], [0.5, '#b8d0e8'], [1, '#e8eef2']]),
+  noche: skyTexture([[0, '#04060c'], [0.62, '#0c1119'], [1, '#161c26']]),
+};
 
 const mats = makeMaterials(state, tex);
 mats.ledRail = new THREE.MeshStandardMaterial({
   color: 0x16181c, emissive: state.acento, emissiveIntensity: 1.4,
 });
 mats.hallLight = new THREE.MeshStandardMaterial({
-  color: 0x101114, emissive: 0xffffff, emissiveIntensity: 2.4,
+  color: 0x101114, emissive: 0xffffff, emissiveIntensity: 2.6,
 });
 mats.blob = new THREE.MeshBasicMaterial({
   map: blobShadowTexture(), transparent: true, depthWrite: false,
@@ -270,10 +294,12 @@ function rebuildBrand() {
   if (state.club && state.club.trim()) {
     const bt = bannerTexture(state.club.trim(), state.acento);
     const mat = new THREE.MeshBasicMaterial({ map: bt, transparent: true });
+    // en panoramica el nombre va impreso en el vidrio (no hay franja superior)
+    const y = state.tipo === 'panoramica' ? 2.45 : 3.55;
     for (const sx of [-1, 1]) {
       const p = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 0.9), mat);
       p.rotation.y = sx > 0 ? -Math.PI / 2 : Math.PI / 2;
-      p.position.set(sx * (D.WALL_X - 0.06), 3.55, 0);
+      p.position.set(sx * (D.WALL_X - 0.06), y, 0);
       gBrand.add(p);
     }
   }
@@ -281,41 +307,51 @@ function rebuildBrand() {
 }
 
 // ----------------------------------------------------------------------------
-// Iluminacion dia/noche + entorno
+// Iluminacion dia/noche por entorno
 // ----------------------------------------------------------------------------
 function applyLighting() {
   const night = state.momento === 'noche';
   const indoor = state.entorno === 'indoor';
 
-  // la luz ambiental IBL debe apagarse de noche y atenuarse indoor
+  // IBL global: se apaga de noche y se atenua indoor
   const envInt = indoor ? (night ? 0.05 : 0.32) : (night ? 0.06 : 1.0);
-  for (const m of [mats.turf, mats.steel, mats.accent, mats.white, mats.fence,
-    mats.net, mats.slab, mats.led, mats.ground, mats.hallFloor, mats.hallWall]) {
-    if (m) m.envMapIntensity = envInt;
-  }
-  mats.glass.envMapIntensity = night ? 0.15 : (indoor ? 0.5 : 1.4);
+  scene.traverse((o) => {
+    if (!o.isMesh) return;
+    const ms = Array.isArray(o.material) ? o.material : [o.material];
+    for (const m of ms) {
+      if (m && m.isMeshStandardMaterial) m.envMapIntensity = envInt;
+      if (m && m.isMeshPhysicalMaterial) {
+        m.envMapIntensity = night ? 0.15 : (indoor ? 0.5 : 1.4);
+      }
+    }
+  });
 
   if (indoor) {
     scene.background = new THREE.Color(0x0b0d10);
     sun.visible = false;
-    hemi.intensity = night ? 0.16 : 0.78;
+    hemi.intensity = night ? 0.16 : 0.95;
     hemi.color.set(0xdfe8f6);
-    indoorLights.children.forEach((p) => { p.intensity = night ? 14 : 160; });
-    mats.hallLight.emissiveIntensity = night ? 0.22 : 3.2;
-    controls.maxDistance = 24;
+    indoorLights.children.forEach((p) => { p.intensity = night ? 30 : 560; });
+    mats.hallLight.emissiveIntensity = night ? 0.22 : 3.6;
+    controls.maxDistance = 42;
   } else {
-    scene.background = night ? skyNight : skyDay;
+    scene.background = night ? SKIES.noche
+      : (state.entorno === 'estudio' ? SKIES.estudio : SKIES.exterior);
     sun.visible = !night;
     hemi.intensity = night ? 0.14 : 0.95;
     hemi.color.set(night ? 0x96a8c8 : 0xe9eef6);
     indoorLights.children.forEach((p) => { p.intensity = 0; });
-    controls.maxDistance = 55;
+    controls.maxDistance = 70;
   }
 
-  spots.forEach((s) => { s.intensity = night ? 420 : 0; });
+  // ventanas de casas/edificios encendidas de noche
+  mats.windowGlow.emissiveIntensity = night ? 2.6 : 0.05;
+
+  const perSpot = state.luces === 'rielLED' ? 340 : 460;
+  spots.forEach((s) => { s.intensity = night ? perSpot : 0; });
 
   mats.led.emissiveIntensity = night ? 3.6 : 0.5;
-  mats.ledRail.emissiveIntensity = night ? 4.2 : 1.4;
+  mats.ledRail.emissiveIntensity = night ? 6.0 : 1.4;
   mats.accent.emissiveIntensity = night ? 1.1 : 0.3;
   renderer.toneMappingExposure = night ? 0.9 : (indoor ? 1.0 : 1.06);
 }
@@ -329,19 +365,27 @@ const CLP = new Intl.NumberFormat('es-CL', {
 
 function computePrice() {
   const rows = [];
-  const base = state.tipo === 'panoramica' ? 18900000 : 14900000;
-  rows.push([state.tipo === 'panoramica'
-    ? 'Cancha panorámica 20×10 (vidrio templado 12 mm)'
-    : 'Cancha clásica 20×10 (vidrio + estructura)', base]);
+  const base = { panoramica: 21900000, semi: 18900000, normal: 14900000 }[state.tipo];
+  rows.push([{
+    panoramica: 'Pista panorámica 100% (vidrio estructural pegado)',
+    semi: 'Pista semi panorámica (perfiles solo en esquinas)',
+    normal: 'Pista normal 20×10 (pilares en cada paño)',
+  }[state.tipo], base]);
 
-  const luces = { curvo: 2600000, columna: 1950000, rielLED: 3400000 }[state.luces];
+  const luces = { curvo: 2600000, mastil: 2400000, esquina: 2900000, rielLED: 3400000 }[state.luces];
   rows.push([{
     curvo: 'Iluminación · 4 brazos curvos LED',
-    columna: 'Iluminación · 4 columnas LED',
-    rielLED: 'Iluminación · riel LED perimetral',
+    mastil: 'Iluminación · 4 mástiles rectos tipo WPT',
+    esquina: 'Iluminación · 4 mástiles de esquina 45°',
+    rielLED: 'Iluminación · riel LED perimetral integrado',
   }[state.luces], luces]);
 
-  if (state.entorno === 'indoor') rows.push(['Kit montaje indoor (anclajes y reparto de cargas)', 850000]);
+  if (state.entorno === 'indoor') {
+    rows.push(['Kit montaje indoor (anclajes y reparto de cargas)', 850000]);
+  }
+  if (state.entorno === 'azotea') {
+    rows.push(['Refuerzo antiviento y anclaje para azotea', 1190000]);
+  }
   if (!['#15161a', '#2e7d32'].includes(state.cesped.toLowerCase())) {
     rows.push(['Césped color premium', 480000]);
   }
@@ -434,27 +478,47 @@ function syncSegmented(elId, value) {
   });
 }
 
+function bindCards(elId, key, onChange) {
+  document.querySelectorAll(`#${elId} .cardopt`).forEach((b) => {
+    b.addEventListener('click', () => {
+      state[key] = b.dataset.v;
+      syncCards(elId, state[key]);
+      onChange();
+    });
+  });
+}
+
+function syncCards(elId, value) {
+  document.querySelectorAll(`#${elId} .cardopt`).forEach((b) => {
+    b.classList.toggle('on', b.dataset.v === value);
+  });
+}
+
 const HINT_TIPO = {
-  panoramica: 'Fondos de vidrio continuo, sin postes intermedios. Máxima visibilidad para espectadores.',
-  clasica: 'Estructura tradicional con postes intermedios en los fondos. Gran robustez y menor costo.',
+  panoramica: 'Vidrio 100% continuo pegado con silicona estructural y acrílicos: cero perfiles de fierro sobre el cristal.',
+  semi: 'Perfiles de acero solo en las 4 esquinas; juntas de vidrio con fijaciones puntuales tipo botón.',
+  normal: 'Pilares verticales en cada paño de vidrio, de piso a remate, sin vigas intermedias horizontales.',
 };
 const HINT_LUCES = {
-  curvo: '4 brazos curvos montados sobre la estructura con barra LED de 200 W.',
-  columna: '4 columnas rectas de 6 m ancladas al piso, con proyector LED.',
-  rielLED: 'Línea LED continua integrada al riel perimetral. Luz envolvente sin postes.',
+  curvo: '4 brazos curvos nacidos de la estructura a la altura de las vigas, con barra LED de 200 W.',
+  mastil: '4 mástiles verticales tipo World Padel Tour montados sobre los postes, con cruceta y doble proyector plano.',
+  esquina: '4 mástiles en las esquinas con barra LED girada 45°, estilo Premier Padel.',
+  rielLED: 'Línea LED continua integrada al riel perimetral: luz envolvente sin postes, máximo efecto de noche.',
 };
 
 function onColors() {
   updateMaterialColors(mats, state);
   mats.ledRail.emissive.set(state.acento);
-  rebuildBrand();   // el banner usa el color de acento
+  rebuildBrand();
   renderPrice();
 }
 
 function onStructure() {
   $('hintTipo').textContent = HINT_TIPO[state.tipo];
   rebuildCourt();
+  rebuildLights();   // el modelo "esquina" cambia su anclaje segun tipo
   rebuildBrand();
+  applyLighting();
   renderPrice();
 }
 
@@ -466,9 +530,7 @@ function onEnv() {
 
 function onLights() {
   $('hintLuces').textContent = HINT_LUCES[state.luces];
-  document.querySelectorAll('#cardsLuces .cardopt').forEach((b) => {
-    b.classList.toggle('on', b.dataset.v === state.luces);
-  });
+  syncCards('cardsLuces', state.luces);
   rebuildLights();
   applyLighting();
   renderPrice();
@@ -476,15 +538,14 @@ function onLights() {
 
 function syncUI() {
   syncSegmented('segTipo', state.tipo);
-  syncSegmented('segEntorno', state.entorno);
   syncSegmented('segMomento', state.momento);
   syncSegmented('segLogoPos', state.logoPos);
+  syncCards('cardsEntorno', state.entorno);
+  syncCards('cardsLuces', state.luces);
   syncSwatch($('swCesped'), state.cesped);
   syncSwatch($('swEstructura'), state.estructura);
+  syncSwatch($('swPostes'), state.postesLuz);
   syncSwatch($('swAcento'), state.acento);
-  document.querySelectorAll('#cardsLuces .cardopt').forEach((b) => {
-    b.classList.toggle('on', b.dataset.v === state.luces);
-  });
   $('hintTipo').textContent = HINT_TIPO[state.tipo];
   $('hintLuces').textContent = HINT_LUCES[state.luces];
   $('clubName').value = state.club;
@@ -492,39 +553,50 @@ function syncUI() {
 }
 
 function initUI() {
+  // presets dinamicos
+  const pc = $('presets');
+  pc.innerHTML = '';
+  for (const [id, p] of Object.entries(PRESETS)) {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = p.label;
+    b.addEventListener('click', () => {
+      const { label, ...colors } = p;
+      Object.assign(state, colors);
+      syncUI();
+      onColors();
+      toast(`Preset aplicado: ${label}`);
+    });
+    pc.appendChild(b);
+  }
+
   buildSwatches('swCesped', [
     ['#15161a', 'Negro'], ['#2b2e33', 'Grafito'], ['#1f4fd8', 'Azul'],
-    ['#2e7d32', 'Verde'], ['#b3502b', 'Terracota'], ['#d6447e', 'Rosa'],
+    ['#14306e', 'Azul marino'], ['#2e7d32', 'Verde'], ['#1c4a26', 'Verde oscuro'],
+    ['#b3502b', 'Terracota'], ['#d6447e', 'Rosa'], ['#b9bfc7', 'Gris claro'],
   ], 'cesped', onColors);
 
   buildSwatches('swEstructura', [
     ['#0e0f12', 'Negro'], ['#3a3f46', 'Antracita'], ['#f2f3f5', 'Blanco'],
-    ['#1c2c54', 'Azul marino'], ['#1d3a2a', 'Verde bosque'],
+    ['#1c2c54', 'Azul marino'], ['#1d3a2a', 'Verde bosque'], ['#5a3d2b', 'Corten'],
   ], 'estructura', onColors);
+
+  buildSwatches('swPostes', [
+    ['#0e0f12', 'Negro'], ['#3a3f46', 'Antracita'], ['#f2f3f5', 'Blanco'],
+    ['#1a1c20', 'Grafito'], ['#ff5a00', 'Naranjo'], ['#1c2c54', 'Azul marino'],
+  ], 'postesLuz', onColors);
 
   buildSwatches('swAcento', [
     ['#ff5a00', 'Naranjo flúor'], ['#eaff00', 'Amarillo flúor'],
     ['#39ff14', 'Verde flúor'], ['#00e5ff', 'Cian'],
-    ['#ff1744', 'Rojo'], ['#ffffff', 'Blanco'],
+    ['#ff1744', 'Rojo'], ['#ffc400', 'Dorado'], ['#ffffff', 'Blanco'],
   ], 'acento', onColors);
 
   bindSegmented('segTipo', 'tipo', onStructure);
-  bindSegmented('segEntorno', 'entorno', onEnv);
   bindSegmented('segMomento', 'momento', applyLighting);
   bindSegmented('segLogoPos', 'logoPos', rebuildBrand);
-
-  document.querySelectorAll('#cardsLuces .cardopt').forEach((b) => {
-    b.addEventListener('click', () => { state.luces = b.dataset.v; onLights(); });
-  });
-
-  document.querySelectorAll('#presets .chip').forEach((b) => {
-    b.addEventListener('click', () => {
-      Object.assign(state, PRESETS[b.dataset.preset]);
-      syncUI();
-      onColors();
-      toast(`Preset aplicado: ${b.textContent}`);
-    });
-  });
+  bindCards('cardsEntorno', 'entorno', onEnv);
+  bindCards('cardsLuces', 'luces', onLights);
 
   $('autoRotate').addEventListener('change', (e) => {
     controls.autoRotate = e.target.checked;
@@ -609,7 +681,7 @@ function initUI() {
       `TOTAL REFERENCIAL: ${CLP.format(total)} + IVA`,
       '',
       `Tipo: ${state.tipo} · Entorno: ${state.entorno} · Luces: ${state.luces}`,
-      `Césped: ${state.cesped} · Estructura: ${state.estructura} · Acento: ${state.acento}`,
+      `Césped: ${state.cesped} · Estructura: ${state.estructura} · Postes luz: ${state.postesLuz} · Acento: ${state.acento}`,
       state.club ? `Club: ${state.club}` : '',
     ].join('\n');
     location.href = `mailto:?subject=${encodeURIComponent('Cotización cancha de pádel — PadelStudio')}&body=${encodeURIComponent(body)}`;
@@ -621,9 +693,13 @@ function loadFromHash() {
   try {
     const data = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
     for (const k of ['tipo', 'entorno', 'momento', 'cesped', 'estructura',
-      'acento', 'luces', 'logoPos', 'logoSize', 'club']) {
+      'postesLuz', 'acento', 'luces', 'logoPos', 'logoSize', 'club']) {
       if (data[k] !== undefined) state[k] = data[k];
     }
+    // migracion de enlaces antiguos
+    if (state.tipo === 'clasica') state.tipo = 'normal';
+    if (state.entorno === 'outdoor') state.entorno = 'estudio';
+    if (state.luces === 'columna') state.luces = 'mastil';
     toast('Configuración cargada desde el enlace');
   } catch { /* hash invalido: ignorar */ }
 }

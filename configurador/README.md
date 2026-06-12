@@ -8,16 +8,18 @@ referencial al instante y envía la cotización.
 
 | Categoría | Opciones |
 |---|---|
-| Tipo de cancha | **Panorámica** (vidrio continuo sin postes) / **Clásica** (postes intermedios) |
-| Entorno | **Outdoor** / **Indoor** (nave deportiva con cerchas y luminarias) |
-| Momento | **Día / Noche** (LED encendidas, acentos flúor brillando) |
-| Césped | 6 colores + selector libre |
-| Estructura y postes | 5 colores + selector libre |
-| Acentos | Riel perimetral, marcos de acceso y detalles — 6 colores flúor + libre |
-| Iluminación | **Brazo curvo** (sobre estructura) / **Columna recta** / **Riel LED perimetral** |
-| Branding | **Subir logo** (pista, vidrio de fondo o ambos, con tamaño regulable) + **nombre del club** rotulado en los fondos |
-| Ventas | **Precio referencial** desglosado en CLP que se actualiza en vivo + botón **Solicitar cotización** (correo pre-armado) |
-| Extras | **Captura PNG** de la vista, **compartir configuración por enlace**, rotación automática, presets de diseño |
+| Tipo de pista | **Panorámica 100%** (vidrio pegado con silicona estructural, sin perfiles) / **Semi panorámica** (perfiles solo en las 4 esquinas) / **Normal** (pilares verticales completos, sin vigas intermedias) |
+| Entorno | **Estudio** / **Patio de casa** / **Club deportivo** / **Campo** / **Azotea de edificio** / **Indoor** (nave de 14,5 m con cerchas) |
+| Momento | **Día / Noche** (LED encendidas, ventanas de la ciudad iluminadas, acentos flúor brillando) |
+| Césped | 9 colores + selector libre |
+| Estructura (perfiles) | 6 colores + selector libre |
+| Postes de luz | Color **independiente** de la estructura — 6 colores + libre |
+| Acentos | Riel perimetral, marcos de acceso y detalles — 7 colores + libre |
+| Iluminación | Siempre montada sobre la estructura: **Brazo curvo** / **Mástil recto WPT** (cruceta + doble proyector) / **Mástiles de esquina 45°** estilo Premier Padel / **Riel LED perimetral** |
+| Detalles | Placas de anclaje con pernos hexagonales, abrazaderas con pernos, manguitos de unión riel-poste, juntas de silicona en vidrio panorámico, fijaciones botón en semi |
+| Branding | **Subir logo** (pista, vidrio de fondo o ambos, con tamaño regulable) + **nombre del club** |
+| Ventas | **Precio referencial** desglosado en CLP en vivo + botón **Solicitar cotización** |
+| Extras | **12 presets**, captura PNG, compartir por enlace, rotación automática |
 
 ## Cómo ejecutarlo
 

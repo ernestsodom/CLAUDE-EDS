@@ -77,8 +77,8 @@ html, body {
   height: calc(100% - 60px);
 }
 
-.viewport { position: relative; }
-#c3d { width: 100%; height: 100%; display: block; outline: none; }
+.viewport { position: relative; touch-action: none; }
+#c3d { width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
 
 .viewport-hud {
   position: absolute; left: 16px; bottom: 16px;
@@ -218,8 +218,12 @@ html, body {
   opacity: 0; width: 100%; height: 100%; cursor: pointer;
 }
 
-/* light model cards */
+/* light model / entorno cards */
 .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.cards4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.cards4 .cardopt { padding: 10px 3px 8px; font-size: 10.5px; }
+.cards4 .cardopt svg { width: 28px; height: 28px; }
+.cardopt .emoji { font-size: 26px; line-height: 1.1; }
 .cardopt {
   border: 1px solid var(--line);
   background: var(--bg);

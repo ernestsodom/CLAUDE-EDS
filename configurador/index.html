@@ -52,34 +52,32 @@
 
         <div class="section">
           <h3>Presets</h3>
-          <div class="chips" id="presets">
-            <button class="chip" data-preset="fluor">Negro Flúor</button>
-            <button class="chip" data-preset="azulpro">Azul Pro</button>
-            <button class="chip" data-preset="verdeclub">Verde Club</button>
-            <button class="chip" data-preset="ice">White Ice</button>
-          </div>
+          <div class="chips" id="presets"></div>
         </div>
 
         <div class="section">
-          <h3>Tipo de cancha</h3>
+          <h3>Tipo de pista</h3>
           <div class="segmented" id="segTipo">
             <button data-v="panoramica" class="on">Panorámica</button>
-            <button data-v="clasica">Clásica</button>
+            <button data-v="semi">Semi</button>
+            <button data-v="normal">Normal</button>
           </div>
-          <p class="hint" id="hintTipo">Fondos de vidrio continuo, sin postes intermedios. Máxima visibilidad para espectadores.</p>
+          <p class="hint" id="hintTipo"></p>
         </div>
 
         <div class="section">
           <h3>Entorno</h3>
-          <div class="row2">
-            <div class="segmented" id="segEntorno">
-              <button data-v="outdoor" class="on">Outdoor</button>
-              <button data-v="indoor">Indoor</button>
-            </div>
-            <div class="segmented" id="segMomento">
-              <button data-v="dia" class="on">Día</button>
-              <button data-v="noche">Noche</button>
-            </div>
+          <div class="cards3" id="cardsEntorno">
+            <button class="cardopt on" data-v="estudio"><span class="emoji">🏟️</span><span>Estudio</span></button>
+            <button class="cardopt" data-v="patio"><span class="emoji">🏡</span><span>Patio casa</span></button>
+            <button class="cardopt" data-v="club"><span class="emoji">🎾</span><span>Club deportivo</span></button>
+            <button class="cardopt" data-v="campo"><span class="emoji">🌄</span><span>Campo</span></button>
+            <button class="cardopt" data-v="azotea"><span class="emoji">🏙️</span><span>Azotea</span></button>
+            <button class="cardopt" data-v="indoor"><span class="emoji">🏭</span><span>Indoor</span></button>
+          </div>
+          <div class="segmented" id="segMomento" style="margin-top:10px">
+            <button data-v="dia" class="on">☀️ Día</button>
+            <button data-v="noche">🌙 Noche</button>
           </div>
         </div>
 
@@ -99,22 +97,31 @@
         </div>
 
         <div class="section">
-          <h3>Iluminación</h3>
-          <div class="cards3" id="cardsLuces">
+          <h3>Iluminación <span class="sub">siempre montada sobre la estructura</span></h3>
+          <div class="cards4" id="cardsLuces">
             <button class="cardopt on" data-v="curvo">
               <svg viewBox="0 0 48 48"><path d="M14 44V20q0-10 10-10h4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><rect x="26" y="7" width="14" height="6" rx="3" fill="currentColor"/></svg>
               <span>Brazo curvo</span>
             </button>
-            <button class="cardopt" data-v="columna">
-              <svg viewBox="0 0 48 48"><path d="M24 44V12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><rect x="12" y="6" width="11" height="5" rx="2.5" fill="currentColor"/><rect x="25" y="6" width="11" height="5" rx="2.5" fill="currentColor"/></svg>
-              <span>Columna recta</span>
+            <button class="cardopt" data-v="mastil">
+              <svg viewBox="0 0 48 48"><path d="M24 44V10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M12 12h24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><rect x="9" y="14" width="9" height="7" rx="2" fill="currentColor"/><rect x="30" y="14" width="9" height="7" rx="2" fill="currentColor"/></svg>
+              <span>Mástil WPT</span>
+            </button>
+            <button class="cardopt" data-v="esquina">
+              <svg viewBox="0 0 48 48"><path d="M14 44V12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><rect x="16" y="6" width="16" height="6" rx="3" fill="currentColor" transform="rotate(24 24 9)"/></svg>
+              <span>Esquina 45°</span>
             </button>
             <button class="cardopt" data-v="rielLED">
               <svg viewBox="0 0 48 48"><rect x="6" y="20" width="36" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="M10 24h28" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".5"/></svg>
               <span>Riel LED</span>
             </button>
           </div>
-          <p class="hint" id="hintLuces">4 brazos curvos montados sobre la estructura con barra LED de 200 W.</p>
+          <p class="hint" id="hintLuces"></p>
+        </div>
+
+        <div class="section">
+          <h3>Postes de luz <span class="sub">color independiente de la estructura</span></h3>
+          <div class="swatches" id="swPostes"></div>
         </div>
 
         <div class="section">
