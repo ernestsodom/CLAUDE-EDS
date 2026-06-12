@@ -25,7 +25,8 @@ RES_Y = int(argv[1]) if len(argv) > 1 else 672
 SAMPLES = int(argv[2]) if len(argv) > 2 else 64
 OUTPATH = argv[3] if len(argv) > 3 else "/tmp/padel.png"
 NIGHT = (len(argv) > 4 and argv[4] == "night")
-CAM = argv[5] if len(argv) > 5 else "hero"
+CAM = argv[5] if len(argv) > 5 else "hero"   # hero|low|net|orbit|glb
+FRAMES = int(argv[6]) if len(argv) > 6 else 96
 
 # ----------------------------------------------------------------------------
 # Constantes de la cancha (metros)
@@ -567,6 +568,15 @@ else:
     top.data.color = (0.6, 0.7, 1.0)
 
 # ----------------------------------------------------------------------------
+# Export GLB interactivo (sin piso de estudio) y salida temprana
+# ----------------------------------------------------------------------------
+if CAM == "glb":
+    bpy.data.objects.remove(bpy.data.objects["studio_floor"], do_unlink=True)
+    bpy.ops.export_scene.gltf(filepath=OUTPATH, export_apply=True)
+    print(f"GLB OK -> {OUTPATH}")
+    raise SystemExit(0)
+
+# ----------------------------------------------------------------------------
 # Camara
 # ----------------------------------------------------------------------------
 cam_data = bpy.data.cameras.new("cam")
@@ -577,7 +587,23 @@ scene.camera = cam
 target = bpy.data.objects.new("target", None)
 C.collection.objects.link(target)
 
-if CAM == "hero":
+if CAM == "orbit":
+    # camara orbital 360 grados alrededor del centro, loop perfecto
+    pivot = bpy.data.objects.new("pivot", None)
+    C.collection.objects.link(pivot)
+    pivot.location = (0, 0, 0)
+    cam.parent = pivot
+    cam.location = (16.2, -21.2, 12.1)
+    target.location = (0, 0, 0.7)
+    cam_data.lens = 40
+    pivot.rotation_euler = (0, 0, 0)
+    pivot.keyframe_insert("rotation_euler", frame=1)
+    pivot.rotation_euler = (0, 0, 2 * math.pi)
+    pivot.keyframe_insert("rotation_euler", frame=FRAMES + 1)
+    for fc in pivot.animation_data.action.fcurves:
+        for kp in fc.keyframe_points:
+            kp.interpolation = 'LINEAR'
+elif CAM == "hero":
     cam.location = (15.6, -20.5, 11.9)
     target.location = (0.35, 0.35, 0.7)
     cam_data.lens = 40
@@ -621,6 +647,7 @@ scene.render.resolution_y = RES_Y
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = 'PNG'
 scene.render.filepath = OUTPATH
+scene.render.use_persistent_data = True
 
 scene.view_settings.exposure = 0.35
 try:
@@ -629,5 +656,11 @@ try:
 except Exception:
     pass
 
-bpy.ops.render.render(write_still=True)
-print(f"RENDER OK -> {OUTPATH}")
+if CAM == "orbit":
+    scene.frame_start = 1
+    scene.frame_end = FRAMES
+    bpy.ops.render.render(animation=True)
+    print(f"ANIM OK -> {OUTPATH} ({FRAMES} cuadros)")
+else:
+    bpy.ops.render.render(write_still=True)
+    print(f"RENDER OK -> {OUTPATH}")
