@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Caja de Huevos 3D — Render Interactivo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #eef1f4; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  #app { width: 100%; height: 100%; display: block; touch-action: none; }
+
+  #titulo {
+    position: fixed; top: 16px; left: 18px; z-index: 10; pointer-events: none;
+    color: #2d3338; text-shadow: 0 1px 3px rgba(255,255,255,.6);
+  }
+  #titulo h1 { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+  #titulo p  { font-size: 12.5px; opacity: .75; margin-top: 3px; }
+
+  #panel {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 10;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    background: rgba(28, 32, 36, .82); backdrop-filter: blur(8px);
+    padding: 10px 12px; border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.25);
+    max-width: 94vw;
+  }
+  #panel button {
+    appearance: none; border: 1px solid rgba(255,255,255,.16);
+    background: rgba(255,255,255,.08); color: #f2f4f6;
+    font-size: 13px; font-weight: 600; padding: 9px 14px; border-radius: 9px;
+    cursor: pointer; transition: background .15s, transform .05s;
+    white-space: nowrap;
+  }
+  #panel button:hover { background: rgba(255,255,255,.18); }
+  #panel button:active { transform: scale(.96); }
+  #panel button.activo { background: #e8b14c; border-color: #e8b14c; color: #232323; }
+  #panel button:disabled { opacity: .35; cursor: default; }
+
+  #cargando {
+    position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+    background: #eef1f4; color: #555; font-size: 15px; flex-direction: column; gap: 12px;
+  }
+  #cargando .huevo { font-size: 42px; animation: girar 1.2s ease-in-out infinite; }
+  @keyframes girar { 0%,100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
+  #cargando small { font-size: 12px; opacity: .6; max-width: 340px; text-align: center; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div id="cargando">
+  <div class="huevo">🥚</div>
+  <div>Cargando render 3D…</div>
+  <small>Requiere conexión a internet la primera vez (descarga la librería Three.js desde un CDN).</small>
+</div>
+
+<div id="titulo">
+  <h1>🥚 Caja de Huevos 3D</h1>
+  <p>Arrastra para rotar · Rueda / pellizco para zoom · Clic derecho o dos dedos para mover</p>
+</div>
+
+<div id="panel">
+  <button id="btnTapa">Abrir tapa</button>
+  <button id="btnModo">Formato: Docena (12)</button>
+  <button id="btnHuevos">Huevos: Mixtos</button>
+  <button id="btnColor">Caja: Natural</button>
+  <button id="btnAuto">Rotación auto</button>
+  <button id="btnVista">Reiniciar vista</button>
+</div>
+
+<canvas id="app"></canvas>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* ============================================================
+   Parámetros del modelo (unidades ≈ centímetros)
+   ============================================================ */
+const PITCH      = 4.9;   // distancia entre centros de huevos
+const H_RIM      = 3.3;   // altura del borde superior de la base
+const CUP_R      = 2.25;  // radio de cada cavidad
+const CUP_DEPTH  = 3.0;   // profundidad de la cavidad
+const LID_H      = 5.0;   // altura de la tapa
+const MARGIN     = 0.8;   // margen del borde
+
+const FORMATOS = {
+  docena:  { cols: 6, rows: 2, conTapa: true,  etiqueta: 'Docena (12)'  },
+  bandeja: { cols: 6, rows: 5, conTapa: false, etiqueta: 'Bandeja (30)' }
+};
+
+const COLORES_CAJA = [
+  { id: 'natural', nombre: 'Natural', hex: '#b7b0a3' },
+  { id: 'kraft',   nombre: 'Kraft',   hex: '#bd8f5f' },
+  { id: 'celeste', nombre: 'Celeste', hex: '#9fc3d8' }
+];
+
+const MODOS_HUEVO = ['Mixtos', 'Blancos', 'Café'];
+
+let formatoActual = 'docena';
+let colorIdx      = 0;
+let huevoIdx      = 0;
+let tapaAbierta   = false;
+let anguloTapa    = 0;            // ángulo actual de la tapa (rad)
+let anguloObjetivo = 0;           // ángulo objetivo (rad)
+const ANGULO_ABIERTO = -2.18;     // ~125° hacia atrás
+
+/* ============================================================
+   Escenario base
+   ============================================================ */
+const canvas   = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+const BG = new THREE.Color('#eef1f4');
+scene.background = BG;
+scene.fog = new THREE.Fog(BG, 130, 300);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 600);
+const CAM_INICIO = new THREE.Vector3(30, 22, 36);
+camera.position.copy(CAM_INICIO);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 2.5, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 10;
+controls.maxDistance = 170;
+controls.maxPolarAngle = Math.PI;   // permite mirar la caja desde abajo
+controls.autoRotateSpeed = 1.6;
+
+/* Luces */
+const hemi = new THREE.HemisphereLight('#ffffff', '#cdc6ba', 0.55);
+scene.add(hemi);
+
+const sol = new THREE.DirectionalLight('#fff6e8', 1.7);
+sol.position.set(20, 32, 16);
+sol.castShadow = true;
+sol.shadow.mapSize.set(2048, 2048);
+sol.shadow.camera.left = -35; sol.shadow.camera.right = 35;
+sol.shadow.camera.top = 35;   sol.shadow.camera.bottom = -35;
+sol.shadow.camera.far = 100;
+sol.shadow.bias = -0.0004;
+sol.shadow.normalBias = 0.6;
+scene.add(sol);
+
+const relleno = new THREE.DirectionalLight('#dde8ff', 0.45);
+relleno.position.set(-24, 14, -18);
+scene.add(relleno);
+
+/* Piso (solo visible desde arriba: desde abajo desaparece y se ve la caja) */
+const piso = new THREE.Mesh(
+  new THREE.CircleGeometry(260, 64).rotateX(-Math.PI / 2),
+  new THREE.MeshStandardMaterial({ color: '#e6e2d8', roughness: 1.0 })
+);
+piso.receiveShadow = true;
+scene.add(piso);
+
+/* ============================================================
+   Texturas procedurales (cartón moldeado y cáscara de huevo)
+   ============================================================ */
+function texturaPulpa(hexBase, { ancho = 1024, alto = 384, etiqueta = false } = {}) {
+  const cv = document.createElement('canvas');
+  cv.width = ancho; cv.height = alto;
+  const ctx = cv.getContext('2d');
+
+  ctx.fillStyle = hexBase;
+  ctx.fillRect(0, 0, ancho, alto);
+
+  // moteado de fibras del cartón
+  for (let i = 0; i < 1600; i++) {
+    const x = Math.random() * ancho, y = Math.random() * alto;
+    const r = 0.6 + Math.random() * 2.2;
+    const oscuro = Math.random() < 0.65;
+    ctx.fillStyle = oscuro
+      ? `rgba(40,32,22,${0.04 + Math.random() * 0.08})`
+      : `rgba(255,255,250,${0.05 + Math.random() * 0.08})`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, r * (1 + Math.random()), r, Math.random() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (etiqueta) {
+    ctx.save();
+    ctx.translate(ancho / 2, alto / 2);
+    ctx.fillStyle = 'rgba(60,42,26,.85)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `700 ${Math.round(alto * 0.21)}px Georgia, serif`;
+    ctx.fillText('HUEVOS FRESCOS', 0, -alto * 0.10);
+    ctx.font = `600 ${Math.round(alto * 0.105)}px Georgia, serif`;
+    ctx.fillText('12 UNIDADES · GRANDE', 0, alto * 0.135);
+    // huevo dibujado
+    ctx.strokeStyle = 'rgba(60,42,26,.7)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, alto * 0.30, alto * 0.052, alto * 0.066, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const tx = new THREE.CanvasTexture(cv);
+  tx.colorSpace = THREE.SRGBColorSpace;
+  tx.anisotropy = 8;
+  return tx;
+}
+
+function texturaHuevoCafe(hexBase) {
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 256;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = hexBase;
+  ctx.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 220; i++) {
+    const x = Math.random() * 256, y = Math.random() * 256;
+    const r = 0.4 + Math.random() * 1.6;
+    ctx.fillStyle = `rgba(80,48,24,${0.05 + Math.random() * 0.16})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const tx = new THREE.CanvasTexture(cv);
+  tx.colorSpace = THREE.SRGBColorSpace;
+  return tx;
+}
+
+/* Materiales de huevo */
+const MAT_BLANCOS = ['#f7f2e8', '#f3ede1', '#faf6ee'].map(c =>
+  new THREE.MeshStandardMaterial({ color: c, roughness: 0.42, metalness: 0 })
+);
+const MAT_CAFES = ['#c79a6b', '#b9854f', '#d2a87b'].map(c =>
+  new THREE.MeshStandardMaterial({ map: texturaHuevoCafe(c), roughness: 0.5, metalness: 0 })
+);
+
+/* ============================================================
+   Geometría: cascarón moldeado por campo de alturas
+   ============================================================ */
+function cascaron(ancho, fondo, segX, segZ, fnAltura) {
+  const geo = new THREE.PlaneGeometry(ancho, fondo, segX, segZ);
+  geo.rotateX(-Math.PI / 2); // plano XZ, normal +Y
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    pos.setY(i, fnAltura(pos.getX(i), pos.getZ(i)));
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
+
+const suave = (t) => t * t * (3 - 2 * t);
+const campana = (d, R) => 0.5 + 0.5 * Math.cos(Math.PI * Math.min(d / R, 1)); // 1 en el centro → 0 en R
+
+/* Base de la caja: cavidades + conos separadores */
+function geoBase(cols, rows) {
+  const W = cols * PITCH + 2 * MARGIN;
+  const D = rows * PITCH + 2 * MARGIN;
+  const cupX = (i) => (i - (cols - 1) / 2) * PITCH;
+  const cupZ = (j) => (j - (rows - 1) / 2) * PITCH;
+
+  // conos separadores en las uniones interiores
+  const postes = [];
+  if (rows === 2) {
+    // docena: fila central de postes bajos
+    for (let i = 1; i < cols; i++) postes.push({ x: (i - cols / 2) * PITCH, z: 0, r: 1.55, h: 1.6, p: 1.3 });
+  } else {
+    // bandeja: conos altos en cada cruce de 4 cavidades
+    for (let i = 1; i < cols; i++)
+      for (let j = 1; j < rows; j++)
+        postes.push({ x: (i - cols / 2) * PITCH, z: (j - rows / 2) * PITCH, r: 1.7, h: 3.1, p: 1.5 });
+  }
+
+  const Reff = CUP_R * 1.12;
+  const fn = (x, z) => {
+    let h = H_RIM;
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        const d = Math.hypot(x - cupX(i), z - cupZ(j));
+        if (d < Reff) h -= CUP_DEPTH * Math.pow(campana(d, Reff), 0.8);
+      }
+    }
+    for (const p of postes) {
+      const d = Math.hypot(x - p.x, z - p.z);
+      if (d < p.r) h += p.h * Math.pow(campana(d, p.r), p.p);
+    }
+    // redondeo del borde exterior
+    const db = Math.min(W / 2 - Math.abs(x), D / 2 - Math.abs(z));
+    if (db < 0.7) h -= suave(1 - Math.max(db, 0) / 0.7) * 0.9;
+    return Math.max(h, 0.18); // fondo plano de apoyo
+  };
+
+  const seg = 7; // resolución por cm
+  return { geo: cascaron(W, D, Math.round(W * seg), Math.round(D * seg), fn), W, D, cupX, cupZ };
+}
+
+/* Tapa: domo de rectángulo redondeado */
+function geoTapa(W, D) {
+  const cr = 2.2, s = 2.4;
+  const hw = W / 2, hd = D / 2;
+  const fn = (x, z) => {
+    const qx = Math.abs(x) - (hw - cr);
+    const qz = Math.abs(z) - (hd - cr);
+    const d = Math.hypot(Math.max(qx, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qz), 0) - cr;
+    const u = suave(THREE.MathUtils.clamp(-d / s, 0, 1));
+    return LID_H * u;
+  };
+  return cascaron(W, D, Math.round(W * 6), Math.round(D * 6), fn);
+}
+
+/* Huevo: superficie de revolución con perfil real (punta arriba) */
+function geoHuevo() {
+  const pts = [];
+  const N = 28;
+  for (let k = 0; k <= N; k++) {
+    const y = -1 + (2 * k) / N;
+    const r = Math.sqrt(Math.max(1 - y * y, 0)) * (1 - 0.16 * y);
+    pts.push(new THREE.Vector2(Math.max(r, 0.0001) * 2.15, y * 2.9));
+  }
+  return new THREE.LatheGeometry(pts, 44);
+}
+const GEO_HUEVO = geoHuevo();
+
+/* ============================================================
+   Construcción de la caja completa
+   ============================================================ */
+let grupoCaja = null;
+let pivoteTapa = null;
+let huevos = [];
+
+function liberar(obj) {
+  obj.traverse((n) => {
+    if (n.geometry) n.geometry.dispose();
+    if (n.material) {
+      const mats = Array.isArray(n.material) ? n.material : [n.material];
+      mats.forEach((m) => { if (m.map) m.map.dispose(); if (!MAT_BLANCOS.includes(m) && !MAT_CAFES.includes(m)) m.dispose(); });
+    }
+  });
+}
+
+function construirCaja() {
+  if (grupoCaja) { scene.remove(grupoCaja); liberar(grupoCaja); }
+
+  const f = FORMATOS[formatoActual];
+  const color = COLORES_CAJA[colorIdx];
+  grupoCaja = new THREE.Group();
+  huevos = [];
+
+  const { geo, W, D, cupX, cupZ } = geoBase(f.cols, f.rows);
+
+  const matBase = new THREE.MeshStandardMaterial({
+    map: texturaPulpa(color.hex),
+    roughness: 0.95, metalness: 0, side: THREE.DoubleSide
+  });
+  const base = new THREE.Mesh(geo, matBase);
+  base.castShadow = true;
+  base.receiveShadow = true;
+  grupoCaja.add(base);
+
+  /* Huevos */
+  for (let i = 0; i < f.cols; i++) {
+    for (let j = 0; j < f.rows; j++) {
+      const huevo = new THREE.Mesh(GEO_HUEVO);
+      // el huevo descansa apoyado en las paredes de la cavidad (no en el fondo)
+      huevo.position.set(
+        cupX(i) + (Math.random() - 0.5) * 0.2,
+        4.45,
+        cupZ(j) + (Math.random() - 0.5) * 0.2
+      );
+      huevo.rotation.set(
+        (Math.random() - 0.5) * 0.12,
+        Math.random() * Math.PI,
+        (Math.random() - 0.5) * 0.12
+      );
+      huevo.castShadow = true;
+      huevo.receiveShadow = true;
+      grupoCaja.add(huevo);
+      huevos.push(huevo);
+    }
+  }
+  pintarHuevos();
+
+  /* Tapa (solo docena) */
+  pivoteTapa = null;
+  if (f.conTapa) {
+    pivoteTapa = new THREE.Group();
+    pivoteTapa.position.set(0, H_RIM, -D / 2);
+
+    const matTapa = new THREE.MeshStandardMaterial({
+      map: texturaPulpa(color.hex, { etiqueta: true }),
+      roughness: 0.95, metalness: 0, side: THREE.DoubleSide
+    });
+    const tapa = new THREE.Mesh(geoTapa(W, D), matTapa);
+    tapa.position.set(0, 0, D / 2);
+    tapa.castShadow = true;
+    tapa.receiveShadow = true;
+
+    pivoteTapa.add(tapa);
+    pivoteTapa.rotation.x = anguloTapa;
+    grupoCaja.add(pivoteTapa);
+  }
+
+  scene.add(grupoCaja);
+}
+
+function pintarHuevos() {
+  const modo = MODOS_HUEVO[huevoIdx];
+  huevos.forEach((h) => {
+    let pool;
+    if (modo === 'Blancos') pool = MAT_BLANCOS;
+    else if (modo === 'Café') pool = MAT_CAFES;
+    else pool = Math.random() < 0.5 ? MAT_BLANCOS : MAT_CAFES;
+    h.material = pool[Math.floor(Math.random() * pool.length)];
+  });
+}
+
+/* ============================================================
+   Interfaz
+   ============================================================ */
+const btnTapa   = document.getElementById('btnTapa');
+const btnModo   = document.getElementById('btnModo');
+const btnHuevos = document.getElementById('btnHuevos');
+const btnColor  = document.getElementById('btnColor');
+const btnAuto   = document.getElementById('btnAuto');
+const btnVista  = document.getElementById('btnVista');
+
+function refrescarUI() {
+  const f = FORMATOS[formatoActual];
+  btnModo.textContent   = `Formato: ${f.etiqueta}`;
+  btnHuevos.textContent = `Huevos: ${MODOS_HUEVO[huevoIdx]}`;
+  btnColor.textContent  = `Caja: ${COLORES_CAJA[colorIdx].nombre}`;
+  btnTapa.disabled      = !f.conTapa;
+  btnTapa.textContent   = tapaAbierta ? 'Cerrar tapa' : 'Abrir tapa';
+  btnAuto.classList.toggle('activo', controls.autoRotate);
+}
+
+btnTapa.addEventListener('click', () => {
+  tapaAbierta = !tapaAbierta;
+  anguloObjetivo = tapaAbierta ? ANGULO_ABIERTO : 0;
+  refrescarUI();
+});
+
+btnModo.addEventListener('click', () => {
+  formatoActual = formatoActual === 'docena' ? 'bandeja' : 'docena';
+  if (formatoActual === 'bandeja') { tapaAbierta = false; anguloObjetivo = 0; anguloTapa = 0; }
+  construirCaja();
+  refrescarUI();
+});
+
+btnHuevos.addEventListener('click', () => {
+  huevoIdx = (huevoIdx + 1) % MODOS_HUEVO.length;
+  pintarHuevos();
+  refrescarUI();
+});
+
+btnColor.addEventListener('click', () => {
+  colorIdx = (colorIdx + 1) % COLORES_CAJA.length;
+  construirCaja();
+  refrescarUI();
+});
+
+btnAuto.addEventListener('click', () => {
+  controls.autoRotate = !controls.autoRotate;
+  refrescarUI();
+});
+
+btnVista.addEventListener('click', () => {
+  camera.position.copy(CAM_INICIO);
+  controls.target.set(0, 2.5, 0);
+  controls.autoRotate = false;
+  refrescarUI();
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ============================================================
+   Bucle de render
+   ============================================================ */
+construirCaja();
+refrescarUI();
+document.getElementById('cargando').remove();
+
+const reloj = new THREE.Clock();
+function animar() {
+  requestAnimationFrame(animar);
+  const dt = Math.min(reloj.getDelta(), 0.05);
+
+  // animación suave de la tapa
+  if (pivoteTapa) {
+    anguloTapa += (anguloObjetivo - anguloTapa) * Math.min(dt * 5, 1);
+    pivoteTapa.rotation.x = anguloTapa;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animar();
+</script>
+
+<script>
+// Si el módulo no pudo cargar (sin internet), avisar en pantalla
+setTimeout(() => {
+  const c = document.getElementById('cargando');
+  if (c) {
+    c.querySelector('div:nth-child(2)').textContent = 'No se pudo cargar Three.js.';
+    c.querySelector('small').textContent = 'Verifica tu conexión a internet y recarga la página (F5). La librería 3D se descarga desde cdn.jsdelivr.net.';
+  }
+}, 12000);
+</script>
+</body>
+</html>
