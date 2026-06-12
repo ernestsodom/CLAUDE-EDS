@@ -11,4 +11,4 @@ data/
 *.csv
 
 # Renders intermedios de padel_render
-padel_render/out/preview*.png
+padel_render/out/
