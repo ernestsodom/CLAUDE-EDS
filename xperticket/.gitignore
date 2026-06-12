@@ -1,0 +1,18 @@
+# Datos locales y caché (no versionar)
+data/
+*.sqlite
+*.sqlite3
+*.log
+
+# Exportaciones generadas
+*.xlsx
+export*.csv
+plantilla_prospectos.csv
+
+# Entorno
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+.streamlit/secrets.toml
