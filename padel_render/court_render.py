@@ -41,7 +41,8 @@ H_TOP = 4.0                        # altura total fondos/esquinas
 Z3 = SLAB_TOP + H_GLASS
 Z4 = SLAB_TOP + H_TOP
 MESH_STEP = 0.05                   # paso malla 50x50mm
-WIRE = 0.0045                      # grosor alambre
+WIRE = 0.007                       # grosor alambre (sobredimensionado para
+                                   # legibilidad a distancia de camara)
 DOOR_W0, DOOR_W1 = 0.15, 1.15      # apertura de acceso (desde eje red)
 DOOR_H = SLAB_TOP + 2.05           # altura apertura
 GLASS_T = 0.012                    # vidrio templado 12mm
@@ -286,9 +287,9 @@ def wire_panel(name, axis, fixed, u0, u1, z0, z1, mat=None):
     for j in range(n_z + 1):
         z = z0 + (z1 - z0) * j / n_z
         if axis == 'x':
-            bxs.append(((u0 + u1) / 2, fixed, z, u1 - u0, WIRE * 1.6, WIRE))
+            bxs.append(((u0 + u1) / 2, fixed, z, u1 - u0, WIRE * 1.2, WIRE))
         else:
-            bxs.append((fixed, (u0 + u1) / 2, z, WIRE * 1.6, u1 - u0, WIRE))
+            bxs.append((fixed, (u0 + u1) / 2, z, WIRE * 1.2, u1 - u0, WIRE))
     return boxes_mesh(name, bxs, mat)
 
 
@@ -435,12 +436,12 @@ cords = []
 ny = int(W / 0.04)
 for i in range(ny + 1):
     y = -HY + W * i / ny
-    cords.append((0, y, (TURF_TOP + NET_TOP - 0.06) / 2, 0.0045, 0.0045,
+    cords.append((0, y, (TURF_TOP + NET_TOP - 0.06) / 2, 0.006, 0.006,
                   NET_TOP - 0.06 - TURF_TOP))
 nz = int((NET_TOP - 0.06 - TURF_TOP) / 0.04)
 for j in range(nz + 1):
     z = TURF_TOP + (NET_TOP - 0.06 - TURF_TOP) * j / nz
-    cords.append((0, 0, z, 0.0045, W, 0.0045))
+    cords.append((0, 0, z, 0.006, W, 0.006))
 boxes_mesh("net_cords", cords, M_NET)
 # banda superior blanca + cinta central
 box("net_band", 0, 0, NET_TOP - 0.03, 0.024, W, 0.06, M_WHITE)
@@ -568,9 +569,9 @@ target = bpy.data.objects.new("target", None)
 C.collection.objects.link(target)
 
 if CAM == "hero":
-    cam.location = (15.2, -20.0, 11.6)
-    target.location = (0.0, 0.5, 0.75)
-    cam_data.lens = 43
+    cam.location = (15.6, -20.5, 11.9)
+    target.location = (0.35, 0.35, 0.7)
+    cam_data.lens = 40
 elif CAM == "low":
     cam.location = (16.5, -13.5, 2.1)
     target.location = (-1.0, 0.5, 1.5)
