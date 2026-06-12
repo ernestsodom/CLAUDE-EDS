@@ -1,0 +1,2028 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Xperticket · Prospección</title><style>
+:root{--bg:#0f1220;--card:#1a1f33;--ink:#eef1f8;--mut:#9aa3bd;--acc:#5b8cff;
+--good:#37d39b;--warn:#ffb454;--line:#2a3150}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+background:var(--bg);color:var(--ink);line-height:1.5}
+header{padding:28px 24px;background:linear-gradient(135deg,#202a4d,#141a30)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+h1{margin:0;font-size:24px}
+.sub{color:var(--mut);margin-top:6px;font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi .n{font-size:26px;font-weight:700}
+.kpi .l{color:var(--mut);font-size:13px;margin-top:4px}
+.toolbar{display:flex;gap:12px;align-items:center;margin:18px 0;flex-wrap:wrap}
+input[type=search],select{background:var(--card);border:1px solid var(--line);
+color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+input[type=search]{min-width:280px}
+table{width:100%;border-collapse:collapse;background:var(--card);
+border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}
+th{color:var(--mut);font-weight:600;cursor:pointer;user-select:none;white-space:nowrap}
+tr:hover td{background:#212847}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.b-hi{background:rgba(55,211,155,.16);color:var(--good)}
+.b-md{background:rgba(255,180,84,.16);color:var(--warn)}
+.b-lo{background:rgba(154,163,189,.16);color:var(--mut)}
+a.row{color:var(--acc);text-decoration:none;font-weight:600}
+a.row:hover{text-decoration:underline}
+.cards{margin-top:34px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;scroll-margin-top:14px}
+.card h3{margin:0 0 2px}
+.meta{color:var(--mut);font-size:13px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.lbl{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+ul{margin:0;padding-left:18px}li{margin:3px 0}
+.fin{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 0}
+.fin div{background:#141a30;border:1px solid var(--line);border-radius:10px;padding:10px}
+.fin .n{font-size:18px;font-weight:700}.fin .l{color:var(--mut);font-size:12px}
+.email{position:relative;margin-top:10px}
+textarea{width:100%;min-height:230px;background:#0c1020;color:var(--ink);
+border:1px solid var(--line);border-radius:12px;padding:14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.copy{position:absolute;top:10px;right:10px;background:var(--acc);color:#fff;border:0;
+border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-weight:600}
+.note{background:#23304a;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+color:#cdd6f0;font-size:13px;margin:16px 0}
+footer{color:var(--mut);font-size:12px;text-align:center;padding:30px 0 50px}
+@media(max-width:780px){.kpis,.fin{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><div class="wrap">
+  <h1>🎟️ Xperticket — Inteligencia & Prospección</h1>
+  <div class="sub">Reporte generado el 12-06-2026 · 41 prospectos analizados ·
+   Director Comercial: Ernesto Domínguez (Proexsi S.A.)</div>
+</div></header>
+<div class="wrap">
+  <div class="kpis">
+    <div class="kpi"><div class="n">41</div><div class="l">Prospectos analizados</div></div>
+    <div class="kpi"><div class="n">US$ 642,157</div><div class="l">ROI total estimado/año</div></div>
+    <div class="kpi"><div class="n">12,159 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div class="kpi"><div class="n">71.1</div><div class="l">Score medio</div></div>
+  </div>
+
+  <div class="note">⚠️ <b>Datos de partida, no verificados.</b> Volúmenes y comisiones son
+   estimaciones por segmento (la mayoría de sitios bloquea bots, por eso la fuente suele ser
+   «heurística»). <b>Valida cada contacto y cifra antes de contactar.</b> El score (0-100) prioriza
+   por volumen, comisión actual, facilidad de contacto y fit tecnológico.</div>
+
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Buscar institución, tipo, región, ticketera…" oninput="buscar()">
+    <select id="seg" onchange="buscar()"><option value="">Todos los segmentos</option><option value="Centro Cultural">Centro Cultural</option><option value="Centro de Eventos">Centro de Eventos</option><option value="Cine">Cine</option><option value="Corporación Cultural">Corporación Cultural</option><option value="Museo">Museo</option><option value="Parque Temático">Parque Temático</option><option value="Planetario">Planetario</option><option value="Teatro">Teatro</option><option value="Trampoline Park">Trampoline Park</option></select>
+  </div>
+
+  <table id="tabla"><thead><tr><th class="num" onclick="ordenar(0,true)">Prio. ⇅</th><th class="num" onclick="ordenar(1,true)">Score ⇅</th><th class="" onclick="ordenar(2,false)">Institución ⇅</th><th class="" onclick="ordenar(3,false)">Tipo ⇅</th><th class="" onclick="ordenar(4,false)">Región ⇅</th><th class="" onclick="ordenar(5,false)">Ticketera ⇅</th><th class="num" onclick="ordenar(6,true)">Ahorro/año ⇅</th><th class="num" onclick="ordenar(7,true)">ROI/año ⇅</th></tr></thead><tbody><tr data-text="buin zoo parque temático metropolitana desconocida" data-seg="Parque Temático"><td class="num" data-v="1">1</td><td class="num" data-v="80"><span class="badge b-hi">80</span></td><td><a class="row" href="#buin-zoo">Buin Zoo</a></td><td>Parque Temático</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="2100.0">2,100 UF</td><td class="num" data-v="91312">US$ 91,312</td></tr><tr data-text="fantasilandia parque temático metropolitana desconocida" data-seg="Parque Temático"><td class="num" data-v="2">2</td><td class="num" data-v="80"><span class="badge b-hi">80</span></td><td><a class="row" href="#fantasilandia">Fantasilandia</a></td><td>Parque Temático</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="2100.0">2,100 UF</td><td class="num" data-v="91312">US$ 91,312</td></tr><tr data-text="urbatrap trampoline park metropolitana desconocida" data-seg="Trampoline Park"><td class="num" data-v="3">3</td><td class="num" data-v="80"><span class="badge b-hi">80</span></td><td><a class="row" href="#urbatrap">Urbatrap</a></td><td>Trampoline Park</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="693.0">693 UF</td><td class="num" data-v="32953">US$ 32,953</td></tr><tr data-text="aula magna universidad de la frontera centro de eventos araucanía desconocida" data-seg="Centro de Eventos"><td class="num" data-v="4">4</td><td class="num" data-v="75"><span class="badge b-hi">75</span></td><td><a class="row" href="#aula-magna-universidad-de-la-frontera">Aula Magna Universidad de La Frontera</a></td><td>Centro de Eventos</td><td>Araucanía</td><td>Desconocida</td><td class="num" data-v="756.0">756 UF</td><td class="num" data-v="35512">US$ 35,512</td></tr><tr data-text="centro arte alameda cine metropolitana desconocida" data-seg="Cine"><td class="num" data-v="5">5</td><td class="num" data-v="75"><span class="badge b-hi">75</span></td><td><a class="row" href="#centro-arte-alameda">Centro Arte Alameda</a></td><td>Cine</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="252.0">252 UF</td><td class="num" data-v="15038">US$ 15,038</td></tr><tr data-text="centro cultural estación mapocho centro de eventos metropolitana desconocida" data-seg="Centro de Eventos"><td class="num" data-v="6">6</td><td class="num" data-v="75"><span class="badge b-hi">75</span></td><td><a class="row" href="#centro-cultural-estacion-mapocho">Centro Cultural Estación Mapocho</a></td><td>Centro de Eventos</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="756.0">756 UF</td><td class="num" data-v="35512">US$ 35,512</td></tr><tr data-text="cine arte normandie cine metropolitana desconocida" data-seg="Cine"><td class="num" data-v="7">7</td><td class="num" data-v="75"><span class="badge b-hi">75</span></td><td><a class="row" href="#cine-arte-normandie">Cine Arte Normandie</a></td><td>Cine</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="252.0">252 UF</td><td class="num" data-v="15038">US$ 15,038</td></tr><tr data-text="movistar arena centro de eventos metropolitana desconocida" data-seg="Centro de Eventos"><td class="num" data-v="8">8</td><td class="num" data-v="75"><span class="badge b-hi">75</span></td><td><a class="row" href="#movistar-arena">Movistar Arena</a></td><td>Centro de Eventos</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="756.0">756 UF</td><td class="num" data-v="35512">US$ 35,512</td></tr><tr data-text="planetario chile (usach) planetario metropolitana desconocida" data-seg="Planetario"><td class="num" data-v="9">9</td><td class="num" data-v="75"><span class="badge b-hi">75</span></td><td><a class="row" href="#planetario-chile-usach">Planetario Chile (USACH)</a></td><td>Planetario</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="109.2">109 UF</td><td class="num" data-v="7436">US$ 7,436</td></tr><tr data-text="teatro condell (insomnia) cine valparaíso desconocida" data-seg="Cine"><td class="num" data-v="10">10</td><td class="num" data-v="75"><span class="badge b-hi">75</span></td><td><a class="row" href="#teatro-condell-insomnia">Teatro Condell (Insomnia)</a></td><td>Cine</td><td>Valparaíso</td><td>Desconocida</td><td class="num" data-v="252.0">252 UF</td><td class="num" data-v="15038">US$ 15,038</td></tr><tr data-text="centro cultural gabriela mistral (gam) centro cultural metropolitana desconocida" data-seg="Centro Cultural"><td class="num" data-v="11">11</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#centro-cultural-gabriela-mistral-gam">Centro Cultural Gabriela Mistral (GAM)</a></td><td>Centro Cultural</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="176.4">176 UF</td><td class="num" data-v="10766">US$ 10,766</td></tr><tr data-text="centro cultural la moneda centro cultural metropolitana desconocida" data-seg="Centro Cultural"><td class="num" data-v="12">12</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#centro-cultural-la-moneda">Centro Cultural La Moneda</a></td><td>Centro Cultural</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="176.4">176 UF</td><td class="num" data-v="10766">US$ 10,766</td></tr><tr data-text="corporación cultural artistas del acero corporación cultural biobío desconocida" data-seg="Corporación Cultural"><td class="num" data-v="13">13</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#corporacion-cultural-artistas-del-acero">Corporación Cultural Artistas del Acero</a></td><td>Corporación Cultural</td><td>Biobío</td><td>Desconocida</td><td class="num" data-v="151.2">151 UF</td><td class="num" data-v="9742">US$ 9,742</td></tr><tr data-text="corporación cultural de las condes corporación cultural metropolitana desconocida" data-seg="Corporación Cultural"><td class="num" data-v="14">14</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#corporacion-cultural-de-las-condes">Corporación Cultural de Las Condes</a></td><td>Corporación Cultural</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="151.2">151 UF</td><td class="num" data-v="9742">US$ 9,742</td></tr><tr data-text="corporación cultural de ñuñoa corporación cultural metropolitana desconocida" data-seg="Corporación Cultural"><td class="num" data-v="15">15</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#corporacion-cultural-de-nunoa">Corporación Cultural de Ñuñoa</a></td><td>Corporación Cultural</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="151.2">151 UF</td><td class="num" data-v="9742">US$ 9,742</td></tr><tr data-text="fundación corpartes corporación cultural metropolitana desconocida" data-seg="Corporación Cultural"><td class="num" data-v="16">16</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#fundacion-corpartes">Fundación CorpArtes</a></td><td>Corporación Cultural</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="151.2">151 UF</td><td class="num" data-v="9742">US$ 9,742</td></tr><tr data-text="matucana 100 centro cultural metropolitana desconocida" data-seg="Centro Cultural"><td class="num" data-v="17">17</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#matucana-100">Matucana 100</a></td><td>Centro Cultural</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="176.4">176 UF</td><td class="num" data-v="10766">US$ 10,766</td></tr><tr data-text="museo artequin museo metropolitana desconocida" data-seg="Museo"><td class="num" data-v="18">18</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-artequin">Museo Artequin</a></td><td>Museo</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="museo fonck museo valparaíso desconocida" data-seg="Museo"><td class="num" data-v="19">19</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-fonck">Museo Fonck</a></td><td>Museo</td><td>Valparaíso</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="museo interactivo mirador (mim) museo metropolitana desconocida" data-seg="Museo"><td class="num" data-v="20">20</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-interactivo-mirador-mim">Museo Interactivo Mirador (MIM)</a></td><td>Museo</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="museo marítimo nacional museo valparaíso desconocida" data-seg="Museo"><td class="num" data-v="21">21</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-maritimo-nacional">Museo Marítimo Nacional</a></td><td>Museo</td><td>Valparaíso</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="museo nacional de bellas artes museo metropolitana desconocida" data-seg="Museo"><td class="num" data-v="22">22</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-nacional-de-bellas-artes">Museo Nacional de Bellas Artes</a></td><td>Museo</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="museo de arte contemporáneo (mac) museo metropolitana desconocida" data-seg="Museo"><td class="num" data-v="23">23</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-de-arte-contemporaneo-mac">Museo de Arte Contemporáneo (MAC)</a></td><td>Museo</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="museo de arte precolombino museo metropolitana desconocida" data-seg="Museo"><td class="num" data-v="24">24</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-de-arte-precolombino">Museo de Arte Precolombino</a></td><td>Museo</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="museo de la memoria y los derechos humanos museo metropolitana desconocida" data-seg="Museo"><td class="num" data-v="25">25</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#museo-de-la-memoria-y-los-derechos-humanos">Museo de la Memoria y los Derechos Humanos</a></td><td>Museo</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="parque cultural de valparaíso centro cultural valparaíso desconocida" data-seg="Centro Cultural"><td class="num" data-v="26">26</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#parque-cultural-de-valparaiso">Parque Cultural de Valparaíso</a></td><td>Centro Cultural</td><td>Valparaíso</td><td>Desconocida</td><td class="num" data-v="176.4">176 UF</td><td class="num" data-v="10766">US$ 10,766</td></tr><tr data-text="pinacoteca universidad de concepción museo biobío desconocida" data-seg="Museo"><td class="num" data-v="27">27</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#pinacoteca-universidad-de-concepcion">Pinacoteca Universidad de Concepción</a></td><td>Museo</td><td>Biobío</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr><tr data-text="teatro biobío teatro biobío desconocida" data-seg="Teatro"><td class="num" data-v="28">28</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-biobio">Teatro Biobío</a></td><td>Teatro</td><td>Biobío</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro mori teatro metropolitana desconocida" data-seg="Teatro"><td class="num" data-v="29">29</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-mori">Teatro Mori</a></td><td>Teatro</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro municipal de las condes teatro metropolitana desconocida" data-seg="Teatro"><td class="num" data-v="30">30</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-municipal-de-las-condes">Teatro Municipal de Las Condes</a></td><td>Teatro</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro municipal de santiago teatro metropolitana desconocida" data-seg="Teatro"><td class="num" data-v="31">31</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-municipal-de-santiago">Teatro Municipal de Santiago</a></td><td>Teatro</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro municipal de temuco teatro araucanía desconocida" data-seg="Teatro"><td class="num" data-v="32">32</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-municipal-de-temuco">Teatro Municipal de Temuco</a></td><td>Teatro</td><td>Araucanía</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro municipal de viña del mar teatro valparaíso desconocida" data-seg="Teatro"><td class="num" data-v="33">33</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-municipal-de-vina-del-mar">Teatro Municipal de Viña del Mar</a></td><td>Teatro</td><td>Valparaíso</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro nescafé de las artes teatro metropolitana desconocida" data-seg="Teatro"><td class="num" data-v="34">34</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-nescafe-de-las-artes">Teatro Nescafé de las Artes</a></td><td>Teatro</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro regional cervantes teatro coquimbo desconocida" data-seg="Teatro"><td class="num" data-v="35">35</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-regional-cervantes">Teatro Regional Cervantes</a></td><td>Teatro</td><td>Coquimbo</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro regional del maule teatro maule desconocida" data-seg="Teatro"><td class="num" data-v="36">36</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-regional-del-maule">Teatro Regional del Maule</a></td><td>Teatro</td><td>Maule</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro universidad de chile teatro metropolitana desconocida" data-seg="Teatro"><td class="num" data-v="37">37</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-universidad-de-chile">Teatro Universidad de Chile</a></td><td>Teatro</td><td>Metropolitana</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro universidad de concepción teatro biobío desconocida" data-seg="Teatro"><td class="num" data-v="38">38</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-universidad-de-concepcion">Teatro Universidad de Concepción</a></td><td>Teatro</td><td>Biobío</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="teatro del lago teatro los lagos desconocida" data-seg="Teatro"><td class="num" data-v="39">39</td><td class="num" data-v="70"><span class="badge b-md">70</span></td><td><a class="row" href="#teatro-del-lago">Teatro del Lago</a></td><td>Teatro</td><td>Los Lagos</td><td>Desconocida</td><td class="num" data-v="189.0">189 UF</td><td class="num" data-v="11278">US$ 11,278</td></tr><tr data-text="centro cultural de antofagasta centro cultural antofagasta desconocida" data-seg="Centro Cultural"><td class="num" data-v="40">40</td><td class="num" data-v="60"><span class="badge b-md">60</span></td><td><a class="row" href="#centro-cultural-de-antofagasta">Centro Cultural de Antofagasta</a></td><td>Centro Cultural</td><td>Antofagasta</td><td>Desconocida</td><td class="num" data-v="176.4">176 UF</td><td class="num" data-v="10766">US$ 10,766</td></tr><tr data-text="museo marítimo y ballenero museo antofagasta desconocida" data-seg="Museo"><td class="num" data-v="41">41</td><td class="num" data-v="60"><span class="badge b-md">60</span></td><td><a class="row" href="#museo-maritimo-y-ballenero">Museo Marítimo y Ballenero</a></td><td>Museo</td><td>Antofagasta</td><td>Desconocida</td><td class="num" data-v="37.8">38 UF</td><td class="num" data-v="3936">US$ 3,936</td></tr></tbody></table>
+
+  <div class="cards">
+<div class="card" id="buin-zoo">
+  <h3><span class="badge b-hi">80</span>&nbsp; Buin Zoo</h3>
+  <div class="meta">Parque Temático · Buin, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.buinzoo.cl" target="_blank">https://www.buinzoo.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">2,100 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 91,312</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">4.8 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">60000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">30,000 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Picos de demanda estacionales</li><li>Colas en boletería física</li><li>Sin precios dinámicos por temporada/día</li><li>Pases anuales gestionados manualmente</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Venta anticipada con precios dinámicos</li><li>✓ Pases anuales y multivisita con CRM</li><li>✓ Reducción de colas (entrada por QR)</li><li>✓ Bundles y promociones automáticas</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-buin-zoo')">Copiar</button>
+    <textarea id="mail-buin-zoo" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Buin Zoo:
+
+📊 Situación actual:
+- ~5000 entradas/mes (~60000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~3.000 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 2.100 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Parque Temático: Venta anticipada con precios dinámicos
+
+💰 Impacto estimado: ~US$ 91,312/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="fantasilandia">
+  <h3><span class="badge b-hi">80</span>&nbsp; Fantasilandia</h3>
+  <div class="meta">Parque Temático · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.fantasilandia.cl" target="_blank">https://www.fantasilandia.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">2,100 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 91,312</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">4.8 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">60000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">30,000 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Picos de demanda estacionales</li><li>Colas en boletería física</li><li>Sin precios dinámicos por temporada/día</li><li>Pases anuales gestionados manualmente</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Venta anticipada con precios dinámicos</li><li>✓ Pases anuales y multivisita con CRM</li><li>✓ Reducción de colas (entrada por QR)</li><li>✓ Bundles y promociones automáticas</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-fantasilandia')">Copiar</button>
+    <textarea id="mail-fantasilandia" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Fantasilandia:
+
+📊 Situación actual:
+- ~5000 entradas/mes (~60000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~3.000 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 2.100 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Parque Temático: Venta anticipada con precios dinámicos
+
+💰 Impacto estimado: ~US$ 91,312/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="urbatrap">
+  <h3><span class="badge b-hi">80</span>&nbsp; Urbatrap</h3>
+  <div class="meta">Trampoline Park · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.urbatrap.cl" target="_blank">https://www.urbatrap.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">693 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 32,953</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">4.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">33000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">9,900 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Venta por franja horaria difícil de controlar</li><li>Cumpleaños y grupos gestionados a mano</li><li>Sobreventa de aforo en horas peak</li><li>Sin upselling de extras (calcetines, snacks)</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Venta por franja con control de aforo en tiempo real</li><li>✓ Paquetes de cumpleaños y grupos online</li><li>✓ Upselling de extras en el checkout</li><li>✓ Waivers / consentimientos digitales</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-urbatrap')">Copiar</button>
+    <textarea id="mail-urbatrap" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Urbatrap:
+
+📊 Situación actual:
+- ~2750 entradas/mes (~33000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~990 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 693 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Trampoline Park: Venta por franja con control de aforo en tiempo real
+
+💰 Impacto estimado: ~US$ 32,953/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="aula-magna-universidad-de-la-frontera">
+  <h3><span class="badge b-hi">75</span>&nbsp; Aula Magna Universidad de La Frontera</h3>
+  <div class="meta">Centro de Eventos · Temuco, Araucanía
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.ufro.cl" target="_blank">https://www.ufro.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">756 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 35,512</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">4.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">18000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">10,800 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Eventos de terceros con ticketeras dispares</li><li>Sin estandarización ni datos propios</li><li>Comisiones negociadas evento a evento</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Plataforma estándar para todos los productores</li><li>✓ Datos propios de cada evento (CRM del recinto)</li><li>✓ Comisión única y transparente</li><li>✓ Reportes consolidados por temporada</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-aula-magna-universidad-de-la-frontera')">Copiar</button>
+    <textarea id="mail-aula-magna-universidad-de-la-frontera" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Aula Magna Universidad de La Frontera:
+
+📊 Situación actual:
+- ~1500 entradas/mes (~18000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~1.080 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 756 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro de Eventos: Plataforma estándar para todos los productores
+
+💰 Impacto estimado: ~US$ 35,512/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="centro-arte-alameda">
+  <h3><span class="badge b-hi">75</span>&nbsp; Centro Arte Alameda</h3>
+  <div class="meta">Cine · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.centroartealameda.cl" target="_blank">https://www.centroartealameda.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">252 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 15,038</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">18000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">3,600 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones + integraciones complejas</li><li>Falta de segmentación de público</li><li>Venta reactiva, no proactiva</li><li>Gestión de aforo y overbooking manual</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Tarifa única y transparente</li><li>✓ Segmentación avanzada (VIP, niños, adultos, senior)</li><li>✓ Venta dinámica + recomendaciones</li><li>✓ Control de aforo automático por sala</li><li>✓ Programa de puntos / lealtad</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-centro-arte-alameda')">Copiar</button>
+    <textarea id="mail-centro-arte-alameda" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Centro Arte Alameda:
+
+📊 Situación actual:
+- ~1500 entradas/mes (~18000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~360 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 252 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Cine: Tarifa única y transparente
+
+💰 Impacto estimado: ~US$ 15,038/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="centro-cultural-estacion-mapocho">
+  <h3><span class="badge b-hi">75</span>&nbsp; Centro Cultural Estación Mapocho</h3>
+  <div class="meta">Centro de Eventos · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.estacionmapocho.cl" target="_blank">https://www.estacionmapocho.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">756 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 35,512</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">4.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">18000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">10,800 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Eventos de terceros con ticketeras dispares</li><li>Sin estandarización ni datos propios</li><li>Comisiones negociadas evento a evento</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Plataforma estándar para todos los productores</li><li>✓ Datos propios de cada evento (CRM del recinto)</li><li>✓ Comisión única y transparente</li><li>✓ Reportes consolidados por temporada</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-centro-cultural-estacion-mapocho')">Copiar</button>
+    <textarea id="mail-centro-cultural-estacion-mapocho" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Centro Cultural Estación Mapocho:
+
+📊 Situación actual:
+- ~1500 entradas/mes (~18000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~1.080 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 756 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro de Eventos: Plataforma estándar para todos los productores
+
+💰 Impacto estimado: ~US$ 35,512/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="cine-arte-normandie">
+  <h3><span class="badge b-hi">75</span>&nbsp; Cine Arte Normandie</h3>
+  <div class="meta">Cine · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.normandie.cl" target="_blank">https://www.normandie.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">252 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 15,038</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">18000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">3,600 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones + integraciones complejas</li><li>Falta de segmentación de público</li><li>Venta reactiva, no proactiva</li><li>Gestión de aforo y overbooking manual</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Tarifa única y transparente</li><li>✓ Segmentación avanzada (VIP, niños, adultos, senior)</li><li>✓ Venta dinámica + recomendaciones</li><li>✓ Control de aforo automático por sala</li><li>✓ Programa de puntos / lealtad</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-cine-arte-normandie')">Copiar</button>
+    <textarea id="mail-cine-arte-normandie" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Cine Arte Normandie:
+
+📊 Situación actual:
+- ~1500 entradas/mes (~18000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~360 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 252 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Cine: Tarifa única y transparente
+
+💰 Impacto estimado: ~US$ 15,038/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="movistar-arena">
+  <h3><span class="badge b-hi">75</span>&nbsp; Movistar Arena</h3>
+  <div class="meta">Centro de Eventos · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.movistararena.cl" target="_blank">https://www.movistararena.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">756 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 35,512</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">4.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">18000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">10,800 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Eventos de terceros con ticketeras dispares</li><li>Sin estandarización ni datos propios</li><li>Comisiones negociadas evento a evento</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Plataforma estándar para todos los productores</li><li>✓ Datos propios de cada evento (CRM del recinto)</li><li>✓ Comisión única y transparente</li><li>✓ Reportes consolidados por temporada</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-movistar-arena')">Copiar</button>
+    <textarea id="mail-movistar-arena" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Movistar Arena:
+
+📊 Situación actual:
+- ~1500 entradas/mes (~18000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~1.080 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 756 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro de Eventos: Plataforma estándar para todos los productores
+
+💰 Impacto estimado: ~US$ 35,512/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="planetario-chile-usach">
+  <h3><span class="badge b-hi">75</span>&nbsp; Planetario Chile (USACH)</h3>
+  <div class="meta">Planetario · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.planetariochile.cl" target="_blank">https://www.planetariochile.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">109 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 7,436</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.1 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">7800</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">1,560 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Funciones con horarios fijos difíciles de gestionar</li><li>Demanda escolar concentrada en pocas fechas</li><li>Sin venta anticipada eficiente</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Venta por función y horario con control de aforo</li><li>✓ Reservas y cupos para colegios</li><li>✓ Venta anticipada y lista de espera</li><li>✓ Reportes de ocupación por función</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-planetario-chile-usach')">Copiar</button>
+    <textarea id="mail-planetario-chile-usach" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Planetario Chile (USACH):
+
+📊 Situación actual:
+- ~650 entradas/mes (~7800 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~156 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 109 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Planetario: Venta por función y horario con control de aforo
+
+💰 Impacto estimado: ~US$ 7,436/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-condell-insomnia">
+  <h3><span class="badge b-hi">75</span>&nbsp; Teatro Condell (Insomnia)</h3>
+  <div class="meta">Cine · Valparaíso, Valparaíso
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.insomniavalparaiso.cl" target="_blank">https://www.insomniavalparaiso.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">252 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 15,038</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">18000</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">3,600 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones + integraciones complejas</li><li>Falta de segmentación de público</li><li>Venta reactiva, no proactiva</li><li>Gestión de aforo y overbooking manual</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Tarifa única y transparente</li><li>✓ Segmentación avanzada (VIP, niños, adultos, senior)</li><li>✓ Venta dinámica + recomendaciones</li><li>✓ Control de aforo automático por sala</li><li>✓ Programa de puntos / lealtad</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-condell-insomnia')">Copiar</button>
+    <textarea id="mail-teatro-condell-insomnia" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Condell (Insomnia):
+
+📊 Situación actual:
+- ~1500 entradas/mes (~18000 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~360 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 252 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Cine: Tarifa única y transparente
+
+💰 Impacto estimado: ~US$ 15,038/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="centro-cultural-gabriela-mistral-gam">
+  <h3><span class="badge b-md">70</span>&nbsp; Centro Cultural Gabriela Mistral (GAM)</h3>
+  <div class="meta">Centro Cultural · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://gam.cl" target="_blank">https://gam.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">176 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 10,766</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">6300</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,520 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Agenda diversa (teatro, música, talleres) en sistemas distintos</li><li>Sin datos consolidados de audiencia</li><li>Comisiones altas en eventos masivos</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Una sola plataforma para toda la programación</li><li>✓ CRM y datos consolidados de audiencia</li><li>✓ Comisión reducida y transparente</li><li>✓ Venta de talleres con cupos</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-centro-cultural-gabriela-mistral-gam')">Copiar</button>
+    <textarea id="mail-centro-cultural-gabriela-mistral-gam" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Centro Cultural Gabriela Mistral (GAM):
+
+📊 Situación actual:
+- ~525 entradas/mes (~6300 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~252 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 176 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro Cultural: Una sola plataforma para toda la programación
+
+💰 Impacto estimado: ~US$ 10,766/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="centro-cultural-la-moneda">
+  <h3><span class="badge b-md">70</span>&nbsp; Centro Cultural La Moneda</h3>
+  <div class="meta">Centro Cultural · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.cclm.cl" target="_blank">https://www.cclm.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">176 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 10,766</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">6300</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,520 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Agenda diversa (teatro, música, talleres) en sistemas distintos</li><li>Sin datos consolidados de audiencia</li><li>Comisiones altas en eventos masivos</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Una sola plataforma para toda la programación</li><li>✓ CRM y datos consolidados de audiencia</li><li>✓ Comisión reducida y transparente</li><li>✓ Venta de talleres con cupos</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-centro-cultural-la-moneda')">Copiar</button>
+    <textarea id="mail-centro-cultural-la-moneda" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Centro Cultural La Moneda:
+
+📊 Situación actual:
+- ~525 entradas/mes (~6300 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~252 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 176 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro Cultural: Una sola plataforma para toda la programación
+
+💰 Impacto estimado: ~US$ 10,766/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="corporacion-cultural-artistas-del-acero">
+  <h3><span class="badge b-md">70</span>&nbsp; Corporación Cultural Artistas del Acero</h3>
+  <div class="meta">Corporación Cultural · Concepción, Biobío
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.artistasdelacero.cl" target="_blank">https://www.artistasdelacero.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">151 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 9,742</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.2 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,160 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Múltiples espacios y eventos sin sistema unificado</li><li>Rendición y transparencia exigente (fondos públicos)</li><li>Comisiones que erosionan presupuesto municipal</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Plataforma única para todos sus espacios</li><li>✓ Reportes para rendición y transparencia</li><li>✓ Reducción de comisión y control presupuestario</li><li>✓ Abonos, gratuidades y cupos sociales</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-corporacion-cultural-artistas-del-acero')">Copiar</button>
+    <textarea id="mail-corporacion-cultural-artistas-del-acero" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Corporación Cultural Artistas del Acero:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~216 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 151 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Corporación Cultural: Plataforma única para todos sus espacios
+
+💰 Impacto estimado: ~US$ 9,742/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="corporacion-cultural-de-las-condes">
+  <h3><span class="badge b-md">70</span>&nbsp; Corporación Cultural de Las Condes</h3>
+  <div class="meta">Corporación Cultural · Las Condes, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.culturallascondes.cl" target="_blank">https://www.culturallascondes.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">151 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 9,742</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.2 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,160 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Múltiples espacios y eventos sin sistema unificado</li><li>Rendición y transparencia exigente (fondos públicos)</li><li>Comisiones que erosionan presupuesto municipal</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Plataforma única para todos sus espacios</li><li>✓ Reportes para rendición y transparencia</li><li>✓ Reducción de comisión y control presupuestario</li><li>✓ Abonos, gratuidades y cupos sociales</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-corporacion-cultural-de-las-condes')">Copiar</button>
+    <textarea id="mail-corporacion-cultural-de-las-condes" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Corporación Cultural de Las Condes:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~216 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 151 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Corporación Cultural: Plataforma única para todos sus espacios
+
+💰 Impacto estimado: ~US$ 9,742/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="corporacion-cultural-de-nunoa">
+  <h3><span class="badge b-md">70</span>&nbsp; Corporación Cultural de Ñuñoa</h3>
+  <div class="meta">Corporación Cultural · Ñuñoa, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.ccn.cl" target="_blank">https://www.ccn.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">151 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 9,742</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.2 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,160 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Múltiples espacios y eventos sin sistema unificado</li><li>Rendición y transparencia exigente (fondos públicos)</li><li>Comisiones que erosionan presupuesto municipal</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Plataforma única para todos sus espacios</li><li>✓ Reportes para rendición y transparencia</li><li>✓ Reducción de comisión y control presupuestario</li><li>✓ Abonos, gratuidades y cupos sociales</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-corporacion-cultural-de-nunoa')">Copiar</button>
+    <textarea id="mail-corporacion-cultural-de-nunoa" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Corporación Cultural de Ñuñoa:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~216 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 151 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Corporación Cultural: Plataforma única para todos sus espacios
+
+💰 Impacto estimado: ~US$ 9,742/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="fundacion-corpartes">
+  <h3><span class="badge b-md">70</span>&nbsp; Fundación CorpArtes</h3>
+  <div class="meta">Corporación Cultural · Las Condes, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.corpartes.cl" target="_blank">https://www.corpartes.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">151 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 9,742</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.2 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,160 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Múltiples espacios y eventos sin sistema unificado</li><li>Rendición y transparencia exigente (fondos públicos)</li><li>Comisiones que erosionan presupuesto municipal</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Plataforma única para todos sus espacios</li><li>✓ Reportes para rendición y transparencia</li><li>✓ Reducción de comisión y control presupuestario</li><li>✓ Abonos, gratuidades y cupos sociales</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-fundacion-corpartes')">Copiar</button>
+    <textarea id="mail-fundacion-corpartes" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Fundación CorpArtes:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~216 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 151 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Corporación Cultural: Plataforma única para todos sus espacios
+
+💰 Impacto estimado: ~US$ 9,742/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="matucana-100">
+  <h3><span class="badge b-md">70</span>&nbsp; Matucana 100</h3>
+  <div class="meta">Centro Cultural · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.m100.cl" target="_blank">https://www.m100.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">176 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 10,766</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">6300</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,520 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Agenda diversa (teatro, música, talleres) en sistemas distintos</li><li>Sin datos consolidados de audiencia</li><li>Comisiones altas en eventos masivos</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Una sola plataforma para toda la programación</li><li>✓ CRM y datos consolidados de audiencia</li><li>✓ Comisión reducida y transparente</li><li>✓ Venta de talleres con cupos</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-matucana-100')">Copiar</button>
+    <textarea id="mail-matucana-100" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Matucana 100:
+
+📊 Situación actual:
+- ~525 entradas/mes (~6300 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~252 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 176 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro Cultural: Una sola plataforma para toda la programación
+
+💰 Impacto estimado: ~US$ 10,766/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-artequin">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo Artequin</h3>
+  <div class="meta">Museo · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.artequin.cl" target="_blank">https://www.artequin.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-artequin')">Copiar</button>
+    <textarea id="mail-museo-artequin" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo Artequin:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-fonck">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo Fonck</h3>
+  <div class="meta">Museo · Viña del Mar, Valparaíso
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.museofonck.cl" target="_blank">https://www.museofonck.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-fonck')">Copiar</button>
+    <textarea id="mail-museo-fonck" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo Fonck:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-interactivo-mirador-mim">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo Interactivo Mirador (MIM)</h3>
+  <div class="meta">Museo · La Granja, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.mim.cl" target="_blank">https://www.mim.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-interactivo-mirador-mim')">Copiar</button>
+    <textarea id="mail-museo-interactivo-mirador-mim" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo Interactivo Mirador (MIM):
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-maritimo-nacional">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo Marítimo Nacional</h3>
+  <div class="meta">Museo · Valparaíso, Valparaíso
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.museomaritimo.cl" target="_blank">https://www.museomaritimo.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-maritimo-nacional')">Copiar</button>
+    <textarea id="mail-museo-maritimo-nacional" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo Marítimo Nacional:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-nacional-de-bellas-artes">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo Nacional de Bellas Artes</h3>
+  <div class="meta">Museo · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.mnba.gob.cl" target="_blank">https://www.mnba.gob.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-nacional-de-bellas-artes')">Copiar</button>
+    <textarea id="mail-museo-nacional-de-bellas-artes" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo Nacional de Bellas Artes:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-de-arte-contemporaneo-mac">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo de Arte Contemporáneo (MAC)</h3>
+  <div class="meta">Museo · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.mac.uchile.cl" target="_blank">https://www.mac.uchile.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-de-arte-contemporaneo-mac')">Copiar</button>
+    <textarea id="mail-museo-de-arte-contemporaneo-mac" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo de Arte Contemporáneo (MAC):
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-de-arte-precolombino">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo de Arte Precolombino</h3>
+  <div class="meta">Museo · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://precolombino.cl" target="_blank">https://precolombino.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-de-arte-precolombino')">Copiar</button>
+    <textarea id="mail-museo-de-arte-precolombino" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo de Arte Precolombino:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-de-la-memoria-y-los-derechos-humanos">
+  <h3><span class="badge b-md">70</span>&nbsp; Museo de la Memoria y los Derechos Humanos</h3>
+  <div class="meta">Museo · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://web.museodelamemoria.cl" target="_blank">https://web.museodelamemoria.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-de-la-memoria-y-los-derechos-humanos')">Copiar</button>
+    <textarea id="mail-museo-de-la-memoria-y-los-derechos-humanos" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo de la Memoria y los Derechos Humanos:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="parque-cultural-de-valparaiso">
+  <h3><span class="badge b-md">70</span>&nbsp; Parque Cultural de Valparaíso</h3>
+  <div class="meta">Centro Cultural · Valparaíso, Valparaíso
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.pcdv.cl" target="_blank">https://www.pcdv.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">176 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 10,766</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">6300</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,520 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Agenda diversa (teatro, música, talleres) en sistemas distintos</li><li>Sin datos consolidados de audiencia</li><li>Comisiones altas en eventos masivos</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Una sola plataforma para toda la programación</li><li>✓ CRM y datos consolidados de audiencia</li><li>✓ Comisión reducida y transparente</li><li>✓ Venta de talleres con cupos</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-parque-cultural-de-valparaiso')">Copiar</button>
+    <textarea id="mail-parque-cultural-de-valparaiso" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Parque Cultural de Valparaíso:
+
+📊 Situación actual:
+- ~525 entradas/mes (~6300 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~252 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 176 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro Cultural: Una sola plataforma para toda la programación
+
+💰 Impacto estimado: ~US$ 10,766/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="pinacoteca-universidad-de-concepcion">
+  <h3><span class="badge b-md">70</span>&nbsp; Pinacoteca Universidad de Concepción</h3>
+  <div class="meta">Museo · Concepción, Biobío
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://pinacoteca.udec.cl" target="_blank">https://pinacoteca.udec.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-pinacoteca-universidad-de-concepcion')">Copiar</button>
+    <textarea id="mail-pinacoteca-universidad-de-concepcion" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Pinacoteca Universidad de Concepción:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-biobio">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Biobío</h3>
+  <div class="meta">Teatro · Concepción, Biobío
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.teatrobiobio.cl" target="_blank">https://www.teatrobiobio.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-biobio')">Copiar</button>
+    <textarea id="mail-teatro-biobio" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Biobío:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-mori">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Mori</h3>
+  <div class="meta">Teatro · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.teatromori.cl" target="_blank">https://www.teatromori.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-mori')">Copiar</button>
+    <textarea id="mail-teatro-mori" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Mori:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-municipal-de-las-condes">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Municipal de Las Condes</h3>
+  <div class="meta">Teatro · Las Condes, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.tmlascondes.cl" target="_blank">https://www.tmlascondes.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-municipal-de-las-condes')">Copiar</button>
+    <textarea id="mail-teatro-municipal-de-las-condes" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Municipal de Las Condes:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-municipal-de-santiago">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Municipal de Santiago</h3>
+  <div class="meta">Teatro · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://municipal.cl" target="_blank">https://municipal.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-municipal-de-santiago')">Copiar</button>
+    <textarea id="mail-teatro-municipal-de-santiago" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Municipal de Santiago:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-municipal-de-temuco">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Municipal de Temuco</h3>
+  <div class="meta">Teatro · Temuco, Araucanía
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.culturatemuco.cl" target="_blank">https://www.culturatemuco.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-municipal-de-temuco')">Copiar</button>
+    <textarea id="mail-teatro-municipal-de-temuco" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Municipal de Temuco:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-municipal-de-vina-del-mar">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Municipal de Viña del Mar</h3>
+  <div class="meta">Teatro · Viña del Mar, Valparaíso
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.teatromunicipalvalpo.cl" target="_blank">https://www.teatromunicipalvalpo.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-municipal-de-vina-del-mar')">Copiar</button>
+    <textarea id="mail-teatro-municipal-de-vina-del-mar" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Municipal de Viña del Mar:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-nescafe-de-las-artes">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Nescafé de las Artes</h3>
+  <div class="meta">Teatro · Providencia, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://teatro-nescafe-delasartes.cl" target="_blank">https://teatro-nescafe-delasartes.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-nescafe-de-las-artes')">Copiar</button>
+    <textarea id="mail-teatro-nescafe-de-las-artes" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Nescafé de las Artes:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-regional-cervantes">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Regional Cervantes</h3>
+  <div class="meta">Teatro · Ovalle, Coquimbo
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.teatrocervantes.cl" target="_blank">https://www.teatrocervantes.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-regional-cervantes')">Copiar</button>
+    <textarea id="mail-teatro-regional-cervantes" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Regional Cervantes:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-regional-del-maule">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Regional del Maule</h3>
+  <div class="meta">Teatro · Talca, Maule
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.teatroregionaldelmaule.cl" target="_blank">https://www.teatroregionaldelmaule.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-regional-del-maule')">Copiar</button>
+    <textarea id="mail-teatro-regional-del-maule" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Regional del Maule:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-universidad-de-chile">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Universidad de Chile</h3>
+  <div class="meta">Teatro · Santiago, Metropolitana
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://teatro.uchile.cl" target="_blank">https://teatro.uchile.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-universidad-de-chile')">Copiar</button>
+    <textarea id="mail-teatro-universidad-de-chile" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Universidad de Chile:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-universidad-de-concepcion">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro Universidad de Concepción</h3>
+  <div class="meta">Teatro · Concepción, Biobío
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.teatroudec.cl" target="_blank">https://www.teatroudec.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-universidad-de-concepcion')">Copiar</button>
+    <textarea id="mail-teatro-universidad-de-concepcion" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro Universidad de Concepción:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="teatro-del-lago">
+  <h3><span class="badge b-md">70</span>&nbsp; Teatro del Lago</h3>
+  <div class="meta">Teatro · Frutillar, Los Lagos
+   · Ticketera actual: <b>Desconocida</b> · <a class="row" href="https://www.teatrodellago.cl" target="_blank">https://www.teatrodellago.cl</a>
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">189 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 11,278</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.5 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">5400</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,700 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Comisiones altas a ticketera de terceros</li><li>Sin acceso a los datos de sus clientes (CRM)</li><li>Reportes manuales y lentos para gestión y directorio</li><li>Sin capacidad de venta dinámica por tipo de público</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Reducir comisión a 2-5%</li><li>✓ Acceso 100% a datos de clientes (CRM propio)</li><li>✓ Reportes en tiempo real y automáticos</li><li>✓ Venta dinámica y abonos por temporada</li><li>✓ App móvil para venta en boletería</li><li>✓ Integración con su propio sitio web</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-teatro-del-lago')">Copiar</button>
+    <textarea id="mail-teatro-del-lago" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Teatro del Lago:
+
+📊 Situación actual:
+- ~450 entradas/mes (~5400 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~270 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 189 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Teatro: Reducir comisión a 2-5%
+
+💰 Impacto estimado: ~US$ 11,278/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="centro-cultural-de-antofagasta">
+  <h3><span class="badge b-md">60</span>&nbsp; Centro Cultural de Antofagasta</h3>
+  <div class="meta">Centro Cultural · Antofagasta, Antofagasta
+   · Ticketera actual: <b>Desconocida</b> · —
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">176 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 10,766</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">3.4 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">6300</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">2,520 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Agenda diversa (teatro, música, talleres) en sistemas distintos</li><li>Sin datos consolidados de audiencia</li><li>Comisiones altas en eventos masivos</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Una sola plataforma para toda la programación</li><li>✓ CRM y datos consolidados de audiencia</li><li>✓ Comisión reducida y transparente</li><li>✓ Venta de talleres con cupos</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-centro-cultural-de-antofagasta')">Copiar</button>
+    <textarea id="mail-centro-cultural-de-antofagasta" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Centro Cultural de Antofagasta:
+
+📊 Situación actual:
+- ~525 entradas/mes (~6300 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~252 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 176 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Centro Cultural: Una sola plataforma para toda la programación
+
+💰 Impacto estimado: ~US$ 10,766/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+
+<div class="card" id="museo-maritimo-y-ballenero">
+  <h3><span class="badge b-md">60</span>&nbsp; Museo Marítimo y Ballenero</h3>
+  <div class="meta">Museo · Mejillones, Antofagasta
+   · Ticketera actual: <b>Desconocida</b> · —
+   · <span title="web = leído del sitio; heuristica = estimado por segmento">fuente: heuristica_segmento</span></div>
+  <div class="fin">
+    <div><div class="n">38 UF</div><div class="l">Ahorro comisiones/año</div></div>
+    <div><div class="n">US$ 3,936</div><div class="l">ROI estimado/año</div></div>
+    <div><div class="n">2.0 meses</div><div class="l">Payback</div></div>
+    <div><div class="n">10.0% → 3.0%</div><div class="l">Comisión actual → Xperticket</div></div>
+    <div><div class="n">3600</div><div class="l">Entradas/año (est.)</div></div>
+    <div><div class="n">540 UF</div><div class="l">Ingresos/año (est.)</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div><p class="lbl">Dolores detectados</p><ul><li>Baja conversión de venta online</li><li>Sin tracking del visitante</li><li>Ticketera cara para volumen bajo</li><li>Difícil manejar grupos y colegios</li></ul></div>
+    <div><p class="lbl">Propuesta Xperticket</p><ul><li>✓ Fee plano (no comisión por %)</li><li>✓ CRM para colegios y grupos</li><li>✓ UX diseñada para visita de baja frecuencia</li><li>✓ Reportes de visitante y aforo</li></ul></div>
+  </div>
+  <p class="lbl" style="margin-top:16px">Email de contacto (listo para copiar)</p>
+  <div class="email">
+    <button class="copy" onclick="copiar('mail-museo-maritimo-y-ballenero')">Copiar</button>
+    <textarea id="mail-museo-maritimo-y-ballenero" readonly>Hola equipo,
+
+Somos Xperticket, plataforma SaaS chilena de venta y gestión de entradas.
+
+Analicé la operación de Museo Marítimo y Ballenero:
+
+📊 Situación actual:
+- ~300 entradas/mes (~3600 al año)
+- Sistema actual: Desconocida
+- Comisión estimada: 10.0% (~54 UF/año)
+
+🎯 Oportunidad con Xperticket:
+- Bajar la comisión de 10.0% a 3.0% (ahorro estimado: 38 UF/año)
+- Acceso 100% a los datos de tus clientes (CRM propio)
+- Reportes automáticos en tiempo real
+- Museo: Fee plano (no comisión por %)
+
+💰 Impacto estimado: ~US$ 3,936/año en ahorro + eficiencia.
+
+¿Podemos tomar 20 minutos para explorar cómo aplicaría a tu operación?
+
+Saludos,
+Ernesto Domínguez — Director Comercial GovTech, Proexsi S.A.
+Xperticket.cl</textarea>
+  </div>
+</div>
+</div>
+</div>
+<footer>Generado por el Motor de Prospección Xperticket · Haz clic en una institución de la tabla para ir a su ficha.</footer>
+<script>
+function buscar(){var q=document.getElementById('q').value.toLowerCase();
+var seg=document.getElementById('seg').value;
+document.querySelectorAll('#tabla tbody tr').forEach(function(tr){
+ var t=tr.getAttribute('data-text');var s=tr.getAttribute('data-seg');
+ tr.style.display=(t.indexOf(q)>-1 && (seg===''||s===seg))?'':'none';});}
+function ordenar(i,num){var tb=document.querySelector('#tabla tbody');
+var rows=Array.prototype.slice.call(tb.querySelectorAll('tr'));
+var asc=tb.getAttribute('data-asc-'+i)!=='1';tb.setAttribute('data-asc-'+i,asc?'1':'0');
+rows.sort(function(a,b){var x=a.children[i].getAttribute('data-v')||a.children[i].innerText;
+var y=b.children[i].getAttribute('data-v')||b.children[i].innerText;
+if(num){x=parseFloat(x)||0;y=parseFloat(y)||0;return asc?x-y:y-x;}
+return asc?(''+x).localeCompare(y):(''+y).localeCompare(x);});
+rows.forEach(function(r){tb.appendChild(r);});}
+function copiar(id){var el=document.getElementById(id);el.select();
+document.execCommand('copy');var b=event.target;var o=b.innerText;b.innerText='¡Copiado!';
+setTimeout(function(){b.innerText=o;},1400);}
+</script>
+</body></html>
