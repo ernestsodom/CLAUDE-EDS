@@ -287,13 +287,21 @@ function applyLighting() {
   const night = state.momento === 'noche';
   const indoor = state.entorno === 'indoor';
 
+  // la luz ambiental IBL debe apagarse de noche y atenuarse indoor
+  const envInt = indoor ? (night ? 0.05 : 0.32) : (night ? 0.06 : 1.0);
+  for (const m of [mats.turf, mats.steel, mats.accent, mats.white, mats.fence,
+    mats.net, mats.slab, mats.led, mats.ground, mats.hallFloor, mats.hallWall]) {
+    if (m) m.envMapIntensity = envInt;
+  }
+  mats.glass.envMapIntensity = night ? 0.15 : (indoor ? 0.5 : 1.4);
+
   if (indoor) {
     scene.background = new THREE.Color(0x0b0d10);
     sun.visible = false;
-    hemi.intensity = night ? 0.16 : 0.5;
+    hemi.intensity = night ? 0.16 : 0.78;
     hemi.color.set(0xdfe8f6);
-    indoorLights.children.forEach((p) => { p.intensity = night ? 14 : 95; });
-    mats.hallLight.emissiveIntensity = night ? 0.22 : 2.4;
+    indoorLights.children.forEach((p) => { p.intensity = night ? 14 : 160; });
+    mats.hallLight.emissiveIntensity = night ? 0.22 : 3.2;
     controls.maxDistance = 24;
   } else {
     scene.background = night ? skyNight : skyDay;
@@ -304,8 +312,7 @@ function applyLighting() {
     controls.maxDistance = 55;
   }
 
-  const spotsOn = night || (indoor && state.luces !== 'rielLED' && night);
-  spots.forEach((s) => { s.intensity = spotsOn ? 420 : 0; });
+  spots.forEach((s) => { s.intensity = night ? 420 : 0; });
 
   mats.led.emissiveIntensity = night ? 3.6 : 0.5;
   mats.ledRail.emissiveIntensity = night ? 4.2 : 1.4;

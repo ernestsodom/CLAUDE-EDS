@@ -61,6 +61,12 @@ export function makeMaterials(state, tex) {
   mats.slab = new THREE.MeshStandardMaterial({
     color: 0x0c0d0f, roughness: 0.7, metalness: 0.1,
   });
+  // entorno (referenciados aqui para poder regular envMapIntensity global)
+  mats.ground = new THREE.MeshStandardMaterial({ color: 0xc6c9ce, roughness: 0.95 });
+  mats.hallFloor = new THREE.MeshStandardMaterial({ color: 0x3c4046, roughness: 0.92 });
+  mats.hallWall = new THREE.MeshStandardMaterial({
+    color: 0x181b20, roughness: 0.95, side: THREE.BackSide,
+  });
   return mats;
 }
 
@@ -384,23 +390,19 @@ export function buildEnvironment(state, mats) {
   const indoor = state.entorno === 'indoor';
 
   if (!indoor) {
-    const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(160, 48),
-      new THREE.MeshStandardMaterial({ color: 0xc6c9ce, roughness: 0.95 }));
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(160, 48), mats.ground);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     g.add(ground);
   } else {
     const HALL_W = 44, HALL_D = 26, HALL_H = 9.2;
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(HALL_W, HALL_D),
-      new THREE.MeshStandardMaterial({ color: 0x3c4046, roughness: 0.92 }));
+      new THREE.PlaneGeometry(HALL_W, HALL_D), mats.hallFloor);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     g.add(floor);
     const hall = new THREE.Mesh(
-      new THREE.BoxGeometry(HALL_W, HALL_H, HALL_D),
-      new THREE.MeshStandardMaterial({ color: 0x181b20, roughness: 0.95, side: THREE.BackSide }));
+      new THREE.BoxGeometry(HALL_W, HALL_H, HALL_D), mats.hallWall);
     hall.position.y = HALL_H / 2;
     g.add(hall);
     // cerchas y luminarias lineales
