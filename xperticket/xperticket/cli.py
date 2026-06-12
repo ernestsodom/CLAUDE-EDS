@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import click
 
-from . import analytics, discovery, export, pipeline, storage
+from . import analytics, discovery, export, pipeline, report, storage
 from .config import settings
 
 
@@ -167,6 +167,17 @@ def exportar(que, salida) -> None:
 
     export.guardar(data, salida)
     click.echo(f"✅ Exportado ({que}) a {salida}")
+
+
+@cli.command()
+@click.option("--salida", default="xperticket_reporte.html", help="Archivo HTML de salida.")
+def reporte(salida: str) -> None:
+    """Genera un reporte web autocontenido (HTML) para abrir con doble clic."""
+    if storage.contar_analisis() == 0:
+        raise click.ClickException("No hay análisis. Corre primero: xperti analizar --todos")
+    n = report.guardar_html(salida)
+    click.echo(f"✅ Reporte con {n} prospectos escrito en {salida}")
+    click.echo("   Ábrelo con doble clic en tu navegador (no requiere internet).")
 
 
 @cli.command()

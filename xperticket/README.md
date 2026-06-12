@@ -41,6 +41,24 @@ XPERTI_USD_CLP=960
 
 ---
 
+## 👀 ¿Solo quieres VER los resultados? (sin instalar nada)
+
+Genera un **reporte web en un solo archivo** que se abre con doble clic en
+cualquier navegador (no necesita internet ni servidores):
+
+```bash
+python xperti.py sembrar
+python xperti.py analizar --todos
+python xperti.py reporte --salida xperticket_reporte.html
+```
+
+Doble clic en `xperticket_reporte.html` y verás KPIs, el ranking filtrable de
+prospectos y, por cada uno, su análisis, propuesta y el email listo para copiar.
+Hay un ejemplo ya generado en [`ejemplos/xperticket_reporte_demo.html`](ejemplos/xperticket_reporte_demo.html)
+(descárgalo y ábrelo).
+
+---
+
 ## ⌨️ Uso rápido — Línea de comandos
 
 ```bash
