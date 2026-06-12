@@ -6,6 +6,14 @@ Ejecutar:  streamlit run app.py
 
 from __future__ import annotations
 
+# En Streamlit Community Cloud el directorio de trabajo es la raíz del repo, por
+# lo que aseguramos que la carpeta de este archivo (que contiene el paquete
+# `xperticket`) esté en el path, sin importar desde dónde se ejecute.
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import pandas as pd
 import streamlit as st
 
