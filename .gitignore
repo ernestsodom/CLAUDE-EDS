@@ -9,3 +9,6 @@ data/
 *.sqlite
 *.xlsx
 *.csv
+
+# Renders intermedios de padel_render
+padel_render/out/preview*.png
