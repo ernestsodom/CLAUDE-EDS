@@ -1,0 +1,39 @@
+name: Deploy configurador a Vercel
+
+on:
+  workflow_dispatch:
+    inputs:
+      vercel_token:
+        description: 'Vercel token (alternativa al secret VERCEL_TOKEN)'
+        required: false
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: configurador
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar Vercel CLI
+        run: npm i -g vercel
+
+      - name: Deploy a producción
+        env:
+          VTOKEN: ${{ inputs.vercel_token || secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VTOKEN" ]; then
+            echo "Falta el token: pásalo como input o crea el secret VERCEL_TOKEN" >&2
+            exit 1
+          fi
+          vercel link --yes --project padelstudio --token "$VTOKEN"
+          vercel deploy --prod --yes --token "$VTOKEN" 2>&1 | tee deploy.log
+          echo "----------------------------------------"
+          echo "URL_PRODUCCION: $(grep -Eo 'https://[a-zA-Z0-9.-]+\.vercel\.app' deploy.log | tail -1)"
+          vercel alias ls --token "$VTOKEN" 2>/dev/null | head -10 || true
