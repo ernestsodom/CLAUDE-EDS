@@ -43,7 +43,7 @@ Z4 = SLAB_TOP + H_TOP
 MESH_STEP = 0.05                   # paso malla 50x50mm
 WIRE = 0.007                       # grosor alambre (sobredimensionado para
                                    # legibilidad a distancia de camara)
-DOOR_W0, DOOR_W1 = 0.15, 1.15      # apertura de acceso (desde eje red)
+DOOR_HALF = 1.15                   # media apertura de acceso (puerta unica 2.3m)
 DOOR_H = SLAB_TOP + 2.05           # altura apertura
 GLASS_T = 0.012                    # vidrio templado 12mm
 
@@ -350,13 +350,11 @@ for sx in (-1, 1):
 # ----------------------------------------------------------------------------
 for sy in (-1, 1):
     wy = sy * WALL_Y
-    # tramos centrales laterales (3m) con aperturas de acceso junto a la red
-    wire_panel(f"mesh_side_a{sy}", 'x', wy, -HX + 2.0, -DOOR_W1, SLAB_TOP, Z3)
-    wire_panel(f"mesh_side_b{sy}", 'x', wy, DOOR_W1, HX - 2.0, SLAB_TOP, Z3)
-    wire_panel(f"mesh_side_c{sy}", 'x', wy, -DOOR_W0, DOOR_W0, SLAB_TOP, Z3)
-    # dinteles sobre las aperturas
-    wire_panel(f"mesh_door_t1{sy}", 'x', wy, DOOR_W0, DOOR_W1, DOOR_H, Z3)
-    wire_panel(f"mesh_door_t2{sy}", 'x', wy, -DOOR_W1, -DOOR_W0, DOOR_H, Z3)
+    # tramos centrales laterales (3m) con UNA apertura amplia junto a la red
+    wire_panel(f"mesh_side_a{sy}", 'x', wy, -HX + 2.0, -DOOR_HALF, SLAB_TOP, Z3)
+    wire_panel(f"mesh_side_b{sy}", 'x', wy, DOOR_HALF, HX - 2.0, SLAB_TOP, Z3)
+    # dintel enrejado sobre la apertura
+    wire_panel(f"mesh_door_t{sy}", 'x', wy, -DOOR_HALF, DOOR_HALF, DOOR_H, Z3)
     # franja 3-4m sobre vidrio de esquinas
     wire_panel(f"mesh_cor_a{sy}", 'x', wy, -HX, -HX + 2.0, Z3, Z4)
     wire_panel(f"mesh_cor_b{sy}", 'x', wy, HX - 2.0, HX, Z3, Z4)
@@ -414,18 +412,15 @@ for sy in (-1, 1):
         cyl(f"rail_t_cor{sx}{sy}", RT, 2.0 + 0.06,
             (sx * (HX - 1.0), sy * WALL_Y, Z4), (0, math.pi / 2, 0), M_STEEL)
 
-# marcos de acceso naranjo fluor
+# marco de acceso naranjo fluor: una sola puerta amplia por lado
 frames = []
 FT = 0.07
 for sy in (-1, 1):
     wy = sy * WALL_Y
-    for s in (-1, 1):
-        x_in, x_out = s * DOOR_W0, s * DOOR_W1
-        for xj in (x_in, x_out):
-            frames.append((xj, wy, (SLAB_TOP + DOOR_H) / 2, FT, FT,
-                           DOOR_H - SLAB_TOP))
-        frames.append(((x_in + x_out) / 2, wy, DOOR_H, DOOR_W1 - DOOR_W0 + FT,
-                       FT, FT))
+    for xj in (-DOOR_HALF, DOOR_HALF):
+        frames.append((xj, wy, (SLAB_TOP + DOOR_H) / 2, FT, FT,
+                       DOOR_H - SLAB_TOP))
+    frames.append((0, wy, DOOR_H, 2 * DOOR_HALF + FT, FT, FT))
 boxes_mesh("door_frames", frames, M_ORANGE)
 
 # ----------------------------------------------------------------------------
@@ -455,9 +450,17 @@ for sy in (-1, 1):
         (0, 0, 0), M_ORANGE)
 
 # ----------------------------------------------------------------------------
-# Postes de iluminacion curvos (6) con barra LED
+# Iluminacion: 4 brazos curvos que nacen de la estructura (postes x=+-6)
 # ----------------------------------------------------------------------------
+POLE_X = (-6.0, 6.0)
+ARM_RISE = 2.25            # cota de arranque del brazo sobre el poste
+HEAD_Z = 6.05
+
+
 def light_pole(x, side):
+    """Brazo curvo montado al poste estructural. side=1 -> muro y negativo."""
+    wy = -side * WALL_Y
+    tube_y = wy - side * 0.115     # tubo pegado a la cara exterior del poste
     cu = bpy.data.curves.new("pole_curve", 'CURVE')
     cu.dimensions = '3D'
     cu.bevel_depth = 0.05
@@ -465,44 +468,50 @@ def light_pole(x, side):
     cu.fill_mode = 'FULL'
     sp = cu.splines.new('BEZIER')
     sp.bezier_points.add(3)
-    pts = [(0, 0, 0), (0, 0, 4.6), (0, side * 0.55, 5.95), (0, side * 1.95, 6.35)]
+    pts = [(0, 0, 0), (0, 0, 2.55), (0, side * 0.55, 3.35),
+           (0, side * 1.55, HEAD_Z - ARM_RISE - 0.02)]
     for bp, co in zip(sp.bezier_points, pts):
         bp.co = co
         bp.handle_left_type = bp.handle_right_type = 'AUTO'
     ob = bpy.data.objects.new("light_pole", cu)
-    ob.location = (x, -side * (WALL_Y + 1.35), 0)
+    ob.location = (x, tube_y, ARM_RISE)
     C.collection.objects.link(ob)
     cu.materials.append(M_STEEL)
-    base_y = -side * (WALL_Y + 1.35)
-    cyl("pole_base", 0.16, 0.025, (x, base_y, 0.0125), (0, 0, 0), M_STEEL)
-    # cabezal LED
-    head_y = base_y + side * 2.18
-    hb = box("led_head", x, head_y, 6.33, 1.15, 0.30, 0.095, M_STEEL)
+    # abrazaderas al poste estructural
+    for zb in (ARM_RISE + 0.12, ARM_RISE + 0.62):
+        box("pole_clamp", x, wy - side * 0.055, zb, 0.13, 0.13, 0.07, M_STEEL)
+    # tapa inferior del tubo
+    cyl("pole_end", 0.052, 0.02, (x, tube_y, ARM_RISE - 0.01), (0, 0, 0),
+        M_ORANGE, verts=16)
+    # cabezal LED sobre la cancha
+    head_y = tube_y + side * 1.78
+    hb = box("led_head", x, head_y, HEAD_Z, 1.15, 0.30, 0.095, M_STEEL)
     bev = hb.modifiers.new("bev", 'BEVEL')
     bev.width = 0.028
     bev.segments = 3
-    box("led_strip", x, head_y, 6.282, 0.98, 0.21, 0.006, M_LED)
+    box("led_strip", x, head_y, HEAD_Z - 0.049, 0.98, 0.21, 0.006, M_LED)
     # detalle naranja en extremos del cabezal
     for s in (-1, 1):
-        box("led_tip", x + s * 0.585, head_y, 6.33, 0.02, 0.30, 0.095, M_ORANGE)
+        box("led_tip", x + s * 0.585, head_y, HEAD_Z, 0.02, 0.30, 0.095,
+            M_ORANGE)
+    return head_y
 
 
-for px in (-6.5, 0.0, 6.5):
-    light_pole(px, 1)    # lado y negativo, curva hacia +y
-    light_pole(px, -1)   # lado y positivo
+HEADS = []
+for px in POLE_X:
+    HEADS.append((px, light_pole(px, 1)))    # muro y negativo
+    HEADS.append((px, light_pole(px, -1)))   # muro y positivo
 
 # luces reales bajo cada cabezal (aporte fisico en escena nocturna)
 if NIGHT:
-    for px in (-6.5, 0.0, 6.5):
-        for sy in (-1, 1):
-            bpy.ops.object.light_add(type='AREA',
-                                     location=(px, sy * (WALL_Y + 1.35 - 2.18), 6.25))
-            lt = C.active_object
-            lt.data.size = 1.0
-            lt.data.size_y = 0.22
-            lt.data.energy = 900
-            lt.data.color = (1.0, 0.96, 0.9)
-            lt.rotation_euler = (0, 0, 0)
+    for (px, hy) in HEADS:
+        bpy.ops.object.light_add(type='AREA', location=(px, hy, HEAD_Z - 0.06))
+        lt = C.active_object
+        lt.data.size = 1.0
+        lt.data.size_y = 0.22
+        lt.data.energy = 1400
+        lt.data.color = (1.0, 0.96, 0.9)
+        lt.rotation_euler = (0, 0, 0)
 
 # ----------------------------------------------------------------------------
 # Iluminacion de estudio y mundo
