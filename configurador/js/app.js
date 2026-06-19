@@ -12,12 +12,13 @@ import {
 // ----------------------------------------------------------------------------
 const state = {
   tipo: 'panoramica',        // panoramica | semi | normal
-  entorno: 'estudio',        // estudio | patio | club | campo | azotea | indoor
+  entorno: 'estudio',        // estudio | estadio | patio | club | campo | azotea | indoor
   momento: 'dia',
   cesped: '#15161a',
   estructura: '#0e0f12',
   postesLuz: '#0e0f12',
   acento: '#ff5a00',
+  lineas: '#ffffff',
   luces: 'curvo',            // curvo | mastil | esquina | rielLED
   logoData: null,
   logoPos: 'pista',
@@ -26,18 +27,18 @@ const state = {
 };
 
 const PRESETS = {
-  fluor:      { label: 'Negro Flúor',     cesped: '#15161a', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ff5a00' },
-  azulpro:    { label: 'Azul Pro',        cesped: '#1f4fd8', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#eaff00' },
-  verdeclub:  { label: 'Verde Club',      cesped: '#2e7d32', estructura: '#1d3a2a', postesLuz: '#1d3a2a', acento: '#ffffff' },
-  ice:        { label: 'White Ice',       cesped: '#b9bfc7', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#00b3d6' },
-  premier:    { label: 'Premier Red',     cesped: '#15161a', estructura: '#0e0f12', postesLuz: '#1a1c20', acento: '#ff1744' },
-  mundial:    { label: 'Mundial WPT',     cesped: '#1f4fd8', estructura: '#0e0f12', postesLuz: '#f2f3f5', acento: '#ffffff' },
-  terracota:  { label: 'Terracota',       cesped: '#b3502b', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ff5a00' },
-  rosaurbana: { label: 'Rosa Urbana',     cesped: '#d6447e', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#ffffff' },
-  grafito:    { label: 'Grafito Lima',    cesped: '#2b2e33', estructura: '#3a3f46', postesLuz: '#3a3f46', acento: '#39ff14' },
-  marino:     { label: 'Marino Gold',     cesped: '#14306e', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#ffc400' },
-  bosque:     { label: 'Bosque',          cesped: '#1c4a26', estructura: '#1d3a2a', postesLuz: '#0e0f12', acento: '#eaff00' },
-  totalblack: { label: 'Total Black',     cesped: '#101113', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ffffff' },
+  fluor:      { label: 'Negro Flúor',     cesped: '#15161a', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ff5a00', lineas: '#ffffff' },
+  azulpro:    { label: 'Azul Pro',        cesped: '#1f4fd8', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#eaff00', lineas: '#ffffff' },
+  verdeclub:  { label: 'Verde Club',      cesped: '#2e7d32', estructura: '#1d3a2a', postesLuz: '#1d3a2a', acento: '#ffffff', lineas: '#ffffff' },
+  ice:        { label: 'White Ice',       cesped: '#b9bfc7', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#00b3d6', lineas: '#1a1c20' },
+  premier:    { label: 'Premier Red',     cesped: '#15161a', estructura: '#0e0f12', postesLuz: '#1a1c20', acento: '#ff1744', lineas: '#ffffff' },
+  mundial:    { label: 'Mundial WPT',     cesped: '#1f4fd8', estructura: '#0e0f12', postesLuz: '#f2f3f5', acento: '#ffffff', lineas: '#ffffff' },
+  terracota:  { label: 'Terracota',       cesped: '#b3502b', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ff5a00', lineas: '#ffffff' },
+  rosaurbana: { label: 'Rosa Urbana',     cesped: '#d6447e', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#ffffff', lineas: '#ffffff' },
+  grafito:    { label: 'Grafito Lima',    cesped: '#2b2e33', estructura: '#3a3f46', postesLuz: '#3a3f46', acento: '#39ff14', lineas: '#39ff14' },
+  marino:     { label: 'Marino Gold',     cesped: '#14306e', estructura: '#f2f3f5', postesLuz: '#f2f3f5', acento: '#ffc400', lineas: '#ffffff' },
+  bosque:     { label: 'Bosque',          cesped: '#1c4a26', estructura: '#1d3a2a', postesLuz: '#0e0f12', acento: '#eaff00', lineas: '#ffffff' },
+  totalblack: { label: 'Total Black',     cesped: '#101113', estructura: '#0e0f12', postesLuz: '#0e0f12', acento: '#ffffff', lineas: '#ffffff' },
 };
 
 // ----------------------------------------------------------------------------
@@ -156,6 +157,82 @@ function bannerTexture(text, color) {
   return t;
 }
 
+function crowdTexture() {
+  // tribuna llena de gente: filas de cabezas + torsos de colores
+  const t = canvasTexture((ctx, w, h) => {
+    ctx.fillStyle = '#0a0c10';
+    ctx.fillRect(0, 0, w, h);
+    let seed = 11;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const skins = ['#e8b48f', '#caa07a', '#9c7355', '#f0c8a0', '#7a5638'];
+    const shirts = ['#d23b3b', '#2f6fd0', '#e3c93a', '#37a84e', '#e8e8e8', '#9b3fb5',
+      '#ff8c2b', '#23b5c4', '#cf4f8f', '#3d4654', '#c0c4cc'];
+    const rows = 26, cols = 64;
+    const cw = w / cols, ch = h / rows;
+    for (let r = 0; r < rows; r++) {
+      const oy = h - (r + 1) * ch;
+      for (let c = 0; c < cols; c++) {
+        if (rnd() < 0.08) continue; // butaca vacía
+        const ox = c * cw + (rnd() - 0.5) * cw * 0.4;
+        ctx.fillStyle = shirts[(rnd() * shirts.length) | 0];
+        ctx.fillRect(ox + cw * 0.12, oy + ch * 0.42, cw * 0.76, ch * 0.55);
+        ctx.fillStyle = skins[(rnd() * skins.length) | 0];
+        ctx.beginPath();
+        ctx.arc(ox + cw * 0.5, oy + ch * 0.34, cw * 0.26, 0, 7); ctx.fill();
+      }
+      // sombra de grada
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillRect(0, oy + ch * 0.92, w, ch * 0.12);
+    }
+  }, 1024, 512);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  return t;
+}
+
+function grassTexture() {
+  const t = canvasTexture((ctx, w, h) => {
+    ctx.fillStyle = '#4f7a3f';
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 9000; i++) {
+      const g = 90 + Math.random() * 90;
+      ctx.fillStyle = `rgba(${(g * 0.5) | 0},${g | 0},${(g * 0.4) | 0},0.5)`;
+      const x = Math.random() * w, y = Math.random() * h;
+      ctx.fillRect(x, y, 1.5, 2.5 + Math.random() * 2);
+    }
+    // franjas de corte tipo jardín
+    for (let i = 0; i < 16; i++) {
+      ctx.fillStyle = i % 2 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+      ctx.fillRect(0, (i / 16) * h, w, h / 16);
+    }
+  }, 512, 512);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(34, 34);
+  t.anisotropy = 8;
+  return t;
+}
+
+function adRingTexture() {
+  const t = canvasTexture((ctx, w, h) => {
+    ctx.fillStyle = '#0b0c0f';
+    ctx.fillRect(0, 0, w, h);
+    const ads = ['PADEL STUDIO', 'PRO TOUR', 'THE PADEL SPECIALIST', 'PADEL CENTER', 'WORLD PADEL'];
+    const cols = ['#ff5a00', '#ffffff', '#eaff00', '#00e5ff', '#ffffff'];
+    const seg = w / ads.length;
+    for (let i = 0; i < ads.length; i++) {
+      ctx.fillStyle = i % 2 ? '#101319' : '#0b0c0f';
+      ctx.fillRect(i * seg, 0, seg, h);
+      ctx.fillStyle = cols[i];
+      ctx.font = '900 92px Inter, Arial, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(ads[i], i * seg + seg / 2, h / 2);
+    }
+  }, 2048, 128);
+  t.wrapS = THREE.RepeatWrapping; t.repeat.set(2, 1);
+  t.anisotropy = 8;
+  return t;
+}
+
 // ----------------------------------------------------------------------------
 // Escena base
 // ----------------------------------------------------------------------------
@@ -206,12 +283,25 @@ for (const px of [-10, 0, 10]) {
 }
 scene.add(indoorLights);
 
+// focos cenitales de arena (estadio): 4 proyectores desde el techo al court
+const arenaLights = new THREE.Group();
+for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+  const s = new THREE.SpotLight(0xfff4e6, 0, 70, 0.7, 0.5, 1.2);
+  s.position.set(sx * 16, 21, sz * 14);
+  s.target.position.set(sx * 3, 0, sz * 2);
+  arenaLights.add(s); arenaLights.add(s.target);
+}
+scene.add(arenaLights);
+
 // texturas + materiales
 const tex = {
   grid: gridTexture(),
   net: netTexture(),
   turfBump: turfBumpTexture(),
   windows: windowsTexture(),
+  crowd: crowdTexture(),
+  grass: grassTexture(),
+  adRing: adRingTexture(),
 };
 const SKIES = {
   estudio: skyTexture([[0, '#bcccdf'], [0.55, '#dfe7ef'], [1, '#f2f4f6']]),
@@ -221,10 +311,10 @@ const SKIES = {
 
 const mats = makeMaterials(state, tex);
 mats.ledRail = new THREE.MeshStandardMaterial({
-  color: 0x16181c, emissive: state.acento, emissiveIntensity: 1.4,
+  color: 0x16181c, emissive: state.acento, emissiveIntensity: 1.2,
 });
 mats.hallLight = new THREE.MeshStandardMaterial({
-  color: 0x101114, emissive: 0xffffff, emissiveIntensity: 2.6,
+  color: 0x101114, emissive: 0xffffff, emissiveIntensity: 2.2,
 });
 mats.blob = new THREE.MeshBasicMaterial({
   map: blobShadowTexture(), transparent: true, depthWrite: false,
@@ -312,48 +402,60 @@ function rebuildBrand() {
 function applyLighting() {
   const night = state.momento === 'noche';
   const indoor = state.entorno === 'indoor';
+  const estadio = state.entorno === 'estadio';
+  const cerrado = indoor || estadio;   // recinto techado
 
-  // IBL global: se apaga de noche y se atenua indoor
-  const envInt = indoor ? (night ? 0.05 : 0.32) : (night ? 0.06 : 1.0);
+  // IBL global: se apaga de noche y se atenua en recintos cerrados
+  const envInt = cerrado ? (night ? 0.06 : 0.3) : (night ? 0.07 : 0.95);
   scene.traverse((o) => {
     if (!o.isMesh) return;
     const ms = Array.isArray(o.material) ? o.material : [o.material];
     for (const m of ms) {
       if (m && m.isMeshStandardMaterial) m.envMapIntensity = envInt;
-      if (m && m.isMeshPhysicalMaterial) {
-        m.envMapIntensity = night ? 0.15 : (indoor ? 0.5 : 1.4);
-      }
+      if (m && m.isMeshPhysicalMaterial) m.envMapIntensity = night ? 0.15 : (cerrado ? 0.5 : 1.2);
     }
   });
 
-  if (indoor) {
+  indoorLights.children.forEach((p) => { p.intensity = 0; });
+  arenaLights.children.forEach((s) => { if (s.isSpotLight) s.intensity = 0; });
+
+  if (estadio) {
+    // arena siempre "iluminada de evento": ambiente bajo + focos cenitales
+    scene.background = new THREE.Color(0x07080b);
+    sun.visible = false;
+    hemi.intensity = 0.5; hemi.color.set(0xcdd6e6);
+    arenaLights.children.forEach((s) => { if (s.isSpotLight) s.intensity = 300; });
+    controls.maxDistance = 56;
+  } else if (indoor) {
     scene.background = new THREE.Color(0x0b0d10);
     sun.visible = false;
-    hemi.intensity = night ? 0.16 : 0.95;
+    hemi.intensity = night ? 0.18 : 0.85;
     hemi.color.set(0xdfe8f6);
-    indoorLights.children.forEach((p) => { p.intensity = night ? 30 : 560; });
-    mats.hallLight.emissiveIntensity = night ? 0.22 : 3.6;
-    controls.maxDistance = 42;
+    indoorLights.children.forEach((p) => { p.intensity = night ? 26 : 320; });
+    mats.hallLight.emissiveIntensity = night ? 0.25 : 2.2;
+    controls.maxDistance = 44;
   } else {
     scene.background = night ? SKIES.noche
       : (state.entorno === 'estudio' ? SKIES.estudio : SKIES.exterior);
     sun.visible = !night;
-    hemi.intensity = night ? 0.14 : 0.95;
+    sun.intensity = 2.9;
+    hemi.intensity = night ? 0.16 : 0.9;
     hemi.color.set(night ? 0x96a8c8 : 0xe9eef6);
-    indoorLights.children.forEach((p) => { p.intensity = 0; });
-    controls.maxDistance = 70;
+    controls.maxDistance = 72;
   }
 
   // ventanas de casas/edificios encendidas de noche
-  mats.windowGlow.emissiveIntensity = night ? 2.6 : 0.05;
+  mats.windowGlow.emissiveIntensity = night ? 1.6 : 0.04;
 
-  const perSpot = state.luces === 'rielLED' ? 340 : 460;
-  spots.forEach((s) => { s.intensity = night ? perSpot : 0; });
+  // focos del modelo de luz: encendidos de noche, o siempre en estadio
+  const lit = night || estadio;
+  const perSpot = state.luces === 'rielLED' ? 130 : 180;
+  spots.forEach((s) => { s.intensity = lit ? perSpot : 0; });
 
-  mats.led.emissiveIntensity = night ? 3.6 : 0.5;
-  mats.ledRail.emissiveIntensity = night ? 6.0 : 1.4;
-  mats.accent.emissiveIntensity = night ? 1.1 : 0.3;
-  renderer.toneMappingExposure = night ? 0.9 : (indoor ? 1.0 : 1.06);
+  mats.led.emissiveIntensity = lit ? 1.8 : 0.4;
+  mats.ledRail.emissiveIntensity = night ? 3.0 : 1.0;
+  mats.accent.emissiveIntensity = night ? 0.6 : 0.22;
+  renderer.toneMappingExposure = estadio ? 1.0 : (night ? 0.92 : (indoor ? 1.0 : 1.04));
 }
 
 // ----------------------------------------------------------------------------
@@ -522,8 +624,23 @@ function onStructure() {
   renderPrice();
 }
 
+const CAM_PRESETS = {
+  estadio: { p: [31, 22, 37], t: [0, 1.6, 0] },
+  indoor: { p: [23, 13, 28], t: [0, 1.2, 0] },
+  campo: { p: [20, 12, 24], t: [0, 1.0, 0] },
+  azotea: { p: [21, 13, 25], t: [0, 1.2, 0] },
+  _: { p: [18.5, 11.5, 22.5], t: [0, 0.95, 0] },
+};
+function frameCamera(env) {
+  const c = CAM_PRESETS[env] || CAM_PRESETS._;
+  camera.position.set(c.p[0], c.p[1], c.p[2]);
+  controls.target.set(c.t[0], c.t[1], c.t[2]);
+  controls.update();
+}
+
 function onEnv() {
   rebuildEnv();
+  frameCamera(state.entorno);
   applyLighting();
   renderPrice();
 }
@@ -543,6 +660,7 @@ function syncUI() {
   syncCards('cardsEntorno', state.entorno);
   syncCards('cardsLuces', state.luces);
   syncSwatch($('swCesped'), state.cesped);
+  syncSwatch($('swLineas'), state.lineas);
   syncSwatch($('swEstructura'), state.estructura);
   syncSwatch($('swPostes'), state.postesLuz);
   syncSwatch($('swAcento'), state.acento);
@@ -575,6 +693,11 @@ function initUI() {
     ['#14306e', 'Azul marino'], ['#2e7d32', 'Verde'], ['#1c4a26', 'Verde oscuro'],
     ['#b3502b', 'Terracota'], ['#d6447e', 'Rosa'], ['#b9bfc7', 'Gris claro'],
   ], 'cesped', onColors);
+
+  buildSwatches('swLineas', [
+    ['#ffffff', 'Blanco'], ['#1a1c20', 'Negro'], ['#ff5a00', 'Naranjo'],
+    ['#eaff00', 'Amarillo'], ['#39ff14', 'Verde flúor'], ['#00e5ff', 'Cian'],
+  ], 'lineas', onColors);
 
   buildSwatches('swEstructura', [
     ['#0e0f12', 'Negro'], ['#3a3f46', 'Antracita'], ['#f2f3f5', 'Blanco'],
@@ -693,7 +816,7 @@ function loadFromHash() {
   try {
     const data = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
     for (const k of ['tipo', 'entorno', 'momento', 'cesped', 'estructura',
-      'postesLuz', 'acento', 'luces', 'logoPos', 'logoSize', 'club']) {
+      'postesLuz', 'acento', 'lineas', 'luces', 'logoPos', 'logoSize', 'club']) {
       if (data[k] !== undefined) state[k] = data[k];
     }
     // migracion de enlaces antiguos

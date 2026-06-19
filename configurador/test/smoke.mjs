@@ -11,12 +11,12 @@ const fail = [];
 
 for (const tipo of ['panoramica', 'semi', 'normal']) {
   for (const luces of ['curvo', 'mastil', 'esquina', 'rielLED']) {
-    for (const entorno of ['estudio', 'patio', 'club', 'campo', 'azotea', 'indoor']) {
+    for (const entorno of ['estudio', 'estadio', 'indoor', 'patio', 'club', 'campo', 'azotea']) {
       total++;
       const state = {
         tipo, luces, entorno,
         cesped: '#1f4fd8', estructura: '#0e0f12',
-        postesLuz: '#f2f3f5', acento: '#ff5a00',
+        postesLuz: '#f2f3f5', acento: '#ff5a00', lineas: '#ffffff',
       };
       try {
         const mats = makeMaterials(state, null);

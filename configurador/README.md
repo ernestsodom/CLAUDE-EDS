@@ -8,14 +8,15 @@ referencial al instante y envía la cotización.
 
 | Categoría | Opciones |
 |---|---|
-| Tipo de pista | **Panorámica 100%** (vidrio pegado con silicona estructural, sin perfiles) / **Semi panorámica** (perfiles solo en las 4 esquinas) / **Normal** (pilares verticales completos, sin vigas intermedias) |
-| Entorno | **Estudio** / **Patio de casa** / **Club deportivo** / **Campo** / **Azotea de edificio** / **Indoor** (nave de 14,5 m con cerchas) |
+| Tipo de pista | **Panorámica 100%** (vidrio 3 m pegado con silicona, sin perfiles) / **Semi panorámica** (perfiles solo en las 4 esquinas) / **Normal** (pilares verticales completos). Todas con vidrio de 3 m + franja de malla de 1 m arriba (4 m total, reglamento FIP) |
+| Entorno | **Estudio** / **Estadio** (gradas con público, vallas LED, techo de arena) / **Indoor** (nave de 15 m) / **Patio de casa** / **Club** / **Campo** / **Azotea de edificio** |
 | Momento | **Día / Noche** (LED encendidas, ventanas de la ciudad iluminadas, acentos flúor brillando) |
 | Césped | 9 colores + selector libre |
-| Estructura (perfiles) | 6 colores + selector libre |
+| Líneas de juego | 6 colores + selector libre |
+| Estructura (perfiles, postes, rejas) | 6 colores + selector libre |
 | Postes de luz | Color **independiente** de la estructura — 6 colores + libre |
 | Acentos | Riel perimetral, marcos de acceso y detalles — 7 colores + libre |
-| Iluminación | Siempre montada sobre la estructura: **Brazo curvo** / **Mástil recto WPT** (cruceta + doble proyector) / **Mástiles de esquina 45°** estilo Premier Padel / **Riel LED perimetral** |
+| Iluminación | Postes que **nacen de la estructura como una sola pieza** (no apéndices): **Brazo curvo** / **Mástil recto WPT** (cruceta + doble proyector) / **Mástiles de esquina 45°** estilo Premier Padel / **Riel LED perimetral** |
 | Detalles | Placas de anclaje con pernos hexagonales, abrazaderas con pernos, manguitos de unión riel-poste, juntas de silicona en vidrio panorámico, fijaciones botón en semi |
 | Branding | **Subir logo** (pista, vidrio de fondo o ambos, con tamaño regulable) + **nombre del club** |
 | Ventas | **Precio referencial** desglosado en CLP en vivo + botón **Solicitar cotización** |
