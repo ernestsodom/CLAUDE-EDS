@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estudio de Mercado Cultural Chile 2026</title>
+<style>
+  :root {
+    --azul: #1a3a5c;
+    --azul-claro: #2563eb;
+    --acento: #f59e0b;
+    --verde: #16a34a;
+    --rojo: #dc2626;
+    --gris: #64748b;
+    --gris-claro: #f8fafc;
+    --borde: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a3a5c 0%, #2563eb 100%);
+    color: white;
+    padding: 48px 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .header-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+  .header-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .header h1 { font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 10px; }
+  .header h2 { font-size: 16px; font-weight: 400; opacity: 0.8; margin-bottom: 24px; }
+  .header-meta {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    font-size: 13px; opacity: 0.7;
+  }
+  .header-meta span::before { content: '▸ '; }
+
+  /* NAV */
+  .nav {
+    background: white;
+    border-bottom: 2px solid var(--borde);
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; gap: 0; overflow-x: auto;
+  }
+  .nav a {
+    display: block; padding: 14px 18px;
+    font-size: 13px; font-weight: 500;
+    color: var(--gris); text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .nav a:hover { color: var(--azul-claro); border-bottom-color: var(--azul-claro); }
+
+  /* MAIN */
+  .main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* SECCIÓN */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 22px; font-weight: 700; color: var(--azul);
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 3px solid var(--acento);
+  }
+  .section-title .num {
+    background: var(--azul);
+    color: white;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px; margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--borde);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .kpi-card .value {
+    font-size: 28px; font-weight: 800;
+    color: var(--azul-claro); line-height: 1;
+    margin-bottom: 6px;
+  }
+  .kpi-card .label { font-size: 12px; color: var(--gris); font-weight: 500; }
+  .kpi-card .year { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+  /* TABLAS */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--borde); margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; background: white; font-size: 13.5px; }
+  thead tr { background: var(--azul); color: white; }
+  thead th { padding: 12px 14px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  tbody tr:hover { background: #eff6ff; }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* BADGES */
+  .badge {
+    display: inline-block; border-radius: 6px;
+    padding: 2px 8px; font-size: 11px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-red { background: #fee2e2; color: #b91c1c; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-gray { background: #f1f5f9; color: #475569; }
+
+  /* ESTRELLAS */
+  .stars { color: var(--acento); font-size: 15px; letter-spacing: 1px; }
+
+  /* RANKING CARDS */
+  .ranking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .ranking-grid { grid-template-columns: 1fr; } }
+  .inst-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--borde);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    display: flex; gap: 14px;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .inst-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-1px); }
+  .inst-rank {
+    font-size: 28px; font-weight: 900;
+    color: var(--azul); opacity: 0.15;
+    line-height: 1; flex-shrink: 0; width: 40px;
+  }
+  .inst-body { flex: 1; }
+  .inst-name { font-size: 15px; font-weight: 700; color: var(--azul); margin-bottom: 4px; }
+  .inst-city { font-size: 12px; color: var(--gris); margin-bottom: 8px; }
+  .inst-why { font-size: 13px; color: #334155; margin-bottom: 8px; line-height: 1.4; }
+  .inst-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nivel-header {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 16px;
+  }
+  .nivel-badge {
+    padding: 6px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .nivel-1 { background: #dc2626; color: white; }
+  .nivel-2 { background: #f59e0b; color: white; }
+  .nivel-3 { background: #64748b; color: white; }
+  .nivel-label { font-size: 15px; font-weight: 600; color: #334155; }
+
+  /* DOLOR CARDS */
+  .dolor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .dolor-grid { grid-template-columns: 1fr; } }
+  .dolor-card {
+    background: white; border-radius: 12px; padding: 20px;
+    border: 1px solid var(--borde);
+    border-left: 4px solid var(--rojo);
+  }
+  .dolor-num { font-size: 11px; font-weight: 700; color: var(--rojo); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .dolor-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+  .dolor-desc { font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 12px; }
+  .dolor-ventaja {
+    background: #f0fdf4; border-radius: 8px; padding: 10px 12px;
+    font-size: 12px; color: #15803d; font-weight: 600;
+    border-left: 3px solid var(--verde);
+  }
+  .dolor-ventaja::before { content: '✅ Tu ventaja: '; }
+
+  /* TABLA PROPUESTA VALOR */
+  .valor-table tbody tr td:first-child { color: var(--rojo); font-size: 13px; }
+  .valor-table tbody tr td:last-child { color: var(--verde); font-weight: 600; font-size: 13px; }
+
+  /* PLAN */
+  .fase {
+    background: white; border-radius: 12px; padding: 24px;
+    border: 1px solid var(--borde); margin-bottom: 16px;
+  }
+  .fase-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+  }
+  .fase-num {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: white; flex-shrink: 0;
+  }
+  .fase-1 .fase-num { background: var(--rojo); }
+  .fase-2 .fase-num { background: var(--acento); }
+  .fase-3 .fase-num { background: var(--azul); }
+  .fase-title { font-size: 16px; font-weight: 700; }
+  .fase-sub { font-size: 12px; color: var(--gris); }
+
+  /* CONTACTOS */
+  .contacto-card {
+    background: white; border-radius: 10px; padding: 16px 20px;
+    border: 1px solid var(--borde); margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .contacto-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--azul); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .contacto-name { font-weight: 700; font-size: 14px; color: var(--azul); }
+  .contacto-role { font-size: 12px; color: var(--gris); margin-bottom: 4px; }
+  .contacto-email { font-size: 13px; color: var(--azul-claro); }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .info-box.warning { background: #fef3c7; border-left: 4px solid #f59e0b; }
+  .info-box.info { background: #dbeafe; border-left: 4px solid #2563eb; }
+  .info-box.success { background: #dcfce7; border-left: 4px solid #16a34a; }
+  .info-box .icon { font-size: 20px; flex-shrink: 0; }
+  .info-box p { font-size: 13px; color: #1e293b; line-height: 1.5; }
+  .info-box strong { font-weight: 700; }
+
+  /* FUENTES */
+  .fuente-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 8px;
+    background: white; border: 1px solid var(--borde);
+    margin-bottom: 6px; text-decoration: none; color: var(--azul-claro);
+    font-size: 13px; transition: background 0.2s;
+  }
+  .fuente-link:hover { background: #eff6ff; }
+  .fuente-link::before { content: '🔗'; font-size: 12px; }
+
+  /* FOOTER */
+  .footer {
+    background: var(--azul); color: rgba(255,255,255,0.6);
+    text-align: center; padding: 24px;
+    font-size: 12px;
+  }
+  .footer strong { color: white; }
+
+  /* FICHA */
+  .ficha {
+    background: white; border-radius: 12px;
+    border: 1px solid var(--borde);
+    overflow: hidden; margin-bottom: 16px;
+  }
+  .ficha-header {
+    background: linear-gradient(135deg, var(--azul), #2563eb);
+    color: white; padding: 16px 20px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .ficha-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  .ficha-city { font-size: 12px; opacity: 0.75; }
+  .ficha-body { padding: 0; }
+  .ficha-row {
+    display: flex; border-bottom: 1px solid var(--borde);
+    font-size: 13px;
+  }
+  .ficha-row:last-child { border-bottom: none; }
+  .ficha-key {
+    background: #f8fafc; padding: 10px 14px;
+    font-weight: 600; color: var(--gris);
+    min-width: 150px; border-right: 1px solid var(--borde);
+    font-size: 12px;
+  }
+  .ficha-val { padding: 10px 14px; color: #1e293b; flex: 1; }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 22px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .ranking-grid { grid-template-columns: 1fr; }
+    .dolor-grid { grid-template-columns: 1fr; }
+    .ficha-key { min-width: 110px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-tag">Estudio de Mercado</div>
+    <h1>Sector Cultural y Entretenimiento Chile 2026</h1>
+    <h2>Sistema de Gestión y Venta de Entradas — Análisis Competitivo y de Oportunidades</h2>
+    <div class="header-meta">
+      <span>Junio 2026</span>
+      <span>Fuentes verificadas: Ministerio de las Culturas, INE, FNE, AGEPEC, SEC</span>
+      <span>16 instituciones analizadas</span>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-inner">
+    <a href="#cifras">Cifras Clave</a>
+    <a href="#ticketeras">Ticketeras</a>
+    <a href="#ranking">Ranking</a>
+    <a href="#fichas">Fichas</a>
+    <a href="#dolores">Dolores</a>
+    <a href="#valor">Propuesta de Valor</a>
+    <a href="#plan">Plan de Acción</a>
+    <a href="#contactos">Contactos</a>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- 1. CIFRAS CLAVE -->
+<div class="section" id="cifras">
+  <div class="section-title"><div class="num">1</div>Cifras Clave del Mercado</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="value">75,4%</div>
+      <div class="label">Participó en actividad cultural</div>
+      <div class="year">ENPCCL 2024</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">$165B</div>
+      <div class="label">Mercado espectáculos (CLP)</div>
+      <div class="year">AGEPEC 2024</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">6,8M</div>
+      <div class="label">Visitas a museos</div>
+      <div class="year">INE ECIA 2024</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">16,5M</div>
+      <div class="label">Boletos de cine vendidos</div>
+      <div class="year">Statista 2022</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">481</div>
+      <div class="label">Salas de cine multisala</div>
+      <div class="year">2022</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">+9.000</div>
+      <div class="label">Empleos en espectáculos</div>
+      <div class="year">AGEPEC 2024</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">53,8%</div>
+      <div class="label">Fue al cine en el último año</div>
+      <div class="year">ENPCCL 2024</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">49%</div>
+      <div class="label">Espectáculos fuera de Santiago</div>
+      <div class="year">AGEPEC 2024</div>
+    </div>
+  </div>
+
+  <div class="info-box info">
+    <div class="icon">📈</div>
+    <p>El mercado creció sostenidamente desde la pandemia. Los museos subieron <strong>+8,7%</strong> en visitas de 2023 a 2024. El cine es la actividad con mayor alza de participación (<strong>+10 puntos</strong> desde 2017). Hay una gran oportunidad en <strong>regiones</strong>: el 49% de los espectáculos se realizó fuera de la Región Metropolitana.</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Actividad cultural</th><th>% Población 2017</th><th>% Población 2024</th><th>Variación</th></tr></thead>
+      <tbody>
+        <tr><td>Función de cine</td><td>43,8%</td><td><strong>53,8%</strong></td><td><span class="badge badge-green">+10 pts</span></td></tr>
+        <tr><td>Concierto / recital</td><td>29,9%</td><td><strong>38,4%</strong></td><td><span class="badge badge-green">+8,5 pts</span></td></tr>
+        <tr><td>Museo</td><td>20,6%</td><td><strong>24,2%</strong></td><td><span class="badge badge-green">+3,6 pts</span></td></tr>
+        <tr><td>Exposición de arte</td><td>16,1%</td><td><strong>24,1%</strong></td><td><span class="badge badge-green">+8 pts</span></td></tr>
+        <tr><td>Espectáculo de danza</td><td>20,8%</td><td><strong>24,0%</strong></td><td><span class="badge badge-green">+3,2 pts</span></td></tr>
+        <tr><td>Función de circo</td><td>13,5%</td><td><strong>21,4%</strong></td><td><span class="badge badge-green">+7,9 pts</span></td></tr>
+        <tr><td>Ferias artesanales</td><td>—</td><td><strong>65,5%</strong></td><td><span class="badge badge-blue">Mayor asistencia</span></td></tr>
+        <tr><td>Centros culturales</td><td>—</td><td><strong>24,5%</strong></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 2. TICKETERAS -->
+<div class="section" id="ticketeras">
+  <div class="section-title"><div class="num">2</div>Mapa de Ticketeras en Chile</div>
+
+  <div class="info-box warning">
+    <div class="icon">⚠️</div>
+    <p><strong>Dato regulatorio clave:</strong> PuntoTicket fue adquirida por CTS Eventim + Sony Music en noviembre 2023 por <strong>EUR 21,6 millones</strong> (65% de la empresa). La FNE investigó el caso y lo archivó sin sanciones en julio 2024. PuntoTicket tiene <strong>>80% de cuota de mercado</strong> en boletos vendidos y opera con contratos de exclusividad con los principales venues.</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Plataforma</th>
+          <th>Cuota Mercado</th>
+          <th>Comisión al Comprador</th>
+          <th>Modelo</th>
+          <th>Clientes clave</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>PuntoTicket</strong></td>
+          <td><span class="badge badge-red">>80% boletos / 69% tráfico</span></td>
+          <td><strong>10–15%</strong> negociable</td>
+          <td>% sobre venta (paga el comprador)</td>
+          <td>Movistar Arena, Lollapalooza, Festival Viña, Caupolicán</td>
+        </tr>
+        <tr>
+          <td><strong>Ticketmaster CL</strong></td>
+          <td>2° lugar (1,57M visitas/mes)</td>
+          <td><strong>10–15%</strong> referencial</td>
+          <td>% sobre venta</td>
+          <td>Nescafé de las Artes, Teatro Oriente, grandes eventos internacionales</td>
+        </tr>
+        <tr>
+          <td><strong>Ticketplus</strong></td>
+          <td>12% tráfico / 10,2M tickets LatAm</td>
+          <td><strong>10–15%</strong></td>
+          <td>% sobre venta. Prepara IPO Nasdaq</td>
+          <td>GAM, Teatro del Lago</td>
+        </tr>
+        <tr>
+          <td><strong>Passline</strong></td>
+          <td>Presencia regional</td>
+          <td><strong>>15%</strong></td>
+          <td>% sobre venta. La más cara.</td>
+          <td>Teatro Municipal Viña del Mar</td>
+        </tr>
+        <tr>
+          <td><strong>PortalTickets / PortalDisc</strong></td>
+          <td>Nicho cultural</td>
+          <td><strong>10% (IVA incluido)</strong></td>
+          <td>Solo cobra en eventos pagados</td>
+          <td>Viña del Mar, GAM, USACH</td>
+        </tr>
+        <tr>
+          <td><strong>Tikzet</strong> 🆕</td>
+          <td>Entrante</td>
+          <td><strong>0% configurable</strong></td>
+          <td>~$111 CLP fijo/ticket (NO porcentaje)</td>
+          <td>Venues culturales emergentes</td>
+        </tr>
+        <tr>
+          <td><strong>Sistema propio Municipal</strong></td>
+          <td>2 teatros municipales</td>
+          <td>N/A (propio)</td>
+          <td>Desarrollo propio</td>
+          <td>Teatro Municipal Stgo + Las Condes</td>
+        </tr>
+        <tr>
+          <td><strong>ChileTiket</strong></td>
+          <td>Nicho pequeño</td>
+          <td>No publicado</td>
+          <td>SaaS white-label</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>Joinnus</strong></td>
+          <td>Sin presencia activa Chile</td>
+          <td>~10% (en Perú)</td>
+          <td>Evaluando entrar a Chile</td>
+          <td>Peruana (adquirida por Credicorp)</td>
+        </tr>
+        <tr>
+          <td><strong>Fintix</strong></td>
+          <td><span class="badge badge-gray">NO EXISTE evidencia en Chile</span></td>
+          <td>—</td>
+          <td>No aparece en ningún directorio chileno</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 3. RANKING -->
+<div class="section" id="ranking">
+  <div class="section-title"><div class="num">3</div>Ranking de Instituciones por Potencial Comercial</div>
+
+  <div class="nivel-header">
+    <div class="nivel-badge nivel-1">NIVEL 1</div>
+    <div class="nivel-label">Prioridad máxima — atacar de inmediato</div>
+  </div>
+  <div class="ranking-grid">
+    <div class="inst-card">
+      <div class="inst-rank">1</div>
+      <div class="inst-body">
+        <div class="inst-name">Entretención Familiar (Jump Parks, Cero Grado, Escape Rooms)</div>
+        <div class="inst-city">📍 Santiago + Regiones</div>
+        <div class="inst-why">100% ticket pagado. Sin tecnología alguna. Alta rotación. Nadie los atiende bien. Onboarding en 48 horas.</div>
+        <div class="inst-tags">
+          <span class="badge badge-red">Sin ticketera</span>
+          <span class="badge badge-green">★★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="inst-card">
+      <div class="inst-rank">2</div>
+      <div class="inst-body">
+        <div class="inst-name">Corporación Cultural Antofagasta</div>
+        <div class="inst-city">📍 Antofagasta</div>
+        <div class="inst-why">Teatro + escuelas artísticas + talleres. Ciudad minera con alta capacidad de pago. Sin ticketera digital confirmada.</div>
+        <div class="inst-tags">
+          <span class="badge badge-red">Sin ticketera</span>
+          <span class="badge badge-green">★★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="inst-card">
+      <div class="inst-rank">3</div>
+      <div class="inst-body">
+        <div class="inst-name">Corporación Cultural Viña del Mar</div>
+        <div class="inst-city">📍 Viña del Mar</div>
+        <div class="inst-why">Teatro 1.100 personas. Usa 3 plataformas distintas (PortalTickets + Passline + Fever). Fragmentación total = dolor máximo.</div>
+        <div class="inst-tags">
+          <span class="badge badge-yellow">3 plataformas</span>
+          <span class="badge badge-green">★★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="inst-card">
+      <div class="inst-rank">4</div>
+      <div class="inst-body">
+        <div class="inst-name">GAM — Centro Gabriela Mistral</div>
+        <div class="inst-city">📍 Santiago</div>
+        <div class="inst-why">10 salas, 50K espectadores/año, 582 funciones. Usa Ticketplus pero sin gestión integral de toda su oferta.</div>
+        <div class="inst-tags">
+          <span class="badge badge-blue">Ticketplus</span>
+          <span class="badge badge-green">★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="inst-card">
+      <div class="inst-rank">5</div>
+      <div class="inst-body">
+        <div class="inst-name">MIM — Museo Interactivo Mirador</div>
+        <div class="inst-city">📍 La Granja, Santiago</div>
+        <div class="inst-why">Entrada pagada $5.000–$6.000. Alta afluencia escolar. Sistema propio básico. Membresías sin CRM robusto.</div>
+        <div class="inst-tags">
+          <span class="badge badge-yellow">Sistema propio</span>
+          <span class="badge badge-green">★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="inst-card">
+      <div class="inst-rank">6</div>
+      <div class="inst-body">
+        <div class="inst-name">Teatro San Ginés</div>
+        <div class="inst-city">📍 Bellavista, Providencia</div>
+        <div class="inst-why">25+ años. Teatro independiente referente. Público fiel y recurrente. Sin ticketera digital principal.</div>
+        <div class="inst-tags">
+          <span class="badge badge-red">Sin ticketera</span>
+          <span class="badge badge-green">★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="inst-card">
+      <div class="inst-rank">7</div>
+      <div class="inst-body">
+        <div class="inst-name">CORCUDEC — Teatro U. de Concepción</div>
+        <div class="inst-city">📍 Concepción</div>
+        <div class="inst-why">Teatro universitario capital cultural del Biobío. Sin ticketera digital confirmada. Región desatendida.</div>
+        <div class="inst-tags">
+          <span class="badge badge-red">Sin ticketera</span>
+          <span class="badge badge-green">★★★★</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nivel-header">
+    <div class="nivel-badge nivel-2">NIVEL 2</div>
+    <div class="nivel-label">Prioridad alta — esfuerzo medio, retorno alto</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Institución</th><th>Ciudad</th><th>Por qué</th><th>Ticketera actual</th><th>Potencial</th></tr></thead>
+      <tbody>
+        <tr><td><strong>8</strong></td><td>Teatro Municipal Las Condes</td><td>Las Condes</td><td>Sistema municipal compartido. Posible renovación.</td><td>ticketera.municipal.cl</td><td><span class="stars">★★★</span></td></tr>
+        <tr><td><strong>9</strong></td><td>CCLM (Centro Cultural La Moneda)</td><td>Santiago</td><td>Entrada pagada antes 15:00. +1.000 personas/día. Sistema básico.</td><td>Sistema propio</td><td><span class="stars">★★★</span></td></tr>
+        <tr><td><strong>10</strong></td><td>Teatro Oriente</td><td>Providencia</td><td>Usa Ticketmaster + Ticket Hoy (2 plataformas!). Dolor real.</td><td>Ticketmaster + Ticket Hoy</td><td><span class="stars">★★★</span></td></tr>
+        <tr><td><strong>11</strong></td><td>Corporación Cultural Ñuñoa</td><td>Ñuñoa</td><td>Principalmente gratuito, pero eventos estivales pagados. Base social amplia.</td><td>Sin sistema claro</td><td><span class="stars">★★</span></td></tr>
+        <tr><td><strong>12</strong></td><td>Museo Chileno Arte Precolombino</td><td>Santiago</td><td>Entrada pagada. Precio diferenciado nacional/extranjero. Sistema básico.</td><td>Sistema propio</td><td><span class="stars">★★★</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="nivel-header">
+    <div class="nivel-badge nivel-3">NIVEL 3</div>
+    <div class="nivel-label">Mediano plazo / difícil acceso</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Institución</th><th>Situación</th><th>Estrategia</th></tr></thead>
+      <tbody>
+        <tr><td>Teatro Municipal de Santiago</td><td>Sistema propio (ticketera.municipal.cl)</td><td>Esperar ciclo de renovación. Contactar directivos ahora.</td></tr>
+        <tr><td>Teatro Nescafé de las Artes</td><td><span class="badge badge-red">Exclusivo Ticketmaster</span></td><td>Vigilar vencimiento de contrato.</td></tr>
+        <tr><td>Teatro Caupolicán</td><td><span class="badge badge-red">Exclusivo PuntoTicket</span></td><td>Vigilar vencimiento de contrato.</td></tr>
+        <tr><td>Movistar Arena</td><td><span class="badge badge-red">Exclusivo PuntoTicket</span></td><td>Inalcanzable en corto plazo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4. FICHAS -->
+<div class="section" id="fichas">
+  <div class="section-title"><div class="num">4</div>Fichas por Institución</div>
+
+  <!-- Teatro Municipal Santiago -->
+  <div class="ficha">
+    <div class="ficha-header">
+      <div>
+        <div class="ficha-name">🎭 Teatro Municipal de Santiago</div>
+        <div class="ficha-city">Agustinas 794, Santiago Centro</div>
+      </div>
+      <span class="stars" style="opacity:0.8">★★★</span>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-row"><div class="ficha-key">Aforo</div><div class="ficha-val">1.500 localidades</div></div>
+      <div class="ficha-row"><div class="ficha-key">Precio entradas</div><div class="ficha-val">$4.000 (galería) → $46.000 (Gold). Descuento 15% vecinos Santiago.</div></div>
+      <div class="ficha-row"><div class="ficha-key">Oferta</div><div class="ficha-val">Ópera, Ballet, Música Clásica, Espectáculos Infantiles, Abonos de temporada</div></div>
+      <div class="ficha-row"><div class="ficha-key">Ticketera</div><div class="ficha-val"><strong>Sistema propio</strong> — ticketera.municipal.cl (boletería en Agustinas 794)</div></div>
+      <div class="ficha-row"><div class="ficha-key">Directora General</div><div class="ficha-val"><strong>Carmen Gloria Larenas</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Gerente General</div><div class="ficha-val"><strong>Rodrigo Astudillo</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Dir. Corporación</div><div class="ficha-val"><strong>Amalá Saint-Pierre</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Web</div><div class="ficha-val">municipal.cl</div></div>
+    </div>
+  </div>
+
+  <!-- Corporación Antofagasta -->
+  <div class="ficha">
+    <div class="ficha-header" style="background: linear-gradient(135deg, #b91c1c, #dc2626);">
+      <div>
+        <div class="ficha-name">🎨 Corporación Cultural Antofagasta</div>
+        <div class="ficha-city">Antonio José de Sucre 433, Antofagasta</div>
+      </div>
+      <span class="stars" style="opacity:0.8">★★★★★</span>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-row"><div class="ficha-key">Teléfono</div><div class="ficha-val">+56 55 289 6421</div></div>
+      <div class="ficha-row"><div class="ficha-key">Email</div><div class="ficha-val"><strong style="color:#2563eb">rrpp@culturaantofagasta.cl</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Fundada</div><div class="ficha-val">16 de octubre de 1984</div></div>
+      <div class="ficha-row"><div class="ficha-key">Infraestructura</div><div class="ficha-val">Teatro Municipal + Escuelas de Ballet, Música y Bellas Artes + camarines, aulas, salas de ensayo</div></div>
+      <div class="ficha-row"><div class="ficha-key">Oferta</div><div class="ficha-val">Ballet, Música, Bellas Artes, Talleres, Cursos, Cartelera permanente</div></div>
+      <div class="ficha-row"><div class="ficha-key">Ticketera</div><div class="ficha-val"><span class="badge badge-red">Sin ticketera digital confirmada</span></div></div>
+      <div class="ficha-row"><div class="ficha-key">Financiamiento</div><div class="ficha-val">PAOCC — Ministerio de las Culturas</div></div>
+      <div class="ficha-row"><div class="ficha-key">Web</div><div class="ficha-val">culturaantofagasta.cl</div></div>
+    </div>
+  </div>
+
+  <!-- Viña del Mar -->
+  <div class="ficha">
+    <div class="ficha-header" style="background: linear-gradient(135deg, #b91c1c, #dc2626);">
+      <div>
+        <div class="ficha-name">🎵 Corporación Cultural Viña del Mar</div>
+        <div class="ficha-city">Arlegui 683, Viña del Mar</div>
+      </div>
+      <span class="stars" style="opacity:0.8">★★★★★</span>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-row"><div class="ficha-key">Aforo teatro</div><div class="ficha-val">~1.100 personas</div></div>
+      <div class="ficha-row"><div class="ficha-key">Escenario</div><div class="ficha-val">12m ancho × 11,5m profundidad. Foso de orquesta 73m² (hasta 40 intérpretes).</div></div>
+      <div class="ficha-row"><div class="ficha-key">Email general</div><div class="ficha-val"><strong style="color:#2563eb">info@culturaviva.cl</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Email comunicaciones</div><div class="ficha-val"><strong style="color:#2563eb">comunicaciones@culturaviva.cl</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Horario oficina</div><div class="ficha-val">Lun–Vie 10:00–19:00 / Sáb 10:00–14:00</div></div>
+      <div class="ficha-row"><div class="ficha-key">Oferta</div><div class="ficha-val">Temporadas teatrales, conciertos, danza, ópera, eventos familiares</div></div>
+      <div class="ficha-row"><div class="ficha-key">Ticketera actual</div><div class="ficha-val"><span class="badge badge-yellow">PortalTickets</span> <span class="badge badge-yellow">Passline</span> <span class="badge badge-yellow">Fever</span> — 3 plataformas distintas</div></div>
+      <div class="ficha-row"><div class="ficha-key">Web</div><div class="ficha-val">culturaviva.cl / teatrovina.cl</div></div>
+    </div>
+  </div>
+
+  <!-- GAM -->
+  <div class="ficha">
+    <div class="ficha-header" style="background: linear-gradient(135deg, #1a3a5c, #2563eb);">
+      <div>
+        <div class="ficha-name">🏛️ GAM — Centro Cultural Gabriela Mistral</div>
+        <div class="ficha-city">Av. Libertador B. O'Higgins 227, Santiago</div>
+      </div>
+      <span class="stars" style="opacity:0.8">★★★★</span>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-row"><div class="ficha-key">Infraestructura</div><div class="ficha-val">22.000 m². <strong>10 salas</strong> para teatro, danza, circo, música, artes visuales, conferencias.</div></div>
+      <div class="ficha-row"><div class="ficha-key">Entrada</div><div class="ficha-val">Mixta: espacios gratuitos (BiblioGAM, plazas) + funciones pagadas en sala</div></div>
+      <div class="ficha-row"><div class="ficha-key">Asistencia</div><div class="ficha-val"><strong>50.227 espectadores</strong> en salas / <strong>582 funciones</strong> (2024)</div></div>
+      <div class="ficha-row"><div class="ficha-key">Oferta</div><div class="ficha-val">Teatro, Danza, Música, Artes Visuales, Cine, Talleres, Infantil</div></div>
+      <div class="ficha-row"><div class="ficha-key">Ticketera</div><div class="ficha-val"><span class="badge badge-blue">Ticketplus</span> (gam.ticketplus.cl) + <span class="badge badge-blue">PortalTickets</span></div></div>
+      <div class="ficha-row"><div class="ficha-key">Boletería</div><div class="ficha-val">Edificio A (presencial) + Kiosco automático Edificio B</div></div>
+      <div class="ficha-row"><div class="ficha-key">Email boletería</div><div class="ficha-val"><strong style="color:#2563eb">boleteria@gam.cl</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Web</div><div class="ficha-val">gam.cl</div></div>
+    </div>
+  </div>
+
+  <!-- MIM -->
+  <div class="ficha">
+    <div class="ficha-header" style="background: linear-gradient(135deg, #1a3a5c, #2563eb);">
+      <div>
+        <div class="ficha-name">🔬 MIM — Museo Interactivo Mirador</div>
+        <div class="ficha-city">Punta Arenas 6711, La Granja, Santiago</div>
+      </div>
+      <span class="stars" style="opacity:0.8">★★★★</span>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-row"><div class="ficha-key">Precio adulto</div><div class="ficha-val"><strong>$6.000 CLP</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Precio niño 2–12</div><div class="ficha-val"><strong>$5.000 CLP</strong></div></div>
+      <div class="ficha-row"><div class="ficha-key">Gratuidades</div><div class="ficha-val">Adultos mayores +60, profesores, personas con discapacidad + acompañante</div></div>
+      <div class="ficha-row"><div class="ficha-key">Membresías</div><div class="ficha-val">"MIMbresías" — visitas ilimitadas anuales + 20% dcto para acompañantes</div></div>
+      <div class="ficha-row"><div class="ficha-key">Ticketera</div><div class="ficha-val"><span class="badge badge-yellow">Sistema propio básico</span> (compras.mim.cl)</div></div>
+      <div class="ficha-row"><div class="ficha-key">Horario</div><div class="ficha-val">Mar 9:30–13:30 / Mié–Vie 9:30–17:30 / Sáb–Dom–Festivos 10:00–18:00</div></div>
+      <div class="ficha-row"><div class="ficha-key">Oferta</div><div class="ficha-val">Ciencias interactivas, exhibiciones permanentes y temporales, talleres escolares</div></div>
+      <div class="ficha-row"><div class="ficha-key">Web</div><div class="ficha-val">mim.cl</div></div>
+    </div>
+  </div>
+
+  <!-- Movistar Arena -->
+  <div class="ficha">
+    <div class="ficha-header" style="background: linear-gradient(135deg, #374151, #6b7280);">
+      <div>
+        <div class="ficha-name">🎤 Movistar Arena</div>
+        <div class="ficha-city">Parque O'Higgins, Santiago — EXCLUSIVO PUNTOTICKET</div>
+      </div>
+      <span class="stars" style="opacity:0.8">★</span>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-row"><div class="ficha-key">Aforo</div><div class="ficha-val">12.000–16.000 personas</div></div>
+      <div class="ficha-row"><div class="ficha-key">Asistencia</div><div class="ficha-val"><strong>+1,5 millones de visitantes/año.</strong> +130 eventos anuales. N°1 LatAm, N°4 mundial.</div></div>
+      <div class="ficha-row"><div class="ficha-key">Ticketera</div><div class="ficha-val"><span class="badge badge-red">PuntoTicket exclusivo — inaccesible</span></div></div>
+      <div class="ficha-row"><div class="ficha-key">Web</div><div class="ficha-val">movistararena.cl</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 5. DOLORES -->
+<div class="section" id="dolores">
+  <div class="section-title"><div class="num">5</div>Dolores del Mercado</div>
+  <div class="dolor-grid">
+    <div class="dolor-card">
+      <div class="dolor-num">Dolor #1</div>
+      <div class="dolor-title">Altas comisiones encarecen la cultura</div>
+      <div class="dolor-desc">Las ticketeras cobran <strong>10–15% del valor de la entrada</strong> al comprador final. En una entrada de $20.000, el público paga $2.000–$3.000 adicionales que no van al artista ni al recinto. Genera rechazo público y reclamos.</div>
+      <div class="dolor-ventaja">menor comisión o flat fee es argumento directo ante el director cultural</div>
+    </div>
+    <div class="dolor-card">
+      <div class="dolor-num">Dolor #2</div>
+      <div class="dolor-title">El organizador no es dueño de sus datos</div>
+      <div class="dolor-desc">Con PuntoTicket o Ticketmaster, <strong>la ticketera retiene los datos del comprador</strong> (email, frecuencia de visita, preferencias). El teatro o museo no puede hacer remarketing, fidelización ni CRM.</div>
+      <div class="dolor-ventaja">100% de los datos del público son del cliente (teatro/museo/corporación)</div>
+    </div>
+    <div class="dolor-card">
+      <div class="dolor-num">Dolor #3</div>
+      <div class="dolor-title">Fragmentación de plataformas</div>
+      <div class="dolor-desc">Muchas instituciones usan 2–3 plataformas (ej: Viña del Mar: PortalTickets + Passline + Fever). Consecuencias: 3 sistemas, 3 liquidaciones, riesgo de doble venta de asientos, sin visión unificada.</div>
+      <div class="dolor-ventaja">un solo sistema que gestiona toda la oferta</div>
+    </div>
+    <div class="dolor-card">
+      <div class="dolor-num">Dolor #4</div>
+      <div class="dolor-title">Las ticketeras solo venden boletos, no gestionan</div>
+      <div class="dolor-desc">No gestionan: talleres y cursos con cupos, membresías y abonos de temporada, control de aforo en tiempo real, reservas de grupos escolares, estadísticas de ocupación.</div>
+      <div class="dolor-ventaja">sistema integral de gestión + venta = diferenciador clave vs ticketeras puras</div>
+    </div>
+    <div class="dolor-card">
+      <div class="dolor-num">Dolor #5</div>
+      <div class="dolor-title">Demora en liquidaciones</div>
+      <div class="dolor-desc">Los recintos esperan <strong>30+ días</strong> para recibir el dinero de sus ventas. Genera problemas de flujo de caja, especialmente en instituciones con presupuesto municipal.</div>
+      <div class="dolor-ventaja">liquidación más rápida = mejor flujo de caja para el cliente</div>
+    </div>
+    <div class="dolor-card">
+      <div class="dolor-num">Dolor #6</div>
+      <div class="dolor-title">Contratos exclusivos que atrapan</div>
+      <div class="dolor-desc">PuntoTicket y Ticketmaster firman contratos de exclusividad con venues. Genera dependencia y poco poder de negociación. <strong>Cuando vence el contrato, es tu ventana de entrada.</strong></div>
+      <div class="dolor-ventaja">flexibilidad contractual + sin exclusividad abusiva</div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. PROPUESTA DE VALOR -->
+<div class="section" id="valor">
+  <div class="section-title"><div class="num">6</div>Propuesta de Valor vs Competencia</div>
+  <div class="table-wrap">
+    <table class="valor-table">
+      <thead><tr><th>❌ Lo que ofrecen las ticketeras actuales</th><th>✅ Lo que tú puedes ofrecer</th></tr></thead>
+      <tbody>
+        <tr><td>10–15% comisión que paga el comprador</td><td>✅ Menor comisión o modelo flat fee</td></tr>
+        <tr><td>Los datos del público son de la ticketera</td><td>✅ <strong>100% de los datos son del cliente</strong></td></tr>
+        <tr><td>Solo venden entradas</td><td>✅ <strong>Gestión integral:</strong> talleres, cursos, membresías, aforo, grupos</td></tr>
+        <tr><td>Contratos exclusivos a largo plazo</td><td>✅ Flexibilidad contractual</td></tr>
+        <tr><td>Demora 30+ días en liquidar</td><td>✅ Liquidación más rápida</td></tr>
+        <tr><td>Onboarding complejo para grandes eventos</td><td>✅ Fácil para recintos medianos y pequeños</td></tr>
+        <tr><td>Foco en megaeventos (Lollapalooza, Adele)</td><td>✅ <strong>Especialistas en cultura, museo, trampoline, teatro</strong></td></tr>
+        <tr><td>Sin CRM para el organizador</td><td>✅ CRM integrado: quién va, cuándo, cuánto gasta</td></tr>
+        <tr><td>Sin reportería de gestión</td><td>✅ Dashboard de ocupación, recaudación, tendencias</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 7. PLAN -->
+<div class="section" id="plan">
+  <div class="section-title"><div class="num">7</div>Plan de Acción Comercial</div>
+
+  <div class="fase fase-1">
+    <div class="fase-header">
+      <div class="fase-num">1</div>
+      <div>
+        <div class="fase-title">FASE 1 — Atacar (Meses 1–2)</div>
+        <div class="fase-sub">Objetivo: máximo dolor + mínima resistencia contractual</div>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin:0">
+      <table>
+        <thead><tr><th>Acción</th><th>Institución</th><th>Canal</th><th>Mensaje clave</th></tr></thead>
+        <tbody>
+          <tr><td>Visita directa + demo</td><td><strong>Jump Parks, Cero Grado, Escape Rooms</strong></td><td>Presencial</td><td>"En 48 horas tienes venta digital, reservas y control de aforo"</td></tr>
+          <tr><td>Email + llamada</td><td><strong>Corporación Cultural Antofagasta</strong></td><td>rrpp@culturaantofagasta.cl</td><td>"Sistema único para teatro, escuelas y talleres — sin comisión al público"</td></tr>
+          <tr><td>Email + reunión</td><td><strong>Corporación Cultural Viña del Mar</strong></td><td>comunicaciones@culturaviva.cl</td><td>"Unifica tus 3 plataformas en una sola — recupera tus datos de público"</td></tr>
+          <tr><td>Email + demo</td><td><strong>Teatro San Ginés</strong></td><td>sangines.cl/contacto</td><td>"Tu ticketera propia, con tu marca, sin que la ticketera se quede con tu audiencia"</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="fase fase-2">
+    <div class="fase-header">
+      <div class="fase-num">2</div>
+      <div>
+        <div class="fase-title">FASE 2 — Escalar (Meses 2–4)</div>
+        <div class="fase-sub">Objetivo: cuentas culturales medianas con dolor específico</div>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin:0">
+      <table>
+        <thead><tr><th>Institución</th><th>Propuesta específica</th></tr></thead>
+        <tbody>
+          <tr><td><strong>GAM</strong></td><td>Sistema integral: talleres + tickets + CRM. Lo que Ticketplus no da.</td></tr>
+          <tr><td><strong>MIM</strong></td><td>Actualizar sistema propio + membresías digitales + reservas grupos escolares.</td></tr>
+          <tr><td><strong>CORCUDEC</strong></td><td>Propuesta para teatro universitario regional. Precio accesible, rápido onboarding.</td></tr>
+          <tr><td><strong>Teatro Oriente</strong></td><td>Consolidar en 1 plataforma. Hoy usan Ticketmaster + Ticket Hoy (dolor concreto).</td></tr>
+          <tr><td><strong>Museo Precolombino</strong></td><td>Sistema con precio diferenciado nacional/extranjero + CRM turismo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="fase fase-3">
+    <div class="fase-header">
+      <div class="fase-num">3</div>
+      <div>
+        <div class="fase-title">FASE 3 — Cuentas grandes (Meses 4–12)</div>
+        <div class="fase-sub">Objetivo: venues con contratos exclusivos al vencer</div>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin:0">
+      <table>
+        <thead><tr><th>Institución</th><th>Estrategia</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Teatro Municipal Las Condes</strong></td><td>Reunión con directivos cuando renueven el sistema municipal.</td></tr>
+          <tr><td><strong>Teatro Municipal Santiago</strong></td><td>Propuesta de renovación. Contactar hoy a Carmen Gloria Larenas / Rodrigo Astudillo.</td></tr>
+          <tr><td><strong>Teatro Nescafé de las Artes</strong></td><td>Exclusivo Ticketmaster → atacar al vencer contrato.</td></tr>
+          <tr><td><strong>Teatro Caupolicán</strong></td><td>Exclusivo PuntoTicket → atacar al vencer contrato.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 8. CONTACTOS -->
+<div class="section" id="contactos">
+  <div class="section-title"><div class="num">8</div>Contactos Clave</div>
+
+  <div class="contacto-card">
+    <div class="contacto-icon">📧</div>
+    <div>
+      <div class="contacto-name">Corporación Cultural Antofagasta</div>
+      <div class="contacto-role">RRPP / Dirección · +56 55 289 6421</div>
+      <div class="contacto-email">rrpp@culturaantofagasta.cl</div>
+    </div>
+  </div>
+  <div class="contacto-card">
+    <div class="contacto-icon">📧</div>
+    <div>
+      <div class="contacto-name">Corporación Cultural Viña del Mar</div>
+      <div class="contacto-role">Comunicaciones / General</div>
+      <div class="contacto-email">comunicaciones@culturaviva.cl · info@culturaviva.cl</div>
+    </div>
+  </div>
+  <div class="contacto-card">
+    <div class="contacto-icon">📧</div>
+    <div>
+      <div class="contacto-name">GAM — Centro Gabriela Mistral</div>
+      <div class="contacto-role">Boletería / Dirección</div>
+      <div class="contacto-email">boleteria@gam.cl</div>
+    </div>
+  </div>
+  <div class="contacto-card">
+    <div class="contacto-icon">👤</div>
+    <div>
+      <div class="contacto-name">Carmen Gloria Larenas</div>
+      <div class="contacto-role">Directora General — Teatro Municipal de Santiago</div>
+      <div class="contacto-email">municipal.cl</div>
+    </div>
+  </div>
+  <div class="contacto-card">
+    <div class="contacto-icon">👤</div>
+    <div>
+      <div class="contacto-name">Rodrigo Astudillo</div>
+      <div class="contacto-role">Gerente General — Teatro Municipal de Santiago</div>
+      <div class="contacto-email">municipal.cl</div>
+    </div>
+  </div>
+  <div class="contacto-card">
+    <div class="contacto-icon">👤</div>
+    <div>
+      <div class="contacto-name">Amalá Saint-Pierre</div>
+      <div class="contacto-role">Directora Corporación Cultural Santiago — Teatro Municipal</div>
+      <div class="contacto-email">municipal.cl</div>
+    </div>
+  </div>
+  <div class="contacto-card">
+    <div class="contacto-icon">🌐</div>
+    <div>
+      <div class="contacto-name">Teatro San Ginés</div>
+      <div class="contacto-role">Bellavista, Providencia</div>
+      <div class="contacto-email">sangines.cl/contacto</div>
+    </div>
+  </div>
+  <div class="contacto-card">
+    <div class="contacto-icon">🌐</div>
+    <div>
+      <div class="contacto-name">CORCUDEC</div>
+      <div class="contacto-role">Teatro Universidad de Concepción</div>
+      <div class="contacto-email">corcudec.cl</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="footer">
+  <strong>Estudio de Mercado Cultural Chile 2026</strong><br>
+  Fuentes: Ministerio de las Culturas · INE · FNE · AGEPEC · CTS Eventim · SEC (Ticketplus F-1) · La Tercera · Admetricks/Similarweb<br>
+  Actualizar precios y contactos antes de cada visita comercial.
+</div>
+
+</body>
+</html>

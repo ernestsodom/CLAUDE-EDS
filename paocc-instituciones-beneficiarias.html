@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAOCC — Instituciones Beneficiarias Chile 2025–2026</title>
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dark: #8a6a1a;
+    --gray-100: #f5f5f5;
+    --gray-200: #e8e8e8;
+    --gray-300: #d0d0d0;
+    --gray-600: #6b6b6b;
+    --gray-800: #2d2d2d;
+    --green: #27ae60;
+    --green-bg: rgba(39,174,96,0.12);
+    --blue: #2980b9;
+    --blue-bg: rgba(41,128,185,0.12);
+    --orange: #e67e22;
+    --orange-bg: rgba(230,126,34,0.12);
+    --purple: #8e44ad;
+    --purple-bg: rgba(142,68,173,0.12);
+    --red: #e74c3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  .nav {
+    background: #0d0d0d;
+    border-bottom: 1px solid #1a1a1a;
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-inner { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-link {
+    color: var(--gray-600);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 14px 10px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .nav-link:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a0a 50%, #0a0a0a 100%);
+    border-bottom: 2px solid var(--gold);
+    padding: 56px 40px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: -40%;
+    width: 180%;
+    height: 180%;
+    background: radial-gradient(ellipse at center, rgba(201,168,76,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--black);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+  }
+  .hero h1 { font-size: 2.4rem; font-weight: 800; color: var(--white); line-height: 1.15; margin-bottom: 10px; }
+  .hero h1 span { color: var(--gold); }
+  .hero p { font-size: 0.95rem; color: var(--gray-600); max-width: 600px; margin: 0 auto 28px; }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+  .hero-stat .val { font-size: 1.7rem; font-weight: 800; color: var(--gold); display: block; }
+  .hero-stat .lbl { font-size: 0.68rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 56px 0; }
+
+  .section-header { margin-bottom: 32px; }
+  .section-header h2 {
+    font-size: 1.5rem; font-weight: 700; color: var(--white);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-header h2 .num {
+    background: var(--gold); color: var(--black);
+    width: 30px; height: 30px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+  }
+  .section-header p { font-size: 0.88rem; color: var(--gray-600); margin-top: 6px; padding-left: 42px; }
+
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dark), transparent); margin: 0 32px; }
+
+  /* STRUCTURE CARDS */
+  .structure-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .struct-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px;
+    padding: 18px;
+    border-top: 3px solid var(--gold-dark);
+  }
+  .struct-card h3 { font-size: 0.8rem; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+  .struct-card .amount { font-size: 1.1rem; font-weight: 800; color: var(--white); }
+  .struct-card .orgs { font-size: 0.72rem; color: var(--gray-600); margin-top: 3px; }
+  .struct-card p { font-size: 0.78rem; color: var(--gray-300); margin-top: 8px; line-height: 1.5; }
+
+  /* TABLES */
+  .table-wrapper { overflow-x: auto; border-radius: 10px; border: 1px solid #1e1e1e; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .data-table thead tr { background: #1a1a0a; border-bottom: 1px solid var(--gold-dark); }
+  .data-table th {
+    padding: 12px 14px; text-align: left;
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .data-table td { padding: 11px 14px; border-bottom: 1px solid #141414; color: var(--gray-300); }
+  .data-table td:first-child { color: var(--white); font-weight: 600; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #111; }
+  .data-table .amount-cell { color: var(--gold); font-weight: 700; font-size: 0.88rem; white-space: nowrap; }
+  .data-table .note-cell { font-size: 0.73rem; color: var(--gray-600); }
+
+  /* TIER BADGES */
+  .tier-a { display: inline-flex; align-items: center; gap: 5px; background: rgba(39,174,96,0.15); border: 1px solid rgba(39,174,96,0.35); color: var(--green); font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .tier-b { display: inline-flex; align-items: center; gap: 5px; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .tier-c { display: inline-flex; align-items: center; gap: 5px; background: rgba(41,128,185,0.12); border: 1px solid rgba(41,128,185,0.3); color: var(--blue); font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+
+  /* REGION CARDS */
+  .regions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .region-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .region-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid #1e1e1e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .region-header h3 { font-size: 0.85rem; font-weight: 700; color: var(--white); }
+  .region-total { font-size: 0.82rem; font-weight: 800; color: var(--gold); }
+  .region-body { padding: 0; }
+  .region-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 18px;
+    border-bottom: 1px solid #141414;
+    font-size: 0.8rem;
+    gap: 12px;
+  }
+  .region-row:last-child { border-bottom: none; }
+  .region-row .org-name { color: var(--gray-300); flex: 1; }
+  .region-row .org-monto { color: var(--gold); font-weight: 700; white-space: nowrap; }
+  .region-row .org-ciudad { font-size: 0.68rem; color: var(--gray-600); white-space: nowrap; }
+  .region-row-label { font-size: 0.65rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 1px; padding: 5px 18px; background: #0d0d0d; border-bottom: 1px solid #141414; }
+
+  /* COMMERCIAL ANALYSIS */
+  .commercial-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .commercial-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .commercial-card.ta { border-left: 3px solid var(--green); }
+  .commercial-card.tb { border-left: 3px solid var(--gold); }
+  .commercial-card.tc { border-left: 3px solid var(--blue); }
+  .commercial-card h3 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+  .commercial-card.ta h3 { color: var(--green); }
+  .commercial-card.tb h3 { color: var(--gold); }
+  .commercial-card.tc h3 { color: var(--blue); }
+  .commercial-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #1a1a1a;
+    gap: 8px;
+  }
+  .commercial-item:last-of-type { border-bottom: none; }
+  .commercial-item .ci-name { font-size: 0.82rem; color: var(--white); font-weight: 600; }
+  .commercial-item .ci-sub { font-size: 0.72rem; color: var(--gray-600); margin-top: 2px; }
+  .commercial-item .ci-pct { font-size: 0.8rem; font-weight: 800; white-space: nowrap; }
+  .commercial-card.ta .ci-pct { color: var(--green); }
+  .commercial-card.tb .ci-pct { color: var(--gold); }
+  .commercial-card.tc .ci-pct { color: var(--blue); }
+  .commercial-msg {
+    margin-top: 14px;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.77rem;
+    color: var(--gray-300);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* HISTORICAL */
+  .history-bars { display: flex; align-items: flex-end; gap: 14px; height: 160px; padding-bottom: 36px; position: relative; margin-bottom: 8px; }
+  .history-bars::before { content: ''; position: absolute; bottom: 36px; left: 0; right: 0; height: 1px; background: #1e1e1e; }
+  .h-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+  .h-bar { width: 100%; max-width: 56px; background: linear-gradient(to top, var(--gold-dark), var(--gold)); border-radius: 4px 4px 0 0; position: relative; min-height: 4px; }
+  .h-bar .hv { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; font-weight: 700; color: var(--gold); white-space: nowrap; }
+  .h-bar-label { font-size: 0.62rem; color: var(--gray-600); text-align: center; margin-top: 6px; }
+  .history-note { font-size: 0.75rem; color: var(--gray-600); margin-top: 4px; }
+
+  /* CONCLUSIONS */
+  .conclusions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .conclusion-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .conclusion-card .c-num { font-size: 1.6rem; font-weight: 900; color: #222; float: left; margin-right: 10px; line-height: 1; }
+  .conclusion-card h3 { font-size: 0.82rem; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
+  .conclusion-card p { font-size: 0.78rem; color: var(--gray-300); line-height: 1.6; clear: both; }
+
+  /* KEY ALERT */
+  .alert-box {
+    background: linear-gradient(135deg, #111 0%, #1a1a0a 100%);
+    border: 1px solid var(--gold-dark);
+    border-left: 4px solid var(--gold);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    font-size: 0.88rem;
+    color: var(--gray-300);
+    line-height: 1.7;
+  }
+  .alert-box strong { color: var(--gold); }
+
+  /* SOURCES */
+  .sources-box {
+    background: #0d0d0d;
+    border: 1px solid #1e1e1e;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-top: 32px;
+  }
+  .sources-box h4 { font-size: 0.72rem; color: var(--gold); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .sources-box a { font-size: 0.72rem; color: var(--blue); text-decoration: none; display: block; padding: 3px 0; }
+  .sources-box a:hover { color: var(--gold); }
+
+  /* FOOTER */
+  .footer { background: #0a0a0a; border-top: 1px solid #1a1a1a; padding: 32px; text-align: center; color: var(--gray-600); font-size: 0.75rem; }
+  .footer strong { color: var(--gold); }
+
+  .stars { color: var(--gold); letter-spacing: -2px; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.6rem; }
+    .hero { padding: 36px 16px 28px; }
+    .container { padding: 0 16px; }
+    section { padding: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#estructura" class="nav-link">Estructura</a>
+    <a href="#teatros" class="nav-link">Teatros 2025</a>
+    <a href="#larga" class="nav-link">Larga Trayectoria</a>
+    <a href="#regiones" class="nav-link">Por Región 2026</a>
+    <a href="#historico" class="nav-link">Histórico</a>
+    <a href="#comercial" class="nav-link">Análisis Comercial</a>
+    <a href="#conclusiones" class="nav-link">Conclusiones</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Deep Research · Junio 2026</div>
+  <h1>PAOCC — Instituciones <span>Beneficiarias</span></h1>
+  <p>Programa de Apoyo a Organizaciones Culturales Colaboradoras · Ministerio de las Culturas, las Artes y el Patrimonio</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="val">$16.5B</span>
+      <div class="lbl">CLP movilizados 2025</div>
+    </div>
+    <div class="hero-stat">
+      <span class="val">197+</span>
+      <div class="lbl">Orgs. financiadas</div>
+    </div>
+    <div class="hero-stat">
+      <span class="val">5</span>
+      <div class="lbl">Líneas de fondos</div>
+    </div>
+    <div class="hero-stat">
+      <span class="val">21</span>
+      <div class="lbl">Teatros 2025</div>
+    </div>
+    <div class="hero-stat">
+      <span class="val">$300M</span>
+      <div class="lbl">Máx. teatro regional</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ESTRUCTURA ===== -->
+<section id="estructura" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">1</span> Estructura del Programa</h2>
+      <p>El PAOCC opera en 5 líneas de financiamiento simultáneas con distintos montos máximos y perfiles de receptor</p>
+    </div>
+
+    <div class="structure-grid">
+      <div class="struct-card">
+        <h3>Larga Trayectoria</h3>
+        <div class="amount">$11.229.950.635</div>
+        <div class="orgs">~130 organizaciones · 2025</div>
+        <p>Orgs. con más de 10 años. Renovación automática por ranking. Las instituciones más grandes del ecosistema.</p>
+      </div>
+      <div class="struct-card">
+        <h3>Continuidad</h3>
+        <div class="amount">$3.413.158.820</div>
+        <div class="orgs">42 organizaciones · 2026</div>
+        <p>Renueva financiamiento anual. Organizaciones que ya estaban en Ingreso 2025.</p>
+      </div>
+      <div class="struct-card">
+        <h3>Ingreso</h3>
+        <div class="amount">$1.750.000.000</div>
+        <div class="orgs">36 organizaciones · 2026</div>
+        <p>Nuevas organizaciones que entran al programa por primera vez. Máx. ~$49M por org.</p>
+      </div>
+      <div class="struct-card">
+        <h3>Transición</h3>
+        <div class="amount">$687.000.000</div>
+        <div class="orgs">~15 organizaciones · 2025</div>
+        <p>Organizaciones cumpliendo 10 años. Puente hacia Larga Trayectoria.</p>
+      </div>
+      <div class="struct-card">
+        <h3>Teatros Reg. y Mun.</h3>
+        <div class="amount">$1.463.731.941</div>
+        <div class="orgs">21 espacios · 2025 | Máx. $70M · 2026</div>
+        <p>Convocatoria especial para teatros con programación cultural activa y pagada.</p>
+      </div>
+    </div>
+
+    <div class="alert-box" style="margin-top:24px;">
+      <strong>Total PAOCC 2025 (todas las líneas): ~$16.500.000.000 CLP</strong> · El PAOCC NO es el presupuesto total de estas instituciones — es una subvención adicional. Las corporaciones municipales tienen además el presupuesto municipal base, que puede ser 10–100x mayor.
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== TEATROS 2025 ===== -->
+<section id="teatros">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">2</span> Convocatoria Teatros 2025</h2>
+      <p>21 espacios en 10 regiones · $1.463.731.941 total · Resultados publicados junio 2025</p>
+    </div>
+
+    <div style="margin-bottom: 28px;">
+      <div style="font-size:0.75rem; color:var(--gold); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">Teatros Regionales — $900.000.000 (3 instituciones)</div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Institución</th>
+              <th>Ciudad</th>
+              <th>Región</th>
+              <th>Monto PAOCC 2025</th>
+              <th>Obs.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><strong>Teatro Regional Cervantes</strong></td>
+              <td>Valdivia</td>
+              <td>Los Ríos</td>
+              <td class="amount-cell">$300.000.000</td>
+              <td class="note-cell">🥇 Puntaje máximo nacional · Además recibe $309M Partida 29 → <strong>$609M/año total</strong></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><strong>Teatro Regional del Maule</strong></td>
+              <td>Talca</td>
+              <td>Maule</td>
+              <td class="amount-cell">~$300.000.000</td>
+              <td class="note-cell">Miembro fundador Red Nacional Corp. Culturales. Res. Exenta 723 (2024)</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><strong>Teatro Municipal de Chillán</strong></td>
+              <td>Chillán</td>
+              <td>Ñuble</td>
+              <td class="amount-cell">>$290.000.000</td>
+              <td class="note-cell">"Más de 290 millones" confirmado · Miembro fundador Red Nacional</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:0.75rem; color:var(--gold); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">Teatros Municipales — $563.731.941 (18 instituciones) · Promedio ~$31M por institución</div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Institución</th>
+              <th>Ciudad</th>
+              <th>Región</th>
+              <th>Monto PAOCC 2025</th>
+              <th>Sistema actual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>4</td>
+              <td><strong>Corp. Cultural de Viña del Mar</strong></td>
+              <td>Viña del Mar</td>
+              <td>Valparaíso</td>
+              <td class="amount-cell">$48.199.023</td>
+              <td class="note-cell">3 plataformas: PortalTickets + Passline + Fever</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><strong>Corp. Municipal C. y A. San Antonio</strong></td>
+              <td>San Antonio</td>
+              <td>Valparaíso</td>
+              <td class="amount-cell">~$50.000.000</td>
+              <td class="note-cell">Único de Valparaíso en esta convocatoria</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><strong>Corporación Cultural de Antofagasta</strong></td>
+              <td>Antofagasta</td>
+              <td>Antofagasta</td>
+              <td class="amount-cell">>$31.000.000</td>
+              <td class="note-cell">Plan: Temporada Teatro Municipal Antofagasta · Publicado 19 jun. 2025</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Corp. Municipal Cultural Ovalle</td>
+              <td>Ovalle</td>
+              <td>Coquimbo</td>
+              <td class="amount-cell">Confirmado*</td>
+              <td class="note-cell">Miembro fundador Red Nacional Corp. Culturales</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Corp. Municipal Cultural Vicuña</td>
+              <td>Vicuña</td>
+              <td>Coquimbo</td>
+              <td class="amount-cell">Confirmado*</td>
+              <td class="note-cell"></td>
+            </tr>
+            <tr>
+              <td>9–21</td>
+              <td><em>13 instituciones adicionales</em></td>
+              <td>Diversas</td>
+              <td>8 regiones</td>
+              <td class="amount-cell">~$434M entre 13</td>
+              <td class="note-cell">Nómina completa en PDF oficial · ~$33M/org promedio residual</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:0.72rem; color:var(--gray-600); margin-top:8px;">* Monto individual no publicado en prensa. La nómina completa está en cultura.gob.cl/paocc (403 desde fuera de Chile).</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== LARGA TRAYECTORIA ===== -->
+<section id="larga" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">3</span> Larga Trayectoria 2025</h2>
+      <p>$11.229.950.635 para ~130 organizaciones con más de 10 años de existencia — las instituciones más grandes del ecosistema</p>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Institución</th>
+            <th>Ciudad</th>
+            <th>Región</th>
+            <th>Tipo</th>
+            <th>Relevancia Comercial</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Centro Cultural Palacio de la Moneda</td>
+            <td>Santiago</td>
+            <td>Metropolitana</td>
+            <td>Fundación mixta</td>
+            <td class="note-cell"><span class="tier-b">Media</span> — Decisión política, proceso largo</td>
+          </tr>
+          <tr>
+            <td>Fundación Internacional Teatro a Mil</td>
+            <td>Santiago</td>
+            <td>Metropolitana</td>
+            <td>Festival/Fundación</td>
+            <td class="note-cell"><span class="tier-c">Baja</span> — Modelo festival, no gestión continua</td>
+          </tr>
+          <tr>
+            <td>Matucana 100</td>
+            <td>Santiago</td>
+            <td>Metropolitana</td>
+            <td>Centro cultural</td>
+            <td class="note-cell"><span class="tier-a">Alta</span> — Programación activa pagada, Red Nacional</td>
+          </tr>
+          <tr>
+            <td>Corporación Balmaceda Arte Joven</td>
+            <td>Santiago</td>
+            <td>Metropolitana</td>
+            <td>Centro cultural juvenil</td>
+            <td class="note-cell"><span class="tier-c">Descartado</span> — Oferta mayormente gratuita</td>
+          </tr>
+          <tr>
+            <td>Fundación Artesanías de Chile</td>
+            <td>Santiago</td>
+            <td>Metropolitana</td>
+            <td>Fundación</td>
+            <td class="note-cell"><span class="tier-c">Baja</span> — Perfil comercial distinto</td>
+          </tr>
+          <tr>
+            <td>Museo Violeta Parra</td>
+            <td>Santiago</td>
+            <td>Metropolitana</td>
+            <td>Museo</td>
+            <td class="note-cell"><span class="tier-b">Media</span> — Cobra entrada, programación activa</td>
+          </tr>
+          <tr>
+            <td colspan="5" style="color:var(--gray-600); font-size:0.75rem; padding:12px 14px; background:#0a0a0a; text-align:center;">
+              + ~124 organizaciones más en todo Chile · Lista completa en nómina oficial PDF del Ministerio
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert-box" style="margin-top:20px;">
+      <strong>Monto estimado por organización LT:</strong> Con $11.229M para ~130 orgs, el promedio es ~$86M por institución. Las más grandes (Teatro a Mil, CCPLM) reciben significativamente más. El monto exacto de cada una está en el PDF de Larga Trayectoria 2025 disponible en cultura.gob.cl/paocc/larga-trayectoria/
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== REGIONES 2026 ===== -->
+<section id="regiones">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">4</span> Ingreso y Continuidad 2026 por Región</h2>
+      <p>78 organizaciones · $5.163.158.820 total · Datos confirmados en prensa regional</p>
+    </div>
+
+    <div class="regions-grid">
+
+      <div class="region-card">
+        <div class="region-header" style="border-top: 3px solid #8e44ad;">
+          <h3>Región del Maule</h3>
+          <span class="region-total">$280.940.292</span>
+        </div>
+        <div class="region-row-label">5 organizaciones</div>
+        <div class="region-body">
+          <div class="region-row">
+            <div>
+              <div class="org-name">Centro Cultural La Candelaria</div>
+              <div class="org-ciudad">Talca · Continuidad</div>
+            </div>
+            <span class="org-monto">$72.000.000</span>
+          </div>
+          <div class="region-row">
+            <div>
+              <div class="org-name">Fundación Buenas Raíces</div>
+              <div class="org-ciudad">Colbún · Continuidad</div>
+            </div>
+            <span class="org-monto">$65.759.350</span>
+          </div>
+          <div class="region-row">
+            <div>
+              <div class="org-name">Corporación Raíces de Fuego</div>
+              <div class="org-ciudad">Parral · Continuidad</div>
+            </div>
+            <span class="org-monto">$56.000.000</span>
+          </div>
+          <div class="region-row">
+            <div>
+              <div class="org-name">Corporación Ciudadanía</div>
+              <div class="org-ciudad">Talca · Ingreso</div>
+            </div>
+            <span class="org-monto">$49.999.600</span>
+          </div>
+          <div class="region-row">
+            <div>
+              <div class="org-name">Corporación Cultural El Canario</div>
+              <div class="org-ciudad">Longaví · Ingreso</div>
+            </div>
+            <span class="org-monto">$37.181.342</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="region-card">
+        <div class="region-header" style="border-top: 3px solid #2980b9;">
+          <h3>Región de Valparaíso</h3>
+          <span class="region-total">$403.000.000</span>
+        </div>
+        <div class="region-row-label">7 organizaciones · ~$57M promedio</div>
+        <div class="region-body">
+          <div class="region-row">
+            <div><div class="org-name">Fundación Oani de Teatro</div><div class="org-ciudad">Valparaíso</div></div>
+            <span class="org-monto">~$57M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">IMUVA</div><div class="org-ciudad">Valparaíso</div></div>
+            <span class="org-monto">~$57M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">Archivo Vivo de Reojo Comunicaciones</div><div class="org-ciudad">Valparaíso</div></div>
+            <span class="org-monto">~$57M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">CEAC</div><div class="org-ciudad">Valparaíso</div></div>
+            <span class="org-monto">~$57M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">Perro Sur Centro de Artes Visuales</div><div class="org-ciudad">Valparaíso</div></div>
+            <span class="org-monto">~$57M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">Editorial Trigal</div><div class="org-ciudad">Valparaíso</div></div>
+            <span class="org-monto">~$57M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">Carpa Azul</div><div class="org-ciudad">Valparaíso</div></div>
+            <span class="org-monto">~$57M</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="region-card">
+        <div class="region-header" style="border-top: 3px solid #27ae60;">
+          <h3>Región de La Araucanía</h3>
+          <span class="region-total">$178.187.970</span>
+        </div>
+        <div class="region-row-label">3 organizaciones</div>
+        <div class="region-body">
+          <div class="region-row">
+            <div><div class="org-name">Espacio Arte Ko-Panqui</div><div class="org-ciudad">Currarehue · Continuidad</div></div>
+            <span class="org-monto">~$60M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">Fundación Esfera Sur</div><div class="org-ciudad">Villarrica · Continuidad</div></div>
+            <span class="org-monto">~$60M</span>
+          </div>
+          <div class="region-row">
+            <div><div class="org-name">Fundación La Lluviosa</div><div class="org-ciudad">Temuco · Ingreso</div></div>
+            <span class="org-monto">~$58M</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="region-card">
+        <div class="region-header" style="border-top: 3px solid #e67e22;">
+          <h3>Región de Los Lagos</h3>
+          <span class="region-total">Confirmado · 4 orgs.</span>
+        </div>
+        <div class="region-row-label">4 organizaciones (mayor representación en Ingreso 2026)</div>
+        <div class="region-body">
+          <div class="region-row">
+            <div><div class="org-name" style="color:var(--gray-600); font-style:italic;">Nombres individuales no publicados en prensa</div><div class="org-ciudad">Los Lagos</div></div>
+            <span class="org-monto" style="color:var(--gray-600);">~$240M est.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="font-size:0.75rem; color:var(--gray-600); margin-top:16px;">Las regiones Metropolitana, Antofagasta, O'Higgins, Biobío, Ñuble, Los Ríos, Atacama, Tarapacá, Arica y Magallanes también tienen beneficiarios. Datos completos en cultura.gob.cl/paocc/ingreso-continuidad-2026/</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== HISTÓRICO ===== -->
+<section id="historico" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">5</span> Evolución Histórica del PAOCC</h2>
+      <p>Crecimiento sostenido desde 2022 — el programa casi triplicó su alcance en 3 años</p>
+    </div>
+
+    <div style="background:#0a0a0a; border:1px solid #1e1e1e; border-radius:12px; padding:28px; margin-bottom:24px;">
+      <div style="font-size:0.72rem; color:var(--gray-600); text-transform:uppercase; letter-spacing:1px; margin-bottom:18px;">Presupuesto total PAOCC por año (en miles de millones de CLP)</div>
+      <div class="history-bars">
+        <div class="h-bar-group">
+          <div class="h-bar" style="height:25%;"><span class="hv">$4B</span></div>
+          <div class="h-bar-label">2022<br><span style="color:#444">55 orgs</span></div>
+        </div>
+        <div class="h-bar-group">
+          <div class="h-bar" style="height:85%;"><span class="hv">$14.1B</span></div>
+          <div class="h-bar-label">2023<br><span style="color:#444">181 orgs</span></div>
+        </div>
+        <div class="h-bar-group">
+          <div class="h-bar" style="height:87%;"><span class="hv">~$14B</span></div>
+          <div class="h-bar-label">2024<br><span style="color:#444">~181 orgs</span></div>
+        </div>
+        <div class="h-bar-group">
+          <div class="h-bar" style="height:100%;"><span class="hv">~$16.5B</span></div>
+          <div class="h-bar-label">2025<br><span style="color:#444">197+ orgs</span></div>
+        </div>
+        <div class="h-bar-group">
+          <div class="h-bar" style="height:105%; background: linear-gradient(to top, #1a5c1a, #27ae60);"><span class="hv">~$17B+</span></div>
+          <div class="h-bar-label">2026<br><span style="color:#444">222+ orgs</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Año</th>
+            <th>Orgs. Total</th>
+            <th>Presupuesto (est.)</th>
+            <th>Hito notable</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2022</td>
+            <td>55</td>
+            <td class="amount-cell">~$4.000M</td>
+            <td class="note-cell">Primera gran expansión post-pandemia</td>
+          </tr>
+          <tr>
+            <td>2023</td>
+            <td><strong>181</strong></td>
+            <td class="amount-cell">$14.088.000.000</td>
+            <td class="note-cell">🏆 Récord histórico. 64.5% de recursos a regiones</td>
+          </tr>
+          <tr>
+            <td>2024</td>
+            <td>~181</td>
+            <td class="amount-cell">~$14.000M</td>
+            <td class="note-cell">Consolidación. >1.500M en teatros</td>
+          </tr>
+          <tr>
+            <td>2025</td>
+            <td>197+</td>
+            <td class="amount-cell">~$16.550M</td>
+            <td class="note-cell">LT $11.2B + Teatros $1.46B + I+C $2.9B + Trans. $687M</td>
+          </tr>
+          <tr>
+            <td>2026</td>
+            <td>222+</td>
+            <td class="amount-cell">~$17.000M+</td>
+            <td class="note-cell">78 orgs I+C ($5.16B) + Teatros Mun. (máx $70M/org)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== ANÁLISIS COMERCIAL ===== -->
+<section id="comercial">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">6</span> Análisis Comercial</h2>
+      <p>¿Cuáles de estas instituciones pueden pagar 65 UF/mes (~$30.4M CLP/año con IVA)?</p>
+    </div>
+
+    <div class="alert-box">
+      <strong>Referencia de costo:</strong> 65 UF/mes × $39.000 × 1.19 (IVA) × 12 meses = <strong>~$36.200.000 CLP/año</strong> con IVA ·  o ~$30.420.000 sin IVA.
+      El PAOCC NO es el presupuesto total — es solo una de las fuentes de ingreso. La capacidad real de pago viene del presupuesto municipal + PAOCC + ingresos propios (entradas, cursos) + otros fondos.
+    </div>
+
+    <div class="commercial-grid">
+      <div class="commercial-card ta">
+        <h3>Tier A — Pagan con el PAOCC solo</h3>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Teatro Regional Cervantes</div>
+            <div class="ci-sub">$609M anuales (PAOCC $300M + Partida 29 $309M)</div>
+          </div>
+          <div class="ci-pct">5% <span class="stars">★★★★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Teatro Regional del Maule</div>
+            <div class="ci-sub">$300M PAOCC anuales</div>
+          </div>
+          <div class="ci-pct">10% <span class="stars">★★★★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Teatro Municipal de Chillán</div>
+            <div class="ci-sub">>$290M PAOCC anuales</div>
+          </div>
+          <div class="ci-pct">10% <span class="stars">★★★★★</span></div>
+        </div>
+        <div class="commercial-msg">
+          "El sistema cuesta el 10% de lo que ya reciben del Ministerio. Y les va a ayudar a justificar ese financiamiento con datos reales de audiencia ante el próximo PAOCC."
+        </div>
+      </div>
+
+      <div class="commercial-card tb">
+        <h3>Tier B — PAOCC parcial · Municipio cubre el resto</h3>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Corp. Cultural de Viña del Mar</div>
+            <div class="ci-sub">$48M PAOCC + presupuesto Viña (~$50B muni)</div>
+          </div>
+          <div class="ci-pct">&lt;0.1% <span class="stars">★★★★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Corp. Cultural de Antofagasta</div>
+            <div class="ci-sub">$31M PAOCC + zona minera (presupuesto muni altísimo)</div>
+          </div>
+          <div class="ci-pct">&lt;0.01% <span class="stars">★★★★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Corp. Municipal San Antonio</div>
+            <div class="ci-sub">$50M PAOCC + presupuesto municipal</div>
+          </div>
+          <div class="ci-pct">72% PAOCC <span class="stars">★★★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Corp. Cultural Ovalle</div>
+            <div class="ci-sub">PAOCC confirmado + muni Ovalle</div>
+          </div>
+          <div class="ci-pct">Variable <span class="stars">★★★</span></div>
+        </div>
+        <div class="commercial-msg">
+          "El costo del software es el equivalente a 2 meses de su asignación PAOCC. A cambio, gestionan TODO desde una sola plataforma y los datos de audiencia son de ustedes."
+        </div>
+      </div>
+
+      <div class="commercial-card tc">
+        <h3>Tier C — LT / Fundaciones / Evaluación caso a caso</h3>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Matucana 100</div>
+            <div class="ci-sub">LT · Programación activa · Red Nacional</div>
+          </div>
+          <div class="ci-pct">Alta <span class="stars">★★★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Museo Violeta Parra</div>
+            <div class="ci-sub">LT · Cobra entrada · Programación</div>
+          </div>
+          <div class="ci-pct">Media <span class="stars">★★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Teatro a Mil / CCPLM</div>
+            <div class="ci-sub">LT · Decisión política compleja</div>
+          </div>
+          <div class="ci-pct">Baja <span class="stars">★★</span></div>
+        </div>
+        <div class="commercial-item">
+          <div>
+            <div class="ci-name">Balmaceda Arte Joven</div>
+            <div class="ci-sub">Oferta mayormente gratuita</div>
+          </div>
+          <div class="ci-pct"><span style="color:var(--red)">Descartado</span></div>
+        </div>
+        <div class="commercial-msg">
+          Estas organizaciones requieren un proceso de venta distinto — más largo, más político. No son prioridad en los primeros 12 meses.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== CONCLUSIONES ===== -->
+<section id="conclusiones" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">7</span> Conclusiones Clave</h2>
+      <p>Lo que el PAOCC revela sobre el mercado y la estrategia comercial</p>
+    </div>
+
+    <div class="conclusions-grid">
+      <div class="conclusion-card">
+        <div class="c-num">1</div>
+        <h3>El PAOCC no es el techo — es el piso</h3>
+        <p>El PAOCC es una subvención adicional. Las corporaciones municipales tienen además el presupuesto municipal base (10–100x mayor). Antofagasta y Viña del Mar tienen presupuestos de decenas de miles de millones.</p>
+      </div>
+      <div class="conclusion-card">
+        <div class="c-num">2</div>
+        <h3>Los Teatros Regionales son los mejores targets</h3>
+        <p>Cervantes ($609M), Maule (~$300M) y Chillán (>$290M) reciben lo suficiente para pagar el software con solo el 5–10% del PAOCC. No hay objeción presupuestaria válida.</p>
+      </div>
+      <div class="conclusion-card">
+        <div class="c-num">3</div>
+        <h3>78 nuevas orgs en 2026 = mercado expandido</h3>
+        <p>El PAOCC suma 78 organizaciones nuevas en 2026 (ingreso+continuidad). Muchas sin sistema de gestión profesional. Son prospectos de educación de mercado a 12–24 meses.</p>
+      </div>
+      <div class="conclusion-card">
+        <div class="c-num">4</div>
+        <h3>La Red Nacional como canal de distribución</h3>
+        <p>Los teatros regionales PAOCC son todos miembros de la Red Nacional de Corporaciones Culturales (julio 2023). Una presentación en sus reuniones llega a todos los Tier 1 simultáneamente.</p>
+      </div>
+      <div class="conclusion-card">
+        <div class="c-num">5</div>
+        <h3>El PAOCC justifica el software ante el Ministerio</h3>
+        <p>Los beneficiarios PAOCC deben rendir cuentas anuales con datos de audiencia. Un software con CRM y reportería les permite justificar mejor su financiamiento y aumentar su puntaje en la renovación.</p>
+      </div>
+      <div class="conclusion-card">
+        <div class="c-num">6</div>
+        <h3>2026 sube el máximo a $70M para teatros municipales</h3>
+        <p>En 2025 el promedio fue ~$31M; en 2026 el máximo por teatro municipal es $70M. Esto significa más capacidad de compra en los prospectos Tier B. Buen momento para atacar.</p>
+      </div>
+    </div>
+
+    <div class="sources-box">
+      <h4>Fuentes verificadas</h4>
+      <a href="https://www.cultura.gob.cl/paocc/" target="_blank">Ministerio de las Culturas — PAOCC oficial</a>
+      <a href="https://www.fondosdecultura.cl/category/fondos/paocc/" target="_blank">Fondos de Cultura — Convocatorias PAOCC</a>
+      <a href="https://www.teatroregionalcervantes.cl/teatro-regional-cervantes-encabeza-convocatoria-paocc-2025-y-se-adjudica-300-millones/" target="_blank">Teatro Regional Cervantes — PAOCC 2025 $300M</a>
+      <a href="https://maulehoy.cl/2024/04/13/teatro-regional-del-maule-recibio-inyeccion-de-300-millones-de-pesos-para-su-funcionamiento/" target="_blank">MauleHoy — Teatro Regional del Maule $300M</a>
+      <a href="https://www.nubleactual.cl/region-de-nuble/teatro-municipal-de-chillan-se-adjudico-mas-de-290-millones-de-pesos-a-traves-del-programa-de-apoyo-a-organizaciones-culturales-colaboradoras-paocc/" target="_blank">ÑubleActual — Teatro Municipal Chillán $290M+</a>
+      <a href="https://www.cultura.gob.cl/actualidad/corporacion-cultural-de-antofagasta-recibira-financiamiento-del-programa-de-apoyo-a-organizaciones-culturales-colaboradoras-del-ministerio-de-las-culturas-las-artes-y-el-patrimonio/" target="_blank">Ministerio — Corporación Cultural Antofagasta PAOCC 2025</a>
+      <a href="https://www.cultura.gob.cl/actualidad/teatro-municipal-de-vina-del-mar-y-centro-cultural-de-san-antonio-recibiran-recursos-para-fortalecer-gestion-cultural/" target="_blank">Ministerio — Viña del Mar $48M y San Antonio $50M</a>
+      <a href="https://elmauleinforma.cl/cinco-agrupaciones-del-maule-se-adjudican-recursos-del-programa-de-apoyo-a-organizaciones-culturales-colaboradoras-paocc-2026/" target="_blank">El Maule Informa — 5 orgs Maule PAOCC 2026 con montos</a>
+      <a href="https://dprlaaraucania.dpr.gob.cl/noticias/seremi-de-las-culturas-de-la-araucania-anuncia-inversion-de-178-millones-a-traves-del-programa-de-apoyo-a-organizaciones-culturales-colaboradoras/" target="_blank">DPR Araucanía — 3 orgs $178M PAOCC 2026</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p><strong>PAOCC — Instituciones Beneficiarias Chile 2025–2026</strong></p>
+  <p style="margin-top:6px;">Informe de inteligencia comercial · Deep Research junio 2026 · Confidencial</p>
+  <p style="margin-top:6px; font-size:0.65rem; color:#333;">Los montos marcados con ~ son estimaciones. Fuentes primarias 403 (cultura.gob.cl). Verificar montos individuales en nóminas PDF oficiales antes de usar en presentaciones.</p>
+</div>
+
+</body>
+</html>

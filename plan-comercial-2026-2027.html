@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Comercial 2026–2027 — Sistema Cultural Chile</title>
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dark: #8a6a1a;
+    --gray-100: #f5f5f5;
+    --gray-200: #e8e8e8;
+    --gray-300: #d0d0d0;
+    --gray-600: #6b6b6b;
+    --gray-800: #2d2d2d;
+    --tier1: #1a472a;
+    --tier1-light: #27ae60;
+    --tier2: #1a3a5c;
+    --tier2-light: #2980b9;
+    --tier3: #4a1a5c;
+    --tier3-light: #8e44ad;
+    --danger: #c0392b;
+    --warning: #e67e22;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a0a 50%, #0a0a0a 100%);
+    border-bottom: 2px solid var(--gold);
+    padding: 60px 40px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(201,168,76,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--black);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--gold); }
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--gray-300);
+    max-width: 620px;
+    margin: 0 auto 30px;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item {
+    text-align: center;
+  }
+  .hero-meta-item .value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--gold);
+  }
+  .hero-meta-item .label {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section {
+    padding: 60px 0;
+  }
+
+  .section-header {
+    margin-bottom: 36px;
+  }
+  .section-header h2 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-header h2 .num {
+    background: var(--gold);
+    color: var(--black);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .section-header p {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    margin-top: 8px;
+    padding-left: 44px;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dark), transparent);
+    margin: 0 40px;
+  }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .kpi-card {
+    background: #111;
+    border: 1px solid #222;
+    border-top: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-3px); }
+  .kpi-card .kpi-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gold);
+    display: block;
+  }
+  .kpi-card .kpi-label {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 6px;
+  }
+  .kpi-card .kpi-sub {
+    font-size: 0.8rem;
+    color: var(--gray-300);
+    margin-top: 4px;
+  }
+
+  /* PROSPECT CARDS */
+  .tier-section {
+    margin-bottom: 48px;
+  }
+  .tier-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .tier-label.t1 { background: rgba(39,174,96,0.15); border: 1px solid var(--tier1-light); color: var(--tier1-light); }
+  .tier-label.t2 { background: rgba(41,128,185,0.15); border: 1px solid var(--tier2-light); color: var(--tier2-light); }
+  .tier-label.t3 { background: rgba(142,68,173,0.15); border: 1px solid var(--tier3-light); color: var(--tier3-light); }
+  .tier-label .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .tier-label.t1 .dot { background: var(--tier1-light); }
+  .tier-label.t2 .dot { background: var(--tier2-light); }
+  .tier-label.t3 .dot { background: var(--tier3-light); }
+
+  .prospects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .prospect-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .prospect-card:hover { transform: translateY(-2px); }
+  .prospect-card.t1 { border-left: 3px solid var(--tier1-light); }
+  .prospect-card.t1:hover { border-color: var(--tier1-light); }
+  .prospect-card.t2 { border-left: 3px solid var(--tier2-light); }
+  .prospect-card.t2:hover { border-color: var(--tier2-light); }
+  .prospect-card.t3 { border-left: 3px solid var(--tier3-light); }
+  .prospect-card.t3:hover { border-color: var(--tier3-light); }
+
+  .prospect-num {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #222;
+    font-style: italic;
+  }
+  .prospect-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+    padding-right: 36px;
+  }
+  .prospect-city {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .prospect-city span {
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .prospect-why {
+    font-size: 0.82rem;
+    color: var(--gray-300);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .prospect-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .tag-system { background: rgba(231,76,60,0.2); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+  .tag-paocc { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+  .tag-minero { background: rgba(230,126,34,0.15); color: #e67e22; border: 1px solid rgba(230,126,34,0.3); }
+  .tag-capital { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+  .tag-fragmented { background: rgba(192,57,43,0.2); color: #e74c3c; border: 1px solid rgba(192,57,43,0.4); }
+  .tag-web { background: rgba(46,204,113,0.1); color: #2ecc71; border: 1px solid rgba(46,204,113,0.2); font-size: 0.65rem; }
+
+  /* VALOR */
+  .value-section {
+    background: #0d0d0d;
+  }
+  .value-quote {
+    background: linear-gradient(135deg, #111 0%, #1a1a0a 100%);
+    border: 1px solid var(--gold-dark);
+    border-left: 4px solid var(--gold);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    font-size: 1.1rem;
+    color: var(--white);
+    font-style: italic;
+    line-height: 1.7;
+  }
+  .value-quote strong { color: var(--gold); font-style: normal; }
+
+  /* COMPARISON TABLE */
+  .comp-table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #222;
+  }
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .comp-table th {
+    background: #1a1a0a;
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #2a2a1a;
+    color: var(--gray-300);
+  }
+  .comp-table th.highlight {
+    background: var(--gold);
+    color: var(--black);
+    font-weight: 800;
+  }
+  .comp-table th:first-child { text-align: left; }
+  .comp-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #181818;
+    color: var(--gray-300);
+    text-align: center;
+  }
+  .comp-table td:first-child { text-align: left; color: var(--white); font-weight: 500; }
+  .comp-table td.highlight { background: rgba(201,168,76,0.05); }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table tr:hover td { background: #141414; }
+  .comp-table tr:hover td.highlight { background: rgba(201,168,76,0.08); }
+  .check { color: #2ecc71; font-size: 1rem; }
+  .cross { color: #e74c3c; font-size: 0.9rem; }
+  .partial { color: #e67e22; }
+
+  /* ROI TABLE */
+  .roi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .roi-card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .roi-card .context { font-size: 0.75rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .roi-card .number { font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+  .roi-card .desc { font-size: 0.82rem; color: var(--gray-300); margin-top: 4px; }
+
+  /* SALES PROCESS */
+  .steps-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+  .steps-container::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 40px;
+    bottom: 40px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--gold), var(--gold-dark));
+  }
+  .step-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    padding: 24px 24px 24px 80px;
+    margin-bottom: 16px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .step-card:hover { border-color: var(--gold-dark); }
+  .step-num {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    background: var(--gold);
+    color: var(--black);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    z-index: 1;
+  }
+  .step-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .step-timing {
+    font-size: 0.7rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .step-card p {
+    font-size: 0.85rem;
+    color: var(--gray-300);
+    line-height: 1.6;
+  }
+  .step-card ul {
+    margin-top: 8px;
+    padding-left: 16px;
+  }
+  .step-card ul li {
+    font-size: 0.83rem;
+    color: var(--gray-300);
+    margin-bottom: 4px;
+  }
+  .step-card ul li strong { color: var(--white); }
+
+  /* ACTION PLAN */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .timeline-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    padding: 20px;
+    border-top: 3px solid var(--gold-dark);
+  }
+  .timeline-card .period {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .timeline-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+  .timeline-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .timeline-card ul li {
+    font-size: 0.82rem;
+    color: var(--gray-300);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .timeline-card ul li:last-child { border-bottom: none; }
+  .timeline-card ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-size: 0.75rem;
+  }
+  .timeline-card .kpi-box {
+    margin-top: 14px;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    color: var(--gold);
+  }
+  .timeline-card .kpi-box span { color: var(--gray-400); }
+
+  /* REVENUE PROJECTION */
+  .revenue-section {
+    background: #0d0d0d;
+  }
+  .revenue-chart {
+    background: #0a0a0a;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    height: 200px;
+    padding-bottom: 40px;
+    position: relative;
+  }
+  .chart-bars::before {
+    content: '';
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #1e1e1e;
+  }
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar {
+    width: 100%;
+    max-width: 60px;
+    background: linear-gradient(to top, var(--gold-dark), var(--gold));
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    min-height: 4px;
+    transition: opacity 0.2s;
+  }
+  .bar:hover { opacity: 0.85; }
+  .bar .bar-val {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+  .bar-label {
+    font-size: 0.65rem;
+    color: var(--gray-600);
+    text-align: center;
+    margin-top: 8px;
+    white-space: nowrap;
+  }
+
+  .revenue-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .revenue-table thead tr {
+    background: #1a1a0a;
+    border-bottom: 1px solid var(--gold-dark);
+  }
+  .revenue-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .revenue-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #181818;
+    color: var(--gray-300);
+  }
+  .revenue-table td:first-child { color: var(--white); font-weight: 600; }
+  .revenue-table td.big { color: var(--gold); font-weight: 700; font-size: 0.95rem; }
+  .revenue-table tr:last-child td { border-bottom: none; color: var(--gold); font-weight: 700; }
+  .revenue-table tr:last-child td.big { font-size: 1.05rem; }
+  .revenue-table tr:hover td { background: #111; }
+
+  /* KPI TABLES */
+  .kpi-tables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .kpi-table-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .kpi-table-card h3 {
+    background: #1a1a0a;
+    border-bottom: 1px solid var(--gold-dark);
+    padding: 14px 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .kpi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .kpi-table tr { border-bottom: 1px solid #181818; }
+  .kpi-table tr:last-child { border-bottom: none; }
+  .kpi-table tr:hover td { background: #141414; }
+  .kpi-table td {
+    padding: 10px 16px;
+    color: var(--gray-300);
+  }
+  .kpi-table td:last-child {
+    text-align: right;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  /* SCRIPTS */
+  .script-card {
+    background: #0d0d0d;
+    border: 1px solid #1e1e1e;
+    border-left: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .script-card h3 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+  }
+  .script-body {
+    font-size: 0.85rem;
+    color: var(--gray-300);
+    line-height: 1.8;
+    white-space: pre-line;
+    font-family: 'Courier New', monospace;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 6px;
+    padding: 20px;
+  }
+  .script-body .highlight-text { color: var(--gold); }
+
+  /* TOOLS */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  .tool-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .tool-card h3 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .tool-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #1a1a1a;
+    font-size: 0.82rem;
+    color: var(--gray-300);
+  }
+  .tool-item:last-child { border-bottom: none; }
+  .tool-item strong { color: var(--white); }
+  .tool-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: rgba(46,204,113,0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46,204,113,0.3);
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .tool-badge.paid { background: rgba(231,76,60,0.1); color: #e74c3c; border-color: rgba(231,76,60,0.3); }
+
+  /* IDEAL CLIENT */
+  .client-profile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 640px) { .client-profile { grid-template-columns: 1fr; } }
+  .profile-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .profile-card.yes { border-top: 3px solid #27ae60; }
+  .profile-card.no { border-top: 3px solid #c0392b; }
+  .profile-card h3 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .profile-card.yes h3 { color: #27ae60; }
+  .profile-card.no h3 { color: #c0392b; }
+  .profile-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #1a1a1a;
+    font-size: 0.84rem;
+    color: var(--gray-300);
+  }
+  .profile-item:last-child { border-bottom: none; }
+  .profile-item .icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* FOOTER */
+  .footer {
+    background: #0a0a0a;
+    border-top: 1px solid #1a1a1a;
+    padding: 40px;
+    text-align: center;
+    color: var(--gray-600);
+    font-size: 0.8rem;
+  }
+  .footer strong { color: var(--gold); }
+
+  /* NAV */
+  .nav {
+    background: #0d0d0d;
+    border-bottom: 1px solid #1a1a1a;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-inner {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-link {
+    color: var(--gray-600);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 14px 12px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .nav-link:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* GROWTH INDICATOR */
+  .growth-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(39,174,96,0.15);
+    border: 1px solid rgba(39,174,96,0.3);
+    color: #27ae60;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.8rem; }
+    .hero { padding: 40px 20px 30px; }
+    .container { padding: 0 16px; }
+    section { padding: 40px 0; }
+    .steps-container::before { display: none; }
+    .step-card { padding-left: 24px; }
+    .step-num { display: none; }
+    .chart-bars { height: 160px; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#situacion" class="nav-link">Situación</a>
+    <a href="#perfil" class="nav-link">Perfil Cliente</a>
+    <a href="#prospectos" class="nav-link">Prospectos</a>
+    <a href="#valor" class="nav-link">Propuesta de Valor</a>
+    <a href="#proceso" class="nav-link">Proceso de Venta</a>
+    <a href="#scripts" class="nav-link">Scripts</a>
+    <a href="#accion" class="nav-link">Plan Mes a Mes</a>
+    <a href="#ingresos" class="nav-link">Ingresos</a>
+    <a href="#kpis" class="nav-link">KPIs</a>
+    <a href="#herramientas" class="nav-link">Herramientas</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Confidencial · Junio 2026</div>
+  <h1>Plan Comercial <span>2026–2027</span></h1>
+  <p>Sistema de Gestión y Venta de Entradas para Corporaciones Culturales de Chile</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <span class="value">65 UF</span>
+      <div class="label">Precio / mes</div>
+    </div>
+    <div class="hero-meta-item">
+      <span class="value">2</span>
+      <div class="label">Clientes actuales</div>
+    </div>
+    <div class="hero-meta-item">
+      <span class="value">+12</span>
+      <div class="label">Meta 18 meses</div>
+    </div>
+    <div class="hero-meta-item">
+      <span class="value">+600%</span>
+      <div class="label">Crecimiento MRR</div>
+    </div>
+    <div class="hero-meta-item">
+      <span class="value">25</span>
+      <div class="label">Prospectos mapeados</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SITUACIÓN ACTUAL ===== -->
+<section id="situacion" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">1</span> Situación Actual</h2>
+      <p>Base existente, producto y oportunidad de crecimiento</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-value">130 UF</span>
+        <div class="kpi-label">MRR Actual</div>
+        <div class="kpi-sub">~$5.070.000 CLP/mes</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">Las Condes</span>
+        <div class="kpi-label">Cliente referencia #1</div>
+        <div class="kpi-sub">Corporación Municipal Stgo. Oriente</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">Lo Barnechea</span>
+        <div class="kpi-label">Cliente referencia #2</div>
+        <div class="kpi-sub">Corporación Municipal Stgo. Oriente</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">65 UF</span>
+        <div class="kpi-label">Precio unitario / mes</div>
+        <div class="kpi-sub">+ IVA · ~$2.977.000 CLP</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">910 UF</span>
+        <div class="kpi-label">Meta MRR mes 18</div>
+        <div class="kpi-sub">14 clientes · ~$35.5M CLP/mes</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; background: #111; border: 1px solid #222; border-left: 4px solid var(--gold); border-radius: 10px; padding: 24px 28px;">
+      <p style="font-size:0.9rem; color: var(--gray-300); line-height: 1.7;">
+        <strong style="color:var(--white);">El Producto:</strong> Software de gestión integral y venta de entradas para instituciones culturales.
+        El más completo del mercado en Chile: gestiona boletos, talleres, cursos, membresías, aforo, CRM de audiencia y reportería
+        en una sola plataforma. Sus únicos clientes actuales —Corporaciones de Las Condes y Lo Barnechea— son las referencias de venta
+        más poderosas en el mercado.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== PERFIL CLIENTE IDEAL ===== -->
+<section id="perfil">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">2</span> Perfil del Cliente Ideal</h2>
+      <p>Características que determinan si una institución puede pagar 65 UF/mes</p>
+    </div>
+
+    <div class="client-profile">
+      <div class="profile-card yes">
+        <h3>✓ SÍ puede pagar 65 UF/mes</h3>
+        <div class="profile-item">
+          <span class="icon">💰</span>
+          <span><strong>Presupuesto municipal alto</strong> — Municipio con ingresos propios >$10.000 MM CLP/año (Vitacura, Antofagasta, Calama, etc.)</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">🎟️</span>
+          <span><strong>Oferta cultural pagada</strong> — Cobra entradas a obras, conciertos, talleres, cursos o ferias</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">🏛️</span>
+          <span><strong>Infraestructura propia</strong> — Teatro, sala, centro cultural o espacio con aforo definido</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">🏛️</span>
+          <span><strong>Recibe PAOCC</strong> — Hasta $300M CLP/año (teatros regionales). Con ese presupuesto, 65 UF/mes = 0.2–1%</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">💻</span>
+          <span><strong>Ya paga por alguna solución</strong> — Si usa Ticketplus, Passline u otro sistema, ya tiene presupuesto para tecnología</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">👤</span>
+          <span><strong>Equipo de gestión mínimo</strong> — Al menos 1 director o encargado de programación que tome decisiones</span>
+        </div>
+      </div>
+      <div class="profile-card no">
+        <h3>✗ NO es tu cliente ahora</h3>
+        <div class="profile-item">
+          <span class="icon">🚫</span>
+          <span><strong>Programación 100% gratuita</strong> — Ñuñoa, Balmaceda Arte Joven, MAC. Sin ingresos propios de ticketing.</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">🚫</span>
+          <span><strong>Municipio de bajos ingresos</strong> — Menos de $3.000 MM CLP presupuesto anual total</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">🚫</span>
+          <span><strong>Sin infraestructura propia</strong> — Organiza eventos esporádicos en parques o espacios prestados</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">🚫</span>
+          <span><strong>Sin equipo de gestión</strong> — Solo voluntarios, sin estructura administrativa profesional</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== PROSPECTOS ===== -->
+<section id="prospectos" style="background: #0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">3</span> Lista de Prospectos</h2>
+      <p>25 instituciones mapeadas en 3 niveles de prioridad comercial</p>
+    </div>
+
+    <!-- TIER 1 -->
+    <div class="tier-section">
+      <div class="tier-label t1"><span class="dot"></span> Tier 1 — Atacar Inmediatamente (Meses 1–3)</div>
+      <div style="font-size:0.8rem; color:var(--gray-600); margin-bottom:16px;">Alto presupuesto · Alta necesidad · Sin solución integral</div>
+      <div class="prospects-grid">
+
+        <div class="prospect-card t1">
+          <span class="prospect-num">P1</span>
+          <h3>Corporación de Cultura y Turismo de Calama</h3>
+          <div class="prospect-city">Calama · <span>Región de Antofagasta</span></div>
+          <div class="prospect-why">Ciudad más rica per cápita de Chile (zona Codelco). Teatro municipal, Festival FENTIC, Carnaval Andino. Presupuesto municipal altísimo. Sin ticketing digital confirmado.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-minero">Zona Minera</span>
+            <span class="tag tag-paocc">Alto Presupuesto</span>
+            <span class="tag tag-web">calamacultural.cl</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t1">
+          <span class="prospect-num">P2</span>
+          <h3>Corporación Cultural de Vitacura</h3>
+          <div class="prospect-city">Vitacura · <span>Región Metropolitana</span></div>
+          <div class="prospect-why">Municipio más rico per cápita de Chile (~$1.1M CLP/hab). Programación activa: exposiciones, cursos, talleres, performances. Definitivamente pueden pagar.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-capital">Stgo. Oriente</span>
+            <span class="tag tag-paocc">Perfil Las Condes</span>
+            <span class="tag tag-web">vitacuracultura.cl</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t1">
+          <span class="prospect-num">P3</span>
+          <h3>Corporación Cultural de Antofagasta</h3>
+          <div class="prospect-city">Antofagasta · <span>Región de Antofagasta</span></div>
+          <div class="prospect-why">2ª ciudad de Chile. Zona minera. Teatro Municipal activo + Escuelas de Ballet, Música y Bellas Artes. Recibe PAOCC. Usa 2 plataformas distintas (fragmentación = dolor).</div>
+          <div class="prospect-tags">
+            <span class="tag tag-minero">Zona Minera</span>
+            <span class="tag tag-paocc">PAOCC</span>
+            <span class="tag tag-fragmented">2 Plataformas</span>
+            <span class="tag tag-web">rrpp@culturaantofagasta.cl</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t1">
+          <span class="prospect-num">P4</span>
+          <h3>Corp. Municipal Desarrollo Cultural Temuco</h3>
+          <div class="prospect-city">Temuco · <span>Región de La Araucanía</span></div>
+          <div class="prospect-why">YA USA TICKETPLUS → tienen presupuesto para tecnología. Capital de La Araucanía, 350K hab. Usa 3 plataformas distintas. Propuesta: sistema completo vs solo ticketing.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-system">Ya usa Ticketplus</span>
+            <span class="tag tag-fragmented">3 Plataformas</span>
+            <span class="tag tag-capital">Capital Regional</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t1">
+          <span class="prospect-num">P5</span>
+          <h3>Teatro Municipal Viña del Mar (Corp. Cultural)</h3>
+          <div class="prospect-city">Viña del Mar · <span>Región de Valparaíso</span></div>
+          <div class="prospect-why">Teatro 1.100 personas. PAOCC funded ($48M/año). Usa 3 plataformas distintas (PortalTickets + Passline + Fever) → fragmentación total = dolor real e inmediato.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-paocc">PAOCC $48M/año</span>
+            <span class="tag tag-fragmented">3 Plataformas — DOLOR</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t1">
+          <span class="prospect-num">P6</span>
+          <h3>Teatro Regional Cervantes</h3>
+          <div class="prospect-city">Valdivia · <span>Región de Los Ríos</span></div>
+          <div class="prospect-why">$300M PAOCC 2025 (puntaje máximo nacional). Teatro regional con alta programación y presupuesto estatal significativo. Ciudad universitaria y cultural.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-paocc">PAOCC $300M</span>
+            <span class="tag tag-capital">Teatro Regional</span>
+            <span class="tag tag-web">teatroregionalcervantes.cl</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t1">
+          <span class="prospect-num">P7</span>
+          <h3>Fundación Cultural de Providencia</h3>
+          <div class="prospect-city">Providencia · <span>Región Metropolitana</span></div>
+          <div class="prospect-why">Municipio de alto ingreso. Administra Teatro Oriente (1.000 aforo). Usa Ticketplus + Ticketmaster (2 plataformas fragmentadas). Perfil similar a Las Condes.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-capital">Stgo. Oriente</span>
+            <span class="tag tag-system">Ticketplus + Ticketmaster</span>
+            <span class="tag tag-fragmented">Fragmentado</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TIER 2 -->
+    <div class="tier-section">
+      <div class="tier-label t2"><span class="dot"></span> Tier 2 — Atacar Meses 3–6</div>
+      <div style="font-size:0.8rem; color:var(--gray-600); margin-bottom:16px;">Presupuesto PAOCC confirmado · Necesidad de gestión · Miembros Red Nacional</div>
+      <div class="prospects-grid">
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P8</span>
+          <h3>Teatro Regional del Maule</h3>
+          <div class="prospect-city">Talca · <span>Región del Maule</span></div>
+          <div class="prospect-why">$300M PAOCC 2025. Miembro fundador Red Nacional Corporaciones Culturales. Teatro regional activo.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-paocc">PAOCC $300M</span>
+            <span class="tag tag-capital">Red Nacional</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P9</span>
+          <h3>Teatro Municipal de Chillán</h3>
+          <div class="prospect-city">Chillán · <span>Región de Ñuble</span></div>
+          <div class="prospect-why">$300M PAOCC 2025. Miembro fundador Red Nacional. Teatro municipal activo. Nueva región con presupuesto creciente.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-paocc">PAOCC $300M</span>
+            <span class="tag tag-capital">Red Nacional</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P10</span>
+          <h3>Teatro Regional del Biobío</h3>
+          <div class="prospect-city">Concepción · <span>Región del Biobío</span></div>
+          <div class="prospect-why">Miembro fundador Red Nacional Corporaciones Culturales. Capital regional, 300K+ hab. Gran presencia cultural. Usa Ticketplus exclusivamente.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-system">Ticketplus</span>
+            <span class="tag tag-capital">Red Nacional · Cap. Regional</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P11</span>
+          <h3>Teatro Lucho Gatica de Rancagua</h3>
+          <div class="prospect-city">Rancagua · <span>Región O'Higgins</span></div>
+          <div class="prospect-why">Miembro fundador Red Nacional. Capital regional. Zona minera (Codelco Teniente). Nombrado en honor al famoso cantante chileno.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-minero">Zona Minera</span>
+            <span class="tag tag-capital">Red Nacional</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P12</span>
+          <h3>Corporación Cultural de Puente Alto</h3>
+          <div class="prospect-city">Puente Alto · <span>Región Metropolitana</span></div>
+          <div class="prospect-why">Ciudad más poblada de Chile (~700K hab). Teatro propio. Municipio con presupuesto alto. Gran volumen potencial de ticketing.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-capital">700K habitantes</span>
+            <span class="tag tag-paocc">Presupuesto Municipal Alto</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P13</span>
+          <h3>Matucana 100</h3>
+          <div class="prospect-city">Santiago Centro · <span>Región Metropolitana</span></div>
+          <div class="prospect-why">Miembro fundador Red Nacional. Centro cultural mixto público/privado. Programación pagada activa y diversa. Alta visibilidad en el sector.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-capital">Red Nacional</span>
+            <span class="tag tag-paocc">Mixto público/privado</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P14</span>
+          <h3>Centro Cultural San Antonio</h3>
+          <div class="prospect-city">San Antonio · <span>Región de Valparaíso</span></div>
+          <div class="prospect-why">Recibe PAOCC 2024. Puerto comercial con presupuesto decente. Crecimiento constante de actividad cultural.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-paocc">PAOCC 2024</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t2">
+          <span class="prospect-num">P15</span>
+          <h3>CORCUDEC Concepción</h3>
+          <div class="prospect-city">Concepción · <span>Región del Biobío</span></div>
+          <div class="prospect-why">Corporación Cultural del Municipio de Concepción. Usa Ticketplus exclusivamente. Capital regional de alto movimiento cultural.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-system">Ticketplus</span>
+            <span class="tag tag-capital">Capital Regional</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TIER 3 -->
+    <div class="tier-section">
+      <div class="tier-label t3"><span class="dot"></span> Tier 3 — Atacar Meses 6–12</div>
+      <div style="font-size:0.8rem; color:var(--gray-600); margin-bottom:16px;">Presupuesto moderado · Oportunidad real · Menor urgencia</div>
+      <div class="prospects-grid">
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P16</span>
+          <h3>Corporación Cultural de Iquique</h3>
+          <div class="prospect-city">Iquique · <span>Región de Tarapacá</span></div>
+          <div class="prospect-why">Zona franca (ZOFRI), altos ingresos municipales. Puerto activo. Ciudad con crecimiento económico sostenido.</div>
+          <div class="prospect-tags"><span class="tag tag-minero">Zona Franca</span></div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P17</span>
+          <h3>Corporación Cultural de Arica</h3>
+          <div class="prospect-city">Arica · <span>Región de Arica y Parinacota</span></div>
+          <div class="prospect-why">Capital de la región más al norte. Zona franca. Patrimonio cultural fuerte. Carnaval con la fuerza del sol.</div>
+          <div class="prospect-tags"><span class="tag tag-minero">Zona Franca</span></div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P18</span>
+          <h3>Corporación Cultural de Puerto Montt</h3>
+          <div class="prospect-city">Puerto Montt · <span>Región de Los Lagos</span></div>
+          <div class="prospect-why">Capital regional. Ciudad turística en fuerte crecimiento. Gateway a la Patagonia. Usa Ticketplus.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-system">Ticketplus</span>
+            <span class="tag tag-capital">Capital Regional</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P19</span>
+          <h3>Corporación Cultural de La Serena</h3>
+          <div class="prospect-city">La Serena · <span>Región de Coquimbo</span></div>
+          <div class="prospect-why">Capital regional. Ciudad universitaria y turística. Alto flujo cultural. Festival de Música clásica de renombre.</div>
+          <div class="prospect-tags"><span class="tag tag-capital">Capital Regional</span></div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P20</span>
+          <h3>Corporación Cultural Padre Las Casas</h3>
+          <div class="prospect-city">Padre Las Casas · <span>Región de La Araucanía</span></div>
+          <div class="prospect-why">PAOCC 2025 funded. Municipio aledaño a Temuco. Zona mapuche con fuerte identidad cultural.</div>
+          <div class="prospect-tags"><span class="tag tag-paocc">PAOCC 2025</span></div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P21</span>
+          <h3>Corporación Cultural de Copiapó</h3>
+          <div class="prospect-city">Copiapó · <span>Región de Atacama</span></div>
+          <div class="prospect-why">Capital regional. Zona minera (zona Atacama). Municipio con ingresos mineros decentes.</div>
+          <div class="prospect-tags"><span class="tag tag-minero">Zona Minera</span></div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P22</span>
+          <h3>Corporación Cultural de Osorno</h3>
+          <div class="prospect-city">Osorno · <span>Región de Los Lagos</span></div>
+          <div class="prospect-why">Ciudad agroindustrial. Teatro activo. Recibió $1.000M CLP municipal en 2024 (histórico). Crecimiento constante.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-paocc">$1.000M Municipal 2024</span>
+          </div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P23</span>
+          <h3>Corporación Cultural de Valdivia</h3>
+          <div class="prospect-city">Valdivia · <span>Región de Los Ríos</span></div>
+          <div class="prospect-why">Ciudad universitaria y festivalera (Festival Internacional de Cine). Alto activismo cultural. Base de público sofisticada.</div>
+          <div class="prospect-tags"><span class="tag tag-capital">Festival Cine</span></div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P24</span>
+          <h3>Corporación Cultural de Ovalle</h3>
+          <div class="prospect-city">Ovalle · <span>Región de Coquimbo</span></div>
+          <div class="prospect-why">Miembro fundador Red Nacional de Corporaciones Culturales. Municipio con actividad cultural creciente.</div>
+          <div class="prospect-tags"><span class="tag tag-capital">Red Nacional</span></div>
+        </div>
+
+        <div class="prospect-card t3">
+          <span class="prospect-num">P25</span>
+          <h3>Teatro del Lago</h3>
+          <div class="prospect-city">Frutillar · <span>Región de Los Lagos</span></div>
+          <div class="prospect-why">Fundación privada reconocida internacionalmente. Alta sofisticación. $3.300M CLP presupuesto anual. Usa PuntoTicket. Oportunidad de upgrade a sistema completo.</div>
+          <div class="prospect-tags">
+            <span class="tag tag-system">PuntoTicket</span>
+            <span class="tag tag-paocc">$3.300M CLP/año</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== PROPUESTA DE VALOR ===== -->
+<section id="valor" class="value-section">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">4</span> Propuesta de Valor</h2>
+      <p>El argumento central y la comparativa vs competencia</p>
+    </div>
+
+    <div class="value-quote">
+      "Las Corporaciones Culturales de <strong>Las Condes</strong> y <strong>Lo Barnechea</strong> — dos de las instituciones más exigentes y profesionales de Chile — eligieron nuestro sistema. ¿Qué te diferencia de ellas? <strong>Nada.</strong> Mereces la misma herramienta."
+    </div>
+
+    <div class="roi-grid">
+      <div class="roi-card">
+        <div class="context">Costo mensual (con IVA)</div>
+        <div class="number">~$3.017.000</div>
+        <div class="desc">65 UF × $39.000 × 1,19</div>
+      </div>
+      <div class="roi-card">
+        <div class="context">Si venden 500 entradas/mes a $10.000</div>
+        <div class="number">≈ 6%</div>
+        <div class="desc">de la recaudación bruta mensual — vs 10–15% de las ticketeras</div>
+      </div>
+      <div class="roi-card">
+        <div class="context">Si venden 1.000 entradas/mes a $10.000</div>
+        <div class="number">≈ 3%</div>
+        <div class="desc">de la recaudación — tarifa fija sin importar el volumen</div>
+      </div>
+      <div class="roi-card">
+        <div class="context">Los datos del público</div>
+        <div class="number">100% tuyos</div>
+        <div class="desc">Las ticketeras se quedan con la data de tus compradores. Nosotros no.</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px;">
+      <h3 style="font-size:0.9rem; color:var(--gold); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:16px;">Comparativa vs Competencia</h3>
+      <div class="comp-table-wrapper">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Funcionalidad</th>
+              <th>Ticketplus</th>
+              <th>PuntoTicket</th>
+              <th>Passline</th>
+              <th class="highlight">Tu Sistema</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Venta de entradas</td>
+              <td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>Gestión de talleres y cursos</td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>Membresías y abonos de temporada</td>
+              <td><span class="partial">Parcial</span></td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>CRM propio del cliente</td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>Reportería de ocupación</td>
+              <td><span class="partial">Básica</span></td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>Control de aforo en tiempo real</td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>Reservas grupos escolares</td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>Datos del público son del cliente</td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td><span class="cross">✗</span></td>
+              <td class="highlight"><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td>Modelo de precio</td>
+              <td>% variable (10–15%)</td>
+              <td>% variable (10–15%)</td>
+              <td>% variable (&gt;15%)</td>
+              <td class="highlight" style="color:var(--gold); font-weight:700;">Fijo mensual</td>
+            </tr>
+            <tr>
+              <td>Exclusividad / candado de contrato</td>
+              <td>Sí</td>
+              <td>Algunos</td>
+              <td>No</td>
+              <td class="highlight" style="color:#27ae60; font-weight:700;">No</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== PROCESO DE VENTA ===== -->
+<section id="proceso">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">5</span> Proceso de Venta (5 Pasos)</h2>
+      <p>Metodología probada desde el primer contacto hasta el cierre</p>
+    </div>
+
+    <div class="steps-container">
+      <div class="step-card">
+        <span class="step-num">1</span>
+        <div class="step-timing">Semana 1</div>
+        <h3>Prospección y Primer Contacto</h3>
+        <p>Objetivo: conseguir una reunión de 15 minutos. Canal: email personalizado + llamada telefónica 48 horas después.</p>
+        <ul>
+          <li>Contactar: Director/a de la Corporación Cultural, Gerente o Subdirector Cultural</li>
+          <li><strong>Regla de oro:</strong> Cada email menciona algo específico de esa institución (última temporada, evento reciente, su ciudad)</li>
+          <li>Nunca enviar email genérico</li>
+        </ul>
+      </div>
+
+      <div class="step-card">
+        <span class="step-num">2</span>
+        <div class="step-timing">Semana 1–2</div>
+        <h3>Llamada de Descubrimiento (15–20 min)</h3>
+        <p>Objetivo: entender el dolor y calificar si hay presupuesto.</p>
+        <ul>
+          <li>"¿Cómo gestionan hoy la venta de entradas a sus obras y cursos?"</li>
+          <li>"¿Tienen todo en una sola plataforma o usan varios sistemas?"</li>
+          <li>"¿Cuántos eventos tienen al mes aproximadamente?"</li>
+          <li>"¿Pueden acceder a los datos de sus compradores fácilmente?"</li>
+          <li><strong>Señal de compra:</strong> "usamos Excel", "tenemos 3 plataformas", "la ticketera retiene la plata varios días"</li>
+        </ul>
+      </div>
+
+      <div class="step-card">
+        <span class="step-num">3</span>
+        <div class="step-timing">Semana 2–3</div>
+        <h3>Demo Personalizada (45–60 min)</h3>
+        <p>Objetivo: mostrar el sistema con casos reales de Las Condes y Lo Barnechea.</p>
+        <ul>
+          <li><strong>2 min:</strong> "Déjame mostrarte cómo lo usa Las Condes hoy mismo..."</li>
+          <li><strong>10 min:</strong> Módulo de venta de entradas (flujo comprador)</li>
+          <li><strong>10 min:</strong> Módulo de talleres y cursos con cupos</li>
+          <li><strong>10 min:</strong> CRM y datos de audiencia (el diferenciador)</li>
+          <li><strong>10 min:</strong> Reportería y dashboard</li>
+          <li><strong>10 min:</strong> Preguntas + próximos pasos</li>
+        </ul>
+      </div>
+
+      <div class="step-card">
+        <span class="step-num">4</span>
+        <div class="step-timing">Dentro de 48 horas de la demo</div>
+        <h3>Propuesta Formal</h3>
+        <p>Objetivo: documento que justifica la inversión internamente ante el directorio o municipio.</p>
+        <ul>
+          <li>Resumen ejecutivo (1 página)</li>
+          <li>Módulos incluidos y qué resuelven</li>
+          <li>Precio: 65 UF + IVA/mes</li>
+          <li>ROI calculado con sus propios números (entradas × precio promedio)</li>
+          <li>Casos de éxito: Las Condes + Lo Barnechea</li>
+          <li><strong>Tip:</strong> Hacer el trabajo de justificación que el director debe hacer ante el alcalde</li>
+        </ul>
+      </div>
+
+      <div class="step-card">
+        <span class="step-num">5</span>
+        <div class="step-timing">Semana 3–6</div>
+        <h3>Cierre y Onboarding</h3>
+        <p>Objetivo: firma del contrato e inicio en 30 días. El precio de 65 UF no baja, pero se puede ofrecer:</p>
+        <ul>
+          <li>1 mes gratis de período de prueba</li>
+          <li>Onboarding incluido sin costo adicional</li>
+          <li>Capacitación al equipo incluida</li>
+          <li>3 meses de soporte prioritario</li>
+          <li><strong>Frase de cierre:</strong> "¿Qué necesitarías para presentar esto al directorio esta semana?"</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SCRIPTS ===== -->
+<section id="scripts" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">6</span> Scripts y Mensajes Clave</h2>
+      <p>Textos listos para usar — personalizar los campos en [corchetes]</p>
+    </div>
+
+    <div class="script-card">
+      <h3>Email de Primer Contacto</h3>
+      <div class="script-body">Asunto: Cómo Las Condes y Lo Barnechea gestionan hoy su programación cultural
+
+Estimado/a [Nombre],
+
+Soy [Tu nombre] de [Empresa]. Les escribo porque administramos el sistema de
+gestión y venta de entradas de las Corporaciones Culturales de Las Condes y
+Lo Barnechea — y creo que podemos hacer lo mismo para [Nombre Corporación].
+
+En una sola plataforma gestionan:
+• Venta de entradas a obras, conciertos y espectáculos
+• Inscripción a talleres y cursos con cupos
+• Membresías y abonos de temporada
+• Base de datos propia de su audiencia (algo que ninguna ticketera les da)
+
+Sé que [mención específica: "tienen 3 plataformas distintas para sus eventos" /
+"organizan el Festival FENTIC cada año" / "tienen una temporada activa en
+el Teatro Municipal"] — y creo que hay una forma más simple de manejarlo.
+
+¿Tienen 15 minutos esta semana para que les muestre cómo funciona?
+
+[Firma + LinkedIn + Teléfono]</div>
+    </div>
+
+    <div class="script-card">
+      <h3>Respuesta a Objeción de Precio</h3>
+      <div class="script-body">"Entiendo que 65 UF al mes puede parecer una inversión. Pero si venden 300 entradas
+al mes a $10.000 promedio, eso son $3M de recaudación. Nuestro sistema cuesta el
+equivalente al 1% de esa recaudación — y a cambio, la plata llega directo a su
+cuenta, los datos del público son suyos, y tienen un sistema para gestionar también
+sus talleres y cursos.
+
+Las ticketeras te cobran 10–15% que paga el comprador, y encima no te dejan
+los datos de tu audiencia."</div>
+    </div>
+
+    <div class="script-card">
+      <h3>Respuesta a "Estamos bien con lo que tenemos"</h3>
+      <div class="script-body">"Perfecto, me alegra que funcione. Solo una pregunta: ¿hoy pueden saber cuántas
+personas de sus compradores de entradas también se inscribieron a algún taller?
+¿O enviarles una comunicación de la próxima temporada a todos los que asistieron
+al último concierto?
+
+Con nuestro sistema, eso es un clic."</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== PLAN MES A MES ===== -->
+<section id="accion">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">7</span> Plan de Acción Mes a Mes</h2>
+      <p>18 meses de ejecución comercial, hitos y KPIs por período</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-card">
+        <div class="period">Mes 1</div>
+        <h3>Preparación y Lanzamiento</h3>
+        <ul>
+          <li>Preparar deck con casos Las Condes + Lo Barnechea</li>
+          <li>Construir base de datos Tier 1 (P1–P7) con emails y teléfonos</li>
+          <li>Redactar 3 versiones del email de contacto</li>
+          <li>Contactar los 7 prospectos Tier 1</li>
+        </ul>
+        <div class="kpi-box"><span>Meta:</span> 4 discovery calls · 2 demos agendadas</div>
+      </div>
+
+      <div class="timeline-card">
+        <div class="period">Mes 2</div>
+        <h3>Primeras Demos y Propuestas</h3>
+        <ul>
+          <li>Ejecutar demos con Tier 1 calificados</li>
+          <li>Enviar propuestas formales en &lt;48h de cada demo</li>
+          <li>Seguimiento activo cada 5–7 días</li>
+          <li>Recoger objeciones frecuentes</li>
+        </ul>
+        <div class="kpi-box"><span>Meta:</span> 4 demos · 2 propuestas · 1 cierre objetivo</div>
+      </div>
+
+      <div class="timeline-card">
+        <div class="period">Mes 3</div>
+        <h3>Primer Cierre + Inicio Tier 2</h3>
+        <ul>
+          <li>Cerrar 1 cliente nuevo (objetivo: Calama o Temuco)</li>
+          <li>Contactar los 8 prospectos Tier 2 (P8–P15)</li>
+          <li>Solicitar referidos a Las Condes y Lo Barnechea</li>
+          <li>Documentar caso de éxito del primer cliente nuevo</li>
+        </ul>
+        <div class="kpi-box"><span>Meta:</span> 1 cierre · 4 demos T2 · MRR = 195 UF</div>
+      </div>
+
+      <div class="timeline-card">
+        <div class="period">Meses 4–6</div>
+        <h3>Escala Tier 2</h3>
+        <ul>
+          <li>2 cierres adicionales de Tier 2</li>
+          <li>Inicio de contacto Tier 3</li>
+          <li>Asistir a eventos de la Red Nacional de Corporaciones Culturales</li>
+          <li>Publicar caso de éxito en LinkedIn</li>
+        </ul>
+        <div class="kpi-box"><span>Meta:</span> +2 clientes · MRR = 325 UF</div>
+      </div>
+
+      <div class="timeline-card">
+        <div class="period">Meses 7–12</div>
+        <h3>Consolidación y Expansión Regional</h3>
+        <ul>
+          <li>Cerrar 4–5 clientes adicionales de Tier 2 y 3</li>
+          <li>Buscar alianza con Red Nacional de Corporaciones Culturales</li>
+          <li>Explorar acuerdo con Ministerio de las Culturas / PAOCC</li>
+          <li>Evaluar expansión a nuevos segmentos</li>
+        </ul>
+        <div class="kpi-box"><span>Meta:</span> +5 clientes · MRR = 650 UF (mes 12)</div>
+      </div>
+
+      <div class="timeline-card">
+        <div class="period">Meses 13–18</div>
+        <h3>Crecimiento Sostenido</h3>
+        <ul>
+          <li>Finalizar pipeline Tier 3</li>
+          <li>Consolidar posición de liderazgo en el sector</li>
+          <li>Explorar expansión a nuevos mercados (entretenimiento, deporte)</li>
+          <li>Preparar upsell a clientes existentes</li>
+        </ul>
+        <div class="kpi-box"><span>Meta:</span> 14+ clientes · MRR = 910 UF</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== INGRESOS ===== -->
+<section id="ingresos" class="revenue-section">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">8</span> Proyección de Ingresos</h2>
+      <p>Crecimiento del MRR en 18 meses · UF estimada a $39.000 CLP · Sin IVA</p>
+    </div>
+
+    <!-- BAR CHART VISUAL -->
+    <div class="revenue-chart">
+      <div style="font-size:0.75rem; color:var(--gray-600); text-transform:uppercase; letter-spacing:1px; margin-bottom:20px;">MRR en UF por período</div>
+      <div class="chart-bars">
+        <div class="bar-group">
+          <div class="bar" style="height: 14%;">
+            <span class="bar-val">130</span>
+          </div>
+          <div class="bar-label">Hoy<br>(2 clientes)</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height: 21%;">
+            <span class="bar-val">195</span>
+          </div>
+          <div class="bar-label">Mes 3<br>(3 clientes)</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height: 36%;">
+            <span class="bar-val">325</span>
+          </div>
+          <div class="bar-label">Mes 6<br>(5 clientes)</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height: 57%;">
+            <span class="bar-val">520</span>
+          </div>
+          <div class="bar-label">Mes 9<br>(8 clientes)</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height: 71%;">
+            <span class="bar-val">650</span>
+          </div>
+          <div class="bar-label">Mes 12<br>(10 clientes)</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height: 100%;">
+            <span class="bar-val">910</span>
+          </div>
+          <div class="bar-label">Mes 18<br>(14 clientes)</div>
+        </div>
+      </div>
+    </div>
+
+    <table class="revenue-table">
+      <thead>
+        <tr>
+          <th>Período</th>
+          <th>Clientes</th>
+          <th>MRR (UF)</th>
+          <th>MRR (CLP neto)</th>
+          <th>ARR (CLP neto)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Hoy (base)</td>
+          <td>2</td>
+          <td class="big">130 UF</td>
+          <td>~$5.070.000</td>
+          <td>~$60.840.000</td>
+        </tr>
+        <tr>
+          <td>Mes 3</td>
+          <td>3</td>
+          <td class="big">195 UF</td>
+          <td>~$7.605.000</td>
+          <td>~$91.260.000</td>
+        </tr>
+        <tr>
+          <td>Mes 6</td>
+          <td>5</td>
+          <td class="big">325 UF</td>
+          <td>~$12.675.000</td>
+          <td>~$152.100.000</td>
+        </tr>
+        <tr>
+          <td>Mes 9</td>
+          <td>8</td>
+          <td class="big">520 UF</td>
+          <td>~$20.280.000</td>
+          <td>~$243.360.000</td>
+        </tr>
+        <tr>
+          <td>Mes 12</td>
+          <td>10</td>
+          <td class="big">650 UF</td>
+          <td>~$25.350.000</td>
+          <td>~$304.200.000</td>
+        </tr>
+        <tr>
+          <td>Mes 18</td>
+          <td>14</td>
+          <td class="big">910 UF</td>
+          <td>~$35.490.000</td>
+          <td>~$425.880.000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <span class="growth-badge">▲ +600% en MRR · de 130 UF a 910 UF en 18 meses</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== KPIs ===== -->
+<section id="kpis">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">9</span> KPIs y Métricas de Seguimiento</h2>
+      <p>Indicadores semanales, mensuales y de salud del pipeline</p>
+    </div>
+
+    <div class="kpi-tables">
+      <div class="kpi-table-card">
+        <h3>KPIs de Actividad (semanales)</h3>
+        <table class="kpi-table">
+          <tr><td>Emails de primer contacto enviados</td><td>5 / semana</td></tr>
+          <tr><td>Llamadas realizadas</td><td>8 / semana</td></tr>
+          <tr><td>Demos realizadas</td><td>2 / semana</td></tr>
+          <tr><td>Propuestas enviadas</td><td>1 / semana</td></tr>
+          <tr><td>Seguimientos a propuestas abiertas</td><td>Todos</td></tr>
+        </table>
+      </div>
+
+      <div class="kpi-table-card">
+        <h3>KPIs de Resultado (mensuales)</h3>
+        <table class="kpi-table">
+          <tr><td>Nuevos clientes cerrados (meses 2–6)</td><td>1 / mes</td></tr>
+          <tr><td>Crecimiento MRR promedio</td><td>+65 UF / mes</td></tr>
+          <tr><td>Conversión demo → propuesta</td><td>&gt;70%</td></tr>
+          <tr><td>Conversión propuesta → cierre</td><td>&gt;40%</td></tr>
+          <tr><td>Churn (pérdida de clientes)</td><td>0</td></tr>
+        </table>
+      </div>
+
+      <div class="kpi-table-card">
+        <h3>Salud del Pipeline (siempre activos)</h3>
+        <table class="kpi-table">
+          <tr><td>Prospectos contactados activos</td><td>25</td></tr>
+          <tr><td>En discovery call</td><td>5</td></tr>
+          <tr><td>En demo</td><td>3</td></tr>
+          <tr><td>Propuesta enviada</td><td>2–3</td></tr>
+          <tr><td>En negociación</td><td>1–2</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== HERRAMIENTAS ===== -->
+<section id="herramientas" style="background: #0d0d0d;">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="num">10</span> Herramientas Recomendadas</h2>
+      <p>Stack mínimo para ejecutar el plan comercial</p>
+    </div>
+
+    <div class="tools-grid">
+      <div class="tool-card">
+        <h3>Pipeline de Ventas</h3>
+        <div class="tool-item">
+          <div>
+            <strong>Notion</strong><br>
+            <span style="font-size:0.75rem;">Tabla kanban con prospectos y etapas</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+        <div class="tool-item">
+          <div>
+            <strong>HubSpot CRM</strong><br>
+            <span style="font-size:0.75rem;">Con seguimiento de emails y recordatorios</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+        <div class="tool-item">
+          <div>
+            <strong>Google Sheets</strong><br>
+            <span style="font-size:0.75rem;">Simple: Prospecto / Etapa / Contacto / Siguiente acción</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>Demos y Seguimiento</h3>
+        <div class="tool-item">
+          <div>
+            <strong>Google Meet / Zoom</strong><br>
+            <span style="font-size:0.75rem;">Demos por pantalla compartida</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+        <div class="tool-item">
+          <div>
+            <strong>Loom</strong><br>
+            <span style="font-size:0.75rem;">Demos asíncronas para enviar por email</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+        <div class="tool-item">
+          <div>
+            <strong>Boomerang para Gmail</strong><br>
+            <span style="font-size:0.75rem;">Recordatorio automático si no responden en 5 días</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>Materiales de Venta</h3>
+        <div class="tool-item">
+          <div>
+            <strong>Presentación Google Slides</strong><br>
+            <span style="font-size:0.75rem;">10 slides máximo con casos de éxito</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+        <div class="tool-item">
+          <div>
+            <strong>One-pager PDF</strong><br>
+            <span style="font-size:0.75rem;">1 página: producto + precio + casos. Para WhatsApp o reuniones</span>
+          </div>
+          <span class="tool-badge">Gratis</span>
+        </div>
+        <div class="tool-item">
+          <div>
+            <strong>LinkedIn Sales Navigator</strong><br>
+            <span style="font-size:0.75rem;">Para encontrar el contacto correcto en cada institución</span>
+          </div>
+          <span class="tool-badge paid">Pago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p><strong>Plan Comercial 2026–2027</strong> · Sistema de Gestión Cultural Chile</p>
+  <p style="margin-top:8px;">Clientes actuales: Corporación Cultural Las Condes · Corporación Cultural Lo Barnechea · Precio: 65 UF + IVA/mes</p>
+  <p style="margin-top:8px; font-size:0.7rem;">Preparado junio 2026 — Actualizar nombres de directivos antes de cada contacto · Confidencial</p>
+</div>
+
+</body>
+</html>
