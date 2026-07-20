@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Zapier__list_enabled_zapier_actions",
+      "mcp__Zapier__discover_zapier_actions",
+      "mcp__Zapier__execute_zapier_read_action",
+      "mcp__Zapier__execute_zapier_write_action"
+    ]
+  }
+}
