@@ -1,0 +1,25 @@
+# CI de LicitIA: typecheck + pruebas unitarias en cada push/PR que toque licitia/
+name: licitia-ci
+
+on:
+  push:
+    paths: ["licitia/**"]
+  pull_request:
+    paths: ["licitia/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: licitia
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: licitia/package-lock.json
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test

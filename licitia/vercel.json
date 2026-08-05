@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "regions": ["gru1"],
+  "functions": {
+    "src/app/api/internal/process/route.ts": { "maxDuration": 300 },
+    "src/app/api/comparisons/route.ts": { "maxDuration": 300 },
+    "src/app/api/claims/route.ts": { "maxDuration": 180 },
+    "src/app/api/claims/[id]/respond/route.ts": { "maxDuration": 180 },
+    "src/app/api/chat/route.ts": { "maxDuration": 120 }
+  }
+}

@@ -1,0 +1,95 @@
+-- ============================================================================
+-- LicitIA — Datos de ejemplo (seed) para desarrollo y pruebas
+-- Ejecutar DESPUÉS de crear al menos un usuario en Supabase Auth y reemplazar
+-- :admin_user_id por su UUID (o usar scripts/seed.sh que lo hace por ti).
+-- ============================================================================
+
+-- Organización demo
+insert into organizations (id, name, slug) values
+  ('11111111-1111-1111-1111-111111111111', 'Xperti Consultores', 'xperti')
+on conflict (id) do nothing;
+
+insert into app_settings (organization_id) values
+  ('11111111-1111-1111-1111-111111111111')
+on conflict do nothing;
+
+-- Clientes demo (municipios chilenos)
+insert into clients (id, organization_id, name, kind, country, region, city) values
+  ('22222222-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111',
+   'Municipalidad de Puerto Montt', 'municipio', 'Chile', 'Los Lagos', 'Puerto Montt'),
+  ('22222222-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111',
+   'Municipalidad de Valdivia', 'municipio', 'Chile', 'Los Ríos', 'Valdivia'),
+  ('22222222-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111',
+   'Servicio de Salud Reloncaví', 'institucion', 'Chile', 'Los Lagos', 'Puerto Montt')
+on conflict (id) do nothing;
+
+-- Documento demo (licitación) con requerimientos y cronograma
+insert into documents (id, organization_id, client_id, title, doc_type, status,
+  tender_number, tender_name, market_id, doc_date, amount, currency,
+  contract_duration, country, region, city, language)
+values (
+  '33333333-0000-0000-0000-000000000001',
+  '11111111-1111-1111-1111-111111111111',
+  '22222222-0000-0000-0000-000000000001',
+  'Licitación Sistema de Gestión Municipal — Puerto Montt',
+  'licitacion', 'procesado',
+  '2397-45-LR26', 'Adquisición e implementación de Sistema de Gestión Municipal',
+  '2397-45-LR26', '2026-03-15', 185000000, 'CLP',
+  '24 meses', 'Chile', 'Los Lagos', 'Puerto Montt', 'es'
+)
+on conflict (id) do nothing;
+
+insert into document_versions (id, document_id, version, is_current) values
+  ('44444444-0000-0000-0000-000000000001', '33333333-0000-0000-0000-000000000001', 1, true)
+on conflict do nothing;
+
+insert into requirements (document_id, code, title, description, category, mandatory, page, priority) values
+  ('33333333-0000-0000-0000-000000000001', 'RQ-001', 'Módulo de Rentas y Patentes',
+   'Sistema debe incluir gestión completa de rentas municipales y patentes comerciales.', 'modulo', true, 12, 'alto'),
+  ('33333333-0000-0000-0000-000000000001', 'RQ-002', 'Integración con Tesorería General',
+   'Integración en línea con Tesorería General de la República para conciliación.', 'integracion', true, 14, 'critico'),
+  ('33333333-0000-0000-0000-000000000001', 'RQ-003', 'Firma electrónica avanzada',
+   'Documentos oficiales deben firmarse con FEA según Ley 19.799.', 'seguridad', true, 18, 'alto'),
+  ('33333333-0000-0000-0000-000000000001', 'RQ-004', 'Dashboard ejecutivo con Power BI',
+   'Reportería gerencial con tableros Power BI actualizados diariamente.', 'dashboard', false, 22, 'medio'),
+  ('33333333-0000-0000-0000-000000000001', 'RQ-005', 'Capacitación a 50 funcionarios',
+   'Plan de capacitación presencial para 50 funcionarios en 3 módulos.', 'capacitacion', true, 30, 'medio')
+on conflict do nothing;
+
+insert into technical_variables (document_id, category, name, description, page, confidence) values
+  ('33333333-0000-0000-0000-000000000001', 'sistema', 'Sistema de Gestión Municipal', 'Plataforma integral web', 8, 0.98),
+  ('33333333-0000-0000-0000-000000000001', 'modulo', 'Rentas y Patentes', 'Gestión de rentas municipales', 12, 0.97),
+  ('33333333-0000-0000-0000-000000000001', 'modulo', 'Permisos de Circulación', 'Emisión y renovación en línea', 13, 0.95),
+  ('33333333-0000-0000-0000-000000000001', 'integracion', 'Tesorería General de la República', 'Conciliación de ingresos', 14, 0.96),
+  ('33333333-0000-0000-0000-000000000001', 'integracion', 'Registro Civil', 'Validación de identidad', 15, 0.91),
+  ('33333333-0000-0000-0000-000000000001', 'seguridad', 'Firma Electrónica Avanzada', 'Ley 19.799', 18, 0.95),
+  ('33333333-0000-0000-0000-000000000001', 'sla', 'Disponibilidad 99.5%', 'Medida mensualmente, con multas', 25, 0.93),
+  ('33333333-0000-0000-0000-000000000001', 'capacitacion', 'Capacitación 50 funcionarios', '3 módulos presenciales', 30, 0.94)
+on conflict do nothing;
+
+insert into timelines (id, document_id, title) values
+  ('55555555-0000-0000-0000-000000000001', '33333333-0000-0000-0000-000000000001',
+   'Cronograma Sistema de Gestión Municipal')
+on conflict do nothing;
+
+insert into milestones (timeline_id, milestone_type, title, starts_on, ends_on, sort_order) values
+  ('55555555-0000-0000-0000-000000000001', 'inicio', 'Firma de contrato e inicio', '2026-05-01', '2026-05-01', 0),
+  ('55555555-0000-0000-0000-000000000001', 'implementacion', 'Implementación módulos core', '2026-05-02', '2026-09-30', 1),
+  ('55555555-0000-0000-0000-000000000001', 'capacitacion', 'Capacitación funcionarios', '2026-09-01', '2026-10-15', 2),
+  ('55555555-0000-0000-0000-000000000001', 'marcha_blanca', 'Marcha blanca', '2026-10-16', '2026-12-15', 3),
+  ('55555555-0000-0000-0000-000000000001', 'recepcion', 'Recepción conforme', '2026-12-20', '2026-12-20', 4),
+  ('55555555-0000-0000-0000-000000000001', 'garantia', 'Período de garantía', '2026-12-21', '2027-12-20', 5),
+  ('55555555-0000-0000-0000-000000000001', 'soporte', 'Soporte y mantención', '2026-12-21', '2028-04-30', 6),
+  ('55555555-0000-0000-0000-000000000001', 'termino', 'Término de contrato', '2028-04-30', '2028-04-30', 7)
+on conflict do nothing;
+
+insert into tags (organization_id, name, color) values
+  ('11111111-1111-1111-1111-111111111111', 'urgente', '#ef4444'),
+  ('11111111-1111-1111-1111-111111111111', 'en-evaluacion', '#f59e0b'),
+  ('11111111-1111-1111-1111-111111111111', 'adjudicada', '#22c55e')
+on conflict do nothing;
+
+-- NOTA: para vincular tu usuario de Auth a la organización demo:
+--   insert into profiles (id, organization_id, email, full_name, role)
+--   values ('<TU-AUTH-UUID>', '11111111-1111-1111-1111-111111111111',
+--           '<tu-email>', 'Administrador Demo', 'admin');
