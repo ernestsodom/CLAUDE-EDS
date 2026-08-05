@@ -6,6 +6,7 @@ import { extractText, extractZipEntries } from "./extraction.service";
 import { chunkPages } from "./chunking.service";
 import {
   classifyDocument,
+  extractDeliveredItems,
   extractRequirements,
   extractTechnicalVariables,
   extractTimeline,
@@ -202,6 +203,30 @@ export async function processDocument(params: IngestParams): Promise<void> {
           priority: r.prioridad,
         }))
       );
+    }
+
+    // Documentos de control/avance: extraer cada entrega individual
+    // (incluye adicionales fuera de acuerdo y trabajos gratuitos)
+    if (["control_entregas", "avance", "informe", "acta"].includes(classification.tipo_documento)) {
+      const delivered = await extractDeliveredItems(pages);
+      await db.from("delivered_items").delete().eq("document_id", documentId);
+      if (delivered.entregas.length > 0) {
+        await db.from("delivered_items").insert(
+          delivered.entregas.map((e) => ({
+            document_id: documentId,
+            title: e.titulo,
+            description: e.descripcion,
+            delivered_on: e.fecha_entrega,
+            delivery_state: e.estado,
+            is_additional: e.es_adicional,
+            is_free: e.es_gratuito,
+            requirement_ref: e.referencia_requerimiento,
+            page: e.pagina,
+            quote: e.cita,
+            confidence: e.confianza,
+          }))
+        );
+      }
     }
 
     await step("timeline");

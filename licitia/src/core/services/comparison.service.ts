@@ -3,11 +3,21 @@ import { structuredCompletion } from "@/core/ai/structured";
 import { ComplianceSchema, DiffSchema } from "@/core/ai/schemas";
 import { MODELS, embedQuery } from "@/lib/openai";
 import { logger } from "@/lib/logger";
+import { extractDeliveredItems } from "./analysis.service";
+import type { PageText } from "@/core/domain/types";
 
 // ============================================================================
-// Comparador de cumplimiento: licitación (requerimientos ya extraídos)
-// vs documento de avances. Por cada lote de requerimientos se recupera
-// evidencia del documento destino y la IA clasifica el estado.
+// Comparador de cumplimiento — el corazón del control interno:
+// documento base (licitación / bases técnicas / contrato) vs documento de
+// control propio con lo realmente entregado.
+//
+// Pasada 1 (comprometido → entregado): por cada requerimiento del documento
+//   base se recupera evidencia del documento de control y la IA clasifica
+//   su estado (cumplido/parcial/pendiente/no_aplica/fuera_de_alcance).
+// Pasada 2 (entregado → comprometido, inversa): las entregas del documento
+//   de control que NO responden a ningún requerimiento del acuerdo se
+//   incorporan como "adicional", distinguiendo las realizadas sin costo.
+//
 // También soporta comparación doc-vs-doc (diferencias).
 // ============================================================================
 
@@ -87,16 +97,52 @@ export async function runComplianceComparison(comparisonId: string): Promise<voi
       });
     }
 
+    // Pasada inversa: entregas del documento de control que no responden a
+    // ningún requerimiento del acuerdo → "adicional" (con marca de gratuito)
+    const extras = await fetchAdditionalDeliveries(db, cmp.target_document_id);
+    let freeCount = 0;
+    for (const extra of extras) {
+      if (extra.is_free) freeCount++;
+      items.push({
+        comparison_id: comparisonId,
+        requirement_id: null,
+        requirement_text: `(Adicional) ${extra.title}`,
+        status: "adicional",
+        evidence_quote: extra.quote,
+        evidence_document_id: cmp.target_document_id,
+        evidence_page: extra.page,
+        ai_comment: extra.is_free
+          ? "Trabajo adicional realizado SIN COSTO, no contemplado en el acuerdo. Útil como respaldo en negociaciones y respuestas a reclamos."
+          : "Trabajo adicional fuera del acuerdo original.",
+        risk: "bajo",
+        priority: "bajo",
+        sort_order: items.length,
+      });
+    }
+
     await db.from("comparison_items").delete().eq("comparison_id", comparisonId);
     await db.from("comparison_items").insert(items);
 
-    const total = items.length || 1;
-    const count = (status: string) => items.filter((i) => i.status === status).length;
+    // Porcentajes de cumplimiento sobre los requerimientos del acuerdo;
+    // lo adicional se mide aparte (entregas extra / requerimientos totales)
+    const reqItems = items.filter((i) => i.status !== "adicional");
+    const total = reqItems.length || 1;
+    const count = (status: string) => reqItems.filter((i) => i.status === status).length;
     const pctFulfilled = (count("cumplido") / total) * 100;
     const pctPartial = (count("parcial") / total) * 100;
     const pctPending = (count("pendiente") / total) * 100;
-    const pctAdditional = (count("adicional") / total) * 100;
     const pctOutOfScope = (count("fuera_de_alcance") / total) * 100;
+    const pctAdditional = (extras.length / total) * 100;
+
+    const summaryParts = [
+      `${count("cumplido")}/${total} requerimientos cumplidos, ${count("parcial")} parciales, ${count("pendiente")} pendientes.`,
+    ];
+    if (extras.length > 0) {
+      summaryParts.push(
+        `${extras.length} trabajos adicionales fuera de acuerdo detectados` +
+          (freeCount > 0 ? ` (${freeCount} realizados sin costo).` : ".")
+      );
+    }
 
     await db
       .from("comparisons")
@@ -108,11 +154,11 @@ export async function runComplianceComparison(comparisonId: string): Promise<voi
         pct_additional: pctAdditional,
         pct_out_of_scope: pctOutOfScope,
         traffic_light: TRAFFIC_LIGHT(pctFulfilled + pctPartial * 0.5),
-        summary: `${count("cumplido")}/${total} cumplidos, ${count("parcial")} parciales, ${count("pendiente")} pendientes.`,
+        summary: summaryParts.join(" "),
       })
       .eq("id", comparisonId);
 
-    logger.info("comparison_completed", { comparisonId, total });
+    logger.info("comparison_completed", { comparisonId, total, extras: extras.length });
   } catch (err) {
     await db
       .from("comparisons")
@@ -120,6 +166,77 @@ export async function runComplianceComparison(comparisonId: string): Promise<voi
       .eq("id", comparisonId);
     throw err;
   }
+}
+
+interface AdditionalDelivery {
+  title: string;
+  quote: string | null;
+  page: number | null;
+  is_free: boolean;
+}
+
+/**
+ * Obtiene las entregas adicionales (fuera de acuerdo) del documento de control.
+ * Si el documento fue procesado antes de existir delivered_items, las extrae
+ * al vuelo desde sus páginas y las persiste para futuras comparaciones.
+ */
+async function fetchAdditionalDeliveries(
+  db: ReturnType<typeof createAdminClient>,
+  documentId: string
+): Promise<AdditionalDelivery[]> {
+  const { data: existing } = await db
+    .from("delivered_items")
+    .select("title, quote, page, is_free, is_additional")
+    .eq("document_id", documentId);
+
+  if (existing && existing.length > 0) {
+    return existing.filter((e) => e.is_additional);
+  }
+
+  // Fallback: extraer al vuelo desde el texto del documento
+  const { data: version } = await db
+    .from("document_versions")
+    .select("id")
+    .eq("document_id", documentId)
+    .eq("is_current", true)
+    .single();
+  if (!version) return [];
+
+  const { data: pages } = await db
+    .from("document_pages")
+    .select("page_number, content, ocr_used")
+    .eq("version_id", version.id)
+    .order("page_number");
+  if (!pages?.length) return [];
+
+  const pageTexts: PageText[] = pages.map((p) => ({
+    pageNumber: p.page_number,
+    content: p.content,
+    ocrUsed: p.ocr_used,
+  }));
+  const delivered = await extractDeliveredItems(pageTexts);
+
+  if (delivered.entregas.length > 0) {
+    await db.from("delivered_items").insert(
+      delivered.entregas.map((e) => ({
+        document_id: documentId,
+        title: e.titulo,
+        description: e.descripcion,
+        delivered_on: e.fecha_entrega,
+        delivery_state: e.estado,
+        is_additional: e.es_adicional,
+        is_free: e.es_gratuito,
+        requirement_ref: e.referencia_requerimiento,
+        page: e.pagina,
+        quote: e.cita,
+        confidence: e.confianza,
+      }))
+    );
+  }
+
+  return delivered.entregas
+    .filter((e) => e.es_adicional)
+    .map((e) => ({ title: e.titulo, quote: e.cita, page: e.pagina, is_free: e.es_gratuito }));
 }
 
 /** Comparación de diferencias entre dos documentos (licitaciones, propuestas, contratos o versiones). */

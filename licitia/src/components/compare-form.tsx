@@ -17,7 +17,7 @@ interface HistoryItem {
 }
 
 const TYPES = [
-  { id: "cumplimiento", label: "Cumplimiento (licitación vs avances)" },
+  { id: "cumplimiento", label: "Control de cumplimiento (comprometido vs entregado)" },
   { id: "licitacion_vs_licitacion", label: "Dos licitaciones" },
   { id: "propuesta_vs_propuesta", label: "Dos propuestas" },
   { id: "contrato_vs_contrato", label: "Dos contratos" },
@@ -93,8 +93,16 @@ export function CompareForm({
           >
             {TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
-          {select(source, setSource, type === "cumplimiento" ? "Documento original (licitación/contrato)…" : "Documento A…")}
-          {select(target, setTarget, type === "cumplimiento" ? "Documento de avances…" : "Documento B…")}
+          {select(source, setSource, type === "cumplimiento" ? "Documento base: licitación / bases técnicas / contrato…" : "Documento A…")}
+          {select(target, setTarget, type === "cumplimiento" ? "Tu documento de control de entregas (lo realmente entregado)…" : "Documento B…")}
+          {type === "cumplimiento" && (
+            <p className="text-xs text-muted-foreground">
+              El sistema clasifica cada requerimiento del documento base contra tu control
+              (cumplido / parcial / pendiente) y además detecta las entregas tuyas que no
+              responden a ningún requerimiento del acuerdo, marcándolas como{" "}
+              <span className="font-medium">adicionales</span> — incluyendo las realizadas sin costo.
+            </p>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button onClick={run} disabled={busy}>
             {busy ? (<><Loader2 className="h-4 w-4 animate-spin" /> Analizando (puede tardar minutos)…</>) : "Comparar"}

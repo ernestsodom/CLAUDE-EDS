@@ -43,11 +43,17 @@ Cada respuesta incluye **citas textuales con página y sección** y un **porcent
 
 En **Chat IA** (menú lateral) consultas toda la biblioteca a la vez (*“¿Qué municipalidades piden integración con Tesorería?”*) y eliges agente especializado: Analista, Comparador, Redactor de Reclamos, Generador de Propuestas o Asesor Comercial. Tus conversaciones se guardan: reábrelas, continúalas, márcalas favoritas ⭐, duplícalas o búscalas.
 
-## 5. Comparador
+## 5. Control de cumplimiento
 
-1. Elige el tipo: **Cumplimiento** (licitación/contrato vs documento de avances) u otra comparación (dos licitaciones, propuestas, contratos o versiones).
-2. Selecciona los dos documentos (deben estar procesados) y pulsa **Comparar**.
-3. En cumplimiento obtendrás: porcentajes (cumplido, parcial, pendiente, adicional, fuera de alcance), **semáforo** verde/amarillo/rojo y una tabla por requerimiento con evidencia, página, comentario de la IA, riesgo y prioridad. Todo exportable.
+Este es el corazón del sistema: **control interno de lo comprometido vs. lo realmente entregado**.
+
+1. Mantén tu propio **documento de control de entregas** (Word/Excel/PDF con lo que realmente has entregado, en curso o comprometido — incluidos trabajos que hiciste de más) y súbelo como cualquier documento. El sistema lo clasifica como `control_entregas` y extrae cada entrega individual; las verás en la pestaña **Entregas** de su ficha, marcadas como contractuales, adicionales o adicionales **sin costo**.
+2. En **Control de cumplimiento**, elige el documento base (la licitación, las bases técnicas o el contrato) y tu documento de control, y pulsa **Comparar**.
+3. Obtendrás dos análisis:
+   - **Cumplimiento contractual**: cada requerimiento del documento base clasificado como cumplido, parcial o pendiente según la evidencia de tu control, con porcentajes y **semáforo** verde/amarillo/rojo, evidencia, página, comentario IA, riesgo y prioridad.
+   - **Trabajos adicionales fuera de acuerdo**: la pasada inversa detecta entregas tuyas que no responden a ningún requerimiento del acuerdo — incluyendo las realizadas **gratuitamente**. Este registro es tu mejor respaldo en negociaciones y respuestas a reclamos.
+
+También puedes comparar diferencias entre dos licitaciones, propuestas, contratos o versiones.
 
 ## 6. Reclamos
 

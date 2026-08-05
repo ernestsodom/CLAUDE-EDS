@@ -7,7 +7,7 @@ import { useState } from "react";
 const TYPES = [
   "licitacion", "bases_administrativas", "bases_tecnicas", "propuesta_comercial",
   "propuesta_tecnica", "carta_gantt", "contrato", "anexo", "reclamo", "informe",
-  "acta", "avance", "otro",
+  "acta", "avance", "control_entregas", "otro",
 ];
 const STATUSES = ["subido", "procesando", "procesado", "error", "archivado"];
 

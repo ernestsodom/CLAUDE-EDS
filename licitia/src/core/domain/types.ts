@@ -17,6 +17,7 @@ export type DocumentType =
   | "informe"
   | "acta"
   | "avance"
+  | "control_entregas"
   | "otro";
 
 export type DocumentStatus = "subido" | "procesando" | "procesado" | "error" | "archivado";

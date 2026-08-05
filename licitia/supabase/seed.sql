@@ -83,6 +83,39 @@ insert into milestones (timeline_id, milestone_type, title, starts_on, ends_on, 
   ('55555555-0000-0000-0000-000000000001', 'termino', 'Término de contrato', '2028-04-30', '2028-04-30', 7)
 on conflict do nothing;
 
+-- Documento de control interno de entregas (lo realmente entregado)
+insert into documents (id, organization_id, client_id, title, doc_type, status,
+  tender_number, doc_date, country, language)
+values (
+  '33333333-0000-0000-0000-000000000002',
+  '11111111-1111-1111-1111-111111111111',
+  '22222222-0000-0000-0000-000000000001',
+  'Control Interno de Entregas — SGM Puerto Montt',
+  'control_entregas', 'procesado',
+  '2397-45-LR26', '2026-07-28', 'Chile', 'es'
+)
+on conflict (id) do nothing;
+
+insert into document_versions (id, document_id, version, is_current) values
+  ('44444444-0000-0000-0000-000000000002', '33333333-0000-0000-0000-000000000002', 1, true)
+on conflict do nothing;
+
+insert into delivered_items (document_id, title, description, delivered_on, delivery_state,
+  is_additional, is_free, requirement_ref, page, confidence) values
+  ('33333333-0000-0000-0000-000000000002', 'Módulo de Rentas y Patentes',
+   'En producción, recepcionado conforme', '2026-06-15', 'entregado', false, false, 'RQ-001', 4, 0.97),
+  ('33333333-0000-0000-0000-000000000002', 'Firma electrónica avanzada',
+   'FEA operativa integrada con E-Sign', '2026-07-01', 'entregado', false, false, 'RQ-003', 6, 0.95),
+  ('33333333-0000-0000-0000-000000000002', 'Tableros Power BI de Rentas',
+   'Publicados; pendientes los de Circulación', '2026-07-10', 'en_progreso', false, false, 'RQ-004', 7, 0.9),
+  ('33333333-0000-0000-0000-000000000002', 'Capacitación 52 funcionarios',
+   'Superó la meta de 50; asistencia firmada', '2026-07-20', 'entregado', false, false, 'RQ-005', 9, 0.96),
+  ('33333333-0000-0000-0000-000000000002', 'Portal de pagos Webpay',
+   'Pasarela de pagos no exigida en bases, habilitada sin costo', '2026-07-05', 'entregado', true, true, null, 10, 0.94),
+  ('33333333-0000-0000-0000-000000000002', 'Notificaciones por WhatsApp',
+   'Avisos de vencimiento de patentes; mejora de cortesía sin costo', '2026-07-18', 'entregado', true, true, null, 11, 0.92)
+on conflict do nothing;
+
 insert into tags (organization_id, name, color) values
   ('11111111-1111-1111-1111-111111111111', 'urgente', '#ef4444'),
   ('11111111-1111-1111-1111-111111111111', 'en-evaluacion', '#f59e0b'),

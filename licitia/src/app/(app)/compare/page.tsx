@@ -41,9 +41,11 @@ export default async function ComparePage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Comparador</h1>
+        <h1 className="text-2xl font-semibold">Control de cumplimiento</h1>
         <p className="text-sm text-muted-foreground">
-          Cumplimiento requerimiento a requerimiento con semáforo, o diferencias entre dos documentos.
+          Lo comprometido (licitación, bases técnicas o contrato) contra lo realmente entregado
+          según tu propio documento de control — incluyendo trabajos adicionales fuera de acuerdo
+          y realizados sin costo. También permite comparar diferencias entre dos documentos.
         </p>
       </div>
 

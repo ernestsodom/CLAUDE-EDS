@@ -14,7 +14,8 @@ export const ClassificationSchema = z.object({
   tipo_documento: z.enum([
     "licitacion", "bases_administrativas", "bases_tecnicas",
     "propuesta_comercial", "propuesta_tecnica", "carta_gantt",
-    "contrato", "anexo", "reclamo", "informe", "acta", "avance", "otro",
+    "contrato", "anexo", "reclamo", "informe", "acta", "avance",
+    "control_entregas", "otro",
   ]),
   fecha: z.string().nullable().describe("ISO 8601 (YYYY-MM-DD)"),
   monto: z.number().nullable(),
@@ -113,6 +114,31 @@ export const TimelineSchema = z.object({
   ),
 });
 export type Timeline = z.infer<typeof TimelineSchema>;
+
+export const DeliveredItemsSchema = z.object({
+  entregas: z.array(
+    z.object({
+      titulo: z.string(),
+      descripcion: z.string().nullable(),
+      fecha_entrega: z.string().nullable().describe("ISO 8601 si es determinable"),
+      estado: z.enum(["entregado", "en_progreso", "comprometido"]),
+      es_adicional: z
+        .boolean()
+        .describe("true si NO corresponde a ningún requerimiento del acuerdo/licitación"),
+      es_gratuito: z
+        .boolean()
+        .describe("true si se realizó sin costo para el cliente"),
+      referencia_requerimiento: z
+        .string()
+        .nullable()
+        .describe("Código o título del requerimiento contractual al que responde, si aplica"),
+      pagina: z.number().int().nullable(),
+      cita: z.string().nullable(),
+      confianza: z.number().min(0).max(1),
+    })
+  ),
+});
+export type DeliveredItems = z.infer<typeof DeliveredItemsSchema>;
 
 export const ComplianceItemSchema = z.object({
   requerimiento: z.string(),

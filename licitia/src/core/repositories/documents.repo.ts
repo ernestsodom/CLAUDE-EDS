@@ -45,14 +45,16 @@ export async function getDocument(supabase: SupabaseClient, id: string): Promise
 
 export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
   const document = await getDocument(supabase, id);
-  const [summary, variables, requirements, timeline, versions, notes] = await Promise.all([
-    supabase.from("document_summaries").select("*").eq("document_id", id).maybeSingle(),
-    supabase.from("technical_variables").select("*").eq("document_id", id).order("category"),
-    supabase.from("requirements").select("*").eq("document_id", id).order("created_at"),
-    supabase.from("timelines").select("*, milestones(*)").eq("document_id", id).maybeSingle(),
-    supabase.from("document_versions").select("*").eq("document_id", id).order("version", { ascending: false }),
-    supabase.from("notes").select("*").eq("document_id", id).order("created_at", { ascending: false }),
-  ]);
+  const [summary, variables, requirements, timeline, versions, notes, delivered] =
+    await Promise.all([
+      supabase.from("document_summaries").select("*").eq("document_id", id).maybeSingle(),
+      supabase.from("technical_variables").select("*").eq("document_id", id).order("category"),
+      supabase.from("requirements").select("*").eq("document_id", id).order("created_at"),
+      supabase.from("timelines").select("*, milestones(*)").eq("document_id", id).maybeSingle(),
+      supabase.from("document_versions").select("*").eq("document_id", id).order("version", { ascending: false }),
+      supabase.from("notes").select("*").eq("document_id", id).order("created_at", { ascending: false }),
+      supabase.from("delivered_items").select("*").eq("document_id", id).order("delivered_on", { ascending: false }),
+    ]);
   return {
     document,
     summary: summary.data,
@@ -61,6 +63,7 @@ export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
     timeline: timeline.data,
     versions: versions.data ?? [],
     notes: notes.data ?? [],
+    deliveredItems: delivered.data ?? [],
   };
 }
 

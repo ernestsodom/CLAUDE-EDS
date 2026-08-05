@@ -14,6 +14,82 @@ interface ComparisonItem {
   priority: string;
 }
 
+/** Tabla de cumplimiento contractual + sección aparte de trabajos adicionales
+ *  fuera de acuerdo (con marca de "sin costo"). */
+function ComplianceTables({ items }: { items: ComparisonItem[] }) {
+  const contractual = items.filter((i) => i.status !== "adicional");
+  const additional = items.filter((i) => i.status === "adicional");
+
+  return (
+    <div className="space-y-6">
+      <Table>
+        <THead>
+          <TR>
+            <TH>Requerimiento</TH><TH>Estado</TH><TH>Evidencia</TH><TH>Pág.</TH>
+            <TH>Comentario IA</TH><TH>Riesgo</TH><TH>Prioridad</TH>
+          </TR>
+        </THead>
+        <TBody>
+          {contractual.map((item) => (
+            <TR key={item.id}>
+              <TD className="max-w-[280px] font-medium">{item.requirement_text}</TD>
+              <TD><Badge variant={statusVariant(item.status)}>{item.status.replace(/_/g, " ")}</Badge></TD>
+              <TD className="max-w-[280px] text-xs italic text-muted-foreground">
+                {item.evidence_quote ? `“${item.evidence_quote}”` : "—"}
+              </TD>
+              <TD>{item.evidence_page ?? "—"}</TD>
+              <TD className="max-w-[280px] text-xs">{item.ai_comment ?? "—"}</TD>
+              <TD><Badge variant={statusVariant(item.risk)}>{item.risk}</Badge></TD>
+              <TD><Badge variant={statusVariant(item.priority)}>{item.priority}</Badge></TD>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
+
+      {additional.length > 0 && (
+        <div className="space-y-2">
+          <div>
+            <h3 className="font-semibold">
+              Trabajos adicionales fuera de acuerdo ({additional.length})
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Entregas registradas en tu documento de control que no responden a ningún
+              requerimiento del documento base. Las marcadas “sin costo” son respaldo
+              valioso en negociaciones y respuestas a reclamos.
+            </p>
+          </div>
+          <Table>
+            <THead>
+              <TR><TH>Entrega</TH><TH>Condición</TH><TH>Evidencia</TH><TH>Pág.</TH><TH>Comentario IA</TH></TR>
+            </THead>
+            <TBody>
+              {additional.map((item) => (
+                <TR key={item.id}>
+                  <TD className="max-w-[300px] font-medium">
+                    {item.requirement_text.replace(/^\(Adicional\)\s*/, "")}
+                  </TD>
+                  <TD>
+                    {item.ai_comment?.includes("SIN COSTO") ? (
+                      <Badge variant="success">sin costo</Badge>
+                    ) : (
+                      <Badge variant="default">adicional</Badge>
+                    )}
+                  </TD>
+                  <TD className="max-w-[300px] text-xs italic text-muted-foreground">
+                    {item.evidence_quote ? `“${item.evidence_quote}”` : "—"}
+                  </TD>
+                  <TD>{item.evidence_page ?? "—"}</TD>
+                  <TD className="max-w-[300px] text-xs">{item.ai_comment ?? "—"}</TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface Comparison {
   id: string;
   comparison_type: string;
@@ -74,29 +150,7 @@ export function ComparisonResult({ comparison }: { comparison: Comparison }) {
       </Card>
 
       {isCompliance ? (
-        <Table>
-          <THead>
-            <TR>
-              <TH>Requerimiento</TH><TH>Estado</TH><TH>Evidencia</TH><TH>Pág.</TH>
-              <TH>Comentario IA</TH><TH>Riesgo</TH><TH>Prioridad</TH>
-            </TR>
-          </THead>
-          <TBody>
-            {comparison.comparison_items.map((item) => (
-              <TR key={item.id}>
-                <TD className="max-w-[280px] font-medium">{item.requirement_text}</TD>
-                <TD><Badge variant={statusVariant(item.status)}>{item.status.replace(/_/g, " ")}</Badge></TD>
-                <TD className="max-w-[280px] text-xs italic text-muted-foreground">
-                  {item.evidence_quote ? `“${item.evidence_quote}”` : "—"}
-                </TD>
-                <TD>{item.evidence_page ?? "—"}</TD>
-                <TD className="max-w-[280px] text-xs">{item.ai_comment ?? "—"}</TD>
-                <TD><Badge variant={statusVariant(item.risk)}>{item.risk}</Badge></TD>
-                <TD><Badge variant={statusVariant(item.priority)}>{item.priority}</Badge></TD>
-              </TR>
-            ))}
-          </TBody>
-        </Table>
+        <ComplianceTables items={comparison.comparison_items} />
       ) : (
         <Table>
           <THead>

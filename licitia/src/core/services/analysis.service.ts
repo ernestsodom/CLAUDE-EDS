@@ -1,11 +1,13 @@
 import { structuredCompletion } from "@/core/ai/structured";
 import {
   ClassificationSchema,
+  DeliveredItemsSchema,
   RequirementsSchema,
   SummarySchema,
   TechnicalVariablesSchema,
   TimelineSchema,
   type Classification,
+  type DeliveredItems,
   type Requirements,
   type Summary,
   type TechnicalVariables,
@@ -81,6 +83,30 @@ export async function extractRequirements(pages: PageText[]): Promise<Requiremen
       "Eres un ingeniero de requerimientos. Extrae cada requerimiento individual del documento " +
       "(funcional, técnico, administrativo o de servicio) como un ítem separado, con código si existe, " +
       "página de origen, cita textual, si es obligatorio u opcional, y prioridad estimada.",
+    user: pagesToAnnotatedText(pages),
+  });
+}
+
+/**
+ * Extrae del documento de control (o informe de avance/acta) cada entrega
+ * realizada como ítem individual, distinguiendo lo contractual de los
+ * trabajos adicionales fuera de acuerdo y los realizados sin costo.
+ */
+export async function extractDeliveredItems(pages: PageText[]): Promise<DeliveredItems> {
+  return structuredCompletion({
+    schema: DeliveredItemsSchema,
+    schemaName: "entregas_realizadas",
+    model: MODELS.chat,
+    system:
+      "Eres un auditor de entregas de proyectos TI. El documento es un registro de control de lo " +
+      "realmente entregado (informe de avance, acta o control interno del proveedor). " +
+      "Extrae CADA entrega, desarrollo o trabajo realizado como un ítem separado, con su estado " +
+      "(entregado, en_progreso o comprometido), fecha si existe, página y cita textual. " +
+      "Marca es_adicional=true cuando el trabajo NO responde a un requerimiento del acuerdo " +
+      "(el documento suele indicarlo como 'adicional', 'fuera de alcance', 'mejora', 'cortesía' o " +
+      "similar), y es_gratuito=true cuando se hizo sin costo para el cliente. " +
+      "Si el ítem responde a un requerimiento contractual, indica su código o título en " +
+      "referencia_requerimiento. Sé exhaustivo, sin duplicados.",
     user: pagesToAnnotatedText(pages),
   });
 }

@@ -22,7 +22,7 @@ export default async function DocumentDetailPage({
   const { id } = await params;
   const supabase = await createClient();
   const detail = await getDocumentDetail(supabase, id);
-  const { document: doc, summary, variables, requirements, timeline, versions, notes } = detail;
+  const { document: doc, summary, variables, requirements, timeline, versions, notes, deliveredItems } = detail;
 
   const meta: Array<[string, string]> = [
     ["Tipo", doc.doc_type.replace(/_/g, " ")],
@@ -74,6 +74,9 @@ export default async function DocumentDetailPage({
           <TabsTrigger value="metadatos">Metadatos</TabsTrigger>
           <TabsTrigger value="variables">Variables ({variables.length})</TabsTrigger>
           <TabsTrigger value="requerimientos">Requerimientos ({requirements.length})</TabsTrigger>
+          {deliveredItems.length > 0 && (
+            <TabsTrigger value="entregas">Entregas ({deliveredItems.length})</TabsTrigger>
+          )}
           <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
           <TabsTrigger value="chat">Chat IA</TabsTrigger>
           <TabsTrigger value="notas">Notas ({notes.length})</TabsTrigger>
@@ -192,6 +195,43 @@ export default async function DocumentDetailPage({
                     <TD>{r.mandatory ? "Sí" : "No"}</TD>
                     <TD>{r.page ?? "—"}</TD>
                     <TD><Badge variant={statusVariant(r.priority)}>{r.priority}</Badge></TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="entregas">
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Entregas registradas en este documento de control. Las adicionales no responden a
+              ningún requerimiento del acuerdo; las “sin costo” se realizaron gratuitamente.
+            </p>
+            <Table>
+              <THead>
+                <TR><TH>Entrega</TH><TH>Estado</TH><TH>Condición</TH><TH>Fecha</TH><TH>Req. asociado</TH><TH>Pág.</TH></TR>
+              </THead>
+              <TBody>
+                {deliveredItems.map((e) => (
+                  <TR key={e.id}>
+                    <TD>
+                      <p className="font-medium">{e.title}</p>
+                      {e.description && <p className="text-xs text-muted-foreground">{e.description}</p>}
+                    </TD>
+                    <TD><Badge variant={statusVariant(e.delivery_state === "entregado" ? "cumplido" : "pendiente")}>{e.delivery_state.replace(/_/g, " ")}</Badge></TD>
+                    <TD>
+                      {e.is_additional ? (
+                        <Badge variant={e.is_free ? "success" : "default"}>
+                          {e.is_free ? "adicional sin costo" : "adicional"}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">contractual</Badge>
+                      )}
+                    </TD>
+                    <TD>{formatDate(e.delivered_on)}</TD>
+                    <TD>{e.requirement_ref ?? "—"}</TD>
+                    <TD>{e.page ?? "—"}</TD>
                   </TR>
                 ))}
               </TBody>
