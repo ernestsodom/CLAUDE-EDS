@@ -5,9 +5,14 @@ const serverSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(10),
   OPENAI_API_KEY: z.string().min(10),
+  // Proveedor alternativo compatible con la API de OpenAI (Gemini, Groq, Mistral…)
+  OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_CHAT_MODEL: z.string().default("gpt-5.1"),
   OPENAI_FAST_MODEL: z.string().default("gpt-5.1-mini"),
   OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
+  // Debe coincidir con vector(1536) de la migración SQL. Proveedores con otra
+  // dimensión nativa (p.ej. gemini-embedding-001) la ajustan con este valor.
+  OPENAI_EMBEDDING_DIMENSIONS: z.coerce.number().int().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   INTERNAL_API_SECRET: z.string().min(16),
   MAX_UPLOAD_MB: z.coerce.number().default(50),

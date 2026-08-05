@@ -11,10 +11,21 @@ import { logger } from "@/lib/logger";
 export async function ocrPdf(buffer: Buffer): Promise<PageText[]> {
   const client = openai();
 
-  const file = await client.files.create({
-    file: new File([new Uint8Array(buffer)], "documento.pdf", { type: "application/pdf" }),
-    purpose: "user_data",
-  });
+  let file;
+  try {
+    file = await client.files.create({
+      file: new File([new Uint8Array(buffer)], "documento.pdf", { type: "application/pdf" }),
+      purpose: "user_data",
+    });
+  } catch (err) {
+    // Proveedores alternativos (Gemini/Groq vía OPENAI_BASE_URL) no soportan
+    // la Files API: el OCR de PDFs escaneados requiere la API de OpenAI.
+    throw new Error(
+      "Este PDF es escaneado y requiere OCR, pero el proveedor de IA configurado no soporta " +
+        "la carga de archivos (Files API). Opciones: configurar una API key de OpenAI, o subir " +
+        `una versión del PDF con texto seleccionable. Detalle: ${err instanceof Error ? err.message : err}`
+    );
+  }
 
   try {
     const response = await client.chat.completions.create({

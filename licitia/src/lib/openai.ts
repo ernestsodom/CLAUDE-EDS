@@ -4,7 +4,12 @@ import { env } from "@/lib/env";
 let client: OpenAI | null = null;
 
 export function openai(): OpenAI {
-  if (!client) client = new OpenAI({ apiKey: env().OPENAI_API_KEY });
+  if (!client) {
+    client = new OpenAI({
+      apiKey: env().OPENAI_API_KEY,
+      baseURL: env().OPENAI_BASE_URL, // undefined ⇒ API oficial de OpenAI
+    });
+  }
   return client;
 }
 
@@ -30,6 +35,9 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
     const res = await openai().embeddings.create({
       model: MODELS.embedding,
       input: batch,
+      ...(env().OPENAI_EMBEDDING_DIMENSIONS
+        ? { dimensions: env().OPENAI_EMBEDDING_DIMENSIONS }
+        : {}),
     });
     for (const item of res.data) result.push(item.embedding);
   }
