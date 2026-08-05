@@ -14,14 +14,6 @@ export default async function ComparePage({
   const params = await searchParams;
   const supabase = await createClient();
 
-  const { data: documents } = await supabase
-    .from("documents")
-    .select("id, title, doc_type")
-    .eq("status", "procesado")
-    .is("parent_document_id", null)
-    .order("created_at", { ascending: false })
-    .limit(200);
-
   let result = null;
   if (params.r) {
     const { data } = await supabase
@@ -49,7 +41,7 @@ export default async function ComparePage({
         </p>
       </div>
 
-      <CompareForm documents={documents ?? []} history={(history ?? []) as never} />
+      <CompareForm history={(history ?? []) as never} />
 
       {result && <ComparisonResult comparison={result} />}
     </div>

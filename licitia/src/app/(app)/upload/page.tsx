@@ -6,6 +6,7 @@ import { UploadCloud, FileCheck2, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ProjectPicker } from "@/components/project-picker";
 
 type UploadState = { name: string; status: "subiendo" | "procesando" | "error"; documentId?: string; error?: string };
 
@@ -16,12 +17,14 @@ export default function UploadPage() {
   const router = useRouter();
   const [dragging, setDragging] = useState(false);
   const [uploads, setUploads] = useState<UploadState[]>([]);
+  const [projectId, setProjectId] = useState<string | null>(null);
 
   const uploadFiles = useCallback(async (files: FileList | File[]) => {
     for (const file of Array.from(files)) {
       setUploads((prev) => [...prev, { name: file.name, status: "subiendo" }]);
       const formData = new FormData();
       formData.append("file", file);
+      if (projectId) formData.append("projectId", projectId);
       try {
         const res = await fetch("/api/documents/upload", { method: "POST", body: formData });
         const json = await res.json();
@@ -41,7 +44,7 @@ export default function UploadPage() {
         );
       }
     }
-  }, []);
+  }, [projectId]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -52,6 +55,15 @@ export default function UploadPage() {
           clasificará el documento, generará el resumen ejecutivo, variables técnicas,
           requerimientos y línea de tiempo automáticamente.
         </p>
+      </div>
+
+      <div className="space-y-1">
+        <p className="text-sm font-medium">Archivar en carpeta</p>
+        <p className="text-xs text-muted-foreground">
+          Agrupa el documento en la carpeta del cliente/proyecto para llevar todo lo
+          relacionado en un solo lugar. Puedes crear la carpeta aquí mismo.
+        </p>
+        <ProjectPicker value={projectId} onChange={setProjectId} />
       </div>
 
       <div

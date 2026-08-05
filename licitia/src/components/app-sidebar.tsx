@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   LayoutDashboard, FileText, Upload, MessageSquare, GitCompare,
   MailWarning, Search, ChevronLeft, ChevronRight, LogOut, Moon, Sun, FileSearch,
+  FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/projects", label: "Carpetas", icon: FolderOpen },
   { href: "/documents", label: "Documentos", icon: FileText },
   { href: "/upload", label: "Subir", icon: Upload },
   { href: "/chat", label: "Chat IA", icon: MessageSquare },

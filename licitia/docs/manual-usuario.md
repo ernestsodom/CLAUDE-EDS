@@ -14,6 +14,8 @@ Con el botón de la barra lateral puedes colapsar el menú y cambiar entre modo 
 
 **Subir** → arrastra tus archivos (PDF, Word, Excel, TXT, PowerPoint o ZIP; máx. 50 MB) o haz clic para seleccionarlos.
 
+Antes de subir puedes elegir la **carpeta de destino** (cliente/proyecto) o crearla ahí mismo con el botón **Nueva carpeta** (nombre del cliente + nombre del proyecto). En **Carpetas** (menú lateral) verás todas las carpetas agrupadas por cliente, y dentro de cada una todo lo relacionado a ese proyecto: licitación, bases, contrato, control de entregas, actas y reclamos.
+
 Al subir, la plataforma automáticamente:
 1. Guarda el archivo original de forma segura.
 2. Extrae el texto — si el PDF es escaneado, aplica **OCR** sin que hagas nada.
@@ -48,7 +50,7 @@ En **Chat IA** (menú lateral) consultas toda la biblioteca a la vez (*“¿Qué
 Este es el corazón del sistema: **control interno de lo comprometido vs. lo realmente entregado**.
 
 1. Mantén tu propio **documento de control de entregas** (Word/Excel/PDF con lo que realmente has entregado, en curso o comprometido — incluidos trabajos que hiciste de más) y súbelo como cualquier documento. El sistema lo clasifica como `control_entregas` y extrae cada entrega individual; las verás en la pestaña **Entregas** de su ficha, marcadas como contractuales, adicionales o adicionales **sin costo**.
-2. En **Control de cumplimiento**, elige el documento base (la licitación, las bases técnicas o el contrato) y tu documento de control, y pulsa **Comparar**.
+2. En **Control de cumplimiento**, cada documento tiene dos formas de selección: **Buscar entre los subidos** (busca por título en tu biblioteca) o **Subir nuevo** directamente desde esa pantalla. Elige primero el documento técnico base (licitación, bases técnicas o contrato) y luego tu documento de control; si subes uno nuevo, la pantalla muestra el avance del procesamiento y habilita **Comparar** en cuanto queda listo.
 3. Obtendrás dos análisis:
    - **Cumplimiento contractual**: cada requerimiento del documento base clasificado como cumplido, parcial o pendiente según la evidencia de tu control, con porcentajes y **semáforo** verde/amarillo/rojo, evidencia, página, comentario IA, riesgo y prioridad.
    - **Trabajos adicionales fuera de acuerdo**: la pasada inversa detecta entregas tuyas que no responden a ningún requerimiento del acuerdo — incluyendo las realizadas **gratuitamente**. Este registro es tu mejor respaldo en negociaciones y respuestas a reclamos.

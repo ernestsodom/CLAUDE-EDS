@@ -8,8 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { DocumentPicker, type PickedDocument } from "@/components/document-picker";
 
-interface DocOption { id: string; title: string; doc_type: string }
 interface HistoryItem {
   id: string; comparison_type: string; status: string; traffic_light: string | null;
   created_at: string;
@@ -24,25 +24,25 @@ const TYPES = [
   { id: "version_vs_version", label: "Dos versiones" },
 ];
 
-export function CompareForm({
-  documents,
-  history,
-}: {
-  documents: DocOption[];
-  history: HistoryItem[];
-}) {
+/**
+ * Formulario del comparador. Cada documento se elige buscando entre los ya
+ * subidos o subiéndolo directamente desde esta pantalla (con seguimiento del
+ * procesamiento IA hasta que quede listo para comparar).
+ */
+export function CompareForm({ history }: { history: HistoryItem[] }) {
   const router = useRouter();
   const [type, setType] = useState("cumplimiento");
-  const [source, setSource] = useState("");
-  const [target, setTarget] = useState("");
+  const [source, setSource] = useState<PickedDocument | null>(null);
+  const [target, setTarget] = useState<PickedDocument | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isCompliance = type === "cumplimiento";
+  const bothReady =
+    source?.status === "procesado" && target?.status === "procesado" && source.id !== target.id;
+
   async function run() {
-    if (!source || !target || source === target) {
-      setError("Selecciona dos documentos distintos.");
-      return;
-    }
+    if (!bothReady || !source || !target) return;
     setBusy(true);
     setError(null);
     try {
@@ -51,8 +51,8 @@ export function CompareForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           comparisonType: type,
-          sourceDocumentId: source,
-          targetDocumentId: target,
+          sourceDocumentId: source.id,
+          targetDocumentId: target.id,
         }),
       });
       const json = await res.json();
@@ -66,22 +66,6 @@ export function CompareForm({
     }
   }
 
-  const select = (value: string, onChange: (v: string) => void, label: string) => (
-    <select
-      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label={label}
-    >
-      <option value="">{label}</option>
-      {documents.map((d) => (
-        <option key={d.id} value={d.id}>
-          [{d.doc_type.replace(/_/g, " ")}] {d.title}
-        </option>
-      ))}
-    </select>
-  );
-
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <Card>
@@ -90,12 +74,33 @@ export function CompareForm({
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             value={type}
             onChange={(e) => setType(e.target.value)}
+            aria-label="Tipo de comparación"
           >
             {TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
-          {select(source, setSource, type === "cumplimiento" ? "Documento base: licitación / bases técnicas / contrato…" : "Documento A…")}
-          {select(target, setTarget, type === "cumplimiento" ? "Tu documento de control de entregas (lo realmente entregado)…" : "Documento B…")}
-          {type === "cumplimiento" && (
+
+          <DocumentPicker
+            label={isCompliance ? "1 · Documento técnico base" : "1 · Documento A"}
+            hint={
+              isCompliance
+                ? "La licitación, bases técnicas o contrato con lo comprometido."
+                : undefined
+            }
+            value={source}
+            onChange={setSource}
+          />
+          <DocumentPicker
+            label={isCompliance ? "2 · Documento a comparar (control de entregas)" : "2 · Documento B"}
+            hint={
+              isCompliance
+                ? "Tu documento propio con lo realmente entregado, incluidos trabajos adicionales."
+                : undefined
+            }
+            value={target}
+            onChange={setTarget}
+          />
+
+          {isCompliance && (
             <p className="text-xs text-muted-foreground">
               El sistema clasifica cada requerimiento del documento base contra tu control
               (cumplido / parcial / pendiente) y además detecta las entregas tuyas que no
@@ -103,9 +108,15 @@ export function CompareForm({
               <span className="font-medium">adicionales</span> — incluyendo las realizadas sin costo.
             </p>
           )}
+          {source && target && source.id === target.id && (
+            <p className="text-sm text-destructive">Selecciona dos documentos distintos.</p>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button onClick={run} disabled={busy}>
-            {busy ? (<><Loader2 className="h-4 w-4 animate-spin" /> Analizando (puede tardar minutos)…</>) : "Comparar"}
+
+          <Button onClick={run} disabled={busy || !bothReady}>
+            {busy
+              ? (<><Loader2 className="h-4 w-4 animate-spin" /> Analizando (puede tardar minutos)…</>)
+              : "Comparar"}
           </Button>
         </CardContent>
       </Card>

@@ -67,6 +67,7 @@ export interface DocumentRow {
   id: string;
   organization_id: string;
   client_id: string | null;
+  project_id: string | null;
   title: string;
   doc_type: DocumentType;
   status: DocumentStatus;

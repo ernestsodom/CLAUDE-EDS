@@ -79,6 +79,7 @@ export async function createDocumentWithFile(
     mimeType: string;
     sizeBytes: number;
     checksum: string;
+    projectId?: string | null;
   }
 ) {
   const { data: document, error: docError } = await supabase
@@ -88,6 +89,7 @@ export async function createDocumentWithFile(
       title: input.title,
       status: "subido",
       created_by: input.userId,
+      project_id: input.projectId ?? null,
     })
     .select("id")
     .single();

@@ -23,6 +23,13 @@ export const POST = withErrorHandling(async (request: Request) => {
   const file = formData.get("file");
   if (!(file instanceof File)) throw new ValidationError("Falta el archivo (campo 'file')");
 
+  // Carpeta de proyecto opcional (se valida contra RLS al insertar)
+  const projectIdRaw = formData.get("projectId");
+  const projectId =
+    typeof projectIdRaw === "string" && /^[0-9a-f-]{36}$/i.test(projectIdRaw)
+      ? projectIdRaw
+      : null;
+
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   if (!ALLOWED_EXTENSIONS.has(ext)) {
     throw new ValidationError(`Formato no permitido: .${ext}. Use PDF, DOCX, XLSX, TXT, PPT o ZIP.`);
@@ -45,6 +52,7 @@ export const POST = withErrorHandling(async (request: Request) => {
     mimeType: file.type || "application/octet-stream",
     sizeBytes: file.size,
     checksum,
+    projectId,
   });
 
   const storagePath = `${profile.organization_id}/${documentId}/1/${file.name}`;

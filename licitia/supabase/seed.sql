@@ -23,6 +23,13 @@ insert into clients (id, organization_id, name, kind, country, region, city) val
    'Servicio de Salud Reloncaví', 'institucion', 'Chile', 'Los Lagos', 'Puerto Montt')
 on conflict (id) do nothing;
 
+-- Carpeta de proyecto demo
+insert into projects (id, organization_id, client_id, name, description) values
+  ('66666666-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111',
+   '22222222-0000-0000-0000-000000000001', 'SGM Puerto Montt 2026',
+   'Implementación del Sistema de Gestión Municipal — licitación 2397-45-LR26')
+on conflict (id) do nothing;
+
 -- Documento demo (licitación) con requerimientos y cronograma
 insert into documents (id, organization_id, client_id, title, doc_type, status,
   tender_number, tender_name, market_id, doc_date, amount, currency,
@@ -115,6 +122,10 @@ insert into delivered_items (document_id, title, description, delivered_on, deli
   ('33333333-0000-0000-0000-000000000002', 'Notificaciones por WhatsApp',
    'Avisos de vencimiento de patentes; mejora de cortesía sin costo', '2026-07-18', 'entregado', true, true, null, 11, 0.92)
 on conflict do nothing;
+
+-- Archivar los documentos demo en la carpeta del proyecto
+update documents set project_id = '66666666-0000-0000-0000-000000000001'
+where id in ('33333333-0000-0000-0000-000000000001', '33333333-0000-0000-0000-000000000002');
 
 insert into tags (organization_id, name, color) values
   ('11111111-1111-1111-1111-111111111111', 'urgente', '#ef4444'),
