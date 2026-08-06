@@ -22,8 +22,12 @@ const serverSchema = z.object({
   // el proveedor principal se queda sin cuota, o por elección explícita.
   GROQ_API_KEY: z.string().min(10).optional(),
   GROQ_BASE_URL: z.string().url().default("https://api.groq.com/openai/v1"),
-  GROQ_CHAT_MODEL: z.string().default("llama-3.3-70b-versatile"),
-  GROQ_FAST_MODEL: z.string().default("llama-3.1-8b-instant"),
+  // El modo estricto de Structured Outputs de Groq solo lo soportan los
+  // modelos gpt-oss (ver docs/arquitectura.md); otros modelos devuelven un
+  // 400 explícito. structuredCompletion() igual sabe degradar a modo JSON
+  // simple si en el futuro se configura un modelo sin ese soporte.
+  GROQ_CHAT_MODEL: z.string().default("openai/gpt-oss-120b"),
+  GROQ_FAST_MODEL: z.string().default("openai/gpt-oss-20b"),
 
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   INTERNAL_API_SECRET: z.string().min(16),

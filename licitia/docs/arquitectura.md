@@ -58,8 +58,10 @@ LicitIA no depende de un único proveedor de IA. `lib/ai-providers.ts` es un reg
 | Proveedor | Uso | Embeddings | OCR (Files API) |
 |---|---|---|---|
 | **Gemini** | clasificación, resumen, variables, requerimientos, timeline | ✅ (`gemini-embedding-001`, 1536 dims) | ✅ |
-| **Groq** (Llama) | igual que Gemini, inferencia muy rápida | ❌ | ❌ |
+| **Groq** (`openai/gpt-oss-*`) | igual que Gemini, inferencia muy rápida | ❌ | ❌ |
 | **Motor local** | extracción por patrones (`heuristic.service.ts`), sin llamadas a IA | — (búsqueda por texto completo) | — |
+
+**Nota sobre modelos de Groq**: su modo estricto de Structured Outputs (`strict: true`, que garantiza JSON válido) solo lo soportan los modelos `openai/gpt-oss-120b` y `openai/gpt-oss-20b` — cualquier otro modelo de Groq (p. ej. `llama-3.3-70b-versatile`) responde `400 This model does not support response format json_schema`. Por eso `GROQ_CHAT_MODEL`/`GROQ_FAST_MODEL` apuntan por defecto a los `gpt-oss-*`. Como defensa adicional, `structuredCompletion` (`core/ai/structured.ts`) detecta ese error específico y degrada automáticamente a modo `json_object` + validación con Zod del lado cliente — funciona en cualquier modelo, con menos garantías que el modo estricto, y sin gastar reintentos en errores de cuota (esos se propagan de inmediato).
 
 **El usuario elige el motor explícitamente para cada documento** (`AnalysisMode = "gemini" | "groq" | "local" | "auto"`), en el subidor, en la ficha del documento y en el selector del comparador (`components/engine-selector.tsx`, alimentado por `GET /api/ai/providers`, que solo lista los proveedores con API key configurada). No hay degradación silenciosa por defecto:
 
