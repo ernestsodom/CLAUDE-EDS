@@ -549,6 +549,16 @@ language sql stable security definer set search_path = public as $$
   select role from profiles where id = auth.uid();
 $$;
 
+-- El permiso explícito se consulta con SECURITY DEFINER para evitar recursión
+-- entre las políticas de documents y document_permissions.
+create or replace function has_document_permission(doc_id uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from document_permissions p
+    where p.document_id = doc_id and p.user_id = auth.uid()
+  );
+$$;
+
 create or replace function can_read_document(doc_id uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (
@@ -720,8 +730,20 @@ drop policy if exists projects_delete on projects;
 create policy projects_delete on projects for delete
   using (organization_id = current_org_id() and current_role_of() = 'admin');
 
+-- Nota: esta política evalúa la condición sobre las columnas de la propia
+-- fila (sin auto-consultar documents). Es imprescindible para que funcione
+-- `INSERT ... RETURNING`, que exige política de SELECT sobre la fila nueva:
+-- una función STABLE que releyera la tabla no vería la fila en curso.
 drop policy if exists documents_select on documents;
-create policy documents_select on documents for select using (can_read_document(id));
+create policy documents_select on documents for select
+  using (
+    organization_id = current_org_id()
+    and (
+      current_role_of() in ('admin', 'supervisor')
+      or created_by = auth.uid()
+      or has_document_permission(id)
+    )
+  );
 drop policy if exists documents_insert on documents;
 create policy documents_insert on documents for insert with check (organization_id = current_org_id());
 drop policy if exists documents_update on documents;
@@ -737,12 +759,29 @@ create policy documents_delete on documents for delete
 
 drop policy if exists versions_select on document_versions;
 create policy versions_select on document_versions for select using (can_read_document(document_id));
+-- Escritura: la ruta de subida crea versiones con el cliente del usuario
+drop policy if exists versions_insert on document_versions;
+create policy versions_insert on document_versions for insert
+  with check (exists (select 1 from documents d
+                      where d.id = document_id and d.organization_id = current_org_id()));
+drop policy if exists versions_update on document_versions;
+create policy versions_update on document_versions for update
+  using (exists (select 1 from documents d
+                 where d.id = document_id and d.organization_id = current_org_id()));
 drop policy if exists pages_select on document_pages;
 create policy pages_select on document_pages for select
   using (exists (select 1 from document_versions v where v.id = version_id and can_read_document(v.document_id)));
 drop policy if exists files_select on files;
 create policy files_select on files for select
   using (exists (select 1 from document_versions v where v.id = version_id and can_read_document(v.document_id)));
+drop policy if exists files_insert on files;
+create policy files_insert on files for insert
+  with check (exists (select 1 from document_versions v join documents d on d.id = v.document_id
+                      where v.id = version_id and d.organization_id = current_org_id()));
+drop policy if exists files_update on files;
+create policy files_update on files for update
+  using (exists (select 1 from document_versions v join documents d on d.id = v.document_id
+                 where v.id = version_id and d.organization_id = current_org_id()));
 drop policy if exists chunks_select on document_chunks;
 create policy chunks_select on document_chunks for select using (can_read_document(document_id));
 drop policy if exists metadata_select on document_metadata;
@@ -846,6 +885,10 @@ create policy storage_docs_read on storage.objects for select
 drop policy if exists storage_docs_insert on storage.objects;
 create policy storage_docs_insert on storage.objects for insert
   with check (bucket_id = 'documents' and (storage.foldername(name))[1] = current_org_id()::text);
+
+drop policy if exists storage_docs_update on storage.objects;
+create policy storage_docs_update on storage.objects for update
+  using (bucket_id = 'documents' and (storage.foldername(name))[1] = current_org_id()::text);
 
 drop policy if exists storage_docs_delete on storage.objects;
 create policy storage_docs_delete on storage.objects for delete
