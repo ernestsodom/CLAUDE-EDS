@@ -8,6 +8,7 @@ import { TimelineView } from "@/components/timeline-view";
 import { ChatPanel } from "@/components/chat-panel";
 import { ExportButtons } from "@/components/export-buttons";
 import { NotesPanel } from "@/components/notes-panel";
+import { DocumentProcessButton } from "@/components/document-process-button";
 import { formatCLP, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -60,10 +61,21 @@ export default async function DocumentDetailPage({
         </Badge>
       </div>
 
-      {doc.status === "error" && (
-        <Card className="border-destructive/50">
-          <CardContent className="p-4 text-sm text-destructive">
-            Error de procesamiento: {doc.processing_error}
+      {doc.status !== "procesado" && (
+        <Card className={doc.status === "error" ? "border-destructive/50" : undefined}>
+          <CardContent className="space-y-2 p-4">
+            {doc.status === "error" ? (
+              <p className="text-sm text-destructive">
+                Error de procesamiento: {doc.processing_error}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Este documento aún no ha sido analizado por la IA. El análisis avanza por
+                etapas (extracción, clasificación, resumen, variables, requerimientos y
+                cronograma) y puede tardar unos minutos.
+              </p>
+            )}
+            <DocumentProcessButton documentId={doc.id} status={doc.status} />
           </CardContent>
         </Card>
       )}

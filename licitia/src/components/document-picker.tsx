@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Search, UploadCloud, Loader2, FileText, X } from "lucide-react";
+import { Search, UploadCloud, Loader2, FileText, X, Play } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge, statusVariant } from "@/components/ui/badge";
+import { processDocument } from "@/lib/process-document";
 
 export interface PickedDocument {
   id: string;
@@ -35,8 +36,8 @@ export function DocumentPicker({
   const [results, setResults] = useState<PickedDocument[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Buscar entre los documentos ya subidos (RLS limita a los autorizados)
   useEffect(() => {
@@ -56,25 +57,19 @@ export function DocumentPicker({
     return () => clearTimeout(t);
   }, [query, searching]);
 
-  // Si el documento seleccionado está procesándose, consultar su estado
-  useEffect(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    if (!value || value.status === "procesado" || value.status === "error") return;
-    const supabase = createClient();
-    pollRef.current = setInterval(async () => {
-      const { data } = await supabase
-        .from("documents")
-        .select("id, title, doc_type, status, processing_step")
-        .eq("id", value.id)
-        .single();
-      if (data && data.status !== value.status) {
-        onChange({ id: data.id, title: data.title, doc_type: data.doc_type, status: data.status });
-      }
-    }, 5000);
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [value, onChange]);
+  /** Ejecuta el análisis por etapas y deja el documento listo para comparar. */
+  async function runAnalysis(documentId: string, title: string, restart = false) {
+    setProgress("iniciando análisis…");
+    setError(null);
+    const result = await processDocument(documentId, (label) => setProgress(label), { restart });
+    setProgress(null);
+    if (result.ok) {
+      onChange({ id: documentId, title, doc_type: "otro", status: "procesado" });
+    } else {
+      setError(result.error ?? "El análisis no pudo completarse");
+      onChange({ id: documentId, title, doc_type: "otro", status: "error" });
+    }
+  }
 
   async function uploadFile(file: File) {
     setUploading(true);
@@ -87,9 +82,10 @@ export function DocumentPicker({
       if (!res.ok) throw new Error(json.error?.message ?? "Error al subir");
       onChange({ id: json.documentId, title: file.name, doc_type: "otro", status: "procesando" });
       setSearching(false);
+      setUploading(false);
+      await runAnalysis(json.documentId, file.name);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
-    } finally {
       setUploading(false);
     }
   }
@@ -170,17 +166,30 @@ export function DocumentPicker({
         </div>
       )}
 
-      {value?.status === "procesando" && (
-        <p className="text-xs text-muted-foreground">
-          La IA está procesando este documento (extracción, clasificación, requerimientos).
-          Podrás comparar en cuanto quede <b>procesado</b> — esta pantalla se actualiza sola.
+      {progress && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" /> {progress}
         </p>
       )}
-      {value?.status === "error" && (
-        <p className="text-xs text-destructive">
-          El procesamiento falló. Ábrelo desde Documentos para reintentar.
-        </p>
+
+      {/* Documento elegido que aún no está analizado: se puede lanzar aquí mismo */}
+      {value && value.status !== "procesado" && !progress && (
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">
+            Este documento aún no está analizado, por eso no se puede comparar todavía.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => runAnalysis(value.id, value.title, value.status === "error")}
+          >
+            <Play className="h-3.5 w-3.5" />
+            {value.status === "error" ? "Reintentar análisis" : "Analizar ahora"}
+          </Button>
+        </div>
       )}
+
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );

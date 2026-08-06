@@ -7,44 +7,67 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProjectPicker } from "@/components/project-picker";
+import { processDocument } from "@/lib/process-document";
 
-type UploadState = { name: string; status: "subiendo" | "procesando" | "error"; documentId?: string; error?: string };
+type UploadState = {
+  name: string;
+  status: "subiendo" | "procesando" | "listo" | "error";
+  documentId?: string;
+  detail?: string;
+};
 
 const ACCEPT = ".pdf,.docx,.xlsx,.txt,.ppt,.pptx,.zip";
 
-/** Pantalla de subida drag & drop. Cada archivo dispara el pipeline IA. */
+/** Pantalla de subida drag & drop. Tras subir, el navegador va avanzando
+ *  el análisis de la IA etapa por etapa, mostrando el progreso real. */
 export default function UploadPage() {
   const router = useRouter();
   const [dragging, setDragging] = useState(false);
   const [uploads, setUploads] = useState<UploadState[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
 
-  const uploadFiles = useCallback(async (files: FileList | File[]) => {
-    for (const file of Array.from(files)) {
-      setUploads((prev) => [...prev, { name: file.name, status: "subiendo" }]);
-      const formData = new FormData();
-      formData.append("file", file);
-      if (projectId) formData.append("projectId", projectId);
-      try {
-        const res = await fetch("/api/documents/upload", { method: "POST", body: formData });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error?.message ?? "Error al subir");
-        setUploads((prev) =>
-          prev.map((u) =>
-            u.name === file.name ? { ...u, status: "procesando", documentId: json.documentId } : u
-          )
-        );
-      } catch (err) {
-        setUploads((prev) =>
-          prev.map((u) =>
-            u.name === file.name
-              ? { ...u, status: "error", error: err instanceof Error ? err.message : "Error" }
-              : u
-          )
-        );
+  const patch = useCallback((name: string, changes: Partial<UploadState>) => {
+    setUploads((prev) => prev.map((u) => (u.name === name ? { ...u, ...changes } : u)));
+  }, []);
+
+  const uploadFiles = useCallback(
+    async (files: FileList | File[]) => {
+      for (const file of Array.from(files)) {
+        setUploads((prev) => [...prev, { name: file.name, status: "subiendo" }]);
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          if (projectId) formData.append("projectId", projectId);
+
+          const res = await fetch("/api/documents/upload", { method: "POST", body: formData });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error?.message ?? "Error al subir");
+
+          patch(file.name, {
+            status: "procesando",
+            documentId: json.documentId,
+            detail: "iniciando análisis…",
+          });
+
+          const result = await processDocument(json.documentId, (label) =>
+            patch(file.name, { detail: label })
+          );
+
+          patch(file.name, {
+            status: result.ok ? "listo" : "error",
+            detail: result.ok ? "análisis completo" : result.error,
+          });
+        } catch (err) {
+          patch(file.name, {
+            status: "error",
+            detail: err instanceof Error ? err.message : "Error inesperado",
+          });
+        }
       }
-    }
-  }, [projectId]);
+      router.refresh();
+    },
+    [projectId, patch, router]
+  );
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -52,8 +75,8 @@ export default function UploadPage() {
         <h1 className="text-2xl font-semibold">Subir documentos</h1>
         <p className="text-sm text-muted-foreground">
           PDF, DOCX, XLSX, TXT, PPT o ZIP. La IA extraerá el texto (con OCR si es escaneado),
-          clasificará el documento, generará el resumen ejecutivo, variables técnicas,
-          requerimientos y línea de tiempo automáticamente.
+          clasificará el documento y generará el resumen ejecutivo, las variables técnicas,
+          los requerimientos y la línea de tiempo.
         </p>
       </div>
 
@@ -96,24 +119,29 @@ export default function UploadPage() {
           <CardContent className="space-y-2 p-4">
             {uploads.map((u, i) => (
               <div key={i} className="flex items-center gap-3 text-sm">
-                {u.status === "subiendo" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                {u.status === "procesando" && <FileCheck2 className="h-4 w-4 text-green-500" />}
-                {u.status === "error" && <AlertCircle className="h-4 w-4 text-destructive" />}
-                <span className="min-w-0 flex-1 truncate">{u.name}</span>
-                {u.status === "procesando" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push(`/documents/${u.documentId}`)}
-                  >
-                    Ver documento
+                {(u.status === "subiendo" || u.status === "procesando") && (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+                )}
+                {u.status === "listo" && <FileCheck2 className="h-4 w-4 shrink-0 text-green-500" />}
+                {u.status === "error" && <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">{u.name}</p>
+                  {u.detail && (
+                    <p className={cn("truncate text-xs", u.status === "error" ? "text-destructive" : "text-muted-foreground")}>
+                      {u.detail}
+                    </p>
+                  )}
+                </div>
+                {u.documentId && (
+                  <Button variant="outline" size="sm" onClick={() => router.push(`/documents/${u.documentId}`)}>
+                    Ver
                   </Button>
                 )}
-                {u.status === "error" && <span className="text-xs text-destructive">{u.error}</span>}
               </div>
             ))}
             <p className="pt-1 text-xs text-muted-foreground">
-              El procesamiento IA continúa en segundo plano; puedes seguir su avance en la ficha del documento.
+              Mantén esta pestaña abierta hasta que el análisis termine. Si se interrumpe,
+              puedes retomarlo desde la ficha del documento.
             </p>
           </CardContent>
         </Card>

@@ -68,22 +68,9 @@ export const POST = withErrorHandling(async (request: Request) => {
     sizeBytes: file.size,
   });
 
-  // Disparar pipeline en background (fire-and-forget con secreto interno)
-  fetch(`${env().NEXT_PUBLIC_APP_URL}/api/internal/process`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-internal-secret": env().INTERNAL_API_SECRET,
-    },
-    body: JSON.stringify({
-      documentId,
-      versionId,
-      organizationId: profile.organization_id,
-      userId: user.id,
-    }),
-  }).catch(() => {
-    // El estado queda en 'subido'; la UI ofrece reintentar el procesamiento.
-  });
-
-  return NextResponse.json({ documentId, versionId, status: "procesando" }, { status: 201 });
+  // El análisis NO se lanza aquí: el cliente llama a
+  // POST /api/documents/:id/process una vez por etapa. Las funciones
+  // serverless no garantizan el trabajo iniciado después de responder,
+  // y cada etapa debe caber en el límite de duración del plan.
+  return NextResponse.json({ documentId, versionId, status: "subido" }, { status: 201 });
 });

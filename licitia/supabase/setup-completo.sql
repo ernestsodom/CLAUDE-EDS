@@ -39,7 +39,8 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   create type processing_step as enum (
     'extraccion_texto', 'ocr', 'chunking', 'embeddings',
-    'clasificacion', 'resumen', 'variables', 'timeline', 'completado'
+    'clasificacion', 'resumen', 'variables', 'requerimientos',
+    'timeline', 'completado'
   );
 exception when duplicate_object then null; end $$;
 
