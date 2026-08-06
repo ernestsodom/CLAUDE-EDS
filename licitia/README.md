@@ -24,7 +24,12 @@ Plataforma web profesional para **administrar, analizar y comparar** licitacione
 ## Inicio rápido
 
 ```bash
-# 1. Base de datos (requiere supabase CLI autenticado)
+# 1. Base de datos — opción simple (sin instalar nada):
+#    Supabase → SQL Editor → pega supabase/setup-completo.sql → Run
+#    (esquema + funciones + RLS + storage + datos de ejemplo + alta
+#     automática de perfiles: el primer usuario que crees será admin)
+#
+#    Opción con CLI (equivalente, aplica las migraciones por separado):
 ./scripts/setup-supabase.sh <project-ref>
 
 # 2. Variables de entorno
