@@ -12,8 +12,50 @@ import {
   extractTimeline,
   summarizeDocument,
 } from "./analysis.service";
+import {
+  classifyDocumentLocal,
+  extractDeliveredItemsLocal,
+  extractRequirementsLocal,
+  extractTechnicalVariablesLocal,
+  extractTimelineLocal,
+  summarizeLocal,
+} from "./heuristic.service";
 import { audit } from "./audit.service";
 import type { PageText } from "@/core/domain/types";
+
+// ─── Motor de análisis ──────────────────────────────────────────────────────
+//
+//   'ia'    → siempre el modelo de lenguaje (falla si no hay cuota)
+//   'local' → siempre el motor local por patrones (sin cuota, sin costo)
+//   'auto'  → intenta IA y, si la cuota está agotada, continúa en local
+//
+export type AnalysisMode = "ia" | "local" | "auto";
+
+const QUOTA_ERROR =
+  /(429|quota|rate.?limit|resource.?exhausted|too many requests|exceeded|insufficient|billing|timeout|ETIMEDOUT)/i;
+
+export function isQuotaError(err: unknown): boolean {
+  const m = err instanceof Error ? `${err.message}` : String(err);
+  return QUOTA_ERROR.test(m);
+}
+
+/** Ejecuta el análisis con IA o local según el modo, con degradación automática. */
+async function analyze<T>(
+  mode: AnalysisMode,
+  ia: () => Promise<T>,
+  local: () => T
+): Promise<{ data: T; engine: "ia" | "local" }> {
+  if (mode === "local") return { data: local(), engine: "local" };
+  try {
+    return { data: await ia(), engine: "ia" };
+  } catch (err) {
+    if (mode === "auto" && isQuotaError(err)) {
+      logger.warn("fallback_to_local", { error: err instanceof Error ? err.message : String(err) });
+      return { data: local(), engine: "local" };
+    }
+    throw err;
+  }
+}
 
 // ============================================================================
 // Pipeline de ingesta POR ETAPAS.
@@ -40,12 +82,14 @@ export interface StageParams {
   documentId: string;
   organizationId: string;
   userId: string | null;
+  mode?: AnalysisMode;
 }
 
 export interface StageResult {
   step: string;
   done: boolean;
   detail?: string;
+  engine?: "ia" | "local";
 }
 
 const NEXT: Record<string, string> = {
@@ -83,6 +127,7 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
     .single();
   if (!doc) throw new Error("Documento no encontrado");
 
+  const mode: AnalysisMode = params.mode ?? "auto";
   const step = doc.processing_step ?? "extraccion_texto";
   if (step === "completado") return { step: "completado", done: true };
 
@@ -126,44 +171,57 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
       }
 
       case "embeddings": {
-        const remaining = await stageEmbedBatch(db, versionId);
-        if (remaining > 0) {
-          return { step: "embeddings", done: false, detail: `${remaining} fragmentos pendientes` };
+        // En modo local no se generan vectores: la búsqueda funciona igual
+        // por texto completo (español) y no se consume cuota.
+        if (mode === "local") {
+          await advance(NEXT[step]);
+          return { step: NEXT[step], done: false, detail: "vectores omitidos (modo local)" };
+        }
+        try {
+          const remaining = await stageEmbedBatch(db, versionId);
+          if (remaining > 0) {
+            return { step: "embeddings", done: false, detail: `${remaining} fragmentos pendientes` };
+          }
+        } catch (err) {
+          if (mode !== "auto" || !isQuotaError(err)) throw err;
+          logger.warn("embeddings_skipped_quota", { documentId });
+          await advance(NEXT[step]);
+          return { step: NEXT[step], done: false, detail: "vectores omitidos por falta de cuota" };
         }
         await advance(NEXT[step]);
         return { step: NEXT[step], done: false };
       }
 
       case "clasificacion": {
-        const detail = await stageClassify(db, params, versionId);
+        const r = await stageClassify(db, params, versionId, mode);
         await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail };
+        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
       }
 
       case "resumen": {
-        await stageSummary(db, documentId, versionId);
+        const r = await stageSummary(db, documentId, versionId, mode);
         await advance(NEXT[step]);
-        return { step: NEXT[step], done: false };
+        return { step: NEXT[step], done: false, engine: r.engine };
       }
 
       case "variables": {
-        const detail = await stageVariables(db, documentId, versionId);
+        const r = await stageVariables(db, documentId, versionId, mode);
         await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail };
+        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
       }
 
       case "requerimientos": {
-        const detail = await stageRequirements(db, documentId, versionId, doc.doc_type);
+        const r = await stageRequirements(db, documentId, versionId, doc.doc_type, mode);
         await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail };
+        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
       }
 
       case "timeline": {
-        const detail = await stageTimeline(db, documentId, versionId);
+        const r = await stageTimeline(db, documentId, versionId, mode);
         await advance("completado");
         await audit(params.organizationId, params.userId, "document.processed", "document", documentId);
-        logger.info("document_processed", { documentId });
-        return { step: "completado", done: true, detail };
+        logger.info("document_processed", { documentId, mode });
+        return { step: "completado", done: true, detail: r.detail, engine: r.engine };
       }
 
       default:
@@ -303,9 +361,18 @@ async function stageEmbedBatch(db: DB, versionId: string): Promise<number> {
   return count ?? 0;
 }
 
-async function stageClassify(db: DB, params: StageParams, versionId: string): Promise<string> {
+async function stageClassify(
+  db: DB,
+  params: StageParams,
+  versionId: string,
+  mode: AnalysisMode
+): Promise<{ detail: string; engine: "ia" | "local" }> {
   const pages = await loadPages(db, versionId);
-  const c = await classifyDocument(pages);
+  const { data: c, engine } = await analyze(
+    mode,
+    () => classifyDocument(pages),
+    () => classifyDocumentLocal(pages)
+  );
 
   await db
     .from("documents")
@@ -326,18 +393,30 @@ async function stageClassify(db: DB, params: StageParams, versionId: string): Pr
       contract_duration: c.duracion_contrato,
       language: c.idioma ?? "es",
       doc_state: c.estado_documento,
-      classification: c,
+      classification: { ...c, _motor: engine },
       ...(c.titulo_sugerido ? { title: c.titulo_sugerido } : {}),
     })
     .eq("id", params.documentId);
 
   await linkClient(db, params.organizationId, params.documentId, c.cliente, c.tipo_cliente);
-  return c.tipo_documento.replace(/_/g, " ");
+  return {
+    detail: `${c.tipo_documento.replace(/_/g, " ")}${engine === "local" ? " (modo local)" : ""}`,
+    engine,
+  };
 }
 
-async function stageSummary(db: DB, documentId: string, versionId: string) {
+async function stageSummary(
+  db: DB,
+  documentId: string,
+  versionId: string,
+  mode: AnalysisMode
+): Promise<{ engine: "ia" | "local" }> {
   const pages = await loadPages(db, versionId);
-  const s = await summarizeDocument(pages);
+  const { data: s, engine } = await analyze(
+    mode,
+    () => summarizeDocument(pages),
+    () => summarizeLocal(pages)
+  );
   await db.from("document_summaries").upsert(
     {
       document_id: documentId,
@@ -354,15 +433,25 @@ async function stageSummary(db: DB, documentId: string, versionId: string) {
       deliverables: s.entregables,
       schedule: s.cronograma,
       recommendations: s.recomendaciones,
-      model: MODELS.chat,
+      model: engine === "local" ? "motor-local" : MODELS.chat,
     },
     { onConflict: "version_id" }
   );
+  return { engine };
 }
 
-async function stageVariables(db: DB, documentId: string, versionId: string): Promise<string> {
+async function stageVariables(
+  db: DB,
+  documentId: string,
+  versionId: string,
+  mode: AnalysisMode
+): Promise<{ detail: string; engine: "ia" | "local" }> {
   const pages = await loadPages(db, versionId);
-  const v = await extractTechnicalVariables(pages);
+  const { data: v, engine } = await analyze(
+    mode,
+    () => extractTechnicalVariables(pages),
+    () => extractTechnicalVariablesLocal(pages)
+  );
   await db.from("technical_variables").delete().eq("document_id", documentId);
   if (v.variables.length > 0) {
     await db.from("technical_variables").insert(
@@ -378,21 +467,26 @@ async function stageVariables(db: DB, documentId: string, versionId: string): Pr
       }))
     );
   }
-  return `${v.variables.length} variables`;
+  return { detail: `${v.variables.length} variables`, engine };
 }
 
 async function stageRequirements(
   db: DB,
   documentId: string,
   versionId: string,
-  docType: string
-): Promise<string> {
+  docType: string,
+  mode: AnalysisMode
+): Promise<{ detail: string; engine: "ia" | "local" }> {
   const pages = await loadPages(db, versionId);
 
   // Documentos de control/avance: se extraen las entregas realizadas
   // (incluidos trabajos adicionales y gratuitos) en lugar de requerimientos.
   if (["control_entregas", "avance", "informe", "acta"].includes(docType)) {
-    const d = await extractDeliveredItems(pages);
+    const { data: d, engine } = await analyze(
+      mode,
+      () => extractDeliveredItems(pages),
+      () => extractDeliveredItemsLocal(pages)
+    );
     await db.from("delivered_items").delete().eq("document_id", documentId);
     if (d.entregas.length > 0) {
       await db.from("delivered_items").insert(
@@ -411,10 +505,14 @@ async function stageRequirements(
         }))
       );
     }
-    return `${d.entregas.length} entregas`;
+    return { detail: `${d.entregas.length} entregas`, engine };
   }
 
-  const r = await extractRequirements(pages);
+  const { data: r, engine } = await analyze(
+    mode,
+    () => extractRequirements(pages),
+    () => extractRequirementsLocal(pages)
+  );
   await db.from("requirements").delete().eq("document_id", documentId);
   if (r.requerimientos.length > 0) {
     await db.from("requirements").insert(
@@ -431,13 +529,22 @@ async function stageRequirements(
       }))
     );
   }
-  return `${r.requerimientos.length} requerimientos`;
+  return { detail: `${r.requerimientos.length} requerimientos`, engine };
 }
 
-async function stageTimeline(db: DB, documentId: string, versionId: string): Promise<string> {
+async function stageTimeline(
+  db: DB,
+  documentId: string,
+  versionId: string,
+  mode: AnalysisMode
+): Promise<{ detail: string; engine: "ia" | "local" }> {
   const pages = await loadPages(db, versionId);
-  const t = await extractTimeline(pages);
-  if (t.hitos.length === 0) return "sin hitos";
+  const { data: t, engine } = await analyze(
+    mode,
+    () => extractTimeline(pages),
+    () => extractTimelineLocal(pages)
+  );
+  if (t.hitos.length === 0) return { detail: "sin hitos", engine };
 
   await db.from("timelines").delete().eq("document_id", documentId);
   const { data: tl } = await db
@@ -461,7 +568,7 @@ async function stageTimeline(db: DB, documentId: string, versionId: string): Pro
       }))
     );
   }
-  return `${t.hitos.length} hitos`;
+  return { detail: `${t.hitos.length} hitos`, engine };
 }
 
 // ─── Auxiliares ─────────────────────────────────────────────────────────────

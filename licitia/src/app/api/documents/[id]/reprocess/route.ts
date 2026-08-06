@@ -12,9 +12,11 @@ export const maxDuration = 60;
  * El cliente continúa con /process hasta completar.
  */
 export const POST = withErrorHandling(
-  async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
+  async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { supabase, user } = await requireUser();
     const { id } = await params;
+    const modeParam = new URL(request.url).searchParams.get("mode");
+    const mode = modeParam === "local" || modeParam === "ia" ? modeParam : "auto";
 
     const { data: doc } = await supabase
       .from("documents")
@@ -32,6 +34,7 @@ export const POST = withErrorHandling(
       documentId: id,
       organizationId: doc.organization_id,
       userId: user.id,
+      mode,
     });
 
     return NextResponse.json({ ...result, label: STEP_LABELS[result.step] ?? result.step });

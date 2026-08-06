@@ -12,32 +12,39 @@
 export async function processDocument(
   documentId: string,
   onProgress?: (label: string) => void,
-  opts: { restart?: boolean; maxStages?: number } = {}
-): Promise<{ ok: boolean; error?: string }> {
+  opts: { restart?: boolean; maxStages?: number; mode?: "auto" | "local" | "ia" } = {}
+): Promise<{ ok: boolean; error?: string; usedLocal?: boolean }> {
   const maxStages = opts.maxStages ?? 40;
+  const mode = opts.mode ?? "auto";
   let endpoint = opts.restart ? "reprocess" : "process";
   let retries = 0;
+  let usedLocal = false;
 
   for (let i = 0; i < maxStages; i++) {
     try {
-      const res = await fetch(`/api/documents/${documentId}/${endpoint}`, { method: "POST" });
+      const res = await fetch(`/api/documents/${documentId}/${endpoint}?mode=${mode}`, {
+        method: "POST",
+      });
       endpoint = "process";
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
         const message = json?.error?.message ?? `Error ${res.status}`;
-        // Cuota de la IA agotada momentáneamente: esperar y reintentar
-        if (retries < 3 && /429|quota|rate|timeout|exhausted/i.test(message)) {
+        // Cuota agotada: en modo 'ia' estricto se reintenta; en 'auto' el
+        // servidor ya habrá degradado a motor local por su cuenta.
+        if (retries < 2 && /429|quota|rate|timeout|exhausted/i.test(message)) {
           retries++;
-          onProgress?.(`esperando cuota de la IA (reintento ${retries}/3)…`);
-          await new Promise((r) => setTimeout(r, 12000 * retries));
+          onProgress?.(`esperando cuota de la IA (reintento ${retries}/2)…`);
+          await new Promise((r) => setTimeout(r, 10000 * retries));
           continue;
         }
-        return { ok: false, error: message };
+        return { ok: false, error: message, usedLocal };
       }
 
-      onProgress?.(json.detail ? `${json.label} · ${json.detail}` : json.label);
-      if (json.done) return { ok: true };
+      if (json.engine === "local") usedLocal = true;
+      const suffix = json.engine === "local" ? " (modo local)" : "";
+      onProgress?.((json.detail ? `${json.label} · ${json.detail}` : json.label) + suffix);
+      if (json.done) return { ok: true, usedLocal };
     } catch (err) {
       if (retries < 3) {
         retries++;

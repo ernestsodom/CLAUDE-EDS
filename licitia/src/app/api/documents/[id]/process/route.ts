@@ -14,9 +14,11 @@ export const maxDuration = 60;
  * Respuesta: { step, label, done, detail }
  */
 export const POST = withErrorHandling(
-  async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
+  async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { supabase, user, profile } = await requireUser();
     const { id } = await params;
+    const modeParam = new URL(request.url).searchParams.get("mode");
+    const mode = modeParam === "local" || modeParam === "ia" ? modeParam : "auto";
 
     // El documento debe pertenecer a la organización del usuario y ser visible
     // para él (RLS decide); el procesamiento en sí corre con service_role.
@@ -31,6 +33,7 @@ export const POST = withErrorHandling(
       documentId: id,
       organizationId: doc.organization_id,
       userId: user.id,
+      mode,
     });
 
     return NextResponse.json({

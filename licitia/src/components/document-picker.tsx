@@ -58,10 +58,15 @@ export function DocumentPicker({
   }, [query, searching]);
 
   /** Ejecuta el análisis por etapas y deja el documento listo para comparar. */
-  async function runAnalysis(documentId: string, title: string, restart = false) {
+  async function runAnalysis(
+    documentId: string,
+    title: string,
+    restart = false,
+    mode: "auto" | "local" = "auto"
+  ) {
     setProgress("iniciando análisis…");
     setError(null);
-    const result = await processDocument(documentId, (label) => setProgress(label), { restart });
+    const result = await processDocument(documentId, (label) => setProgress(label), { restart, mode });
     setProgress(null);
     if (result.ok) {
       onChange({ id: documentId, title, doc_type: "otro", status: "procesado" });
@@ -178,15 +183,26 @@ export function DocumentPicker({
           <p className="text-xs text-muted-foreground">
             Este documento aún no está analizado, por eso no se puede comparar todavía.
           </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => runAnalysis(value.id, value.title, value.status === "error")}
-          >
-            <Play className="h-3.5 w-3.5" />
-            {value.status === "error" ? "Reintentar análisis" : "Analizar ahora"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => runAnalysis(value.id, value.title, value.status === "error")}
+            >
+              <Play className="h-3.5 w-3.5" />
+              {value.status === "error" ? "Reintentar con IA" : "Analizar con IA"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => runAnalysis(value.id, value.title, value.status === "error", "local")}
+              title="Extracción por patrones, sin consumir cuota de IA"
+            >
+              Analizar sin IA
+            </Button>
+          </div>
         </div>
       )}
 

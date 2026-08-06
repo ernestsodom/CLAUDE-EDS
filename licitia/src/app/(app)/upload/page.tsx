@@ -25,6 +25,7 @@ export default function UploadPage() {
   const [dragging, setDragging] = useState(false);
   const [uploads, setUploads] = useState<UploadState[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [mode, setMode] = useState<"auto" | "local">("auto");
 
   const patch = useCallback((name: string, changes: Partial<UploadState>) => {
     setUploads((prev) => prev.map((u) => (u.name === name ? { ...u, ...changes } : u)));
@@ -49,8 +50,10 @@ export default function UploadPage() {
             detail: "iniciando análisis…",
           });
 
-          const result = await processDocument(json.documentId, (label) =>
-            patch(file.name, { detail: label })
+          const result = await processDocument(
+            json.documentId,
+            (label) => patch(file.name, { detail: label }),
+            { mode }
           );
 
           patch(file.name, {
@@ -66,7 +69,7 @@ export default function UploadPage() {
       }
       router.refresh();
     },
-    [projectId, patch, router]
+    [projectId, patch, router, mode]
   );
 
   return (
@@ -87,6 +90,36 @@ export default function UploadPage() {
           relacionado en un solo lugar. Puedes crear la carpeta aquí mismo.
         </p>
         <ProjectPicker value={projectId} onChange={setProjectId} />
+      </div>
+
+      <div className="space-y-1">
+        <p className="text-sm font-medium">Motor de análisis</p>
+        <div className="flex flex-wrap gap-2">
+          {([
+            ["auto", "Con IA", "Análisis interpretativo completo. Si se agota la cuota, continúa solo en modo local."],
+            ["local", "Sin IA", "Extracción por patrones: instantánea, sin consumir cuota ni créditos."],
+          ] as const).map(([id, label, help]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setMode(id)}
+              title={help}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs transition-colors",
+                mode === id
+                  ? "border-primary bg-primary/10 font-medium text-primary"
+                  : "text-muted-foreground hover:bg-accent"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {mode === "auto"
+            ? "Con IA: resúmenes interpretativos, requerimientos y variables con matices. Consume cuota de Gemini."
+            : "Sin IA: reconoce número de licitación, montos, plazos, organismo, cláusulas obligatorias, integraciones, garantías y multas mediante patrones. No consume cuota."}
+        </p>
       </div>
 
       <div
