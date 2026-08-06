@@ -7,7 +7,9 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProjectPicker } from "@/components/project-picker";
+import { EngineSelector } from "@/components/engine-selector";
 import { processDocument } from "@/lib/process-document";
+import type { AnalysisMode } from "@/lib/ai-providers";
 
 type UploadState = {
   name: string;
@@ -25,7 +27,7 @@ export default function UploadPage() {
   const [dragging, setDragging] = useState(false);
   const [uploads, setUploads] = useState<UploadState[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [mode, setMode] = useState<"auto" | "local">("auto");
+  const [mode, setMode] = useState<AnalysisMode>("auto");
 
   const patch = useCallback((name: string, changes: Partial<UploadState>) => {
     setUploads((prev) => prev.map((u) => (u.name === name ? { ...u, ...changes } : u)));
@@ -94,32 +96,7 @@ export default function UploadPage() {
 
       <div className="space-y-1">
         <p className="text-sm font-medium">Motor de análisis</p>
-        <div className="flex flex-wrap gap-2">
-          {([
-            ["auto", "Con IA", "Análisis interpretativo completo. Si se agota la cuota, continúa solo en modo local."],
-            ["local", "Sin IA", "Extracción por patrones: instantánea, sin consumir cuota ni créditos."],
-          ] as const).map(([id, label, help]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setMode(id)}
-              title={help}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs transition-colors",
-                mode === id
-                  ? "border-primary bg-primary/10 font-medium text-primary"
-                  : "text-muted-foreground hover:bg-accent"
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {mode === "auto"
-            ? "Con IA: resúmenes interpretativos, requerimientos y variables con matices. Consume cuota de Gemini."
-            : "Sin IA: reconoce número de licitación, montos, plazos, organismo, cláusulas obligatorias, integraciones, garantías y multas mediante patrones. No consume cuota."}
-        </p>
+        <EngineSelector value={mode} onChange={setMode} />
       </div>
 
       <div

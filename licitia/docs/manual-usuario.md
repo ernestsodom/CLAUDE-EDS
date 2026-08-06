@@ -16,6 +16,16 @@ Con el botón de la barra lateral puedes colapsar el menú y cambiar entre modo 
 
 Antes de subir puedes elegir la **carpeta de destino** (cliente/proyecto) o crearla ahí mismo con el botón **Nueva carpeta** (nombre del cliente + nombre del proyecto). En **Carpetas** (menú lateral) verás todas las carpetas agrupadas por cliente, y dentro de cada una todo lo relacionado a ese proyecto: licitación, bases, contrato, control de entregas, actas y reclamos.
 
+### Motor de análisis
+
+Justo antes de subir eliges con qué **motor** se analizará el documento — tú decides, nada cambia de motor sin que lo veas:
+
+- **Gemini** / **Groq** (solo aparecen si el administrador configuró su API key): análisis interpretativo completo. Si ese proveedor se queda sin cuota, el documento queda marcado con el error correspondiente — no cambia de motor por su cuenta.
+- **Automático**: prueba los proveedores disponibles en orden y, si todos se quedan sin cuota, continúa solo en modo local. Es la opción recomendada para no preocuparte de los límites de cada proveedor.
+- **Sin IA**: extracción por patrones (número de licitación, montos, plazos, organismo, cláusulas obligatorias, integraciones, garantías, multas…). Instantánea y **no consume cuota de ningún proveedor** — úsala cuando se te acaben los créditos o para procesar volumen rápidamente.
+
+El motor que analizó cada etapa queda registrado y visible (p. ej. “clasificando · licitación (Groq)”). Puedes volver a analizar un documento ya subido con otro motor desde su ficha, sin perder lo ya extraído.
+
 Al subir, la plataforma automáticamente:
 1. Guarda el archivo original de forma segura.
 2. Extrae el texto — si el PDF es escaneado, aplica **OCR** sin que hagas nada.

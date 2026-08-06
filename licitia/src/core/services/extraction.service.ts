@@ -5,6 +5,7 @@ import { XMLParser } from "fast-xml-parser";
 import type { ExtractedText, PageText } from "@/core/domain/types";
 import { ocrPdf } from "./ocr.service";
 import { logger } from "@/lib/logger";
+import { isProviderConfigured, type AnalysisMode } from "@/lib/ai-providers";
 
 /** Umbral: menos de 100 caracteres promedio por página ⇒ PDF escaneado ⇒ OCR. */
 const SCANNED_CHARS_PER_PAGE = 100;
@@ -17,14 +18,19 @@ export interface ExtractInput {
 
 /**
  * Extrae texto de PDF, DOCX, XLSX, PPTX y TXT.
- * Para PDF escaneado deriva automáticamente a OCR.
+ * Para PDF escaneado deriva automáticamente a OCR — solo disponible vía
+ * Gemini (único proveedor con Files API); `mode` decide qué ocurre si el
+ * motor elegido no puede hacer OCR (ver extractPdf).
  * ZIP se maneja aparte en ingestion.service (genera documentos hijos).
  */
-export async function extractText(input: ExtractInput): Promise<ExtractedText> {
+export async function extractText(
+  input: ExtractInput,
+  ocr: { mode: AnalysisMode } = { mode: "auto" }
+): Promise<ExtractedText> {
   const ext = input.fileName.split(".").pop()?.toLowerCase() ?? "";
 
   if (input.mimeType === "application/pdf" || ext === "pdf") {
-    return extractPdf(input.buffer);
+    return extractPdf(input.buffer, ocr.mode);
   }
   if (ext === "docx" || input.mimeType.includes("wordprocessingml")) {
     return extractDocx(input.buffer);
@@ -44,7 +50,7 @@ export async function extractText(input: ExtractInput): Promise<ExtractedText> {
   throw new Error(`Formato no soportado: ${input.fileName} (${input.mimeType})`);
 }
 
-async function extractPdf(buffer: Buffer): Promise<ExtractedText> {
+async function extractPdf(buffer: Buffer, mode: AnalysisMode): Promise<ExtractedText> {
   const { extractText: unpdfExtract, getDocumentProxy } = await import("unpdf");
   const pdf = await getDocumentProxy(new Uint8Array(buffer));
   const { text } = await unpdfExtract(pdf, { mergePages: false });
@@ -59,7 +65,29 @@ async function extractPdf(buffer: Buffer): Promise<ExtractedText> {
     pages.length > 0 ? pages.reduce((s, p) => s + p.content.length, 0) / pages.length : 0;
 
   if (avgChars < SCANNED_CHARS_PER_PAGE) {
-    logger.info("pdf_scanned_detected", { pages: pages.length, avgChars });
+    logger.info("pdf_scanned_detected", { pages: pages.length, avgChars, mode });
+
+    // El OCR de escaneados solo está disponible vía Gemini (único proveedor
+    // con Files API). Cada modo se comporta explícitamente, sin adivinar:
+    if (mode === "local") {
+      throw new Error(
+        "Este PDF parece escaneado y requiere OCR con IA para extraer su texto. " +
+          "El motor local no puede procesarlo: vuelve a intentarlo en modo Gemini o Automático, " +
+          "o sube una versión del documento con texto seleccionable."
+      );
+    }
+    if (mode === "groq") {
+      throw new Error(
+        "Groq no soporta OCR de documentos escaneados. Cambia a Gemini o Automático para " +
+          "procesar este PDF, o sube una versión con texto seleccionable."
+      );
+    }
+    if (!isProviderConfigured("gemini")) {
+      throw new Error(
+        "Este PDF parece escaneado y requiere OCR, pero Gemini no está configurado. " +
+          "Configura su API key o sube una versión del documento con texto seleccionable."
+      );
+    }
     const ocrPages = await ocrPdf(buffer);
     return { pages: ocrPages, isScanned: true };
   }

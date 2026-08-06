@@ -214,7 +214,9 @@ async function fetchAdditionalDeliveries(
     content: p.content,
     ocrUsed: p.ocr_used,
   }));
-  const delivered = await extractDeliveredItems(pageTexts);
+  // Extracción al vuelo: siempre con Gemini (comportamiento sin cambios;
+  // esta ruta de comparación no ofrece aún selección de motor al usuario).
+  const delivered = await extractDeliveredItems(pageTexts, "gemini");
 
   if (delivered.entregas.length > 0) {
     await db.from("delivered_items").insert(

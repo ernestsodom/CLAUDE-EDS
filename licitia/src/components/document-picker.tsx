@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge, statusVariant } from "@/components/ui/badge";
+import { EngineSelector } from "@/components/engine-selector";
 import { processDocument } from "@/lib/process-document";
+import type { AnalysisMode } from "@/lib/ai-providers";
 
 export interface PickedDocument {
   id: string;
@@ -37,6 +39,7 @@ export function DocumentPicker({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  const [mode, setMode] = useState<AnalysisMode>("auto");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Buscar entre los documentos ya subidos (RLS limita a los autorizados)
@@ -57,13 +60,9 @@ export function DocumentPicker({
     return () => clearTimeout(t);
   }, [query, searching]);
 
-  /** Ejecuta el análisis por etapas y deja el documento listo para comparar. */
-  async function runAnalysis(
-    documentId: string,
-    title: string,
-    restart = false,
-    mode: "auto" | "local" = "auto"
-  ) {
+  /** Ejecuta el análisis por etapas (con el motor elegido) y deja el
+   *  documento listo para comparar. */
+  async function runAnalysis(documentId: string, title: string, restart = false) {
     setProgress("iniciando análisis…");
     setError(null);
     const result = await processDocument(documentId, (label) => setProgress(label), { restart, mode });
@@ -179,30 +178,20 @@ export function DocumentPicker({
 
       {/* Documento elegido que aún no está analizado: se puede lanzar aquí mismo */}
       {value && value.status !== "procesado" && !progress && (
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <p className="text-xs text-muted-foreground">
             Este documento aún no está analizado, por eso no se puede comparar todavía.
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => runAnalysis(value.id, value.title, value.status === "error")}
-            >
-              <Play className="h-3.5 w-3.5" />
-              {value.status === "error" ? "Reintentar con IA" : "Analizar con IA"}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => runAnalysis(value.id, value.title, value.status === "error", "local")}
-              title="Extracción por patrones, sin consumir cuota de IA"
-            >
-              Analizar sin IA
-            </Button>
-          </div>
+          <EngineSelector value={mode} onChange={setMode} compact />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => runAnalysis(value.id, value.title, value.status === "error")}
+          >
+            <Play className="h-3.5 w-3.5" />
+            {value.status === "error" ? "Reintentar análisis" : "Analizar ahora"}
+          </Button>
         </div>
       )}
 

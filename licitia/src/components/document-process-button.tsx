@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Play, Loader2, Zap } from "lucide-react";
+import { Play, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EngineSelector } from "@/components/engine-selector";
 import { processDocument } from "@/lib/process-document";
+import type { AnalysisMode } from "@/lib/ai-providers";
 
-/** Lanza (o reintenta) el análisis por etapas del documento y refresca la ficha. */
+/** Lanza (o reintenta) el análisis por etapas del documento con el motor
+ *  elegido, y refresca la ficha al terminar. */
 export function DocumentProcessButton({
   documentId,
   status,
@@ -15,10 +18,11 @@ export function DocumentProcessButton({
   status: string;
 }) {
   const router = useRouter();
+  const [mode, setMode] = useState<AnalysisMode>("auto");
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function run(mode: "auto" | "local") {
+  async function run() {
     setError(null);
     setProgress("iniciando…");
     const result = await processDocument(documentId, setProgress, {
@@ -32,25 +36,13 @@ export function DocumentProcessButton({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={() => run("auto")} disabled={progress !== null}>
-          {progress ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-          {status === "error" ? "Reintentar con IA" : "Analizar con IA"}
-        </Button>
-        <Button variant="outline" onClick={() => run("local")} disabled={progress !== null}>
-          <Zap className="h-4 w-4" />
-          Analizar sin IA
-        </Button>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        <b>Con IA</b>: análisis interpretativo completo (consume cuota; si se agota, continúa
-        automáticamente en modo local). <b>Sin IA</b>: extracción por patrones, instantánea y
-        sin consumir cuota.
-      </p>
+      <EngineSelector value={mode} onChange={setMode} />
+      <Button onClick={run} disabled={progress !== null}>
+        {progress ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+        {status === "error" ? "Reintentar análisis" : "Analizar documento"}
+      </Button>
       {progress && (
-        <p className="text-xs text-muted-foreground">
-          {progress} — mantén esta pestaña abierta.
-        </p>
+        <p className="text-xs text-muted-foreground">{progress} — mantén esta pestaña abierta.</p>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

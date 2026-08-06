@@ -9,12 +9,12 @@ Plataforma web profesional para **administrar, analizar y comparar** licitacione
 | Frontend | Next.js 15 (App Router) · React 19 · TypeScript · Tailwind · shadcn/ui · React Query |
 | Backend | API Routes + Server Actions (Next.js) |
 | Datos | Supabase: PostgreSQL + pgvector · Storage · Auth · RLS |
-| IA | OpenAI GPT-5.x (chat/análisis) · text-embedding-3-small (RAG) · OCR vía visión |
+| IA | Multi-proveedor (Gemini · Groq · OpenAI, elegibles por el usuario) + motor local sin IA |
 | Hosting | Vercel (región `gru1`, funciones de larga duración para el pipeline) |
 
 ## Capacidades principales
 
-- **Ingesta inteligente**: drag & drop de PDF/DOCX/XLSX/TXT/PPT/ZIP → extracción de texto (con **OCR automático** para escaneados) → chunking → embeddings → **clasificación automática** (20+ metadatos) → **resumen ejecutivo** → **variables técnicas** individuales → **requerimientos** → **línea de tiempo**.
+- **Ingesta inteligente por etapas**: drag & drop de PDF/DOCX/XLSX/TXT/PPT/ZIP → extracción de texto (con **OCR automático** para escaneados) → chunking → embeddings → **clasificación automática** (20+ metadatos) → **resumen ejecutivo** → **variables técnicas** individuales → **requerimientos** → **línea de tiempo**. El usuario elige explícitamente el **motor de análisis** para cada documento (Gemini / Groq / Automático / Sin IA); ningún proveedor sustituye a otro sin que se vea reflejado en la interfaz.
 - **Chat RAG con 5 agentes especializados** (Analista, Comparador, Reclamos, Propuestas, Comercial), streaming, **citas exactas con página/sección** y **nivel de confianza**. Historial: reabrir, continuar, duplicar, buscar, etiquetar, favoritas.
 - **Control de cumplimiento (comprometido vs entregado)**: el documento base (licitación/bases técnicas/contrato) contra tu **documento de control propio** de lo realmente entregado → tabla requerimiento a requerimiento (estado, evidencia, página, comentario IA, riesgo, prioridad), porcentajes y **semáforo**; más la **pasada inversa** que detecta trabajos adicionales fuera de acuerdo, incluidos los realizados **sin costo** (tabla `delivered_items`). Además diferencias entre dos licitaciones/propuestas/contratos/versiones.
 - **Módulo de reclamos**: pega el correo → análisis estructurado (qué reclama, qué aplica al contrato, qué está entregado/pendiente/fuera de alcance) → **respuesta profesional redactada con evidencia citada**.

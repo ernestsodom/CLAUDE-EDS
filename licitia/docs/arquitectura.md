@@ -22,9 +22,9 @@ Arquitectura limpia sobre Next.js App Router, con separación estricta por capas
 └────────────────────────────────────────────────────────────────────┘
           │                          │                      │
           ▼                          ▼                      ▼
-   Supabase Postgres           Supabase Storage         OpenAI API
-   (pgvector, tsvector,        (bucket documents,      (GPT-5.x, embeddings,
-    RLS, funciones RPC)         bucket exports)         OCR por visión)
+   Supabase Postgres           Supabase Storage      Proveedores de IA
+   (pgvector, tsvector,        (bucket documents,    (Gemini, Groq — o el
+    RLS, funciones RPC)         bucket exports)       motor local sin IA)
 ```
 
 ### Reglas de dependencia
@@ -33,27 +33,42 @@ Arquitectura limpia sobre Next.js App Router, con separación estricta por capas
 - Los servicios no conocen HTTP; los route handlers no conocen SQL.
 - El cliente `service_role` (bypass RLS) solo se importa desde `core/services/*` que corren en `/api/internal/*` o tareas de background; nunca desde componentes.
 
-## 2. Pipeline de ingesta
+## 2. Pipeline de ingesta por etapas
 
-`POST /api/documents/upload` crea registros y sube el binario a Storage; luego dispara (fire-and-forget con secreto interno) `POST /api/internal/process` (maxDuration 300 s):
+`POST /api/documents/upload` crea los registros y sube el binario a Storage, **sin disparar el análisis**: las funciones serverless tienen un límite de duración (60 s en el plan Hobby de Vercel) y no garantizan que un trabajo lanzado "en segundo plano" tras responder llegue a ejecutarse. En vez de eso, el análisis se trocea en etapas: cada llamada a `POST /api/documents/:id/process` ejecuta **un único tramo acotado** y devuelve el estado; el navegador (`lib/process-document.ts`) encadena llamadas hasta completar, mostrando el progreso real.
 
 ```
-descarga → extracción de texto ──(escaneado?)──► OCR (visión OpenAI)
-        → document_pages (texto por página, base de citas exactas)
-        → chunking (~800 tokens, solape 120, sección detectada)
-        → embeddings (lotes de 100) → document_chunks (HNSW + tsvector)
-        → clasificación (Structured Outputs, modelo fast)
-        → en paralelo: resumen ejecutivo · variables técnicas ·
-          requerimientos · línea de tiempo  (modelo chat)
-        → status=procesado
+extraccion_texto → chunking → embeddings* → clasificacion → resumen
+  → variables → requerimientos → timeline → completado
+  (*) se repite en lotes de 120 mientras queden chunks sin vectorizar.
 ```
 
-- Cada paso actualiza `documents.processing_step` → la UI muestra progreso real.
-- Fallos marcan `status=error` con el mensaje; la ficha ofrece "reprocesar" (`/api/documents/:id/reprocess`).
-- ZIP se expande en documentos hijos (`parent_document_id`) y cada uno pasa por el pipeline completo.
-- **Detección de escaneado**: < 100 caracteres promedio por página ⇒ OCR automático. El OCR usa la Files API de OpenAI (sin binarios nativos, apto para serverless) con separadores `=== PÁGINA N ===` para conservar la paginación.
+- `documents.processing_step` marca la siguiente etapa pendiente → el pipeline es **reanudable**: si una etapa falla o la pestaña se cierra, la siguiente llamada retoma ahí, sin repetir trabajo ya hecho.
+- Fallos marcan `status=error` con el mensaje real del proveedor (cuota agotada, OCR no disponible con el motor elegido, etc.) — `withErrorHandling` normalmente oculta los errores tras un mensaje genérico, así que las rutas de proceso capturan la excepción y la reenvían como `AppError` para que el mensaje llegue legible a la interfaz.
+- ZIP se expande en documentos hijos (`parent_document_id`); cada uno pasa por el pipeline completo por su cuenta.
+- **Detección de escaneado**: < 100 caracteres promedio por página ⇒ OCR automático (hoy solo vía Gemini, único proveedor con Files API) con separadores `=== PÁGINA N ===` para conservar la paginación.
+- `POST /api/internal/process` (con `processDocumentFully()`, sin trocear) sigue existiendo para entornos sin límite estricto de duración — plan Pro de Vercel o una cola externa.
 
-**Escala a miles de documentos**: el pipeline es por-documento e idempotente (delete+insert por versión); N documentos = N invocaciones independientes. Para volúmenes muy altos, el mismo endpoint interno puede invocarse desde una cola (QStash/Supabase Queues) sin cambiar el código de servicios — ver roadmap.
+**Escala a miles de documentos**: el pipeline es por-documento e idempotente (delete+insert por etapa); N documentos = N flujos de etapas independientes. Para cargas masivas, las mismas rutas por etapa pueden invocarse desde una cola (QStash/Supabase Queues) sin cambiar el código de servicios — ver roadmap.
+
+## 2.1 Arquitectura multi-proveedor de IA
+
+LicitIA no depende de un único proveedor de IA. `lib/ai-providers.ts` es un registro genérico sobre proveedores compatibles con la API de OpenAI; hoy incluye dos, cada uno con nivel gratuito:
+
+| Proveedor | Uso | Embeddings | OCR (Files API) |
+|---|---|---|---|
+| **Gemini** | clasificación, resumen, variables, requerimientos, timeline | ✅ (`gemini-embedding-001`, 1536 dims) | ✅ |
+| **Groq** (Llama) | igual que Gemini, inferencia muy rápida | ❌ | ❌ |
+| **Motor local** | extracción por patrones (`heuristic.service.ts`), sin llamadas a IA | — (búsqueda por texto completo) | — |
+
+**El usuario elige el motor explícitamente para cada documento** (`AnalysisMode = "gemini" | "groq" | "local" | "auto"`), en el subidor, en la ficha del documento y en el selector del comparador (`components/engine-selector.tsx`, alimentado por `GET /api/ai/providers`, que solo lista los proveedores con API key configurada). No hay degradación silenciosa por defecto:
+
+- Elegir **`gemini`** o **`groq`** es una elección estricta — si ese proveedor falla, el error se muestra tal cual, sin cambiar de motor por su cuenta.
+- **`auto`** es una elección más, no la implícita: prueba los proveedores configurados en el orden `PROVIDER_ORDER` y, si todos se quedan sin cuota (regex `isQuotaError` sobre 429/quota/rate-limit/…), continúa en el motor local.
+- **`local`** nunca llama a un proveedor externo.
+- Los embeddings son la única excepción pragmática: al ser una mejora (búsqueda semántica) y no un requisito para poder analizar el documento, se omiten silenciosamente ante falta de cuota **en cualquier modo**, incluido `gemini` explícito — la búsqueda sigue funcionando por texto completo en español.
+
+Cada etapa persiste qué motor la resolvió (`classification._motor`, `document_summaries.model`) y lo devuelve en la respuesta (`engine`, `engineLabel`), visible en la interfaz. Añadir un tercer proveedor es sumar una entrada a `META`/`PROVIDER_ORDER` en `ai-providers.ts` y sus variables de entorno — `structuredCompletion`, `analysis.service.ts` e `ingestion.service.ts` ya son genéricos sobre `ProviderId`.
 
 ## 3. RAG híbrido con permisos
 
@@ -62,7 +77,7 @@ descarga → extracción de texto ──(escaneado?)──► OCR (visión OpenA
 3. **Generación** — el contexto se etiqueta `[chunk_id | doc | pág. X | sección]`; el agente responde en streaming y emite al final un bloque JSON de citas + confianza (delimitador `<!--citas-->`) que el handler separa antes de persistir. Las citas siempre referencian chunks reales recuperados.
 4. **Agentes** — 5 system prompts especializados (`core/ai/agents.ts`) que comparten la regla: *nunca inventar; sin contexto, decirlo*.
 
-**Extracción estructurada**: toda salida analítica de IA (clasificación, resumen, variables, requerimientos, timeline, cumplimiento, diferencias, análisis de reclamo) usa **OpenAI Structured Outputs validado con Zod** (`core/ai/schemas.ts` + `structuredCompletion`), con retry ante fallo de parseo. El JSON estructurado se persiste en columnas tipadas + `jsonb` para búsquedas y reportes.
+**Extracción estructurada**: toda salida analítica de IA (clasificación, resumen, variables, requerimientos, timeline, cumplimiento, diferencias, análisis de reclamo) usa **Structured Outputs validado con Zod** (`core/ai/schemas.ts` + `structuredCompletion`), con retry ante fallo de parseo. `structuredCompletion` acepta `provider`+`speed` (vía multi-proveedor, usada por el pipeline de ingesta) o un `model` ya resuelto (compatibilidad, usada por chat/reclamos/comparador — siempre Gemini hoy). El JSON estructurado se persiste en columnas tipadas + `jsonb` para búsquedas y reportes.
 
 ## 4. Modelo de datos
 

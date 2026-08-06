@@ -22,15 +22,31 @@ import {
 } from "./heuristic.service";
 import { audit } from "./audit.service";
 import type { PageText } from "@/core/domain/types";
+import {
+  ENGINE_LABELS,
+  isProviderConfigured,
+  listConfiguredProviders,
+  type AnalysisMode,
+  type ProviderId,
+} from "@/lib/ai-providers";
+
+export type { AnalysisMode } from "@/lib/ai-providers";
+export { ENGINE_LABELS } from "@/lib/ai-providers";
 
 // ─── Motor de análisis ──────────────────────────────────────────────────────
 //
-//   'ia'    → siempre el modelo de lenguaje (falla si no hay cuota)
-//   'local' → siempre el motor local por patrones (sin cuota, sin costo)
-//   'auto'  → intenta IA y, si la cuota está agotada, continúa en local
+// El usuario elige explícitamente el motor para cada documento — no hay
+// degradación silenciosa por defecto: solo el modo 'auto' (una elección más,
+// no la implícita) prueba varios proveedores antes de caer al motor local.
 //
-export type AnalysisMode = "ia" | "local" | "auto";
-
+//   'gemini' | 'groq' → un proveedor concreto. Si falla, falla: el resultado
+//                        se reporta tal cual, sin cambiar de motor por su cuenta.
+//   'local'           → siempre el motor local por patrones (sin cuota, sin costo).
+//   'auto'            → intenta los proveedores configurados en el orden de
+//                        preferencia y, si todos se quedan sin cuota, continúa
+//                        en el motor local. Sigue siendo una elección explícita
+//                        del usuario, solo que delega el orden de intentos.
+//
 const QUOTA_ERROR =
   /(429|quota|rate.?limit|resource.?exhausted|too many requests|exceeded|insufficient|billing|timeout|ETIMEDOUT)/i;
 
@@ -39,22 +55,34 @@ export function isQuotaError(err: unknown): boolean {
   return QUOTA_ERROR.test(m);
 }
 
-/** Ejecuta el análisis con IA o local según el modo, con degradación automática. */
+/** Ejecuta el análisis con el motor elegido; 'auto' prueba proveedores en orden. */
 async function analyze<T>(
   mode: AnalysisMode,
-  ia: () => Promise<T>,
+  runWithProvider: (provider: ProviderId) => Promise<T>,
   local: () => T
-): Promise<{ data: T; engine: "ia" | "local" }> {
+): Promise<{ data: T; engine: AnalysisMode }> {
   if (mode === "local") return { data: local(), engine: "local" };
-  try {
-    return { data: await ia(), engine: "ia" };
-  } catch (err) {
-    if (mode === "auto" && isQuotaError(err)) {
-      logger.warn("fallback_to_local", { error: err instanceof Error ? err.message : String(err) });
-      return { data: local(), engine: "local" };
-    }
-    throw err;
+
+  if (mode === "gemini" || mode === "groq") {
+    // Elección explícita: si falla, se reporta el error tal cual tal como es.
+    return { data: await runWithProvider(mode), engine: mode };
   }
+
+  // 'auto': recorre los proveedores configurados; si todos fallan por cuota,
+  // continúa en el motor local. Cualquier otro tipo de error se propaga.
+  const order = listConfiguredProviders().map((p) => p.id);
+  for (const provider of order) {
+    try {
+      return { data: await runWithProvider(provider), engine: provider };
+    } catch (err) {
+      if (!isQuotaError(err)) throw err;
+      logger.warn("provider_quota_exhausted", {
+        provider,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  return { data: local(), engine: "local" };
 }
 
 // ============================================================================
@@ -77,6 +105,8 @@ async function analyze<T>(
 // ============================================================================
 
 const EMBED_BATCH = 120;
+/** Único proveedor con embeddings hoy; centralizado por si eso cambia. */
+const EMBEDDING_PROVIDER: ProviderId = "gemini";
 
 export interface StageParams {
   documentId: string;
@@ -89,7 +119,7 @@ export interface StageResult {
   step: string;
   done: boolean;
   detail?: string;
-  engine?: "ia" | "local";
+  engine?: AnalysisMode;
 }
 
 const NEXT: Record<string, string> = {
@@ -155,7 +185,7 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
   try {
     switch (step) {
       case "extraccion_texto": {
-        const detail = await stageExtract(db, params, versionId);
+        const detail = await stageExtract(db, params, versionId, mode);
         if (detail === "zip") {
           await advance("completado");
           return { step: "completado", done: true, detail: "ZIP expandido" };
@@ -171,11 +201,19 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
       }
 
       case "embeddings": {
-        // En modo local no se generan vectores: la búsqueda funciona igual
-        // por texto completo (español) y no se consume cuota.
-        if (mode === "local") {
+        // Solo Gemini genera embeddings. En 'local' o 'groq' se omiten sin
+        // más: la búsqueda sigue funcionando por texto completo en español.
+        if (mode === "local" || mode === "groq") {
           await advance(NEXT[step]);
-          return { step: NEXT[step], done: false, detail: "vectores omitidos (modo local)" };
+          return {
+            step: NEXT[step],
+            done: false,
+            detail: `vectores omitidos (${ENGINE_LABELS[mode]} no genera embeddings; la búsqueda seguirá funcionando por texto)`,
+          };
+        }
+        if (!isProviderConfigured(EMBEDDING_PROVIDER)) {
+          await advance(NEXT[step]);
+          return { step: NEXT[step], done: false, detail: "vectores omitidos (Gemini no configurado)" };
         }
         try {
           const remaining = await stageEmbedBatch(db, versionId);
@@ -183,7 +221,10 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
             return { step: "embeddings", done: false, detail: `${remaining} fragmentos pendientes` };
           }
         } catch (err) {
-          if (mode !== "auto" || !isQuotaError(err)) throw err;
+          // Los vectores son una mejora (búsqueda semántica), no un requisito
+          // para poder analizar el documento: ante falta de cuota se omiten
+          // en cualquier modo, incluido 'gemini' explícito.
+          if (!isQuotaError(err)) throw err;
           logger.warn("embeddings_skipped_quota", { documentId });
           await advance(NEXT[step]);
           return { step: NEXT[step], done: false, detail: "vectores omitidos por falta de cuota" };
@@ -265,7 +306,12 @@ async function loadPages(db: DB, versionId: string): Promise<PageText[]> {
   }));
 }
 
-async function stageExtract(db: DB, params: StageParams, versionId: string): Promise<string> {
+async function stageExtract(
+  db: DB,
+  params: StageParams,
+  versionId: string,
+  mode: AnalysisMode
+): Promise<string> {
   const { data: file } = await db
     .from("files")
     .select("*")
@@ -283,11 +329,10 @@ async function stageExtract(db: DB, params: StageParams, versionId: string): Pro
     return "zip";
   }
 
-  const extracted = await extractText({
-    buffer,
-    mimeType: file.mime_type,
-    fileName: file.file_name,
-  });
+  const extracted = await extractText(
+    { buffer, mimeType: file.mime_type, fileName: file.file_name },
+    { mode }
+  );
   const pages = extracted.pages.filter((p) => p.content.length > 0);
   if (pages.length === 0) throw new Error("El documento no contiene texto extraíble");
 
@@ -332,7 +377,7 @@ async function stageChunk(db: DB, documentId: string, versionId: string): Promis
   return `${chunks.length} fragmentos`;
 }
 
-/** Vectoriza un lote y devuelve cuántos quedan pendientes. */
+/** Vectoriza un lote (siempre con Gemini) y devuelve cuántos quedan pendientes. */
 async function stageEmbedBatch(db: DB, versionId: string): Promise<number> {
   const { data: pending } = await db
     .from("document_chunks")
@@ -361,16 +406,20 @@ async function stageEmbedBatch(db: DB, versionId: string): Promise<number> {
   return count ?? 0;
 }
 
+function engineSuffix(engine: AnalysisMode): string {
+  return engine === "gemini" ? "" : ` (${ENGINE_LABELS[engine]})`;
+}
+
 async function stageClassify(
   db: DB,
   params: StageParams,
   versionId: string,
   mode: AnalysisMode
-): Promise<{ detail: string; engine: "ia" | "local" }> {
+): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
   const { data: c, engine } = await analyze(
     mode,
-    () => classifyDocument(pages),
+    (provider) => classifyDocument(pages, provider),
     () => classifyDocumentLocal(pages)
   );
 
@@ -399,10 +448,7 @@ async function stageClassify(
     .eq("id", params.documentId);
 
   await linkClient(db, params.organizationId, params.documentId, c.cliente, c.tipo_cliente);
-  return {
-    detail: `${c.tipo_documento.replace(/_/g, " ")}${engine === "local" ? " (modo local)" : ""}`,
-    engine,
-  };
+  return { detail: `${c.tipo_documento.replace(/_/g, " ")}${engineSuffix(engine)}`, engine };
 }
 
 async function stageSummary(
@@ -410,11 +456,11 @@ async function stageSummary(
   documentId: string,
   versionId: string,
   mode: AnalysisMode
-): Promise<{ engine: "ia" | "local" }> {
+): Promise<{ engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
   const { data: s, engine } = await analyze(
     mode,
-    () => summarizeDocument(pages),
+    (provider) => summarizeDocument(pages, provider),
     () => summarizeLocal(pages)
   );
   await db.from("document_summaries").upsert(
@@ -433,7 +479,7 @@ async function stageSummary(
       deliverables: s.entregables,
       schedule: s.cronograma,
       recommendations: s.recomendaciones,
-      model: engine === "local" ? "motor-local" : MODELS.chat,
+      model: engine === "local" ? "motor-local" : engine === "gemini" ? MODELS.chat : engine,
     },
     { onConflict: "version_id" }
   );
@@ -445,11 +491,11 @@ async function stageVariables(
   documentId: string,
   versionId: string,
   mode: AnalysisMode
-): Promise<{ detail: string; engine: "ia" | "local" }> {
+): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
   const { data: v, engine } = await analyze(
     mode,
-    () => extractTechnicalVariables(pages),
+    (provider) => extractTechnicalVariables(pages, provider),
     () => extractTechnicalVariablesLocal(pages)
   );
   await db.from("technical_variables").delete().eq("document_id", documentId);
@@ -467,7 +513,7 @@ async function stageVariables(
       }))
     );
   }
-  return { detail: `${v.variables.length} variables`, engine };
+  return { detail: `${v.variables.length} variables${engineSuffix(engine)}`, engine };
 }
 
 async function stageRequirements(
@@ -476,7 +522,7 @@ async function stageRequirements(
   versionId: string,
   docType: string,
   mode: AnalysisMode
-): Promise<{ detail: string; engine: "ia" | "local" }> {
+): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
 
   // Documentos de control/avance: se extraen las entregas realizadas
@@ -484,7 +530,7 @@ async function stageRequirements(
   if (["control_entregas", "avance", "informe", "acta"].includes(docType)) {
     const { data: d, engine } = await analyze(
       mode,
-      () => extractDeliveredItems(pages),
+      (provider) => extractDeliveredItems(pages, provider),
       () => extractDeliveredItemsLocal(pages)
     );
     await db.from("delivered_items").delete().eq("document_id", documentId);
@@ -505,12 +551,12 @@ async function stageRequirements(
         }))
       );
     }
-    return { detail: `${d.entregas.length} entregas`, engine };
+    return { detail: `${d.entregas.length} entregas${engineSuffix(engine)}`, engine };
   }
 
   const { data: r, engine } = await analyze(
     mode,
-    () => extractRequirements(pages),
+    (provider) => extractRequirements(pages, provider),
     () => extractRequirementsLocal(pages)
   );
   await db.from("requirements").delete().eq("document_id", documentId);
@@ -529,7 +575,7 @@ async function stageRequirements(
       }))
     );
   }
-  return { detail: `${r.requerimientos.length} requerimientos`, engine };
+  return { detail: `${r.requerimientos.length} requerimientos${engineSuffix(engine)}`, engine };
 }
 
 async function stageTimeline(
@@ -537,14 +583,14 @@ async function stageTimeline(
   documentId: string,
   versionId: string,
   mode: AnalysisMode
-): Promise<{ detail: string; engine: "ia" | "local" }> {
+): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
   const { data: t, engine } = await analyze(
     mode,
-    () => extractTimeline(pages),
+    (provider) => extractTimeline(pages, provider),
     () => extractTimelineLocal(pages)
   );
-  if (t.hitos.length === 0) return { detail: "sin hitos", engine };
+  if (t.hitos.length === 0) return { detail: `sin hitos${engineSuffix(engine)}`, engine };
 
   await db.from("timelines").delete().eq("document_id", documentId);
   const { data: tl } = await db
@@ -568,7 +614,7 @@ async function stageTimeline(
       }))
     );
   }
-  return { detail: `${t.hitos.length} hitos`, engine };
+  return { detail: `${t.hitos.length} hitos${engineSuffix(engine)}`, engine };
 }
 
 // ─── Auxiliares ─────────────────────────────────────────────────────────────
