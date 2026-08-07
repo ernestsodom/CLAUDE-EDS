@@ -4,12 +4,14 @@ import {
   DeliveredItemsSchema,
   RequirementsSchema,
   SummarySchema,
+  SystemsSchema,
   TechnicalVariablesSchema,
   TimelineSchema,
   type Classification,
   type DeliveredItems,
   type Requirements,
   type Summary,
+  type Systems,
   type TechnicalVariables,
   type Timeline,
 } from "@/core/ai/schemas";
@@ -80,16 +82,59 @@ export async function extractTechnicalVariables(
   });
 }
 
+/**
+ * Requerimientos CRÍTICOS únicamente: las condiciones que condicionan la
+ * participación o exponen a sanción. Las funcionalidades del software NO van
+ * aquí — se extraen como sistemas (extractSystems).
+ */
 export async function extractRequirements(pages: PageText[], provider: ProviderId): Promise<Requirements> {
   return structuredCompletion({
     schema: RequirementsSchema,
-    schemaName: "requerimientos",
+    schemaName: "requerimientos_criticos",
     provider,
     speed: "chat",
     system:
-      "Eres un ingeniero de requerimientos. Extrae cada requerimiento individual del documento " +
-      "(funcional, técnico, administrativo o de servicio) como un ítem separado, con código si existe, " +
-      "página de origen, cita textual, si es obligatorio u opcional, y prioridad estimada.",
+      "Eres un experto en participación en licitaciones públicas chilenas. Extrae ÚNICAMENTE los " +
+      "puntos críticos y obligatorios para poder participar o que exponen a sanción, clasificados en " +
+      "estos tipos:\n" +
+      "- boleta_garantia: garantías de seriedad de la oferta y de fiel cumplimiento (montos, vigencia, glosa).\n" +
+      "- servidores: condiciones de servidores, hosting, nube, disponibilidad de infraestructura.\n" +
+      "- sla: niveles de servicio, tiempos de respuesta y de resolución, disponibilidad comprometida.\n" +
+      "- plazos: plazos de entrega, de implementación, de presentación de ofertas y fechas límite.\n" +
+      "- multas: multas, sanciones, descuentos y causales de término anticipado.\n" +
+      "- certificados: certificados, acreditaciones e inscripciones exigidas (ISO, ChileProveedores, etc.).\n" +
+      "NO incluyas funcionalidades del software ni requisitos funcionales: esos se extraen aparte. " +
+      "Cada ítem con su cita textual y página. Si un tipo no aparece en el documento, simplemente no " +
+      "lo incluyas. Sé breve y concreto: mejor pocos ítems bien definidos que una lista larga.",
+    user: pagesToAnnotatedText(pages),
+  });
+}
+
+/**
+ * Extrae los sistemas (software) que el documento exige y las funcionalidades
+ * concretas de cada uno. Es la base del checklist de cumplimiento.
+ */
+export async function extractSystems(pages: PageText[], provider: ProviderId): Promise<Systems> {
+  return structuredCompletion({
+    schema: SystemsSchema,
+    schemaName: "sistemas_y_funcionalidades",
+    provider,
+    speed: "chat",
+    system:
+      "Eres un analista funcional de licitaciones TI. Identifica los SISTEMAS o módulos de software " +
+      "que el documento exige desarrollar, implementar o proveer, y para cada uno lista sus " +
+      "FUNCIONALIDADES concretas y específicas.\n" +
+      "Reglas:\n" +
+      "- Un sistema es una pieza de software con nombre propio en el documento (p. ej. 'Sistema de " +
+      "  Gestión de Permisos de Circulación', 'Portal de Atención Ciudadana', 'Módulo de Tesorería').\n" +
+      "- Una funcionalidad es algo que el sistema debe permitir hacer, redactado en una línea y en " +
+      "  términos verificables ('emitir certificado en PDF con firma electrónica'), nunca una " +
+      "  generalidad ('debe ser moderno' o 'buena usabilidad').\n" +
+      "- Indica el plazo de entrega cuando el documento lo señale, con el texto tal cual aparece " +
+      "  ('60 días corridos desde la firma del contrato'); si no aparece, null.\n" +
+      "- Si el documento describe un único sistema, devuelve un solo sistema con todas sus " +
+      "  funcionalidades. Si describe requisitos sueltos sin agrupar, agrúpalos tú por sistema/módulo.\n" +
+      "- No inventes: cada funcionalidad debe poder respaldarse con una cita del documento.",
     user: pagesToAnnotatedText(pages),
   });
 }

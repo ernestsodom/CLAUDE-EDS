@@ -8,6 +8,7 @@ import {
   classifyDocument,
   extractDeliveredItems,
   extractRequirements,
+  extractSystems,
   extractTechnicalVariables,
   extractTimeline,
   summarizeDocument,
@@ -16,6 +17,7 @@ import {
   classifyDocumentLocal,
   extractDeliveredItemsLocal,
   extractRequirementsLocal,
+  extractSystemsLocal,
   extractTechnicalVariablesLocal,
   extractTimelineLocal,
   summarizeLocal,
@@ -128,7 +130,8 @@ const NEXT: Record<string, string> = {
   embeddings: "clasificacion",
   clasificacion: "resumen",
   resumen: "variables",
-  variables: "requerimientos",
+  variables: "sistemas",
+  sistemas: "requerimientos",
   requerimientos: "timeline",
   timeline: "completado",
 };
@@ -141,7 +144,8 @@ export const STEP_LABELS: Record<string, string> = {
   clasificacion: "clasificando",
   resumen: "redactando el resumen ejecutivo",
   variables: "extrayendo variables técnicas",
-  requerimientos: "extrayendo requerimientos",
+  sistemas: "identificando sistemas y funcionalidades",
+  requerimientos: "extrayendo puntos críticos",
   timeline: "construyendo la línea de tiempo",
   completado: "completado",
 };
@@ -247,6 +251,12 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
 
       case "variables": {
         const r = await stageVariables(db, documentId, versionId, mode);
+        await advance(NEXT[step]);
+        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
+      }
+
+      case "sistemas": {
+        const r = await stageSystems(db, documentId, versionId, doc.doc_type, mode);
         await advance(NEXT[step]);
         return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
       }
@@ -516,6 +526,93 @@ async function stageVariables(
   return { detail: `${v.variables.length} variables${engineSuffix(engine)}`, engine };
 }
 
+/**
+ * Sistemas exigidos por el documento y sus funcionalidades → el checklist.
+ * Los documentos de control/avance no describen lo exigido sino lo entregado,
+ * así que se saltan esta etapa.
+ */
+async function stageSystems(
+  db: DB,
+  documentId: string,
+  versionId: string,
+  docType: string,
+  mode: AnalysisMode
+): Promise<{ detail: string; engine: AnalysisMode }> {
+  if (["control_entregas", "avance", "acta", "reclamo"].includes(docType)) {
+    return { detail: "no aplica a este tipo de documento", engine: mode };
+  }
+
+  const pages = await loadPages(db, versionId);
+  const { data: s, engine } = await analyze(
+    mode,
+    (provider) => extractSystems(pages, provider),
+    () => extractSystemsLocal(pages)
+  );
+
+  // Borrar y reinsertar: el borrado en cascada se lleva las funcionalidades.
+  // Se conserva el estado de las que el usuario ya marcó como completadas,
+  // emparejándolas por nombre normalizado — reprocesar un documento no puede
+  // hacerle perder al usuario el avance que ya registró a mano.
+  const { data: previous } = await db
+    .from("system_features")
+    .select("name, is_completed, completed_at, completed_by")
+    .eq("document_id", documentId)
+    .eq("is_completed", true);
+  const doneBefore = new Map(
+    (previous ?? []).map((f) => [
+      f.name.trim().toLowerCase(),
+      { completed_at: f.completed_at, completed_by: f.completed_by },
+    ])
+  );
+
+  await db.from("systems").delete().eq("document_id", documentId);
+
+  let features = 0;
+  for (const [i, sys] of s.sistemas.entries()) {
+    const { data: created } = await db
+      .from("systems")
+      .insert({
+        document_id: documentId,
+        name: sys.nombre,
+        description: sys.descripcion,
+        deadline_text: sys.plazo,
+        page: sys.pagina,
+        quote: sys.cita,
+        sort_order: i,
+      })
+      .select("id")
+      .single();
+    if (!created || sys.funcionalidades.length === 0) continue;
+
+    const { error } = await db.from("system_features").insert(
+      sys.funcionalidades.map((f, j) => {
+        const kept = doneBefore.get(f.nombre.trim().toLowerCase());
+        return {
+          system_id: created.id,
+          document_id: documentId,
+          name: f.nombre,
+          description: f.descripcion,
+          deadline_text: f.plazo ?? sys.plazo,
+          page: f.pagina,
+          quote: f.cita,
+          is_mandatory: f.obligatoria,
+          is_completed: Boolean(kept),
+          completed_at: kept?.completed_at ?? null,
+          completed_by: kept?.completed_by ?? null,
+          sort_order: j,
+        };
+      })
+    );
+    if (error) throw new Error(`Error guardando funcionalidades: ${error.message}`);
+    features += sys.funcionalidades.length;
+  }
+
+  return {
+    detail: `${s.sistemas.length} sistemas, ${features} funcionalidades${engineSuffix(engine)}`,
+    engine,
+  };
+}
+
 async function stageRequirements(
   db: DB,
   documentId: string,
@@ -567,7 +664,8 @@ async function stageRequirements(
         code: x.codigo,
         title: x.titulo,
         description: x.descripcion,
-        category: x.categoria,
+        category: x.tipo_critico,
+        critical_type: x.tipo_critico,
         mandatory: x.obligatorio,
         page: x.pagina,
         quote: x.cita,
@@ -575,7 +673,7 @@ async function stageRequirements(
       }))
     );
   }
-  return { detail: `${r.requerimientos.length} requerimientos${engineSuffix(engine)}`, engine };
+  return { detail: `${r.requerimientos.length} puntos críticos${engineSuffix(engine)}`, engine };
 }
 
 async function stageTimeline(

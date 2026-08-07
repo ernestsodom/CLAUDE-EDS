@@ -80,13 +80,36 @@ export const TechnicalVariablesSchema = z.object({
 });
 export type TechnicalVariables = z.infer<typeof TechnicalVariablesSchema>;
 
+/**
+ * Requerimientos CRÍTICOS: solo las condiciones que hay que cumplir sí o sí
+ * para poder participar o para no exponerse a una sanción. Todo lo demás
+ * (funcionalidades del software) vive en SystemsSchema.
+ */
+export const CRITICAL_TYPES = [
+  "boleta_garantia",
+  "servidores",
+  "sla",
+  "plazos",
+  "multas",
+  "certificados",
+] as const;
+
+export const CRITICAL_TYPE_LABELS: Record<(typeof CRITICAL_TYPES)[number], string> = {
+  boleta_garantia: "Boleta de garantía",
+  servidores: "Condiciones de servidores",
+  sla: "SLA / niveles de servicio",
+  plazos: "Plazos",
+  multas: "Multas",
+  certificados: "Certificados",
+};
+
 export const RequirementsSchema = z.object({
   requerimientos: z.array(
     z.object({
+      tipo_critico: z.enum(CRITICAL_TYPES),
       codigo: z.string().nullable(),
       titulo: z.string(),
       descripcion: z.string().nullable(),
-      categoria: z.string().nullable(),
       obligatorio: z.boolean(),
       pagina: z.number().int().nullable(),
       cita: z.string().nullable(),
@@ -95,6 +118,34 @@ export const RequirementsSchema = z.object({
   ),
 });
 export type Requirements = z.infer<typeof RequirementsSchema>;
+
+/**
+ * Sistemas (software) exigidos por el documento técnico y, colgando de cada
+ * uno, sus funcionalidades concretas. Es la estructura sobre la que se
+ * construye el checklist de cumplimiento y la comparación contra el Excel.
+ */
+export const SystemsSchema = z.object({
+  sistemas: z.array(
+    z.object({
+      nombre: z.string().describe("Nombre del sistema/software tal como lo llama el documento"),
+      descripcion: z.string().nullable(),
+      plazo: z.string().nullable().describe("Plazo de entrega del sistema, si el documento lo indica"),
+      pagina: z.number().int().nullable(),
+      cita: z.string().nullable(),
+      funcionalidades: z.array(
+        z.object({
+          nombre: z.string().describe("Funcionalidad concreta y específica, en una línea"),
+          descripcion: z.string().nullable(),
+          plazo: z.string().nullable(),
+          obligatoria: z.boolean(),
+          pagina: z.number().int().nullable(),
+          cita: z.string().nullable(),
+        })
+      ),
+    })
+  ),
+});
+export type Systems = z.infer<typeof SystemsSchema>;
 
 export const TimelineSchema = z.object({
   hitos: z.array(

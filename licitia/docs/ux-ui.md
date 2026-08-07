@@ -12,22 +12,29 @@ Estética inspirada en Notion, ChatGPT, Linear, Vercel y Microsoft Copilot: supe
 ## Navegación
 
 ```
-Login ─► Dashboard (KPIs, distribución por tipo, últimos documentos)
-          ├─ Documentos ──► Ficha de documento
-          │                  ├─ Resumen ejecutivo (+ exportar)
-          │                  ├─ Metadatos (clasificación IA)
-          │                  ├─ Variables técnicas (tabla + confianza)
-          │                  ├─ Requerimientos (tabla + prioridad)
-          │                  ├─ Línea de tiempo interactiva
-          │                  ├─ Chat IA del documento (citas + confianza)
-          │                  ├─ Notas (comentarios/pendientes/recordatorios)
-          │                  └─ Versiones
+Login ─► Dashboard (KPIs desplegables, distribución por tipo, últimos documentos)
+          ├─ Documentos (carpetas por cliente + listado con filtros y borrado)
+          │   ├─ Carpeta de proyecto ──► documentos del proyecto
+          │   └─ Ficha de documento
+          │        ├─ Resumen ejecutivo (+ exportar)
+          │        ├─ Sistemas → funcionalidades (checklist, % cumplimiento, plazos)
+          │        ├─ Puntos críticos (garantías, servidores, SLA, plazos, multas, certificados)
+          │        ├─ Variables técnicas (tabla + confianza)
+          │        ├─ Línea de tiempo interactiva
+          │        ├─ Chat IA del documento (citas + confianza, selector de motor)
+          │        ├─ Comentarios (con archivos adjuntos)
+          │        └─ Versiones
           ├─ Subir (drag & drop multiarchivo, progreso del pipeline)
           ├─ Chat IA (biblioteca completa, 5 agentes, historial lateral)
-          ├─ Comparador (cumplimiento con semáforo / diferencias)
-          ├─ Reclamos (análisis + respuesta redactada)
+          ├─ Comparador
+          │   ├─ Checklist vs Excel (plantilla descargable, extras destacados)
+          │   └─ Comparar dos documentos (semáforo / diferencias)
+          ├─ Reclamos ──► Ficha del reclamo (análisis + respuestas guardadas)
           └─ Búsqueda (híbrida con filtros)
 ```
+
+- **Documentos y Carpetas son una sola sección**: eran la misma información vista de dos maneras y tenerlas separadas en el menú obligaba a elegir un ángulo antes de saber qué se buscaba. Las carpetas quedan arriba como índice; el listado plano con filtros, debajo.
+- **Los KPIs del dashboard son botones**: cada uno despliega su contenido bajo la fila (qué documentos, qué clientes, qué falta por procesar, avance del checklist por documento). Un número sin su detalle no permite actuar.
 
 - **Sidebar** colapsable con estado activo, correo del usuario, toggle de tema y logout.
 - **Filtros URL-driven** en Documentos (`?q=&tipo=&estado=&page=`): compartibles y con botón atrás funcional.

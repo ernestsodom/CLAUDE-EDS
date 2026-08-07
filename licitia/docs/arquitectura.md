@@ -39,7 +39,7 @@ Arquitectura limpia sobre Next.js App Router, con separación estricta por capas
 
 ```
 extraccion_texto → chunking → embeddings* → clasificacion → resumen
-  → variables → requerimientos → timeline → completado
+  → variables → sistemas → requerimientos → timeline → completado
   (*) se repite en lotes de 120 mientras queden chunks sin vectorizar.
 ```
 
@@ -60,6 +60,7 @@ LicitIA no depende de un único proveedor de IA. `lib/ai-providers.ts` es un reg
 | **Gemini** | clasificación, resumen, variables, requerimientos, timeline | ✅ (`gemini-embedding-001`, 1536 dims) | ✅ |
 | **Groq** (`openai/gpt-oss-*`) | igual que Gemini, inferencia muy rápida | ❌ | ❌ |
 | **Motor local** | extracción por patrones (`heuristic.service.ts`), sin llamadas a IA | — (búsqueda por texto completo) | — |
+| **Claude** (`claude-haiku-4-5`) | solo Chat IA (ver §2.2) | ❌ | ❌ |
 
 **Nota sobre modelos de Groq**: su modo estricto de Structured Outputs (`strict: true`, que garantiza JSON válido) solo lo soportan los modelos `openai/gpt-oss-120b` y `openai/gpt-oss-20b` — cualquier otro modelo de Groq (p. ej. `llama-3.3-70b-versatile`) responde `400 This model does not support response format json_schema`. Por eso `GROQ_CHAT_MODEL`/`GROQ_FAST_MODEL` apuntan por defecto a los `gpt-oss-*`. Como defensa adicional, `structuredCompletion` (`core/ai/structured.ts`) detecta ese error específico y degrada automáticamente a modo `json_object` + validación con Zod del lado cliente — funciona en cualquier modelo, con menos garantías que el modo estricto, y sin gastar reintentos en errores de cuota (esos se propagan de inmediato).
 
@@ -71,6 +72,25 @@ LicitIA no depende de un único proveedor de IA. `lib/ai-providers.ts` es un reg
 - Los embeddings son la única excepción pragmática: al ser una mejora (búsqueda semántica) y no un requisito para poder analizar el documento, se omiten silenciosamente ante falta de cuota **en cualquier modo**, incluido `gemini` explícito — la búsqueda sigue funcionando por texto completo en español.
 
 Cada etapa persiste qué motor la resolvió (`classification._motor`, `document_summaries.model`) y lo devuelve en la respuesta (`engine`, `engineLabel`), visible en la interfaz. Añadir un tercer proveedor es sumar una entrada a `META`/`PROVIDER_ORDER` en `ai-providers.ts` y sus variables de entorno — `structuredCompletion`, `analysis.service.ts` e `ingestion.service.ts` ya son genéricos sobre `ProviderId`.
+
+## 2.2 Claude en el Chat IA — por qué queda fuera del registro
+
+Gemini y Groq se consumen a través de su capa **compatible con la API de OpenAI**, y por eso caben en un mismo registro genérico (`ai-providers.ts`). **Claude no**: su API tiene otra forma —`system` va fuera de `messages`, `max_tokens` es obligatorio, el streaming emite otro tipo de eventos— y forzarla a través de un adaptador escondería esas diferencias en vez de resolverlas. Se integra con el **SDK oficial** `@anthropic-ai/sdk` (`lib/anthropic.ts`), como recomienda Anthropic.
+
+La consecuencia de diseño es deliberada: **Claude solo aparece como motor del Chat IA**, donde el valor está en la calidad de la conversación. El pipeline de ingesta necesita salidas estructuradas homogéneas entre proveedores (`structuredCompletion`) y sigue funcionando con Gemini, Groq o el motor local.
+
+`chat.service.ts` normaliza la diferencia hacia arriba: `streamChatTurn` devuelve siempre un `AsyncIterable<string>` de fragmentos de texto, así que el route handler SSE no sabe —ni necesita saber— qué proveedor respondió. El motor lo elige el usuario en el propio chat (`GET /api/ai/chat-engines` lista solo los que tienen API key). El modelo por defecto es **`claude-haiku-4-5`**, el más económico de la familia; a diferencia de Gemini y Groq, Claude es de pago desde el primer token.
+
+## 2.3 Checklist de sistemas y comparación contra Excel
+
+El control de cumplimiento dejó de apoyarse en una comparación IA-vs-IA entre dos documentos. Ahora tiene dos mitades bien separadas:
+
+1. **Extracción** (etapa `sistemas` del pipeline): del documento técnico se extraen los **sistemas** exigidos y, colgando de cada uno, sus **funcionalidades** concretas con su plazo (`systems` / `system_features`). En paralelo, `requirements` se acotó a los **puntos críticos para participar** (`critical_type`: boleta de garantía, servidores, SLA, plazos, multas, certificados) — las funcionalidades ya no se mezclan con las condiciones de licitación.
+2. **Comparación** (`checklist.service.ts`): el checklist se enfrenta a un **Excel con formato predeterminado** (`docs/formato-excel.md`), descargable ya pre-llenado desde el comparador. El emparejamiento es por similitud de raíces de palabras (Jaccard sobre tokens truncados a 5 caracteres, umbral 0,5), lo que tolera "Emitir certificado de residencia en PDF" ↔ "Emisión de certificados de residencia (PDF)" sin exigir redacción idéntica.
+
+Esto es **determinista**: mismos datos ⇒ mismo resultado, en milisegundos y **sin consumir cuota de IA**. Lo que aparece en el Excel y no se empareja con ninguna funcionalidad exigida se destaca como trabajo **adicional** (señalando lo realizado sin costo): el hallazgo que da sentido al módulo. El % de cumplimiento se calcula solo sobre lo comprometido — lo adicional se cuenta aparte y no lo infla.
+
+El avance manual del checklist (`system_features.is_completed`) lo marca el usuario desde el navegador con su propia sesión (política `features_update`), y **sobrevive a un reprocesamiento**: la etapa `sistemas` reinserta las funcionalidades pero conserva las marcas emparejando por nombre normalizado.
 
 ## 3. RAG híbrido con permisos
 
@@ -87,8 +107,8 @@ Ver `supabase/migrations/0001_schema.sql` (DDL completo con FKs e índices). Nú
 
 - **Tenancy**: `organizations` → `profiles` (1:1 con `auth.users`, rol admin/supervisor/usuario) → todo lo demás cuelga de la organización.
 - **Documental**: `documents` (metadatos tipados + `classification jsonb`) → `document_versions` → `files` (Storage) y `document_pages` (texto por página) → `document_chunks` (embedding `vector(1536)` + `tsv` generado).
-- **Análisis IA**: `document_summaries`, `technical_variables` (28 categorías), `requirements`, `timelines`/`milestones`.
-- **Interacción**: `conversations`/`messages` (citas jsonb, confianza), `comparisons`/`comparison_items`, `claims`/`claim_responses`, `notes`, `tags`/`document_tags`.
+- **Análisis IA**: `document_summaries`, `technical_variables` (28 categorías), `requirements` (con `critical_type`), `systems`/`system_features` (el checklist), `timelines`/`milestones`.
+- **Interacción**: `conversations`/`messages` (citas jsonb, confianza), `comparisons`/`comparison_items`, `checklist_comparisons` (checklist vs Excel), `claims`/`claim_responses`, `notes`/`note_attachments`, `tags`/`document_tags`.
 - **Gobernanza**: `document_permissions` (grants por usuario), `audit_logs`, `app_settings`.
 
 Índices críticos: HNSW sobre embeddings (recall estable a millones de chunks sin re-entrenar listas, a diferencia de IVFFlat), GIN sobre `tsv` y trigram sobre títulos/nombres, B-tree sobre FKs y columnas de filtro (tipo, estado, fecha, número de licitación).

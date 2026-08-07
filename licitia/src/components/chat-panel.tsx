@@ -1,12 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Send, Loader2, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { AgentKind } from "@/core/domain/types";
+
+interface ChatEngineOption {
+  id: string;
+  label: string;
+}
 
 interface ChatCitation {
   chunk_id: string;
@@ -42,8 +47,28 @@ export function ChatPanel({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [engines, setEngines] = useState<ChatEngineOption[]>([]);
+  const [engine, setEngine] = useState<string | null>(null);
   const conversationRef = useRef<string | undefined>(initialConversationId);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Motores realmente disponibles (los que tienen API key configurada).
+  // El usuario elige explícitamente cuál responde: nunca se cambia solo.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/ai/chat-engines")
+      .then((res) => (res.ok ? res.json() : { engines: [] }))
+      .then((json) => {
+        if (!active) return;
+        const list: ChatEngineOption[] = json.engines ?? [];
+        setEngines(list);
+        setEngine((current) => current ?? list[0]?.id ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function send() {
     const question = input.trim();
@@ -61,6 +86,7 @@ export function ChatPanel({
           documentId,
           agent,
           question,
+          ...(engine ? { engine } : {}),
         }),
       });
       if (!res.ok || !res.body) {
@@ -174,6 +200,27 @@ export function ChatPanel({
         ))}
         <div ref={bottomRef} />
       </div>
+
+      {engines.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 border-t px-3 pt-2">
+          <span className="text-xs text-muted-foreground">Motor:</span>
+          {engines.map((e) => (
+            <button
+              key={e.id}
+              type="button"
+              onClick={() => setEngine(e.id)}
+              className={cn(
+                "rounded-full border px-2.5 py-0.5 text-[11px] transition-colors",
+                engine === e.id
+                  ? "border-primary bg-primary/10 font-medium text-primary"
+                  : "text-muted-foreground hover:bg-accent"
+              )}
+            >
+              {e.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-end gap-2 border-t p-3">
         <Textarea

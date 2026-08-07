@@ -23,7 +23,8 @@ export default async function ClaimsPage() {
         <h1 className="text-2xl font-semibold">Reclamos</h1>
         <p className="text-sm text-muted-foreground">
           Análisis automático del reclamo y redacción de respuesta fundada en el contrato,
-          la licitación y los avances — siempre con evidencia citada.
+          la licitación y los avances — siempre con evidencia citada. Cada reclamo y sus
+          respuestas quedan guardados: ábrelos cuando quieras desde la lista de la derecha.
         </p>
       </div>
       <ClaimsWorkbench clients={clients ?? []} recentClaims={(claims ?? []) as never} />

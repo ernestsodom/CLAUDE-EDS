@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { DocumentRow, DocumentType } from "@/core/domain/types";
 import { NotFoundError } from "@/lib/errors";
+import { getChecklist } from "./checklist.repo";
 
 // ============================================================================
 // Repository de documentos: encapsula el acceso a datos; los servicios y
@@ -45,15 +46,20 @@ export async function getDocument(supabase: SupabaseClient, id: string): Promise
 
 export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
   const document = await getDocument(supabase, id);
-  const [summary, variables, requirements, timeline, versions, notes, delivered] =
+  const [summary, variables, requirements, timeline, versions, comments, delivered, systems] =
     await Promise.all([
       supabase.from("document_summaries").select("*").eq("document_id", id).maybeSingle(),
       supabase.from("technical_variables").select("*").eq("document_id", id).order("category"),
       supabase.from("requirements").select("*").eq("document_id", id).order("created_at"),
       supabase.from("timelines").select("*, milestones(*)").eq("document_id", id).maybeSingle(),
       supabase.from("document_versions").select("*").eq("document_id", id).order("version", { ascending: false }),
-      supabase.from("notes").select("*").eq("document_id", id).order("created_at", { ascending: false }),
+      supabase
+        .from("notes")
+        .select("*, note_attachments(id, file_name, mime_type, size_bytes)")
+        .eq("document_id", id)
+        .order("created_at", { ascending: false }),
       supabase.from("delivered_items").select("*").eq("document_id", id).order("delivered_on", { ascending: false }),
+      getChecklist(supabase, id),
     ]);
   return {
     document,
@@ -62,8 +68,9 @@ export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
     requirements: requirements.data ?? [],
     timeline: timeline.data,
     versions: versions.data ?? [],
-    notes: notes.data ?? [],
+    comments: comments.data ?? [],
     deliveredItems: delivered.data ?? [],
+    systems,
   };
 }
 

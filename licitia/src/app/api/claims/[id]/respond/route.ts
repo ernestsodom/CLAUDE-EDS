@@ -35,6 +35,9 @@ export const POST = withErrorHandling(
     await supabase.from("claims").update({ status: "respondido" }).eq("id", id);
     await audit(profile.organization_id, user.id, "claim.respond", "claim", id);
 
-    return NextResponse.json({ responseId: response.id, content, citations }, { status: 201 });
+    return NextResponse.json(
+      { responseId: response.id, content, citations, model: MODELS.chat },
+      { status: 201 }
+    );
   }
 );

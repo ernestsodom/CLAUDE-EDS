@@ -2,6 +2,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/supabase/server";
 import { withErrorHandling, NotFoundError, ValidationError } from "@/lib/errors";
 import { exportAs, EXPORT_MIME, type ExportPayload } from "@/core/services/export.service";
+import { CRITICAL_TYPE_LABELS } from "@/core/ai/schemas";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -104,12 +105,15 @@ export const POST = withErrorHandling(async (request: Request) => {
       .eq("document_id", entityId)
       .order("created_at");
     payload = {
-      title: "Requerimientos",
+      title: "Puntos críticos para participar",
       table: {
-        headers: ["Código", "Título", "Descripción", "Categoría", "Obligatorio", "Página", "Prioridad"],
+        headers: ["Tipo", "Código", "Exigencia", "Descripción", "Obligatorio", "Página", "Prioridad", "Cita"],
         rows: (reqs ?? []).map((r) => [
-          r.code ?? "", r.title, r.description ?? "", r.category ?? "",
-          r.mandatory ? "Sí" : "No", String(r.page ?? ""), r.priority,
+          CRITICAL_TYPE_LABELS[r.critical_type as keyof typeof CRITICAL_TYPE_LABELS] ??
+            r.critical_type ??
+            "Otros",
+          r.code ?? "", r.title, r.description ?? "",
+          r.mandatory ? "Sí" : "No", String(r.page ?? ""), r.priority, r.quote ?? "",
         ]),
       },
     };

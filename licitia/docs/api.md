@@ -15,6 +15,39 @@ Reintenta el pipeline de la versión actual. **200** → `{ status: "procesando"
 ### `GET /api/documents/:id/file`
 **200** → `{ url, fileName, mimeType }` (URL firmada 1 h).
 
+### `DELETE /api/documents/:id`
+Elimina el documento, sus archivos de Storage (incluidos los hijos de un ZIP) y, en cascada, versiones, páginas, fragmentos, análisis, checklist, comentarios y comparaciones.
+Permitido a admin, supervisor o quien subió el documento. **200** → `{ deleted: true }` · **403** si RLS lo impide.
+
+## Checklist de sistemas
+
+### `GET /api/documents/:id/checklist/template`
+Descarga el Excel con el **formato predeterminado** (`docs/formato-excel.md`), pre-llenado con los sistemas y funcionalidades del documento.
+**200** → archivo `.xlsx` · **422** si el documento aún no tiene sistemas.
+
+### `POST /api/documents/:id/checklist/compare`
+`multipart/form-data`, campo `file` (`.xlsx`). Compara el checklist del documento contra el Excel de control. **Determinista: no llama a ningún proveedor de IA.**
+**201** →
+```json
+{
+  "comparisonId": "uuid",
+  "systems": [{ "name", "pct", "features": [{ "name", "state", "excelRow" }] }],
+  "extras":  [{ "system", "feature", "isAdditional", "isFree", "row" }],
+  "totals":  { "totalFeatures", "matched", "completed", "missing", "extra", "pctCompleted", "freeExtras" }
+}
+```
+`state` ∈ `entregado | en_desarrollo | pendiente | ausente`. Los errores de formato del Excel vuelven como **422** con el mensaje exacto que debe corregir el usuario.
+
+El avance manual del checklist (marcar una funcionalidad como completada, fijar su plazo) se escribe directamente contra `system_features` desde el navegador con la sesión del usuario — política RLS `features_update`, sin ruta de API intermedia.
+
+## Comentarios
+
+### `POST /api/notes/:id/attachments`
+`multipart/form-data`, campo `file`. Adjunta un archivo a un comentario propio (bucket `attachments`, sin lista blanca de MIME). **201** → `{ id, file_name, mime_type, size_bytes }`
+
+### `GET /api/notes/attachments/:id`
+**200** → `{ url, fileName, mimeType }` (URL firmada 1 h).
+
 ### `POST /api/internal/process` *(interno)*
 Body: `{ documentId, versionId, organizationId, userId }`. Ejecuta el pipeline completo con service_role. maxDuration 300 s.
 
@@ -26,17 +59,22 @@ Body: `{ documentId, versionId, organizationId, userId }`. Ejecuta el pipeline c
   "conversationId": "uuid?",       // omitir para crear
   "documentId": "uuid|null",       // null = biblioteca completa
   "agent": "analista|comparador|reclamos|propuestas|comercial",
+  "engine": "gemini|groq|claude",   // opcional: el primero configurado si se omite
   "question": "¿Qué multas contempla?",
   "filters": { "docType": "licitacion?", "clientId": "uuid?" }
 }
 ```
 Eventos SSE:
-- `meta` → `{ conversationId }`
+- `meta` → `{ conversationId, engine, model }`
 - `delta` → `{ text }` (streaming del texto visible)
-- `done` → `{ citations: [{chunk_id, cita_textual, pagina, seccion}], confidence }`
+- `done` → `{ citations: [{chunk_id, cita_textual, pagina, seccion}], confidence, engine, model }`
 - `error` → `{ message }`
 
-Los mensajes (con citas y confianza) quedan persistidos en `messages`.
+Los mensajes (con citas, confianza y el modelo que respondió) quedan persistidos en `messages`.
+
+### `GET /api/ai/chat-engines`
+Motores disponibles para el chat, solo los que tienen API key configurada.
+**200** → `{ engines: [{ id: "gemini"|"groq"|"claude", label }] }`
 
 ### `POST /api/conversations/:id/duplicate`
 **201** → `{ conversationId }` (copia con todos los mensajes).

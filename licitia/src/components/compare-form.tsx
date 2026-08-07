@@ -102,10 +102,14 @@ export function CompareForm({ history }: { history: HistoryItem[] }) {
 
           {isCompliance && (
             <p className="text-xs text-muted-foreground">
-              El sistema clasifica cada requerimiento del documento base contra tu control
-              (cumplido / parcial / pendiente) y además detecta las entregas tuyas que no
-              responden a ningún requerimiento del acuerdo, marcándolas como{" "}
-              <span className="font-medium">adicionales</span> — incluyendo las realizadas sin costo.
+              El sistema clasifica cada <span className="font-medium">punto crítico</span> del
+              documento base (garantías, servidores, SLA, plazos, multas y certificados) contra tu
+              control —cumplido / parcial / pendiente— y detecta las entregas tuyas que no responden
+              a ningún requerimiento del acuerdo, marcándolas como{" "}
+              <span className="font-medium">adicionales</span>, incluidas las realizadas sin costo.
+              Para contrastar las <span className="font-medium">funcionalidades del software</span>,
+              usa la pestaña <span className="font-medium">Checklist vs Excel</span>: es exacta y no
+              consume cuota de IA.
             </p>
           )}
           {source && target && source.id === target.id && (

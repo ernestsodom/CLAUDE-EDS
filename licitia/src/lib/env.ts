@@ -29,6 +29,12 @@ const serverSchema = z.object({
   GROQ_CHAT_MODEL: z.string().default("openai/gpt-oss-120b"),
   GROQ_FAST_MODEL: z.string().default("openai/gpt-oss-20b"),
 
+  // Claude (Anthropic). Se usa con su SDK oficial, no con la capa compatible
+  // con OpenAI, y solo en el Chat IA. De pago (sin nivel gratuito), por eso
+  // Haiku 4.5 —el modelo más económico de la familia— es el predeterminado.
+  ANTHROPIC_API_KEY: z.string().min(10).optional(),
+  ANTHROPIC_CHAT_MODEL: z.string().default("claude-haiku-4-5"),
+
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   INTERNAL_API_SECRET: z.string().min(16),
   MAX_UPLOAD_MB: z.coerce.number().default(50),

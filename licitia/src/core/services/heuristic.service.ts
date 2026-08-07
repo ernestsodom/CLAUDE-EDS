@@ -4,6 +4,7 @@ import type {
   DeliveredItems,
   Requirements,
   Summary,
+  Systems,
   TechnicalVariables,
   Timeline,
 } from "@/core/ai/schemas";
@@ -261,43 +262,177 @@ export function extractTechnicalVariablesLocal(pages: PageText[]): TechnicalVari
 const OBLIGACION = /(deber[aá]n?|debe(?:r[aá])?|se exige|ser[aá] obligatorio|est[aá] obligad|se requiere|requerir[aá]|tendr[aá] que|el oferente|el proveedor|el contratista|el adjudicatario|contemplar[aá]|incluir[aá]|proporcionar[aá]|garantizar[aá])/i;
 const NUMERACION = /^\s*(?:\d+(?:\.\d+)*[.)-]?|[a-z][.)]|[IVXLC]+[.)]|[-•*])\s+/;
 
+type CriticalType = Requirements["requerimientos"][number]["tipo_critico"];
+
+/**
+ * Diccionario de los puntos que condicionan la participación. El motor local
+ * solo devuelve requerimientos que caen en uno de estos tipos — igual que el
+ * agente de IA, que tiene la misma instrucción.
+ */
+const CRITICOS: Array<[CriticalType, RegExp]> = [
+  ["boleta_garantia", /(boleta de garantia|garantia de fiel cumplimiento|seriedad de la oferta|poliza de garantia|vale vista|caucion)/],
+  ["servidores", /(servidor|hosting|datacenter|centro de datos|nube|cloud|on premise|alojamiento|infraestructura tecnologica)/],
+  ["sla", /(sla|nivel(?:es)? de servicio|disponibilidad (?:de|del|minima|comprometida)|tiempo de respuesta|tiempo de resolucion|uptime|99[.,]\d)/],
+  ["plazos", /(plazo (?:de|maximo|minimo)|fecha (?:limite|de cierre|de entrega)|dias corridos|dias habiles|a partir de la (?:firma|suscripcion))/],
+  ["multas", /(multa|sancion|penalidad|descuento por atraso|termino anticipado|cobro de la garantia|utm por dia)/],
+  ["certificados", /(certificad|acreditacion|iso 9001|iso 27001|cmmi|chileproveedores|inscripcion en el registro|certificacion)/],
+];
+
+/** Solo los puntos críticos y obligatorios para participar. */
 export function extractRequirementsLocal(pages: PageText[]): Requirements {
   const sents = sentences(pages);
   const requerimientos: Requirements["requerimientos"] = [];
   const seen = new Set<string>();
-  let counter = 1;
+  // Tope por tipo: el objetivo es una lista corta y accionable, no un volcado.
+  const perType = new Map<CriticalType, number>();
+  const MAX_POR_TIPO = 6;
 
   for (const s of sents) {
-    const numbered = NUMERACION.test(s.text);
-    if (!OBLIGACION.test(s.text) && !numbered) continue;
-    if (!OBLIGACION.test(s.text)) continue; // la numeración sola no basta
+    const lower = norm(s.text);
+    const match = CRITICOS.find(([, re]) => re.test(lower));
+    if (!match) continue;
+    const [tipo] = match;
+    if ((perType.get(tipo) ?? 0) >= MAX_POR_TIPO) continue;
+    // Debe ser una exigencia, no una mención de pasada.
+    if (!OBLIGACION.test(s.text) && !/(multa|sancion|garantia|certificad|plazo)/.test(lower)) continue;
 
     const clean = s.text.replace(NUMERACION, "").trim();
     const key = norm(clean).slice(0, 80);
     if (seen.has(key)) continue;
     seen.add(key);
+    perType.set(tipo, (perType.get(tipo) ?? 0) + 1);
 
     const codeMatch = s.text.match(/^\s*(\d+(?:\.\d+)*)/);
-    const lower = norm(clean);
     const prioridad: Requirements["requerimientos"][number]["prioridad"] =
-      /(critic|indispensable|obligatori|no podr|rechaz)/.test(lower) ? "alto"
-      : /(deseable|opcional|valorar|podr[aá])/.test(lower) ? "bajo"
-      : "medio";
+      tipo === "boleta_garantia" || tipo === "multas" || tipo === "plazos"
+        ? "critico"
+        : /(critic|indispensable|obligatori|no podr|rechaz|excluyent)/.test(norm(clean))
+          ? "alto"
+          : "medio";
 
     requerimientos.push({
-      codigo: codeMatch ? `RQ-${codeMatch[1]}` : `RQ-${String(counter).padStart(3, "0")}`,
+      tipo_critico: tipo,
+      codigo: codeMatch ? `RQ-${codeMatch[1]}` : null,
       titulo: clean.slice(0, 140),
       descripcion: clean.length > 140 ? clean : null,
-      categoria: null,
-      obligatorio: !/(deseable|opcional|podr[aá])/.test(lower),
+      obligatorio: !/(deseable|opcional|podr[aá])/.test(norm(clean)),
       pagina: s.page,
       cita: clean.slice(0, 300),
       prioridad,
     });
-    counter++;
-    if (requerimientos.length >= 200) break;
   }
   return { requerimientos };
+}
+
+// ─── Sistemas y funcionalidades ─────────────────────────────────────────────
+
+/**
+ * Detección local de sistemas: se buscan menciones con la forma
+ * "Sistema/Módulo/Portal/Plataforma de <Nombre Propio>" y se agrupan bajo
+ * ellas las oraciones siguientes que expresan una capacidad exigida.
+ *
+ * Sin modelo de lenguaje esto es reconocimiento, no interpretación: agrupa por
+ * proximidad en el documento, que es como suelen estar escritas las bases
+ * técnicas (un encabezado con el módulo y debajo sus exigencias).
+ */
+const SISTEMA_KEYWORD =
+  /\b(sistemas?|subsistemas?|m[oó]dulos?|portal|plataforma|aplicaci[oó]n|software)\b/i;
+
+/** Preposiciones/artículos que pueden ir dentro del nombre de un sistema. */
+const CONECTORES = new Set(["de", "del", "la", "las", "los", "y", "e", "en", "para"]);
+
+const CAPACIDAD =
+  /(deber[aá]n?|permitir|generar|emitir|registrar|consultar|gestionar|administrar|calcular|exportar|importar|notificar|validar|almacenar|visualizar|imprimir|integrar|integraci[oó]n|sincronizar|contar con|disponer de|contemplar|incluir|realizar|ofrecer|proveer)/i;
+
+const PLAZO_RE =
+  /(\d{1,3}\s*(?:d[ií]as|meses|semanas|a[ñn]os)(?:\s+(?:corridos|h[aá]biles))?(?:\s+(?:desde|contados desde|a contar de)[^.,;]{0,60})?)/i;
+
+/**
+ * Devuelve el nombre del sistema mencionado en la oración, o null si la
+ * mención es genérica ("el sistema deberá…") y no un nombre propio.
+ * Se recorta al último término con mayúscula: el nombre nunca acaba en
+ * conector ("Módulo de Rentas y" ⇒ "Módulo de Rentas").
+ */
+function detectSystemName(text: string): string | null {
+  const m = SISTEMA_KEYWORD.exec(text);
+  if (!m) return null;
+
+  const afterKeyword = m.index + m[0].length;
+  const prefix = /^\s*(?:web\s+)?(?:de|del|para|denominado)?\s*["“]?/i.exec(text.slice(afterKeyword));
+  let cursor = afterKeyword + (prefix?.[0].length ?? 0);
+  let end = 0;
+
+  for (let taken = 0; taken < 6; taken++) {
+    const gap = /^\s*/.exec(text.slice(cursor))![0].length;
+    const word = /^[\wáéíóúñÁÉÍÓÚÑ]+/.exec(text.slice(cursor + gap))?.[0];
+    if (!word) break;
+
+    const isProper = /^[A-ZÁÉÍÓÚÑ]/.test(word);
+    const isConnector = CONECTORES.has(word.toLowerCase());
+    // Sin nombre propio inmediatamente después, la mención es genérica.
+    if (taken === 0 && !isProper) return null;
+    if (!isProper && !isConnector) break;
+
+    cursor += gap + word.length;
+    if (isProper) end = cursor;
+  }
+
+  if (end === 0) return null;
+  const raw = text.slice(m.index, end).replace(/\s+/g, " ").trim();
+  return `${raw[0].toUpperCase()}${raw.slice(1)}`.slice(0, 120);
+}
+
+export function extractSystemsLocal(pages: PageText[]): Systems {
+  const sents = sentences(pages);
+  const sistemas: Systems["sistemas"] = [];
+  const byName = new Map<string, Systems["sistemas"][number]>();
+  let current: Systems["sistemas"][number] | null = null;
+
+  for (const s of sents) {
+    const nombre = detectSystemName(s.text);
+    if (nombre) {
+      const key = norm(nombre);
+      const existing = byName.get(key);
+      if (existing) {
+        current = existing;
+      } else {
+        if (sistemas.length >= 25) continue;
+        current = {
+          nombre,
+          descripcion: null,
+          plazo: s.text.match(PLAZO_RE)?.[1] ?? null,
+          pagina: s.page,
+          cita: s.text.slice(0, 300),
+          funcionalidades: [],
+        };
+        byName.set(key, current);
+        sistemas.push(current);
+      }
+      continue;
+    }
+
+    if (!current || !CAPACIDAD.test(s.text)) continue;
+    if (current.funcionalidades.length >= 40) continue;
+    // Lo que es un punto crítico (garantías, multas, SLA, plazos,
+    // certificados) no es una funcionalidad del software: va en la otra lista.
+    const lower = norm(s.text);
+    if (CRITICOS.some(([, re]) => re.test(lower))) continue;
+
+    const clean = s.text.replace(NUMERACION, "").trim();
+    if (current.funcionalidades.some((f) => norm(f.nombre) === norm(clean.slice(0, 140)))) continue;
+
+    current.funcionalidades.push({
+      nombre: clean.slice(0, 140),
+      descripcion: clean.length > 140 ? clean.slice(0, 500) : null,
+      plazo: clean.match(PLAZO_RE)?.[1] ?? null,
+      obligatoria: !/(deseable|opcional|podr[aá])/i.test(clean),
+      pagina: s.page,
+      cita: clean.slice(0, 300),
+    });
+  }
+
+  // Un sistema sin funcionalidades detectadas no aporta al checklist.
+  return { sistemas: sistemas.filter((s) => s.funcionalidades.length > 0) };
 }
 
 // ─── Entregas (documentos de control) ───────────────────────────────────────
@@ -424,7 +559,7 @@ export function summarizeLocal(pages: PageText[]): Summary {
       `${c.numero_licitacion ? `, licitación ${c.numero_licitacion}` : ""}` +
       `${c.monto ? `, por ${c.monto.toLocaleString("es-CL")} ${c.moneda ?? ""}` : ""}` +
       `${c.duracion_contrato ? `, con una duración de ${c.duracion_contrato}` : ""}. ` +
-      `Se detectaron ${reqs.length} cláusulas con carácter obligatorio, ${vars.length} elementos técnicos ` +
+      `Se detectaron ${reqs.length} puntos críticos para participar, ${vars.length} elementos técnicos ` +
       `(principalmente ${topCats || "sin categorías predominantes"}) y ${tl.length} hitos de cronograma. ` +
       `Este resumen se generó sin consumir cuota de IA; para un informe interpretativo completo, vuelve a analizar en modo IA.`,
     objetivo,
@@ -447,8 +582,8 @@ export function summarizeLocal(pages: PageText[]): Summary {
     recomendaciones: [
       "Resumen generado con el motor local: verifica las cláusulas citadas antes de tomar decisiones.",
       reqs.length > 0
-        ? `Revisa los ${reqs.length} requerimientos detectados; el comparador de cumplimiento ya puede usarlos.`
-        : "No se detectaron cláusulas obligatorias: revisa si el documento es escaneado o tiene poco texto.",
+        ? `Revisa los ${reqs.length} puntos críticos detectados (garantías, plazos, multas, SLA, servidores y certificados).`
+        : "No se detectaron puntos críticos: revisa si el documento es escaneado o tiene poco texto.",
       "Cuando dispongas de cuota de IA, vuelve a analizar el documento para obtener el informe interpretativo.",
     ],
   };

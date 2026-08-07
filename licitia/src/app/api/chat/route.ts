@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { requireUser } from "@/lib/supabase/server";
 import { withErrorHandling, ValidationError } from "@/lib/errors";
-import { MODELS } from "@/lib/openai";
 import {
+  CHAT_ENGINES,
   CITATION_DELIMITER,
   splitAnswerAndCitations,
   streamChatTurn,
@@ -21,6 +21,8 @@ const BodySchema = z.object({
   conversationId: z.string().uuid().optional(),
   documentId: z.string().uuid().nullable().default(null),
   agent: z.enum(["analista", "comparador", "reclamos", "propuestas", "comercial"]).default("analista"),
+  // Motor elegido por el usuario. Sin valor, se usa el primero configurado.
+  engine: z.enum(CHAT_ENGINES).optional(),
   question: z.string().min(1).max(8000),
   filters: z
     .object({
@@ -56,10 +58,11 @@ export const POST = withErrorHandling(async (request: Request) => {
     content: body.question,
   });
 
-  const { stream } = await streamChatTurn({
+  const { textStream, engine, model } = await streamChatTurn({
     supabase,
     agent: body.agent,
     question: body.question,
+    engine: body.engine,
     history,
     filters: {
       documentIds: body.documentId ? [body.documentId] : undefined,
@@ -77,11 +80,9 @@ export const POST = withErrorHandling(async (request: Request) => {
       let full = "";
       let visibleSent = 0;
       try {
-        send(controller, "meta", { conversationId: conversation.id });
+        send(controller, "meta", { conversationId: conversation.id, engine, model });
 
-        for await (const part of stream) {
-          const delta = part.choices[0]?.delta?.content ?? "";
-          if (!delta) continue;
+        for await (const delta of textStream) {
           full += delta;
           // No emitir al cliente el bloque de citas: cortar en el delimitador
           const cut = full.indexOf(CITATION_DELIMITER);
@@ -99,11 +100,11 @@ export const POST = withErrorHandling(async (request: Request) => {
           content: answer,
           citations,
           confidence,
-          model: MODELS.chat,
+          model,
         });
         await audit(profile.organization_id, user.id, "chat.message", "conversation", conversation.id);
 
-        send(controller, "done", { citations, confidence });
+        send(controller, "done", { citations, confidence, engine, model });
       } catch (err) {
         send(controller, "error", { message: err instanceof Error ? err.message : "Error" });
       } finally {

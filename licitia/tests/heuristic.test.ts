@@ -3,6 +3,7 @@ import {
   classifyDocumentLocal,
   extractDeliveredItemsLocal,
   extractRequirementsLocal,
+  extractSystemsLocal,
   extractTechnicalVariablesLocal,
   extractTimelineLocal,
   summarizeLocal,
@@ -95,15 +96,30 @@ describe("motor local — clasificación", () => {
   });
 });
 
-describe("motor local — requerimientos", () => {
+describe("motor local — requerimientos críticos", () => {
   const { requerimientos } = extractRequirementsLocal(LICITACION);
+  const tipos = new Set(requerimientos.map((r) => r.tipo_critico));
 
-  it("extrae las cláusulas con carácter obligatorio", () => {
-    expect(requerimientos.length).toBeGreaterThanOrEqual(4);
+  it("extrae los puntos que condicionan la participación", () => {
+    // Boleta de garantía, SLA, multas y plazos están todos en el documento.
+    expect(tipos.has("boleta_garantia")).toBe(true);
+    expect(tipos.has("sla")).toBe(true);
+    expect(tipos.has("multas")).toBe(true);
+    expect(tipos.has("plazos")).toBe(true);
+  });
+
+  it("no incluye funcionalidades del software: esas van al checklist de sistemas", () => {
     const texto = requerimientos.map((r) => r.titulo).join(" ").toLowerCase();
-    expect(texto).toContain("rentas");
-    expect(texto).toContain("tesorería");
-    expect(texto).toContain("firma electrónica");
+    expect(texto).not.toContain("power bi");
+    expect(texto).not.toContain("rentas y patentes");
+  });
+
+  it("marca como críticas las garantías, multas y plazos", () => {
+    for (const r of requerimientos) {
+      if (["boleta_garantia", "multas", "plazos"].includes(r.tipo_critico)) {
+        expect(r.prioridad).toBe("critico");
+      }
+    }
   });
 
   it("registra la página de origen y la cita", () => {
@@ -112,11 +128,41 @@ describe("motor local — requerimientos", () => {
       expect(r.cita).toBeTruthy();
     }
   });
+});
 
-  it("distingue lo deseable de lo obligatorio", () => {
-    const deseable = requerimientos.find((r) => /power bi|deseable/i.test(r.titulo));
-    expect(deseable?.obligatorio).toBe(false);
-    expect(deseable?.prioridad).toBe("bajo");
+describe("motor local — sistemas y funcionalidades", () => {
+  const { sistemas } = extractSystemsLocal(LICITACION);
+
+  it("identifica el módulo nombrado y lo distingue de las menciones genéricas", () => {
+    expect(sistemas.length).toBeGreaterThan(0);
+    const nombres = sistemas.map((s) => s.nombre.toLowerCase()).join(" | ");
+    expect(nombres).toContain("rentas y patentes");
+    // "El sistema deberá contar con…" es una mención genérica, no un sistema.
+    expect(nombres).not.toMatch(/sistema deber/);
+  });
+
+  it("no mezcla puntos críticos (SLA, multas, garantías) con las funcionalidades", () => {
+    const texto = sistemas
+      .flatMap((s) => s.funcionalidades.map((f) => f.nombre.toLowerCase()))
+      .join(" ");
+    expect(texto).not.toContain("multa");
+    expect(texto).not.toContain("boleta de garantía");
+    expect(texto).not.toContain("disponibilidad de 99");
+  });
+
+  it("cuelga funcionalidades concretas de cada sistema, con página y cita", () => {
+    for (const sistema of sistemas) {
+      expect(sistema.funcionalidades.length).toBeGreaterThan(0);
+      for (const f of sistema.funcionalidades) {
+        expect(f.nombre.length).toBeGreaterThan(0);
+        expect(f.pagina).toBeGreaterThan(0);
+        expect(f.cita).toBeTruthy();
+      }
+    }
+  });
+
+  it("descarta los sistemas sin ninguna funcionalidad detectada", () => {
+    expect(sistemas.every((s) => s.funcionalidades.length > 0)).toBe(true);
   });
 });
 

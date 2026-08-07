@@ -5,6 +5,7 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { formatCLP, formatDate } from "@/lib/utils";
 import { Folder } from "lucide-react";
+import { DeleteDocumentButton } from "@/components/delete-document-button";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,10 @@ export default async function ProjectDetailPage({
             <p className="text-sm text-muted-foreground">{project.description}</p>
           )}
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+          <Link href="/documents" className="text-sm text-muted-foreground hover:underline">
+            ← Todas las carpetas
+          </Link>
           <Link href="/upload" className="text-sm text-primary underline">
             Subir a esta carpeta →
           </Link>
@@ -58,7 +62,7 @@ export default async function ProjectDetailPage({
       <Table>
         <THead>
           <TR>
-            <TH>Documento</TH><TH>Tipo</TH><TH>Fecha</TH><TH>Monto</TH><TH>Estado</TH>
+            <TH>Documento</TH><TH>Tipo</TH><TH>Fecha</TH><TH>Monto</TH><TH>Estado</TH><TH>&nbsp;</TH>
           </TR>
         </THead>
         <TBody>
@@ -79,11 +83,14 @@ export default async function ProjectDetailPage({
                     : d.status}
                 </Badge>
               </TD>
+              <TD>
+                <DeleteDocumentButton documentId={d.id} title={d.title} redirectTo={null} />
+              </TD>
             </TR>
           ))}
           {(documents ?? []).length === 0 && (
             <TR>
-              <TD colSpan={5} className="py-8 text-center text-muted-foreground">
+              <TD colSpan={6} className="py-8 text-center text-muted-foreground">
                 Esta carpeta aún no tiene documentos. Súbelos desde{" "}
                 <Link href="/upload" className="text-primary underline">Subir</Link>{" "}
                 seleccionando esta carpeta.

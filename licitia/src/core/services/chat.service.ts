@@ -1,17 +1,46 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { MODELS, openai } from "@/lib/openai";
+import { anthropic, claudeModel, CLAUDE_MAX_TOKENS, isClaudeConfigured } from "@/lib/anthropic";
+import { getProviderClient, isProviderConfigured, modelFor, type ProviderId } from "@/lib/ai-providers";
 import { AGENT_PROMPTS, buildRagContext } from "@/core/ai/agents";
 import type { AgentKind, SearchFilters } from "@/core/domain/types";
 import { fetchDocTitles, retrieve } from "./rag.service";
 
 // ============================================================================
 // Chat RAG con streaming y citas.
-// Estrategia de citas: el modelo responde texto libre, y al final emite un
-// bloque JSON delimitado por <!--citas--> con citas + confianza, que el
-// route handler separa antes de persistir el mensaje.
+//
+// El usuario elige el motor de cada conversación (Gemini, Groq o Claude). Los
+// dos primeros hablan la API de OpenAI; Claude tiene la suya. Para que el
+// route handler no tenga que saber cuál se usó, streamChatTurn devuelve
+// siempre lo mismo: un iterable asíncrono de fragmentos de texto.
+//
+// Estrategia de citas: el modelo responde texto libre y al final emite un
+// bloque JSON delimitado por <!--citas--> con citas + confianza, que el route
+// handler separa antes de persistir el mensaje.
 // ============================================================================
 
 export const CITATION_DELIMITER = "<!--citas-->";
+
+/** Motores disponibles para el chat. 'claude' usa el SDK oficial de Anthropic. */
+export const CHAT_ENGINES = ["gemini", "groq", "claude"] as const;
+export type ChatEngine = (typeof CHAT_ENGINES)[number];
+
+export const CHAT_ENGINE_LABELS: Record<ChatEngine, string> = {
+  gemini: "Gemini",
+  groq: "Groq",
+  claude: "Claude Haiku 4.5",
+};
+
+export function isChatEngineConfigured(engine: ChatEngine): boolean {
+  return engine === "claude" ? isClaudeConfigured() : isProviderConfigured(engine);
+}
+
+/** Motores de chat realmente disponibles, en orden de preferencia. */
+export function listChatEngines(): Array<{ id: ChatEngine; label: string }> {
+  return CHAT_ENGINES.filter(isChatEngineConfigured).map((id) => ({
+    id,
+    label: CHAT_ENGINE_LABELS[id],
+  }));
+}
 
 export interface ChatTurnInput {
   supabase: SupabaseClient;
@@ -19,10 +48,26 @@ export interface ChatTurnInput {
   question: string;
   history: Array<{ role: "user" | "assistant"; content: string }>;
   filters: SearchFilters;
+  engine?: ChatEngine;
 }
 
-export async function streamChatTurn(input: ChatTurnInput) {
+export interface ChatTurnResult {
+  /** Fragmentos de texto en el orden en que los emite el modelo. */
+  textStream: AsyncIterable<string>;
+  retrievedChunks: Awaited<ReturnType<typeof retrieve>>;
+  engine: ChatEngine;
+  model: string;
+}
+
+export async function streamChatTurn(input: ChatTurnInput): Promise<ChatTurnResult> {
   const { supabase, agent, question, history, filters } = input;
+
+  const engine = input.engine ?? listChatEngines()[0]?.id ?? "gemini";
+  if (!isChatEngineConfigured(engine)) {
+    throw new Error(
+      `El motor ${CHAT_ENGINE_LABELS[engine]} no está configurado. Elige otro en el selector del chat.`
+    );
+  }
 
   const chunks = await retrieve(supabase, question, filters, 14);
   const titles = await fetchDocTitles(supabase, chunks.map((c) => c.document_id));
@@ -34,20 +79,49 @@ Al FINAL de tu respuesta, después de la línea ${CITATION_DELIMITER}, emite un 
 {"citas":[{"chunk_id":"...","cita_textual":"...","pagina":N,"seccion":"..."}],"confianza":0.0-1.0}
 Solo incluye chunk_ids presentes en el contexto.`;
 
-  const stream = await openai().chat.completions.create({
-    model: MODELS.chat,
+  const userMessage = `CONTEXTO RECUPERADO:\n${context || "(sin resultados relevantes)"}\n\nPREGUNTA:\n${question}`;
+  const turns = history.slice(-10);
+
+  if (engine === "claude") {
+    const model = claudeModel();
+    const stream = anthropic().messages.stream({
+      model,
+      max_tokens: CLAUDE_MAX_TOKENS,
+      system,
+      messages: [...turns, { role: "user" as const, content: userMessage }],
+    });
+
+    async function* claudeText(): AsyncIterable<string> {
+      for await (const event of stream) {
+        if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          yield event.delta.text;
+        }
+      }
+    }
+
+    return { textStream: claudeText(), retrievedChunks: chunks, engine, model };
+  }
+
+  const provider = engine as ProviderId;
+  const model = modelFor(provider, "chat");
+  const stream = await getProviderClient(provider).chat.completions.create({
+    model,
     stream: true,
     messages: [
       { role: "system", content: system },
-      ...history.slice(-10),
-      {
-        role: "user",
-        content: `CONTEXTO RECUPERADO:\n${context || "(sin resultados relevantes)"}\n\nPREGUNTA:\n${question}`,
-      },
+      ...turns,
+      { role: "user", content: userMessage },
     ],
   });
 
-  return { stream, retrievedChunks: chunks };
+  async function* openaiText(): AsyncIterable<string> {
+    for await (const part of stream) {
+      const delta = part.choices[0]?.delta?.content;
+      if (delta) yield delta;
+    }
+  }
+
+  return { textStream: openaiText(), retrievedChunks: chunks, engine, model };
 }
 
 /** Separa el texto visible del bloque de citas emitido al final. */
