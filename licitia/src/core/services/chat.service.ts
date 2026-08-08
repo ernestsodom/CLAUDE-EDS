@@ -1,6 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { anthropic, claudeModel, CLAUDE_MAX_TOKENS, isClaudeConfigured } from "@/lib/anthropic";
-import { getProviderClient, isProviderConfigured, modelFor, type ProviderId } from "@/lib/ai-providers";
+import { anthropic, CLAUDE_MAX_TOKENS } from "@/lib/anthropic";
+import {
+  getProviderClient,
+  isOpenAICompatible,
+  isProviderConfigured,
+  listConfiguredProviders,
+  modelFor,
+  type ProviderId,
+} from "@/lib/ai-providers";
 import { AGENT_PROMPTS, buildRagContext } from "@/core/ai/agents";
 import type { AgentKind, SearchFilters } from "@/core/domain/types";
 import { fetchDocTitles, retrieve } from "./rag.service";
@@ -20,9 +27,14 @@ import { fetchDocTitles, retrieve } from "./rag.service";
 
 export const CITATION_DELIMITER = "<!--citas-->";
 
-/** Motores disponibles para el chat. 'claude' usa el SDK oficial de Anthropic. */
+/**
+ * Motores del chat: los mismos proveedores que analizan documentos. El chat no
+ * tiene modo local (no hay respuesta conversacional sin modelo) ni 'auto'
+ * (aquí la elección es por conversación y debe ser visible), así que se queda
+ * con la lista de proveedores configurados tal cual.
+ */
 export const CHAT_ENGINES = ["gemini", "groq", "claude"] as const;
-export type ChatEngine = (typeof CHAT_ENGINES)[number];
+export type ChatEngine = ProviderId;
 
 export const CHAT_ENGINE_LABELS: Record<ChatEngine, string> = {
   gemini: "Gemini",
@@ -31,15 +43,12 @@ export const CHAT_ENGINE_LABELS: Record<ChatEngine, string> = {
 };
 
 export function isChatEngineConfigured(engine: ChatEngine): boolean {
-  return engine === "claude" ? isClaudeConfigured() : isProviderConfigured(engine);
+  return isProviderConfigured(engine);
 }
 
-/** Motores de chat realmente disponibles, en orden de preferencia. */
-export function listChatEngines(): Array<{ id: ChatEngine; label: string }> {
-  return CHAT_ENGINES.filter(isChatEngineConfigured).map((id) => ({
-    id,
-    label: CHAT_ENGINE_LABELS[id],
-  }));
+/** Motores de chat realmente disponibles. */
+export function listChatEngines(): Array<{ id: ChatEngine; label: string; isPaid: boolean }> {
+  return listConfiguredProviders().map((p) => ({ id: p.id, label: p.label, isPaid: p.isPaid }));
 }
 
 export interface ChatTurnInput {
@@ -82,8 +91,8 @@ Solo incluye chunk_ids presentes en el contexto.`;
   const userMessage = `CONTEXTO RECUPERADO:\n${context || "(sin resultados relevantes)"}\n\nPREGUNTA:\n${question}`;
   const turns = history.slice(-10);
 
-  if (engine === "claude") {
-    const model = claudeModel();
+  if (!isOpenAICompatible(engine)) {
+    const model = modelFor(engine, "chat");
     const stream = anthropic().messages.stream({
       model,
       max_tokens: CLAUDE_MAX_TOKENS,
@@ -102,9 +111,8 @@ Solo incluye chunk_ids presentes en el contexto.`;
     return { textStream: claudeText(), retrievedChunks: chunks, engine, model };
   }
 
-  const provider = engine as ProviderId;
-  const model = modelFor(provider, "chat");
-  const stream = await getProviderClient(provider).chat.completions.create({
+  const model = modelFor(engine, "chat");
+  const stream = await getProviderClient(engine).chat.completions.create({
     model,
     stream: true,
     messages: [

@@ -1,7 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { structuredCompletion } from "@/core/ai/structured";
 import { ComplianceSchema, DiffSchema } from "@/core/ai/schemas";
-import { MODELS, embedQuery } from "@/lib/openai";
+import { embedQuery } from "@/lib/openai";
+import { isProviderId, type AnalysisMode, type ProviderId } from "@/lib/ai-providers";
 import { logger } from "@/lib/logger";
 import { extractDeliveredItems } from "./analysis.service";
 import type { PageText } from "@/core/domain/types";
@@ -24,8 +25,22 @@ import type { PageText } from "@/core/domain/types";
 const TRAFFIC_LIGHT = (pctFulfilled: number): "verde" | "amarillo" | "rojo" =>
   pctFulfilled >= 80 ? "verde" : pctFulfilled >= 50 ? "amarillo" : "rojo";
 
-export async function runComplianceComparison(comparisonId: string): Promise<void> {
+/**
+ * Motor con el que corre la comparación. Es el que elige el usuario en la
+ * pantalla; si eligió 'auto' o 'local' —modos que aquí no aplican, porque el
+ * análisis de cumplimiento sí necesita un modelo— se usa Gemini, el motor
+ * gratuito por defecto.
+ */
+function providerFor(mode: AnalysisMode | undefined): ProviderId {
+  return mode && isProviderId(mode) ? mode : "gemini";
+}
+
+export async function runComplianceComparison(
+  comparisonId: string,
+  mode?: AnalysisMode
+): Promise<void> {
   const db = createAdminClient();
+  const provider = providerFor(mode);
 
   const { data: cmp } = await db.from("comparisons").select("*").eq("id", comparisonId).single();
   if (!cmp) throw new Error("Comparación no encontrada");
@@ -71,7 +86,8 @@ export async function runComplianceComparison(comparisonId: string): Promise<voi
       const result = await structuredCompletion({
         schema: ComplianceSchema,
         schemaName: "analisis_cumplimiento",
-        model: MODELS.chat,
+        provider,
+        speed: "chat",
         system:
           "Eres un auditor de cumplimiento contractual. Para cada requerimiento, clasifica su estado " +
           "según la evidencia del documento de avance: cumplido, parcial, pendiente, no_aplica, " +
@@ -99,7 +115,7 @@ export async function runComplianceComparison(comparisonId: string): Promise<voi
 
     // Pasada inversa: entregas del documento de control que no responden a
     // ningún requerimiento del acuerdo → "adicional" (con marca de gratuito)
-    const extras = await fetchAdditionalDeliveries(db, cmp.target_document_id);
+    const extras = await fetchAdditionalDeliveries(db, cmp.target_document_id, provider);
     let freeCount = 0;
     for (const extra of extras) {
       if (extra.is_free) freeCount++;
@@ -182,7 +198,8 @@ interface AdditionalDelivery {
  */
 async function fetchAdditionalDeliveries(
   db: ReturnType<typeof createAdminClient>,
-  documentId: string
+  documentId: string,
+  provider: ProviderId
 ): Promise<AdditionalDelivery[]> {
   const { data: existing } = await db
     .from("delivered_items")
@@ -214,9 +231,10 @@ async function fetchAdditionalDeliveries(
     content: p.content,
     ocrUsed: p.ocr_used,
   }));
-  // Extracción al vuelo: siempre con Gemini (comportamiento sin cambios;
-  // esta ruta de comparación no ofrece aún selección de motor al usuario).
-  const delivered = await extractDeliveredItems(pageTexts, "gemini");
+  // Extracción al vuelo con el mismo motor que eligió el usuario para la
+  // comparación: mezclar proveedores a mitad de un análisis daría resultados
+  // difíciles de explicar.
+  const delivered = await extractDeliveredItems(pageTexts, provider);
 
   if (delivered.entregas.length > 0) {
     await db.from("delivered_items").insert(
@@ -242,8 +260,12 @@ async function fetchAdditionalDeliveries(
 }
 
 /** Comparación de diferencias entre dos documentos (licitaciones, propuestas, contratos o versiones). */
-export async function runDiffComparison(comparisonId: string): Promise<void> {
+export async function runDiffComparison(
+  comparisonId: string,
+  mode?: AnalysisMode
+): Promise<void> {
   const db = createAdminClient();
+  const provider = providerFor(mode);
   const { data: cmp } = await db.from("comparisons").select("*").eq("id", comparisonId).single();
   if (!cmp) throw new Error("Comparación no encontrada");
 
@@ -278,7 +300,8 @@ export async function runDiffComparison(comparisonId: string): Promise<void> {
     const result = await structuredCompletion({
       schema: DiffSchema,
       schemaName: "diferencias_documentos",
-      model: MODELS.chat,
+      provider,
+      speed: "chat",
       system:
         "Eres un analista legal-técnico. Compara los dos documentos e identifica todas las diferencias " +
         "relevantes: alcance, montos, plazos, requerimientos agregados/eliminados/modificados, multas, " +

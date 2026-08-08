@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser } from "@/lib/supabase/server";
 import { withErrorHandling, ValidationError } from "@/lib/errors";
-import { analyzeClaim } from "@/core/services/claims.service";
+import { analyzeClaim, claimProviderFor } from "@/core/services/claims.service";
+import { ALL_PROVIDERS, type AnalysisMode } from "@/lib/ai-providers";
 import { audit } from "@/core/services/audit.service";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ const BodySchema = z.object({
   clientId: z.string().uuid().nullable().default(null),
   contractDocumentId: z.string().uuid().nullable().default(null),
   subject: z.string().max(300).optional(),
+  mode: z.enum(ALL_PROVIDERS as [string, ...string[]]).optional(),
 });
 
 /** POST /api/claims — registra un reclamo y ejecuta el análisis IA con evidencia. */
@@ -22,7 +24,8 @@ export const POST = withErrorHandling(async (request: Request) => {
   if (!parsed.success) throw new ValidationError(parsed.error.message);
   const body = parsed.data;
 
-  const { analysis } = await analyzeClaim(supabase, body.rawEmail, body.clientId);
+  const provider = claimProviderFor(body.mode as AnalysisMode | undefined);
+  const { analysis } = await analyzeClaim(supabase, body.rawEmail, body.clientId, provider);
 
   const { data: claim, error } = await supabase
     .from("claims")

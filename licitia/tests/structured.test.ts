@@ -24,6 +24,7 @@ async function loadWithClient(client: unknown) {
   vi.doMock("@/lib/ai-providers", () => ({
     getProviderClient: () => client,
     modelFor: () => "modelo-de-prueba",
+    isOpenAICompatible: () => true, // estas pruebas cubren el camino OpenAI-compatible
   }));
   vi.doMock("@/lib/logger", () => ({ logger: { warn: vi.fn(), info: vi.fn(), error: vi.fn() } }));
   return import("@/core/ai/structured");
@@ -124,5 +125,69 @@ describe("structuredCompletion — degradación a JSON simple", () => {
     ).rejects.toThrow(/429/);
     expect(parse).toHaveBeenCalledTimes(1);
     expect(client.chat.completions.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("structuredCompletion — Claude (SDK oficial de Anthropic)", () => {
+  beforeEach(() => vi.resetModules());
+  afterEach(() => {
+    vi.doUnmock("@/lib/ai-providers");
+    vi.doUnmock("@/lib/anthropic");
+    vi.doUnmock("@/lib/logger");
+  });
+
+  async function loadWithAnthropicMock(parseImpl: (...args: unknown[]) => unknown) {
+    vi.resetModules();
+    vi.doMock("@/lib/ai-providers", () => ({
+      // Claude no debe pasar por getProviderClient/modelFor de OpenAI.
+      getProviderClient: () => {
+        throw new Error("no debería llamarse para Claude");
+      },
+      modelFor: () => "modelo-de-prueba",
+      isOpenAICompatible: (id: string) => id !== "claude",
+    }));
+    vi.doMock("@/lib/anthropic", () => ({
+      anthropic: () => ({ messages: { parse: parseImpl } }),
+      CLAUDE_MAX_TOKENS: 8000,
+    }));
+    vi.doMock("@/lib/logger", () => ({ logger: { warn: vi.fn(), info: vi.fn(), error: vi.fn() } }));
+    return import("@/core/ai/structured");
+  }
+
+  it("usa output_config.format y devuelve parsed_output", async () => {
+    const parse = vi.fn().mockResolvedValue({
+      stop_reason: "end_turn",
+      parsed_output: { titulo: "Licitación Claude", monto: 200 },
+    });
+    const { structuredCompletion } = await loadWithAnthropicMock(parse);
+
+    const result = await structuredCompletion({
+      schema: TestSchema,
+      schemaName: "prueba",
+      provider: "claude",
+      system: "sys",
+      user: "usr",
+    });
+
+    expect(result).toEqual({ titulo: "Licitación Claude", monto: 200 });
+    const call = parse.mock.calls[0][0];
+    expect(call.output_config.format.type).toBe("json_schema");
+    expect(typeof call.output_config.format.schema).toBe("object");
+    expect(call.max_tokens).toBe(8000);
+  });
+
+  it("lanza un error legible si Claude no devuelve parsed_output (p.ej. corte por max_tokens)", async () => {
+    const parse = vi.fn().mockResolvedValue({ stop_reason: "max_tokens", parsed_output: null });
+    const { structuredCompletion } = await loadWithAnthropicMock(parse);
+
+    await expect(
+      structuredCompletion({
+        schema: TestSchema,
+        schemaName: "prueba",
+        provider: "claude",
+        system: "sys",
+        user: "usr",
+      })
+    ).rejects.toThrow(/max_tokens/);
   });
 });

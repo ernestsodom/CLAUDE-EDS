@@ -11,6 +11,7 @@ import type { AgentKind } from "@/core/domain/types";
 interface ChatEngineOption {
   id: string;
   label: string;
+  isPaid?: boolean;
 }
 
 interface ChatCitation {
@@ -217,6 +218,7 @@ export function ChatPanel({
               )}
             >
               {e.label}
+              {e.isPaid && <span className="ml-1 opacity-70">· de pago</span>}
             </button>
           ))}
         </div>

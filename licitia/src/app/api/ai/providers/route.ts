@@ -18,6 +18,7 @@ export const GET = withErrorHandling(async () => {
     label: p.label,
     supportsEmbeddings: p.supportsEmbeddings,
     supportsFiles: p.supportsFiles,
+    isPaid: p.isPaid,
   }));
   return NextResponse.json({ providers });
 });

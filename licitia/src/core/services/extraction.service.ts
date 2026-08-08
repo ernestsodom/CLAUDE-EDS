@@ -5,7 +5,13 @@ import { XMLParser } from "fast-xml-parser";
 import type { ExtractedText, PageText } from "@/core/domain/types";
 import { ocrPdf } from "./ocr.service";
 import { logger } from "@/lib/logger";
-import { isProviderConfigured, type AnalysisMode } from "@/lib/ai-providers";
+import {
+  ENGINE_LABELS,
+  getProviderInfo,
+  isProviderConfigured,
+  isProviderId,
+  type AnalysisMode,
+} from "@/lib/ai-providers";
 
 /** Umbral: menos de 100 caracteres promedio por página ⇒ PDF escaneado ⇒ OCR. */
 const SCANNED_CHARS_PER_PAGE = 100;
@@ -76,10 +82,12 @@ async function extractPdf(buffer: Buffer, mode: AnalysisMode): Promise<Extracted
           "o sube una versión del documento con texto seleccionable."
       );
     }
-    if (mode === "groq") {
+    // Solo Gemini tiene hoy Files API con OCR probado. Se comprueba la
+    // capacidad declarada del motor elegido, no su nombre.
+    if (isProviderId(mode) && !getProviderInfo(mode)?.supportsFiles) {
       throw new Error(
-        "Groq no soporta OCR de documentos escaneados. Cambia a Gemini o Automático para " +
-          "procesar este PDF, o sube una versión con texto seleccionable."
+        `${ENGINE_LABELS[mode]} no soporta OCR de documentos escaneados. Cambia a Gemini o ` +
+          "Automático para procesar este PDF, o sube una versión con texto seleccionable."
       );
     }
     if (!isProviderConfigured("gemini")) {

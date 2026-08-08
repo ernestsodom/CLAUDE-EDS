@@ -12,9 +12,13 @@ const HELP: Record<AnalysisMode, string> = {
   groq:
     "Análisis interpretativo con Groq (Llama), muy rápido y con nivel gratuito generoso. " +
     "No genera vectores de búsqueda ni hace OCR de PDFs escaneados.",
+  claude:
+    "Análisis con Claude Haiku 4.5. DE PAGO: se cobra por uso desde el primer token, a diferencia " +
+    "de Gemini y Groq. No genera vectores de búsqueda ni hace OCR de PDFs escaneados. " +
+    "«Automático» nunca lo elige por su cuenta: solo se usa si lo marcas aquí.",
   auto:
-    "Prueba los proveedores de IA configurados en orden y, si todos se quedan sin cuota, " +
-    "continúa automáticamente en modo local.",
+    "Prueba los proveedores gratuitos configurados en orden y, si todos se quedan sin cuota, " +
+    "continúa automáticamente en modo local. Nunca salta a un proveedor de pago.",
   local:
     "Extracción por patrones: instantánea y sin consumir cuota ni créditos de ningún proveedor.",
 };
@@ -22,6 +26,7 @@ const HELP: Record<AnalysisMode, string> = {
 const FALLBACK_LABEL: Record<AnalysisMode, string> = {
   gemini: "Gemini",
   groq: "Groq",
+  claude: "Claude Haiku 4.5",
   auto: "Automático",
   local: "Sin IA",
 };
@@ -37,27 +42,42 @@ export function EngineSelector({
   onChange,
   className,
   compact = false,
+  hideLocal = false,
+  hideAuto = false,
 }: {
   value: AnalysisMode;
   onChange: (mode: AnalysisMode) => void;
   className?: string;
   compact?: boolean;
+  /** Análisis que no tienen versión por patrones (comparaciones, reclamos). */
+  hideLocal?: boolean;
+  hideAuto?: boolean;
 }) {
   const { providers, loading } = useAiProviders();
   const options: AnalysisMode[] = [
     ...providers.map((p) => p.id as AnalysisMode),
-    ...(providers.length > 0 ? (["auto"] as AnalysisMode[]) : []),
-    "local",
+    ...(providers.length > 0 && !hideAuto ? (["auto"] as AnalysisMode[]) : []),
+    ...(hideLocal ? [] : (["local"] as AnalysisMode[])),
   ];
 
   // Sin proveedores configurados, "auto" no es una opción visible: se
   // reconcilia la selección a "local" para que un botón quede resaltado.
   useEffect(() => {
-    if (!loading && providers.length === 0 && value !== "local") onChange("local");
-  }, [loading, providers.length, value, onChange]);
+    if (loading || hideLocal) return;
+    if (providers.length === 0 && value !== "local") onChange("local");
+  }, [loading, providers.length, value, onChange, hideLocal]);
+
+  // Con opciones acotadas (sin local/auto), la selección debe caer sobre un
+  // motor que exista; si no, ningún botón quedaría marcado.
+  useEffect(() => {
+    if (loading || options.length === 0) return;
+    if (!options.includes(value)) onChange(options[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, options.join(","), value]);
 
   const labelFor = (m: AnalysisMode) =>
     providers.find((p) => p.id === m)?.label ?? FALLBACK_LABEL[m];
+  const isPaid = (m: AnalysisMode) => providers.find((p) => p.id === m)?.isPaid ?? false;
 
   return (
     <div className={className}>
@@ -80,6 +100,9 @@ export function EngineSelector({
               )}
             >
               {labelFor(m)}
+              {/* El costo debe verse en el botón, no solo al pasar el cursor:
+                  quien elige motor tiene que saber cuál le cobra. */}
+              {isPaid(m) && <span className="ml-1 opacity-70">· de pago</span>}
             </button>
           ))
         )}

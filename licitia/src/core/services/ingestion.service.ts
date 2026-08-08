@@ -26,8 +26,10 @@ import { audit } from "./audit.service";
 import type { PageText } from "@/core/domain/types";
 import {
   ENGINE_LABELS,
+  getProviderInfo,
   isProviderConfigured,
-  listConfiguredProviders,
+  isProviderId,
+  listAutoProviders,
   type AnalysisMode,
   type ProviderId,
 } from "@/lib/ai-providers";
@@ -65,15 +67,15 @@ async function analyze<T>(
 ): Promise<{ data: T; engine: AnalysisMode }> {
   if (mode === "local") return { data: local(), engine: "local" };
 
-  if (mode === "gemini" || mode === "groq") {
+  if (isProviderId(mode)) {
     // Elección explícita: si falla, se reporta el error tal cual tal como es.
     return { data: await runWithProvider(mode), engine: mode };
   }
 
-  // 'auto': recorre los proveedores configurados; si todos fallan por cuota,
-  // continúa en el motor local. Cualquier otro tipo de error se propaga.
-  const order = listConfiguredProviders().map((p) => p.id);
-  for (const provider of order) {
+  // 'auto': recorre los proveedores GRATUITOS configurados; si todos fallan
+  // por cuota, continúa en el motor local. Nunca encadena un proveedor de
+  // pago: eso gastaría dinero sin que el usuario lo haya pedido.
+  for (const provider of listAutoProviders()) {
     try {
       return { data: await runWithProvider(provider), engine: provider };
     } catch (err) {
@@ -205,9 +207,13 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
       }
 
       case "embeddings": {
-        // Solo Gemini genera embeddings. En 'local' o 'groq' se omiten sin
-        // más: la búsqueda sigue funcionando por texto completo en español.
-        if (mode === "local" || mode === "groq") {
+        // Solo Gemini genera embeddings hoy. Con cualquier motor que no los
+        // ofrezca se omiten sin más: la búsqueda sigue funcionando por texto
+        // completo en español. Se decide por capacidad declarada del
+        // proveedor, no por su nombre, para que sumar uno nuevo no obligue a
+        // tocar esta condición.
+        const providerInfo = isProviderId(mode) ? getProviderInfo(mode) : null;
+        if (mode === "local" || (isProviderId(mode) && !providerInfo?.supportsEmbeddings)) {
           await advance(NEXT[step]);
           return {
             step: NEXT[step],

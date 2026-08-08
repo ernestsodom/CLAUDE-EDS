@@ -9,6 +9,8 @@ import { Badge, statusVariant } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { DocumentPicker, type PickedDocument } from "@/components/document-picker";
+import { EngineSelector } from "@/components/engine-selector";
+import type { AnalysisMode } from "@/lib/ai-providers";
 
 interface HistoryItem {
   id: string; comparison_type: string; status: string; traffic_light: string | null;
@@ -36,6 +38,7 @@ export function CompareForm({ history }: { history: HistoryItem[] }) {
   const [target, setTarget] = useState<PickedDocument | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<AnalysisMode>("gemini");
 
   const isCompliance = type === "cumplimiento";
   const bothReady =
@@ -53,6 +56,7 @@ export function CompareForm({ history }: { history: HistoryItem[] }) {
           comparisonType: type,
           sourceDocumentId: source.id,
           targetDocumentId: target.id,
+          mode,
         }),
       });
       const json = await res.json();
@@ -116,6 +120,13 @@ export function CompareForm({ history }: { history: HistoryItem[] }) {
             <p className="text-sm text-destructive">Selecciona dos documentos distintos.</p>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
+
+          <div className="space-y-1">
+            <p className="text-xs font-medium">Motor de análisis</p>
+            {/* Sin "Automático" ni "Sin IA": esta comparación necesita un
+                modelo que interprete la evidencia, así que se elige uno. */}
+            <EngineSelector value={mode} onChange={setMode} hideLocal hideAuto />
+          </div>
 
           <Button onClick={run} disabled={busy || !bothReady}>
             {busy

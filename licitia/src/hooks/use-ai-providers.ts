@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+import type { ProviderId } from "@/lib/ai-providers";
+
 export interface AiProvider {
-  id: "gemini" | "groq";
+  id: ProviderId;
   label: string;
   supportsEmbeddings: boolean;
   supportsFiles: boolean;
+  /** Se cobra por uso desde el primer token (hoy: Claude). */
+  isPaid: boolean;
 }
 
 let cache: AiProvider[] | null = null;

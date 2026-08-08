@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { EngineSelector } from "@/components/engine-selector";
+import type { AnalysisMode } from "@/lib/ai-providers";
 
 export interface ClaimResponse {
   id: string;
@@ -33,6 +35,7 @@ export function ClaimResponses({
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<AnalysisMode>("gemini");
 
   const contentOf = (r: ClaimResponse) => drafts[r.id] ?? r.content;
   const isDirty = (r: ClaimResponse) => drafts[r.id] != null && drafts[r.id] !== r.content;
@@ -78,7 +81,11 @@ export function ClaimResponses({
     setBusy("new");
     setError(null);
     try {
-      const res = await fetch(`/api/claims/${claimId}/respond`, { method: "POST" });
+      const res = await fetch(`/api/claims/${claimId}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error?.message ?? "Error redactando la respuesta");
       setResponses((prev) => [
@@ -104,6 +111,7 @@ export function ClaimResponses({
         <h2 className="text-base font-semibold">
           Respuestas ({responses.length})
         </h2>
+        <EngineSelector value={mode} onChange={setMode} hideLocal hideAuto compact />
         <Button variant="secondary" size="sm" onClick={draftNew} disabled={busy !== null}>
           {busy === "new" ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}
           Redactar {responses.length > 0 ? "otra respuesta" : "respuesta"}

@@ -18,10 +18,23 @@ import { env } from "@/lib/env";
 // analysis.service, ingestion.service) ya es genérico sobre ProviderId.
 // ============================================================================
 
-export type ProviderId = "gemini" | "groq";
+export type ProviderId = "gemini" | "groq" | "claude";
 
 /** Modo de análisis que puede elegir el usuario para cada documento. */
 export type AnalysisMode = ProviderId | "local" | "auto";
+
+/**
+ * Claude no habla la API de OpenAI: se usa con su SDK oficial. El resto del
+ * sistema decide por aquí qué camino tomar, en vez de comparar contra el
+ * literal "claude" repartido por todas partes.
+ */
+export function isOpenAICompatible(id: ProviderId): boolean {
+  return id !== "claude";
+}
+
+export function isProviderId(mode: AnalysisMode): mode is ProviderId {
+  return mode !== "local" && mode !== "auto";
+}
 
 export interface ProviderInfo {
   id: ProviderId;
@@ -32,26 +45,41 @@ export interface ProviderInfo {
   embeddingDimensions: number | null;
   supportsEmbeddings: boolean;
   supportsFiles: boolean; // Files API, usada para OCR de PDFs escaneados
+  isPaid: boolean; // se cobra por uso desde el primer token
 }
 
-const META: Record<ProviderId, { label: string; supportsEmbeddings: boolean; supportsFiles: boolean }> = {
-  gemini: { label: "Gemini", supportsEmbeddings: true, supportsFiles: true },
-  groq: { label: "Groq", supportsEmbeddings: false, supportsFiles: false },
+const META: Record<
+  ProviderId,
+  { label: string; supportsEmbeddings: boolean; supportsFiles: boolean; isPaid: boolean }
+> = {
+  gemini: { label: "Gemini", supportsEmbeddings: true, supportsFiles: true, isPaid: false },
+  groq: { label: "Groq", supportsEmbeddings: false, supportsFiles: false, isPaid: false },
+  claude: { label: "Claude Haiku 4.5", supportsEmbeddings: false, supportsFiles: false, isPaid: true },
 };
 
-/** Orden de preferencia para el modo 'auto'. */
+/**
+ * Orden de preferencia para el modo 'auto'.
+ *
+ * Claude queda DELIBERADAMENTE fuera: 'auto' salta de proveedor cuando se
+ * agota una cuota gratuita, y encadenar ahí un proveedor de pago gastaría
+ * dinero del usuario sin que él lo haya pedido. Claude solo se usa cuando se
+ * elige a mano.
+ */
 export const PROVIDER_ORDER: ProviderId[] = ["gemini", "groq"];
 
 export const ENGINE_LABELS: Record<AnalysisMode, string> = {
   gemini: "Gemini",
   groq: "Groq",
+  claude: "Claude Haiku 4.5",
   local: "modo local",
   auto: "automático",
 };
 
 function apiKeyFor(id: ProviderId): string | undefined {
   const e = env();
-  return id === "gemini" ? e.OPENAI_API_KEY : e.GROQ_API_KEY;
+  if (id === "gemini") return e.OPENAI_API_KEY;
+  if (id === "groq") return e.GROQ_API_KEY;
+  return e.ANTHROPIC_API_KEY;
 }
 
 function baseURLFor(id: ProviderId): string | undefined {
@@ -68,39 +96,72 @@ export function getProviderInfo(id: ProviderId): ProviderInfo | null {
   if (!isProviderConfigured(id)) return null;
   const e = env();
   const meta = META[id];
+  const common = {
+    id,
+    label: meta.label,
+    supportsEmbeddings: meta.supportsEmbeddings,
+    supportsFiles: meta.supportsFiles,
+    isPaid: meta.isPaid,
+  };
+
   if (id === "gemini") {
     return {
-      id,
-      label: meta.label,
+      ...common,
       chatModel: e.OPENAI_CHAT_MODEL,
       fastModel: e.OPENAI_FAST_MODEL,
       embeddingModel: e.OPENAI_EMBEDDING_MODEL,
       embeddingDimensions: e.OPENAI_EMBEDDING_DIMENSIONS ?? null,
-      supportsEmbeddings: meta.supportsEmbeddings,
-      supportsFiles: meta.supportsFiles,
     };
   }
+  if (id === "groq") {
+    return {
+      ...common,
+      chatModel: e.GROQ_CHAT_MODEL,
+      fastModel: e.GROQ_FAST_MODEL,
+      embeddingModel: null,
+      embeddingDimensions: null,
+    };
+  }
+  // Claude: un único modelo para ambos niveles. Haiku 4.5 ya es el más
+  // económico de la familia, así que no hay un "fast" más barato al que caer.
   return {
-    id,
-    label: meta.label,
-    chatModel: e.GROQ_CHAT_MODEL,
-    fastModel: e.GROQ_FAST_MODEL,
+    ...common,
+    chatModel: e.ANTHROPIC_CHAT_MODEL,
+    fastModel: e.ANTHROPIC_CHAT_MODEL,
     embeddingModel: null,
     embeddingDimensions: null,
-    supportsEmbeddings: meta.supportsEmbeddings,
-    supportsFiles: meta.supportsFiles,
   };
 }
 
-/** Proveedores con API key configurada, en el orden de PROVIDER_ORDER. */
+/** Todos los proveedores conocidos, configurados o no (para diagnóstico/UI). */
+export const ALL_PROVIDERS: ProviderId[] = ["gemini", "groq", "claude"];
+
+/**
+ * Proveedores con API key configurada, para ofrecérselos al usuario.
+ * Incluye los de pago: PROVIDER_ORDER (la cadena de 'auto') es una lista
+ * distinta y más corta a propósito — poder elegir Claude no significa que
+ * 'auto' vaya a gastarlo por su cuenta.
+ */
 export function listConfiguredProviders(): ProviderInfo[] {
-  return PROVIDER_ORDER.map(getProviderInfo).filter((p): p is ProviderInfo => p !== null);
+  return ALL_PROVIDERS.map(getProviderInfo).filter((p): p is ProviderInfo => p !== null);
+}
+
+/** Proveedores que 'auto' puede encadenar (solo los de cuota gratuita). */
+export function listAutoProviders(): ProviderId[] {
+  return PROVIDER_ORDER.filter(isProviderConfigured);
 }
 
 const clients = new Map<ProviderId, OpenAI>();
 
 /** Cliente OpenAI apuntando al proveedor indicado. Lanza un error claro si falta la API key. */
 export function getProviderClient(id: ProviderId): OpenAI {
+  if (!isOpenAICompatible(id)) {
+    // Guardia de programación: Claude tiene su propio cliente (lib/anthropic.ts)
+    // y quien llegue aquí con "claude" olvidó ramificar antes.
+    throw new Error(
+      `${META[id].label} no usa la API de OpenAI: emplea su SDK oficial (lib/anthropic.ts).`
+    );
+  }
   const cached = clients.get(id);
   if (cached) return cached;
 

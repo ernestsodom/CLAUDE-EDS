@@ -7,6 +7,7 @@ import {
   runDiffComparison,
 } from "@/core/services/comparison.service";
 import { audit } from "@/core/services/audit.service";
+import { ALL_PROVIDERS, type AnalysisMode } from "@/lib/ai-providers";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -21,6 +22,9 @@ const BodySchema = z.object({
   ]),
   sourceDocumentId: z.string().uuid(),
   targetDocumentId: z.string().uuid(),
+  // Motor elegido por el usuario. 'auto' y 'local' no aplican a este análisis
+  // (necesita un modelo), así que solo se aceptan proveedores concretos.
+  mode: z.enum(ALL_PROVIDERS as [string, ...string[]]).optional(),
 });
 
 /**
@@ -49,10 +53,11 @@ export const POST = withErrorHandling(async (request: Request) => {
 
   await audit(profile.organization_id, user.id, "comparison.create", "comparison", comparison.id);
 
+  const mode = body.mode as AnalysisMode | undefined;
   if (body.comparisonType === "cumplimiento") {
-    await runComplianceComparison(comparison.id);
+    await runComplianceComparison(comparison.id, mode);
   } else {
-    await runDiffComparison(comparison.id);
+    await runDiffComparison(comparison.id, mode);
   }
 
   return NextResponse.json({ comparisonId: comparison.id }, { status: 201 });

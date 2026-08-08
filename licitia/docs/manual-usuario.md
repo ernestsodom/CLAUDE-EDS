@@ -24,11 +24,12 @@ Antes de subir puedes elegir la **carpeta de destino** (cliente/proyecto) o crea
 
 Justo antes de subir eliges con qué **motor** se analizará el documento — tú decides, nada cambia de motor sin que lo veas:
 
-- **Gemini** / **Groq** (solo aparecen si el administrador configuró su API key): análisis interpretativo completo. Si ese proveedor se queda sin cuota, el documento queda marcado con el error correspondiente — no cambia de motor por su cuenta.
-- **Automático**: prueba los proveedores disponibles en orden y, si todos se quedan sin cuota, continúa solo en modo local. Es la opción recomendada para no preocuparte de los límites de cada proveedor.
+- **Gemini** / **Groq** (solo aparecen si el administrador configuró su API key): análisis interpretativo completo, **gratuitos**. Si ese proveedor se queda sin cuota, el documento queda marcado con el error correspondiente — no cambia de motor por su cuenta.
+- **Claude Haiku 4.5** (solo aparece si está configurado): el mismo análisis interpretativo, con el modelo de Anthropic. Se distingue con la marca **«· de pago»** en el propio botón: a diferencia de Gemini y Groq, se cobra por uso desde el primer documento. Elígelo cuando quieras su calidad de análisis en un caso puntual.
+- **Automático**: prueba los proveedores **gratuitos** configurados en orden y, si todos se quedan sin cuota, continúa solo en modo local. Nunca elige Claude por su cuenta — eso solo ocurre si lo seleccionas tú mismo. Es la opción recomendada para no preocuparte de los límites de cada proveedor gratuito.
 - **Sin IA**: extracción por patrones (número de licitación, montos, plazos, organismo, cláusulas obligatorias, integraciones, garantías, multas…). Instantánea y **no consume cuota de ningún proveedor** — úsala cuando se te acaben los créditos o para procesar volumen rápidamente.
 
-El motor que analizó cada etapa queda registrado y visible (p. ej. “clasificando · licitación (Groq)”). Puedes volver a analizar un documento ya subido con otro motor desde su ficha, sin perder lo ya extraído.
+Este mismo selector aparece en cada análisis del sistema: al subir o reprocesar un documento, en el **Comparador**, al analizar y redactar la respuesta de un **Reclamo**, y en el **Chat IA**. El motor que analizó cada etapa queda registrado y visible (p. ej. “clasificando · licitación (Groq)”). Puedes volver a analizar un documento ya subido con otro motor desde su ficha, sin perder lo ya extraído.
 
 Al subir, la plataforma automáticamente:
 1. Guarda el archivo original de forma segura.

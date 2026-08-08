@@ -9,6 +9,8 @@ import { Textarea, Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { ClaimAnalysisView, type ClaimAnalysis } from "@/components/claim-analysis-view";
+import { EngineSelector } from "@/components/engine-selector";
+import type { AnalysisMode } from "@/lib/ai-providers";
 import { formatDate } from "@/lib/utils";
 
 /**
@@ -38,6 +40,7 @@ export function ClaimsWorkbench({
   const [analysis, setAnalysis] = useState<ClaimAnalysis | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<AnalysisMode>("gemini");
 
   async function analyze() {
     setBusy(true);
@@ -50,6 +53,7 @@ export function ClaimsWorkbench({
         body: JSON.stringify({
           rawEmail: email,
           clientId: clientId || null,
+          mode,
           ...(subject.trim() ? { subject: subject.trim() } : {}),
         }),
       });
@@ -82,6 +86,10 @@ export function ClaimsWorkbench({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            <div className="space-y-1">
+              <p className="text-xs font-medium">Motor de análisis</p>
+              <EngineSelector value={mode} onChange={setMode} hideLocal hideAuto />
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <select
                 className="h-9 rounded-md border border-input bg-background px-2 text-sm"

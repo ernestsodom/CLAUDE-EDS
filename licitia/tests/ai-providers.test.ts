@@ -17,6 +17,7 @@ async function loadWithEnv(envOverrides: Record<string, unknown>) {
       GROQ_BASE_URL: "https://api.groq.com/openai/v1",
       GROQ_CHAT_MODEL: "llama-3.3-70b-versatile",
       GROQ_FAST_MODEL: "llama-3.1-8b-instant",
+      ANTHROPIC_CHAT_MODEL: "claude-haiku-4-5",
       ...envOverrides,
     }),
   }));
@@ -126,13 +127,66 @@ describe("ai-providers — ambos proveedores configurados", () => {
     expect(groq.baseURL).toContain("api.groq.com");
   });
 
-  it("ENGINE_LABELS cubre los cuatro modos", async () => {
+  it("ENGINE_LABELS cubre los cinco modos", async () => {
     const ai = await loadWithEnv({});
     expect(ai.ENGINE_LABELS).toEqual({
       gemini: "Gemini",
       groq: "Groq",
+      claude: "Claude Haiku 4.5",
       local: "modo local",
       auto: "automático",
     });
+  });
+});
+
+describe("ai-providers — Claude (de pago, fuera de la cadena de 'auto')", () => {
+  beforeEach(() => vi.resetModules());
+  afterEach(() => vi.doUnmock("@/lib/env"));
+
+  it("isOpenAICompatible distingue a Claude de los proveedores compatibles con OpenAI", async () => {
+    const ai = await loadWithEnv({});
+    expect(ai.isOpenAICompatible("gemini")).toBe(true);
+    expect(ai.isOpenAICompatible("groq")).toBe(true);
+    expect(ai.isOpenAICompatible("claude")).toBe(false);
+  });
+
+  it("getProviderClient lanza para Claude: usa su propio cliente (lib/anthropic.ts), no el de OpenAI", async () => {
+    const ai = await loadWithEnv({ ANTHROPIC_API_KEY: "sk-ant-test-1234567890" });
+    expect(() => ai.getProviderClient("claude")).toThrow(/SDK oficial/);
+  });
+
+  it("se marca isPaid=true para Claude y false para Gemini/Groq", async () => {
+    const ai = await loadWithEnv({
+      OPENAI_API_KEY: "AQ.test_key_1234567890",
+      GROQ_API_KEY: "gsk_test_key_1234567890",
+      ANTHROPIC_API_KEY: "sk-ant-test-1234567890",
+    });
+    expect(ai.getProviderInfo("claude")?.isPaid).toBe(true);
+    expect(ai.getProviderInfo("gemini")?.isPaid).toBe(false);
+    expect(ai.getProviderInfo("groq")?.isPaid).toBe(false);
+  });
+
+  it("listConfiguredProviders SÍ incluye a Claude cuando está configurado (el usuario puede elegirlo)", async () => {
+    const ai = await loadWithEnv({
+      OPENAI_API_KEY: "AQ.test_key_1234567890",
+      ANTHROPIC_API_KEY: "sk-ant-test-1234567890",
+    });
+    expect(ai.listConfiguredProviders().map((p) => p.id)).toEqual(["gemini", "claude"]);
+  });
+
+  it("listAutoProviders NUNCA incluye a Claude, aunque esté configurado: 'auto' no gasta dinero sin permiso", async () => {
+    const ai = await loadWithEnv({
+      OPENAI_API_KEY: "AQ.test_key_1234567890",
+      GROQ_API_KEY: "gsk_test_key_1234567890",
+      ANTHROPIC_API_KEY: "sk-ant-test-1234567890",
+    });
+    expect(ai.listAutoProviders()).toEqual(["gemini", "groq"]);
+    expect(ai.listAutoProviders()).not.toContain("claude");
+  });
+
+  it("modelFor usa el mismo modelo Haiku 4.5 para 'fast' y 'chat': ya es el más económico", async () => {
+    const ai = await loadWithEnv({ ANTHROPIC_API_KEY: "sk-ant-test-1234567890" });
+    expect(ai.modelFor("claude", "fast")).toBe("claude-haiku-4-5");
+    expect(ai.modelFor("claude", "chat")).toBe("claude-haiku-4-5");
   });
 });
