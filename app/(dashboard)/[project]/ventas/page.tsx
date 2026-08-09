@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { can } from '@/lib/permissions';
@@ -143,6 +145,14 @@ export default async function SalesPage({
       <PageHeader
         title="Ventas"
         subtitle={`${total} ventas en ${project.name}`}
+        actions={
+          can(project, 'sales.create') ? (
+            <Link href={`${base}/ventas/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva venta
+            </Link>
+          ) : null
+        }
       />
 
       <TableToolbar

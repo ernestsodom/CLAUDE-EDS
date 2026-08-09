@@ -4,9 +4,9 @@ Sistema operativo de gestión del negocio de canchas de pádel: fabricación,
 comercialización, exportación, logística, instalación y gestión financiera,
 para Europa y Argentina.
 
-**Estado: FASES 1-8 y 11-13 completadas y verificadas.**
-Base de datos + seguridad (FASE 1) y aplicación Next.js conectada a datos reales
-(comercial, ventas, fabricación, logística, instalaciones, dashboards y Control Center).
+**Estado: FASES 1-9 y 11-13 completadas y verificadas.**
+Base de datos + seguridad, aplicación Next.js conectada a datos reales y
+formularios de alta y edición para las 19 entidades del negocio.
 
 | | |
 |---|---|
@@ -18,10 +18,10 @@ Base de datos + seguridad (FASE 1) y aplicación Next.js conectada a datos reale
 | Enums | 39 |
 | Permisos granulares | 136 |
 | Constraints | 344 |
-| Migraciones SQL | 24, ejecutables y probadas |
-| Páginas de la aplicación | 37 |
-| Server Actions | 8 |
-| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas del frontend |
+| Migraciones SQL | 25, ejecutables y probadas |
+| Páginas de la aplicación | 56 |
+| Server Actions | 39 |
+| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas y 29 escrituras del frontend |
 
 La arquitectura completa está en **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
 
@@ -102,6 +102,7 @@ padel-platform/
 │       ├── 01_business_cases.sql    Casos §101, §102, §103 y cálculos financieros
 │       ├── 02_rls_security.sql      Aislamiento multi-proyecto y escalada de privilegios
 │       ├── 03_frontend_queries.mjs  Las 52 consultas reales de las páginas, vía PostgREST
+│       ├── 04_frontend_writes.mjs   Las altas y ediciones, con triggers y RLS
 │       └── run.sh                   Runner completo
 └── .env.example
 ```
@@ -140,10 +141,26 @@ padel-platform/
 - **`service_role` nunca llega al navegador**: `lib/supabase/server.ts` importa
   `server-only`, así que el build falla si alguien lo importa desde un cliente.
 
+## Alta y edición
+
+Hay formulario de alta y edición para las 19 entidades del negocio: clientes,
+oportunidades, reuniones, seguimientos, ventas (con líneas y costos), facturas
+(con líneas), pagos, contratos, gastos, cuentas bancarias, proveedores, órdenes
+de compra (con líneas), canchas, fabricación, materiales, logística,
+instalaciones y controles de calidad.
+
+Tres reglas comunes a todos:
+
+- **Los totales nunca se envían desde el formulario.** El total de una venta, de
+  una factura o de una orden sale de sus líneas mediante trigger; el saldo de una
+  factura, de sus pagos. Así cabecera y detalle no pueden discrepar.
+- **Las validaciones son espejo de los constraints SQL.** Zod da el mensaje útil;
+  PostgreSQL es quien garantiza que el dato no entra mal por ninguna otra vía.
+- **El borrado es lógico** (`deleted_at`) en toda entidad con valor histórico.
+
 ## Siguiente fase
 
-FASE 9-12 — Formularios de alta y edición para el resto de entidades, subida de
-documentos a Storage con URLs firmadas, importación de extractos bancarios
-CSV/XLSX, exportación PDF y el asistente de IA acotado por RLS.
+FASE 10 y 14 — Subida de documentos a Storage con URLs firmadas, importación de
+extractos bancarios CSV/XLSX, exportación PDF y el asistente de IA acotado por RLS.
 
 El plan completo de las 15 fases está en `docs/ARCHITECTURE.md` §18.

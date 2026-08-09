@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
@@ -52,6 +52,13 @@ export default async function ManufacturingDetailPage({
         }
         title={<span className="flex items-center gap-3">{mp.name}<StatusBadge status={mp.status} /></span>}
         subtitle={mp.is_delayed ? `Atrasado · entrega estimada ${formatDate(mp.estimated_completion_date)}` : undefined}
+        actions={
+          can(project, 'manufacturing.update') ? (
+            <Link href={`${base}/operaciones/fabricacion/form/${id}`} className="btn-secondary">
+              <Pencil size={14} /> Editar
+            </Link>
+          ) : null
+        }
       />
 
       <div className="grid gap-5 lg:grid-cols-3">

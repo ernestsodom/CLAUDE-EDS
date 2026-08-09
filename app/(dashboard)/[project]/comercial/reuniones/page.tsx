@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate, humanize } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -21,6 +24,7 @@ export default async function MeetingsPage({
   const { project: projectCode } = await params;
   const sp = await searchParams;
   const { project } = await requireProject(projectCode);
+  const base = `/${project.code}`;
 
   const { rows, total, page, pageSize, error } = await fetchList<Row>({
     from: 'meetings',
@@ -49,12 +53,21 @@ export default async function MeetingsPage({
 
   return (
     <>
-      <PageHeader title="Reuniones" subtitle={`${total} reuniones`} />
+      <PageHeader title="Reuniones" subtitle={`${total} reuniones`}
+        actions={
+          can(project, 'meetings.create') ? (
+            <Link href={`${base}/comercial/reuniones/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva reunion
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar
         placeholder="Buscar por objetivo..."
         filters={[{ name: 'status', label: 'Estado', options: ['PLANIFICADA','CONFIRMADA','REALIZADA','CANCELADA','REPROGRAMADA'].map((s) => ({ value: s, label: s })) }]}
       />
-      <DataTable columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+      <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/comercial/reuniones/form/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)} emptyTitle="Sin reuniones" />
     </>
   );

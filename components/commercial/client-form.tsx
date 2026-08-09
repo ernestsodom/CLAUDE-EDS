@@ -1,81 +1,70 @@
 'use client';
 
-import { useActionState } from 'react';
-import { AlertCircle, Loader2, Save } from 'lucide-react';
-import { createClientRecord } from '@/actions/crm';
-import { CLIENT_STATUSES, LEAD_SOURCES } from '@/lib/validations/crm';
-import type { ActionResult } from '@/actions/types';
+import { saveClient } from '@/actions/crm';
+import { EntityForm } from '@/components/forms/entity-form';
+import {
+  FormGrid, FormSection, MoneyField, SelectField, TextAreaField, TextField,
+} from '@/components/forms';
+import { CLIENT_STATUSES, CURRENCIES, LEAD_SOURCES } from '@/lib/validations/commercial';
+import type { CurrencyCode } from '@/types/database.types';
 
-export function ClientForm({ projectCode }: { projectCode: string }) {
-  const [state, formAction, isPending] = useActionState<ActionResult<{ id: string }> | null, FormData>(
-    createClientRecord,
-    null,
-  );
+export interface ClientRecord {
+  id: string; company_name: string; legal_name: string | null; tax_id: string | null;
+  country: string | null; city: string | null; address: string | null;
+  postal_code: string | null; website: string | null; industry: string | null;
+  status: string; source: string | null; preferred_currency: string | null;
+  payment_terms: string | null; credit_limit: number | null; notes: string | null;
+}
 
+export function ClientForm({
+  projectCode, record, cancelHref, currency,
+}: {
+  projectCode: string; record: ClientRecord | null;
+  cancelHref: string; currency: CurrencyCode;
+}) {
   return (
-    <form action={formAction} className="space-y-4">
-      <input type="hidden" name="projectCode" value={projectCode} />
+    <EntityForm action={saveClient} projectCode={projectCode} id={record?.id} cancelHref={cancelHref}>
+      <FormSection title="Identificacion">
+        <FormGrid>
+          <TextField name="company_name" label="Nombre comercial" required
+            defaultValue={record?.company_name} placeholder="Club Padel Madrid" />
+          <TextField name="legal_name" label="Razon social" defaultValue={record?.legal_name} />
+          <TextField name="tax_id" label="CIF / NIF" defaultValue={record?.tax_id} />
+          <TextField name="industry" label="Sector" defaultValue={record?.industry}
+            placeholder="CLUB_DEPORTIVO" />
+          <SelectField name="status" label="Estado" allowEmpty={false}
+            defaultValue={record?.status ?? 'PROSPECTO'}
+            options={CLIENT_STATUSES.map((s) => ({ value: s, label: s }))} />
+          <SelectField name="source" label="Origen" defaultValue={record?.source}
+            options={LEAD_SOURCES.map((s) => ({ value: s, label: s.replace(/_/g, ' ') }))} />
+        </FormGrid>
+      </FormSection>
 
-      <div>
-        <label htmlFor="company_name" className="label">Nombre de la empresa *</label>
-        <input id="company_name" name="company_name" required className="input" placeholder="Club Padel Madrid" />
-      </div>
+      <FormSection title="Ubicacion">
+        <FormGrid cols={3}>
+          <TextField name="address" label="Direccion" className="sm:col-span-2"
+            defaultValue={record?.address} />
+          <TextField name="postal_code" label="Codigo postal" defaultValue={record?.postal_code} />
+          <TextField name="city" label="Ciudad" defaultValue={record?.city} />
+          <TextField name="country" label="Pais (ISO 2)" maxLength={2}
+            defaultValue={record?.country} placeholder="ES" />
+          <TextField name="website" label="Sitio web" defaultValue={record?.website}
+            placeholder="clubpadelmadrid.es" />
+        </FormGrid>
+      </FormSection>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="tax_id" className="label">CIF / NIF</label>
-          <input id="tax_id" name="tax_id" className="input" placeholder="B81234567" />
-        </div>
-        <div>
-          <label htmlFor="country" className="label">Pais (ISO 2)</label>
-          <input id="country" name="country" maxLength={2} className="input uppercase" placeholder="ES" />
-        </div>
-        <div>
-          <label htmlFor="city" className="label">Ciudad</label>
-          <input id="city" name="city" className="input" placeholder="Madrid" />
-        </div>
-        <div>
-          <label htmlFor="website" className="label">Sitio web</label>
-          <input id="website" name="website" className="input" placeholder="clubpadelmadrid.es" />
-        </div>
-        <div>
-          <label htmlFor="status" className="label">Estado</label>
-          <select id="status" name="status" className="input" defaultValue="PROSPECTO">
-            {CLIENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="source" className="label">Origen</label>
-          <select id="source" name="source" className="input" defaultValue="">
-            <option value="">Sin especificar</option>
-            {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="address" className="label">Direccion</label>
-        <input id="address" name="address" className="input" placeholder="Calle Alcala 234" />
-      </div>
-
-      <div>
-        <label htmlFor="notes" className="label">Notas</label>
-        <textarea id="notes" name="notes" rows={3} className="input resize-none" />
-      </div>
-
-      {state && !state.ok ? (
-        <div role="alert" className="flex items-start gap-2 rounded border border-critical/30 bg-critical/10 px-3 py-2 text-sm text-critical">
-          <AlertCircle size={15} className="mt-0.5 shrink-0" />
-          <span>{state.error}</span>
-        </div>
-      ) : null}
-
-      <div className="flex justify-end gap-2 pt-2">
-        <button type="submit" disabled={isPending} className="btn-primary">
-          {isPending ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-          {isPending ? 'Guardando...' : 'Crear cliente'}
-        </button>
-      </div>
-    </form>
+      <FormSection title="Condiciones comerciales">
+        <FormGrid cols={3}>
+          <SelectField name="preferred_currency" label="Moneda preferida"
+            defaultValue={record?.preferred_currency}
+            options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
+          <TextField name="payment_terms" label="Forma de pago" defaultValue={record?.payment_terms}
+            placeholder="30% anticipo / 70% entrega" />
+          <MoneyField name="credit_limit" label="Limite de credito" currency={currency}
+            defaultValue={record?.credit_limit} />
+        </FormGrid>
+        <TextAreaField name="notes" label="Notas" className="mt-4" defaultValue={record?.notes} />
+      </FormSection>
+    </EntityForm>
   );
 }

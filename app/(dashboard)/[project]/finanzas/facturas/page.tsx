@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { createClient } from '@/lib/supabase/server';
 import { formatDate, formatMoney } from '@/lib/format';
@@ -77,7 +79,18 @@ export default async function InvoicesPage({
 
   return (
     <>
-      <PageHeader title="Facturas" subtitle={`${total} facturas en ${project.name}`} />
+      <PageHeader
+        title="Facturas"
+        subtitle={`${total} facturas en ${project.name}`}
+        actions={
+          can(project, 'invoices.create') ? (
+            <Link href={`${base}/finanzas/facturas/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva factura
+            </Link>
+          ) : null
+        }
+      />
 
       {fin ? (
         <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -99,7 +112,7 @@ export default async function InvoicesPage({
         ]}
       />
 
-      <DataTable columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+      <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/finanzas/facturas/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)} emptyTitle="Sin facturas" />
     </>
   );

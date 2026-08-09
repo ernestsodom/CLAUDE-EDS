@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { can } from '@/lib/permissions';
@@ -61,7 +63,16 @@ export default async function FollowUpsPage({
 
   return (
     <>
-      <PageHeader title="Seguimientos" subtitle={`${total} seguimientos`} />
+      <PageHeader title="Seguimientos" subtitle={`${total} seguimientos`}
+        actions={
+          can(project, 'follow_ups.create') ? (
+            <Link href={`${base}/comercial/seguimientos/form`} className="btn-primary">
+              <Plus size={15} />
+              Nuevo seguimiento
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar
         placeholder="Buscar seguimiento..."
         filters={[
@@ -70,7 +81,7 @@ export default async function FollowUpsPage({
         ]}
       />
       <DataTable
-        columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+        columns={columns} rows={rows} rowHref={(r) => `${base}/comercial/seguimientos/form/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)}
         emptyTitle="Sin seguimientos"
         emptyDescription="No hay seguimientos que coincidan con los filtros."

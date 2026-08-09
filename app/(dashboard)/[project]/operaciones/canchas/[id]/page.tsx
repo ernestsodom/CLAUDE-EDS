@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin, Pencil } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
@@ -105,12 +105,17 @@ export default async function CourtDetailPage({
         }
         actions={
           can(project, 'courts.update') ? (
-            <CourtStatusControl
-              projectCode={project.code}
-              courtId={c.id}
-              currentStatus={c.status}
-              courtType={c.court_type}
-            />
+            <div className="flex gap-2">
+              <Link href={`${base}/operaciones/canchas/form/${c.id}`} className="btn-secondary">
+                <Pencil size={14} /> Editar
+              </Link>
+              <CourtStatusControl
+                projectCode={project.code}
+                courtId={c.id}
+                currentStatus={c.status}
+                courtType={c.court_type}
+              />
+            </div>
           ) : null
         }
       />

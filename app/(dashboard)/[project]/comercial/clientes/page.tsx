@@ -9,7 +9,7 @@ import { ErrorState, PageHeader } from '@/components/ui';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { TableToolbar } from '@/components/ui/table-toolbar';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { CLIENT_STATUSES } from '@/lib/validations/crm';
+import { CLIENT_STATUSES } from '@/lib/validations/commercial';
 import type { Client360 } from '@/types/database.types';
 
 export const metadata: Metadata = { title: 'Clientes' };
@@ -111,7 +111,7 @@ export default async function ClientsPage({
         subtitle={`${total} registros en ${project.name}`}
         actions={
           can(project, 'clients.create') ? (
-            <Link href={`${base}/comercial/clientes/nuevo`} className="btn-primary">
+            <Link href={`${base}/comercial/clientes/form`} className="btn-primary">
               <Plus size={15} />
               Nuevo cliente
             </Link>

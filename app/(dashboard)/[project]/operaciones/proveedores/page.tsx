@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { ErrorState, PageHeader } from '@/components/ui';
 import { DataTable, type Column } from '@/components/ui/data-table';
@@ -20,6 +23,7 @@ export default async function SuppliersPage({
   const { project: projectCode } = await params;
   const sp = await searchParams;
   const { project } = await requireProject(projectCode);
+  const base = `/${project.code}`;
 
   const { rows, total, page, pageSize, error } = await fetchList<Row>({
     from: 'suppliers',
@@ -53,10 +57,19 @@ export default async function SuppliersPage({
 
   return (
     <>
-      <PageHeader title="Proveedores" subtitle={`${total} proveedores`} />
+      <PageHeader title="Proveedores" subtitle={`${total} proveedores`}
+        actions={
+          can(project, 'suppliers.create') ? (
+            <Link href={`${base}/operaciones/proveedores/form`} className="btn-primary">
+              <Plus size={15} />
+              Nuevo proveedor
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar placeholder="Buscar proveedor..."
         filters={[{ name: 'status', label: 'Estado', options: ['ACTIVO','INACTIVO','BLOQUEADO','EVALUACION'].map((s) => ({ value: s, label: s })) }]} />
-      <DataTable columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+      <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/operaciones/proveedores/form/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)} emptyTitle="Sin proveedores" />
     </>
   );

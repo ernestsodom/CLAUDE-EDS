@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate, formatMoney, humanize } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -22,6 +25,7 @@ export default async function PaymentsPage({
   const { project: projectCode } = await params;
   const sp = await searchParams;
   const { project } = await requireProject(projectCode);
+  const base = `/${project.code}`;
 
   const { rows, total, page, pageSize, error } = await fetchList<Row>({
     from: 'payments',
@@ -58,10 +62,19 @@ export default async function PaymentsPage({
 
   return (
     <>
-      <PageHeader title="Pagos" subtitle={`${total} movimientos`} />
+      <PageHeader title="Pagos" subtitle={`${total} movimientos`}
+        actions={
+          can(project, 'payments.create') ? (
+            <Link href={`${base}/finanzas/pagos/form`} className="btn-primary">
+              <Plus size={15} />
+              Nuevo pago
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar placeholder="Buscar por referencia..."
         filters={[{ name: 'direction', label: 'Tipo', options: [{ value: 'ENTRADA', label: 'Cobros' }, { value: 'SALIDA', label: 'Pagos' }] }]} />
-      <DataTable columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+      <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/finanzas/pagos/form/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)} emptyTitle="Sin pagos registrados" />
     </>
   );

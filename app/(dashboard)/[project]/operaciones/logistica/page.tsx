@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate, humanize } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -60,7 +63,18 @@ export default async function LogisticsPage({
 
   return (
     <>
-      <PageHeader title="Logistica" subtitle={`${total} embarques`} />
+      <PageHeader
+        title="Logistica"
+        subtitle={`${total} embarques`}
+        actions={
+          can(project, 'logistics.create') ? (
+            <Link href={`${base}/operaciones/logistica/form`} className="btn-primary">
+              <Plus size={15} />
+              Nuevo embarque
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar placeholder="Buscar por embarque, contenedor o BL..."
         filters={[{ name: 'status', label: 'Estado', options: ['PLANIFICADO','RESERVADO','CARGADO','EN_TRANSITO','EN_ADUANA','LIBERADO','ENTREGADO','INCIDENCIA'].map((s) => ({ value: s, label: s.replace(/_/g,' ') })) }]} />
       <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/operaciones/logistica/${r.id}`}

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin, Pencil } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
@@ -66,6 +66,13 @@ export default async function InstallationDetailPage({
             <MapPin size={12} />
             {[i.address, i.city, i.country].filter(Boolean).join(', ')}
           </span>
+        }
+        actions={
+          can(project, 'installations.update') ? (
+            <Link href={`${base}/operaciones/instalaciones/form/${id}`} className="btn-secondary">
+              <Pencil size={14} /> Editar
+            </Link>
+          ) : null
         }
       />
 

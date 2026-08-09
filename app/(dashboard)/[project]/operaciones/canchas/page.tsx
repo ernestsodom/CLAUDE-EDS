@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate, formatMoney } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -119,6 +122,14 @@ export default async function CourtsPage({
           pendingOnly
             ? `${total} canchas pendientes de entrega`
             : `${total} canchas en ${project.name}`
+        }
+        actions={
+          can(project, 'courts.create') ? (
+            <Link href={`${base}/operaciones/canchas/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva cancha
+            </Link>
+          ) : null
         }
       />
 

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate, formatMoney } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -57,10 +59,19 @@ export default async function ContractsPage({
 
   return (
     <>
-      <PageHeader title="Contratos" subtitle={`${total} contratos`} />
+      <PageHeader title="Contratos" subtitle={`${total} contratos`}
+        actions={
+          can(project, 'contracts.create') ? (
+            <Link href={`${base}/finanzas/contratos/form`} className="btn-primary">
+              <Plus size={15} />
+              Nuevo contrato
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar placeholder="Buscar contrato..."
         filters={[{ name: 'status', label: 'Estado', options: ['BORRADOR','EN_REVISION','FIRMADO','VIGENTE','CUMPLIDO','VENCIDO','RESCINDIDO'].map((s) => ({ value: s, label: s.replace(/_/g,' ') })) }]} />
-      <DataTable columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+      <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/finanzas/contratos/form/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)} emptyTitle="Sin contratos" />
     </>
   );
