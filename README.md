@@ -4,7 +4,9 @@ Sistema operativo de gestión del negocio de canchas de pádel: fabricación,
 comercialización, exportación, logística, instalación y gestión financiera,
 para Europa y Argentina.
 
-**Estado: FASE 1 (arquitectura + base de datos + seguridad) completada y verificada.**
+**Estado: FASES 1-8 y 11-13 completadas y verificadas.**
+Base de datos + seguridad (FASE 1) y aplicación Next.js conectada a datos reales
+(comercial, ventas, fabricación, logística, instalaciones, dashboards y Control Center).
 
 | | |
 |---|---|
@@ -17,7 +19,9 @@ para Europa y Argentina.
 | Permisos granulares | 136 |
 | Constraints | 344 |
 | Migraciones SQL | 24, ejecutables y probadas |
-| Pruebas | 40 aserciones de negocio + suite de aislamiento RLS |
+| Páginas de la aplicación | 37 |
+| Server Actions | 8 |
+| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas del frontend |
 
 La arquitectura completa está en **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
 
@@ -41,8 +45,11 @@ en PostgreSQL**, no por filtros en el frontend.
 ### Con Supabase
 
 ```bash
+cp .env.example .env.local     # y completa las claves del proyecto
+npm install
 supabase start
-supabase db reset      # aplica las 24 migraciones + seed.sql
+supabase db reset              # aplica las 24 migraciones + seed.sql
+npm run dev                    # http://localhost:3000
 ```
 
 ### Verificación sobre PostgreSQL vanilla (CI, sin Supabase)
@@ -72,15 +79,30 @@ Entrar con cada uno muestra el aislamiento por proyecto y por permisos funcionan
 
 ```
 padel-platform/
+├── app/
+│   ├── (auth)/login              Login real contra Supabase Auth
+│   └── (dashboard)/[project]/    El proyecto vive en la URL, no en estado global
+│       ├── dashboard · hoy · control-center
+│       ├── comercial/            clientes (+360) · oportunidades · reuniones · seguimientos
+│       ├── ventas/               listado + ficha completa (§73)
+│       ├── operaciones/          fabricación · canchas (+ficha §74) · materiales · proveedores
+│       │                         compras · logística · instalaciones · calidad · inventario
+│       ├── finanzas/             contratos · facturas · pagos · gastos · bancos · rentabilidad
+│       └── documentos · tareas · reportes · configuración
+├── components/  ui · dashboard · commercial · operations · finance · shared
+├── lib/         supabase · auth · permissions · services · validations · format
+├── actions/     Server Actions: única vía de escritura
+├── types/       Tipos del dominio (regenerables con supabase gen types)
 ├── docs/ARCHITECTURE.md      Arquitectura técnica completa (ERD, RLS, KPIs, IA, plan)
 ├── supabase/
 │   ├── migrations/           24 migraciones SQL versionadas
 │   ├── seed.sql              Datos demo realistas (idempotente)
 │   └── tests/
-│       ├── 00_supabase_shim.sql   Emula Supabase sobre PostgreSQL vanilla
-│       ├── 01_business_cases.sql  Casos §101, §102, §103 y cálculos financieros
-│       ├── 02_rls_security.sql    Aislamiento multi-proyecto y escalada de privilegios
-│       └── run.sh                 Runner completo
+│       ├── 00_supabase_shim.sql     Emula Supabase sobre PostgreSQL vanilla
+│       ├── 01_business_cases.sql    Casos §101, §102, §103 y cálculos financieros
+│       ├── 02_rls_security.sql      Aislamiento multi-proyecto y escalada de privilegios
+│       ├── 03_frontend_queries.mjs  Las 52 consultas reales de las páginas, vía PostgREST
+│       └── run.sh                   Runner completo
 └── .env.example
 ```
 
@@ -103,10 +125,25 @@ padel-platform/
 
 ---
 
+## Cómo está construido el frontend
+
+- **Lectura por Server Components** contra las vistas analíticas; **escritura por
+  Server Actions**. El navegador nunca habla directamente con la base para escribir.
+- **Paginación en el servidor** (`.range()` + `count: exact`): una tabla de 50.000
+  ventas envía 25 filas al navegador, no 50.000.
+- **El estado de filtros vive en la URL**, no en React: las vistas son
+  compartibles por enlace y el botón «atrás» funciona.
+- **`confirm_sale()` y `change_court_status()` no se reimplementan en TypeScript**:
+  la acción invoca la función de PostgreSQL, que hace todo en una transacción.
+- **Los permisos del cliente deciden qué se muestra; RLS decide qué es posible.**
+  Ocultar un botón es usabilidad, no seguridad.
+- **`service_role` nunca llega al navegador**: `lib/supabase/server.ts` importa
+  `server-only`, así que el build falla si alguien lo importa desde un cliente.
+
 ## Siguiente fase
 
-FASE 2 — Autenticación y shell de la aplicación: login Supabase,
-`get_session_context()`, selector de proyecto, sidebar dinámico según módulos
-habilitados y permisos efectivos, tema oscuro (negro + naranja flúor).
+FASE 9-12 — Formularios de alta y edición para el resto de entidades, subida de
+documentos a Storage con URLs firmadas, importación de extractos bancarios
+CSV/XLSX, exportación PDF y el asistente de IA acotado por RLS.
 
 El plan completo de las 15 fases está en `docs/ARCHITECTURE.md` §18.
