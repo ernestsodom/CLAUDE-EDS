@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate, formatNumber } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -21,6 +24,7 @@ export default async function MaterialsPage({
   const { project: projectCode } = await params;
   const sp = await searchParams;
   const { project } = await requireProject(projectCode);
+  const base = `/${project.code}`;
 
   const { rows, total, page, pageSize, error } = await fetchList<Row>({
     from: 'material_requirements',
@@ -52,9 +56,18 @@ export default async function MaterialsPage({
 
   return (
     <>
-      <PageHeader title="Materiales" subtitle={`${total} requerimientos`} />
+      <PageHeader title="Materiales" subtitle={`${total} requerimientos`}
+        actions={
+          can(project, 'materials.create') ? (
+            <Link href={`${base}/operaciones/materiales/form`} className="btn-primary">
+              <Plus size={15} />
+              Nuevo requerimiento
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar placeholder="Buscar material..." />
-      <DataTable columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+      <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/operaciones/materiales/form/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)} emptyTitle="Sin requerimientos"
         emptyDescription="El faltante se calcula como requerido menos disponible menos comprado, y nunca es negativo." />
     </>

@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { createClient } from '@/lib/supabase/server';
 import { formatDate, formatMoney } from '@/lib/format';
 import { Card, EmptyState, ErrorState, PageHeader, SectionTitle } from '@/components/ui';
@@ -30,7 +33,18 @@ export default async function BanksPage({ params }: { params: Promise<{ project:
 
   return (
     <>
-      <PageHeader title="Bancos" subtitle={`${accounts.length} cuentas`} />
+      <PageHeader
+        title="Bancos"
+        subtitle={`${accounts.length} cuentas`}
+        actions={
+          can(project, 'banks.create') ? (
+            <Link href={`/${project.code}/finanzas/bancos/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva cuenta
+            </Link>
+          ) : null
+        }
+      />
 
       {accounts.length === 0 ? (
         <EmptyState title="Sin cuentas bancarias" description="Configura las cuentas del proyecto para conciliar movimientos." />
@@ -39,7 +53,10 @@ export default async function BanksPage({ params }: { params: Promise<{ project:
           <section className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {accounts.map((acc) => (
               <Card key={acc.id}>
-                <p className="text-sm font-medium">{acc.name}</p>
+                <Link href={`/${project.code}/finanzas/bancos/form/${acc.id}`}
+                  className="text-sm font-medium hover:text-accent">
+                  {acc.name}
+                </Link>
                 <p className="text-2xs text-content-muted">{acc.bank_name ?? '—'}</p>
                 <p className="tabular mt-2 text-xl font-semibold">
                   {formatMoney(acc.opening_balance, acc.currency)}

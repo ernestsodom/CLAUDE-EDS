@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { createClient } from '@/lib/supabase/server';
 import { formatDate, formatMoney, formatNumber } from '@/lib/format';
 import { Card, ErrorState, PageHeader } from '@/components/ui';
@@ -59,7 +61,18 @@ export default async function OpportunitiesPage({
 
   return (
     <>
-      <PageHeader title="Oportunidades" subtitle={`${open.length} abiertas en ${project.name}`} />
+      <PageHeader
+        title="Oportunidades"
+        subtitle={`${open.length} abiertas en ${project.name}`}
+        actions={
+          can(project, 'opportunities.create') ? (
+            <Link href={`${base}/comercial/oportunidades/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva oportunidad
+            </Link>
+          ) : null
+        }
+      />
 
       <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label="Pipeline" value={formatMoney(pipeline, currency, { compact: true })} tone="accent" />
@@ -105,7 +118,10 @@ export default async function OpportunitiesPage({
                             {opp.clients?.company_name ?? '—'}
                           </p>
                         </Link>
-                        <p className="mt-0.5 text-sm leading-snug">{opp.name}</p>
+                        <Link href={`${base}/comercial/oportunidades/form/${opp.id}`}
+                          className="mt-0.5 block text-sm leading-snug hover:text-accent">
+                          {opp.name}
+                        </Link>
                         <p className="tabular mt-1.5 text-sm font-semibold">
                           {formatMoney(opp.estimated_amount, opp.currency as never, { compact: true })}
                           <span className="ml-1.5 text-2xs font-normal text-content-muted">

@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -51,7 +54,18 @@ export default async function InstallationsPage({
 
   return (
     <>
-      <PageHeader title="Instalaciones" subtitle={`${total} instalaciones`} />
+      <PageHeader
+        title="Instalaciones"
+        subtitle={`${total} instalaciones`}
+        actions={
+          can(project, 'installations.create') ? (
+            <Link href={`${base}/operaciones/instalaciones/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva instalacion
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar placeholder="Buscar instalacion..."
         filters={[{ name: 'status', label: 'Estado', options: ['PLANIFICADA','CONFIRMADA','EN_CURSO','PAUSADA','TERMINADA','RECEPCIONADA','CANCELADA'].map((s) => ({ value: s, label: s })) }]} />
       <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/operaciones/instalaciones/${r.id}`}

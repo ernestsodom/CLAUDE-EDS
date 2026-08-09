@@ -2,15 +2,16 @@
 
 > Estado de esta entrega: **FASES 1-8 y 11-13 completadas y verificadas**.
 >
-> **Datos** — 24 migraciones SQL reales contra PostgreSQL 16: 59 tablas, 15 vistas,
+> **Datos** — 25 migraciones SQL reales contra PostgreSQL 16: 59 tablas, 15 vistas,
 > 236 índices, 220 políticas RLS, 110 triggers, 39 enums, 136 permisos, 344 constraints.
 >
 > **Aplicación** — Next.js 15 (App Router) + React 19 + TypeScript + Tailwind:
-> 37 páginas conectadas a datos reales, 8 Server Actions, build de producción limpio.
+> 56 páginas conectadas a datos reales, 39 Server Actions, formularios de alta y
+> edición para las 19 entidades del negocio, build de producción limpio.
 >
-> **Verificación** — 40 aserciones de negocio, suite completa de aislamiento RLS y
-> 52 consultas reales del frontend ejecutadas vía PostgREST con el JWT de cada rol.
-> Todo en verde.
+> **Verificación** — 40 aserciones de negocio, suite completa de aislamiento RLS,
+> 52 consultas y 29 escrituras reales del frontend ejecutadas vía PostgREST con el
+> JWT de cada rol. Todo en verde.
 
 ---
 
@@ -658,10 +659,11 @@ Toda la fase está probada contra PostgreSQL 16 real (`supabase/tests/run.sh`).
 
 ✓ Totales derivados de las líneas · ✓ IVA sobre OC · ✓ Saldo de factura mantenido desde los pagos · ✓ Factura pagada al 100% cambia de estado sola · ✓ Historial de estados y timeline generados automáticamente · ✓ Auditoría de cambios de estado · ✓ `quantity_missing` nunca negativo · ✓ Alertas generadas e **idempotentes** · ✓ Conversión de moneda devuelve NULL sin tasa · ✓ Suite completa de RLS.
 
-### Dos defectos reales encontrados y corregidos durante la verificación
+### Tres defectos reales encontrados y corregidos durante la verificación
 
 1. **Escalada de privilegios.** El `REVOKE` por columna sobre `profiles.is_super_admin` no tenía efecto porque existía un `GRANT UPDATE` a nivel de tabla. Cualquier usuario autenticado podía convertirse en super admin. Corregido retirando el UPDATE de tabla y otorgándolo columna por columna.
 2. **Alertas que se auto-resolvían al instante.** `upsert_alert` marcaba la detección con `now()` (inicio de transacción), anterior al `clock_timestamp()` con que se medía el inicio de la pasada; el paso de auto-resolución cerraba las alertas que la propia ejecución acababa de crear. Corregido usando `clock_timestamp()` en ambos lados.
+3. **Numeración de documentos que colisionaba.** `next_document_number` llevaba su propio contador sin mirar los números ya existentes. En cuanto alguien tecleaba un número de factura o de venta —o se cargaba un histórico— el contador se quedaba atrás y el siguiente documento automático chocaba contra el índice único. Corregido en `025_document_numbering.sql`: al guardar un número explícito el contador se eleva a ese valor, y al generar se comprueba que el número esté libre. La migración además repara los contadores de una base ya existente.
 
 Ambos están cubiertos por pruebas para que no puedan reaparecer.
 
@@ -682,16 +684,34 @@ Ambos están cubiertos por pruebas para que no puedan reaparecer.
 | **11. Dashboards** | Global, rentabilidad, HOY / próximos 7 días, inventario de usadas, drill-down desde cada KPI | ✅ **Completada** |
 | **12. Control Center** | Alertas por criticidad, conversión de alerta en tarea, gestión de tareas | ✅ **Completada** |
 | **13. Reportes** | Índice de 9 reportes sobre las vistas analíticas | ✅ Índice; falta exportación XLSX/PDF |
-| 9. Finanzas (escritura) | Alta y edición de facturas, pagos, gastos; conciliación bancaria; importación CSV/XLSX | Pendiente |
+| **9. Escritura completa** | Formularios de alta y edición para las 19 entidades: CRM, ventas con líneas y costos, facturas con líneas, pagos, contratos, gastos, bancos, proveedores, órdenes de compra con líneas, canchas, fabricación, materiales, logística, instalaciones y calidad | ✅ **Completada** |
+| 9b. Conciliación bancaria | Importación de extractos CSV/XLSX y cuadre contra pagos | Pendiente |
 | 10. Documentación | Subida a Storage con URLs firmadas, versionado, aprobaciones | Pendiente |
 | 14. IA | Document Intelligence con revisión humana + asistente acotado por RLS | Pendiente |
 | 15. Hardening | Tests E2E de navegador, performance, backups, observabilidad, despliegue en Vercel | Pendiente |
 
-**Lo entregado en las fases 2-8 y 11-13** cubre toda la lectura, la navegación,
-la trazabilidad completa y las operaciones críticas de escritura (confirmar
-venta, cambiar estado de cancha, checklists, tareas, alertas, alta de cliente).
-Los módulos marcados «lectura» muestran y filtran datos reales pero aún no
-incluyen formularios de alta/edición.
+**Lo entregado cubre el ciclo completo**: lectura, navegación, trazabilidad,
+alta y edición de todas las entidades, y las operaciones de negocio que exigen
+transacción (confirmar venta, cambiar estado de cancha, checklists, tareas y
+alertas). Queda fuera la gestión documental sobre Storage, la conciliación
+bancaria y la capa de IA.
+
+### Cómo se construyen los formularios
+
+Un motor común (`lib/services/persist.ts`) resuelve permisos, alta frente a
+edición, `project_id`, autoría, traducción de errores y revalidación. Cada
+formulario aporta solo su esquema Zod y sus campos, de modo que una regla nueva
+—registrar quién editó, por ejemplo— se aplica de una vez a las diecinueve
+pantallas.
+
+Tres invariantes:
+
+1. **Los totales no viajan desde el navegador.** El total de una venta, factura u
+   orden lo calcula un trigger desde sus líneas; el saldo de una factura, desde
+   sus pagos. Enviarlos permitiría que cabecera y detalle dejaran de cuadrar.
+2. **Cada validación Zod tiene su constraint SQL equivalente.** Si discrepan,
+   manda la base de datos.
+3. **Borrado lógico** en toda entidad con valor histórico.
 
 **Definición de terminado por fase** (§126): código + migraciones + tipos + validaciones + RLS + UI + tests + datos demo. Una fase no está terminada si queda un dato simulado donde debería haber conexión real.
 

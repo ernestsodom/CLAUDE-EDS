@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Globe, Mail, Phone, Star } from 'lucide-react';
+import { ArrowLeft, Globe, Mail, Pencil, Phone, Star } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
@@ -84,6 +84,13 @@ export default async function ClientDetailPage({
           </span>
         }
         subtitle={[client.city, client.country, client.industry].filter(Boolean).join(' · ') || undefined}
+        actions={
+          can(project, 'clients.update') ? (
+            <Link href={`${base}/comercial/clientes/form/${id}`} className="btn-secondary">
+              <Pencil size={14} /> Editar
+            </Link>
+          ) : null
+        }
       />
 
       <section className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-6">

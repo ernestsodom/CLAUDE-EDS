@@ -5,58 +5,159 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { requireProject } from '@/lib/auth/session';
 import { can } from '@/lib/permissions';
-import { ClientCreateSchema, FollowUpCompleteSchema } from '@/lib/validations/crm';
+import { formToObject, persistRecord, softDeleteRecord } from '@/lib/services/persist';
+import {
+  ActivitySchema, ClientSchema, ContactSchema, FollowUpCompleteSchema,
+  FollowUpSchema, MeetingSchema, OpportunitySchema,
+} from '@/lib/validations/commercial';
 import { failure, success, toUserMessage, type ActionResult } from '@/actions/types';
 
-/**
- * Alta de cliente.
- *
- * Validacion en tres capas (§84): Zod aqui, constraints en PostgreSQL y
- * RLS decidiendo si la fila puede siquiera insertarse en este proyecto.
- */
-export async function createClientRecord(
-  _prev: ActionResult<{ id: string }> | null,
-  formData: FormData,
-): Promise<ActionResult<{ id: string }>> {
-  const projectCode = String(formData.get('projectCode') ?? '');
-  const { project, session } = await requireProject(projectCode);
+type FormState = ActionResult<{ id: string }> | null;
 
-  if (!can(project, 'clients.create')) {
-    return failure('No tienes permiso para crear clientes.');
-  }
+/** Lee el contexto que todo formulario envia en campos ocultos. */
+function context(formData: FormData) {
+  return {
+    projectCode: String(formData.get('projectCode') ?? ''),
+    id: formData.get('id') ? String(formData.get('id')) : null,
+  };
+}
 
-  const parsed = ClientCreateSchema.safeParse({
-    company_name: formData.get('company_name'),
-    tax_id: formData.get('tax_id') || undefined,
-    country: formData.get('country') || undefined,
-    city: formData.get('city') || undefined,
-    address: formData.get('address') || undefined,
-    website: formData.get('website') || undefined,
-    status: formData.get('status') || 'PROSPECTO',
-    source: formData.get('source') || undefined,
-    notes: formData.get('notes') || undefined,
+// =====================================================================
+// Clientes
+// =====================================================================
+export async function saveClient(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { projectCode, id } = context(formData);
+
+  const result = await persistRecord({
+    projectCode,
+    table: 'clients',
+    module: 'clients',
+    id,
+    schema: ClientSchema,
+    raw: formToObject(formData),
+    revalidate: [`/${projectCode}/comercial/clientes`, `/${projectCode}/dashboard`],
   });
 
-  if (!parsed.success) {
-    return failure(parsed.error.issues[0]?.message ?? 'Revisa los datos introducidos.');
-  }
+  if (result.ok && !id) redirect(`/${projectCode}/comercial/clientes/${result.data.id}`);
+  if (result.ok && id) revalidatePath(`/${projectCode}/comercial/clientes/${id}`);
+  return result;
+}
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('clients')
-    .insert({
-      ...parsed.data,
-      project_id: project.id,
-      owner_user_id: session.user?.id ?? null,
-      created_by: session.user?.id ?? null,
-    })
-    .select('id')
-    .single();
+export async function deleteClient(projectCode: string, id: string): Promise<ActionResult<null>> {
+  return softDeleteRecord({
+    projectCode, table: 'clients', id, module: 'clients',
+    revalidate: [`/${projectCode}/comercial/clientes`],
+  });
+}
 
-  if (error) return failure(toUserMessage(error.message));
+// =====================================================================
+// Contactos
+// =====================================================================
+export async function saveContact(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { projectCode, id } = context(formData);
+  const clientId = String(formData.get('client_id') ?? '');
 
-  revalidatePath(`/${projectCode}/comercial/clientes`);
-  redirect(`/${projectCode}/comercial/clientes/${data.id}`);
+  const result = await persistRecord({
+    projectCode,
+    table: 'contacts',
+    module: 'contacts',
+    id,
+    schema: ContactSchema,
+    raw: formToObject(formData, { booleans: ['is_primary'] }),
+    stamp: {},
+    revalidate: [`/${projectCode}/comercial/clientes/${clientId}`],
+  });
+
+  return result;
+}
+
+export async function deleteContact(
+  projectCode: string, id: string, clientId: string,
+): Promise<ActionResult<null>> {
+  return softDeleteRecord({
+    projectCode, table: 'contacts', id, module: 'contacts',
+    revalidate: [`/${projectCode}/comercial/clientes/${clientId}`],
+  });
+}
+
+// =====================================================================
+// Oportunidades
+// =====================================================================
+export async function saveOpportunity(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { projectCode, id } = context(formData);
+
+  const result = await persistRecord({
+    projectCode,
+    table: 'opportunities',
+    module: 'opportunities',
+    id,
+    schema: OpportunitySchema,
+    raw: formToObject(formData),
+    revalidate: [`/${projectCode}/comercial/oportunidades`, `/${projectCode}/dashboard`],
+  });
+
+  if (result.ok && !id) redirect(`/${projectCode}/comercial/oportunidades`);
+  return result;
+}
+
+export async function deleteOpportunity(
+  projectCode: string, id: string,
+): Promise<ActionResult<null>> {
+  return softDeleteRecord({
+    projectCode, table: 'opportunities', id, module: 'opportunities',
+    revalidate: [`/${projectCode}/comercial/oportunidades`],
+  });
+}
+
+// =====================================================================
+// Reuniones
+// =====================================================================
+export async function saveMeeting(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { projectCode, id } = context(formData);
+
+  const result = await persistRecord({
+    projectCode,
+    table: 'meetings',
+    module: 'meetings',
+    id,
+    schema: MeetingSchema,
+    raw: formToObject(formData),
+    revalidate: [`/${projectCode}/comercial/reuniones`, `/${projectCode}/hoy`],
+  });
+
+  if (result.ok && !id) redirect(`/${projectCode}/comercial/reuniones`);
+  return result;
+}
+
+export async function deleteMeeting(projectCode: string, id: string): Promise<ActionResult<null>> {
+  return softDeleteRecord({
+    projectCode, table: 'meetings', id, module: 'meetings',
+    revalidate: [`/${projectCode}/comercial/reuniones`],
+  });
+}
+
+// =====================================================================
+// Seguimientos
+// =====================================================================
+export async function saveFollowUp(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { projectCode, id } = context(formData);
+
+  const result = await persistRecord({
+    projectCode,
+    table: 'follow_ups',
+    module: 'follow_ups',
+    id,
+    schema: FollowUpSchema,
+    raw: formToObject(formData),
+    revalidate: [
+      `/${projectCode}/comercial/seguimientos`,
+      `/${projectCode}/hoy`,
+      `/${projectCode}/dashboard`,
+    ],
+  });
+
+  if (result.ok && !id) redirect(`/${projectCode}/comercial/seguimientos`);
+  return result;
 }
 
 /** Cierra un seguimiento y registra el resultado. */
@@ -87,4 +188,25 @@ export async function completeFollowUp(input: unknown): Promise<ActionResult<nul
   revalidatePath(`/${projectCode}/comercial/seguimientos`);
   revalidatePath(`/${projectCode}/dashboard`);
   return success(null, 'Seguimiento completado.');
+}
+
+// =====================================================================
+// Actividad comercial
+// =====================================================================
+export async function saveActivity(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { projectCode, id } = context(formData);
+  const clientId = String(formData.get('client_id') ?? '');
+
+  return persistRecord({
+    projectCode,
+    table: 'commercial_activities',
+    module: 'opportunities',
+    id,
+    schema: ActivitySchema,
+    raw: formToObject(formData),
+    stamp: {},
+    extra: { user_id: (await requireProject(projectCode)).session.user?.id ?? null },
+    revalidate: [`/${projectCode}/comercial/clientes/${clientId}`],
+    successMessage: 'Actividad registrada.',
+  });
 }

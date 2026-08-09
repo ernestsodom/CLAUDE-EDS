@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Building2, FileText, Package, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, Building2, FileText, Package, Pencil, TriangleAlert } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
@@ -9,11 +9,13 @@ import { formatDate, formatMoney, formatNumber, formatPercent, humanize } from '
 import { Card, DataPoint, Field, PageHeader, ProgressBar, SectionTitle } from '@/components/ui';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ConfirmSaleButton } from '@/components/commercial/confirm-sale-button';
-import { CostVarianceTable } from '@/components/finance/cost-variance-table';
+import { SaleLines } from '@/components/commercial/sale-lines';
+import { SaleCostsEditor, type SaleCostRow } from '@/components/finance/sale-costs-editor';
+import { getCostCategoryOptions, getSupplierOptions } from '@/lib/services/options';
 import { Timeline } from '@/components/shared/timeline';
 import { ChecklistPanel } from '@/components/operations/checklist-panel';
 import type {
-  ChecklistItem, Court, ProjectEvent, SaleCostVariance, SaleFinancials, SaleItem,
+  ChecklistItem, Court, ProjectEvent, SaleFinancials, SaleItem,
 } from '@/types/database.types';
 
 export const metadata: Metadata = { title: 'Ficha de venta' };
@@ -49,7 +51,12 @@ export default async function SaleDetailPage({
         .is('deleted_at', null)
         .order('court_number'),
       showMargin
-        ? supabase.from('v_sale_cost_variance').select('*').eq('sale_id', id)
+        ? supabase
+            .from('sale_costs')
+            .select('id, cost_category_id, description, estimated_amount, actual_amount, status, supplier_id, cost_date, cost_categories(name, cost_group)')
+            .eq('sale_id', id)
+            .is('deleted_at', null)
+            .order('created_at')
         : Promise.resolve({ data: [] }),
       supabase
         .from('project_events')
@@ -81,7 +88,12 @@ export default async function SaleDetailPage({
 
   const items = (itemsRes.data ?? []) as SaleItem[];
   const courts = (courtsRes.data ?? []) as Court[];
-  const variance = (varianceRes.data ?? []) as SaleCostVariance[];
+  const costRows = (varianceRes.data ?? []) as unknown as SaleCostRow[];
+
+  // Opciones para el editor de costos (solo si el usuario ve rentabilidad)
+  const [costCategories, suppliers] = showMargin
+    ? await Promise.all([getCostCategoryOptions(project.id), getSupplierOptions(project.id)])
+    : [[], []];
   const events = (eventsRes.data ?? []) as ProjectEvent[];
   const invoices = (invoicesRes.data ?? []) as {
     id: string; invoice_number: string; invoice_date: string; due_date: string | null;
@@ -133,7 +145,14 @@ export default async function SaleDetailPage({
           </Link>
         }
         actions={
-          canConfirm ? <ConfirmSaleButton projectCode={project.code} saleId={s.sale_id} /> : null
+          <div className="flex gap-2">
+            {can(project, 'sales.update') ? (
+              <Link href={`${base}/ventas/form/${s.sale_id}`} className="btn-secondary">
+                <Pencil size={14} /> Editar
+              </Link>
+            ) : null}
+            {canConfirm ? <ConfirmSaleButton projectCode={project.code} saleId={s.sale_id} /> : null}
+          </div>
         }
       />
 
@@ -264,66 +283,26 @@ export default async function SaleDetailPage({
           </Card>
 
           {/* ---- Lineas de la venta ---- */}
-          <Card padded={false}>
-            <div className="px-4 pt-4">
-              <SectionTitle>Detalle de la venta</SectionTitle>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-sm">
-                <thead>
-                  <tr className="border-y border-line bg-elevated/40 text-2xs uppercase tracking-wider text-content-muted">
-                    <th className="px-4 py-2 text-left font-semibold">Concepto</th>
-                    <th className="px-4 py-2 text-right font-semibold">Cant.</th>
-                    <th className="px-4 py-2 text-right font-semibold">Precio</th>
-                    <th className="px-4 py-2 text-right font-semibold">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.id} className="border-b border-line last:border-0">
-                      <td className="px-4 py-2.5">
-                        <p>{item.description}</p>
-                        <p className="text-2xs text-content-muted">
-                          {humanize(item.product_type)}
-                          {item.model ? ` · ${item.model}` : ''}
-                        </p>
-                      </td>
-                      <td className="tabular px-4 py-2.5 text-right">{formatNumber(item.quantity)}</td>
-                      <td className="tabular px-4 py-2.5 text-right">
-                        {formatMoney(item.unit_price, s.currency)}
-                      </td>
-                      <td className="tabular px-4 py-2.5 text-right font-medium">
-                        {formatMoney(item.subtotal, s.currency)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t border-line-strong">
-                    <td colSpan={3} className="px-4 py-3 text-right text-xs text-content-muted">
-                      Total
-                    </td>
-                    <td className="tabular px-4 py-3 text-right text-base font-semibold">
-                      {formatMoney(s.total_sale, s.currency)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </Card>
+          <SaleLines
+            projectCode={project.code}
+            saleId={s.sale_id}
+            lines={items}
+            currency={s.currency}
+            editable={can(project, 'sales.update')}
+            total={s.total_sale}
+          />
 
           {/* ---- Costos: presupuesto vs real (§52, §54) ---- */}
           {showMargin ? (
-            <Card padded={false}>
-              <div className="px-4 pt-4">
-                <SectionTitle>Costos: presupuesto vs real</SectionTitle>
-              </div>
-              <CostVarianceTable
-                rows={variance}
-                currency={s.currency}
-                thresholdPct={10}
-              />
-            </Card>
+            <SaleCostsEditor
+              projectCode={project.code}
+              saleId={s.sale_id}
+              rows={costRows}
+              currency={s.currency}
+              categories={costCategories}
+              suppliers={suppliers}
+              editable={can(project, 'sales.update')}
+            />
           ) : null}
 
           {/* ---- Canchas de esta venta ---- */}

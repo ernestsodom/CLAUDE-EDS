@@ -94,6 +94,11 @@ if command -v postgrest >/dev/null && command -v node >/dev/null; then
   API_URL=http://127.0.0.1:3999 JWT_SECRET="$JWT_SECRET" node "$HERE/03_frontend_queries.mjs" || {
     kill $PGRST_PID 2>/dev/null; red "FALLO en las consultas del frontend"; exit 1;
   }
+
+  bold "== Escrituras del frontend (altas y ediciones) =="
+  API_URL=http://127.0.0.1:3999 JWT_SECRET="$JWT_SECRET" node "$HERE/04_frontend_writes.mjs" || {
+    kill $PGRST_PID 2>/dev/null; red "FALLO en las escrituras del frontend"; exit 1;
+  }
   kill $PGRST_PID 2>/dev/null
 else
   echo "  omitido (requiere postgrest y node en el PATH)"

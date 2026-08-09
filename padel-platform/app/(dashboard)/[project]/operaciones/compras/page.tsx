@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { fetchList, carryParams, type ListParams } from '@/lib/services/list';
 import { formatDate, formatMoney } from '@/lib/format';
 import { ErrorState, PageHeader } from '@/components/ui';
@@ -21,6 +24,7 @@ export default async function PurchaseOrdersPage({
   const { project: projectCode } = await params;
   const sp = await searchParams;
   const { project } = await requireProject(projectCode);
+  const base = `/${project.code}`;
 
   const { rows, total, page, pageSize, error } = await fetchList<Row>({
     from: 'purchase_orders',
@@ -45,10 +49,19 @@ export default async function PurchaseOrdersPage({
 
   return (
     <>
-      <PageHeader title="Ordenes de compra" subtitle={`${total} ordenes`} />
+      <PageHeader title="Ordenes de compra" subtitle={`${total} ordenes`}
+        actions={
+          can(project, 'purchases.create') ? (
+            <Link href={`${base}/operaciones/compras/form`} className="btn-primary">
+              <Plus size={15} />
+              Nueva orden
+            </Link>
+          ) : null
+        }
+      />
       <TableToolbar placeholder="Buscar orden..."
         filters={[{ name: 'status', label: 'Estado', options: ['BORRADOR','EMITIDA','APROBADA','RECIBIDA','FACTURADA','PAGADA','ANULADA'].map((s) => ({ value: s, label: s })) }]} />
-      <DataTable columns={columns} rows={rows} total={total} page={page} pageSize={pageSize}
+      <DataTable columns={columns} rows={rows} rowHref={(r) => `${base}/operaciones/compras/${r.id}`} total={total} page={page} pageSize={pageSize}
         baseParams={carryParams(sp)} emptyTitle="Sin ordenes de compra" />
     </>
   );

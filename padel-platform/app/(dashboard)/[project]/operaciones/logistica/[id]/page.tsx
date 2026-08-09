@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { createClient } from '@/lib/supabase/server';
 import { formatDate, formatMoney, humanize } from '@/lib/format';
 import { Card, Field, PageHeader, SectionTitle } from '@/components/ui';
@@ -55,6 +56,13 @@ export default async function ShipmentDetailPage({
         }
         title={<span className="flex items-center gap-3">{s.shipment_number}<StatusBadge status={s.status} /></span>}
         subtitle={`${s.origin ?? '—'} → ${s.destination ?? '—'} · ${humanize(s.transport_mode)}`}
+        actions={
+          can(project, 'logistics.update') ? (
+            <Link href={`${base}/operaciones/logistica/form/${id}`} className="btn-secondary">
+              <Pencil size={14} /> Editar
+            </Link>
+          ) : null
+        }
       />
 
       <div className="grid gap-5 lg:grid-cols-3">

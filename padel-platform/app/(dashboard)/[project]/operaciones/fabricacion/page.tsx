@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
+import { can } from '@/lib/permissions';
 import { createClient } from '@/lib/supabase/server';
 import { formatDate, formatNumber, formatPercent } from '@/lib/format';
 import { Card, EmptyState, ErrorState, PageHeader, ProgressBar } from '@/components/ui';
@@ -43,6 +45,14 @@ export default async function ManufacturingPage({
       <PageHeader
         title="Fabricacion"
         subtitle={delayed === '1' ? `${rows.length} proyectos atrasados` : `${active.length} proyectos activos`}
+        actions={
+          can(project, 'manufacturing.create') ? (
+            <Link href={`${base}/operaciones/fabricacion/form`} className="btn-primary">
+              <Plus size={15} />
+              Nuevo proyecto
+            </Link>
+          ) : null
+        }
       />
 
       <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
