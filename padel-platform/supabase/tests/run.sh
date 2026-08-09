@@ -73,6 +73,32 @@ bold "== Seguridad / RLS =="
 psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f "$HERE/02_rls_security.sql" 2>&1 \
   | grep -oP '(OK\s+.*|FALLO.*|TODAS.*)' || { red "FALLO en pruebas de seguridad"; exit 1; }
 
+# ---------------------------------------------------------------------
+# Consultas del frontend (opcional).
+# Requiere el binario `postgrest` en el PATH. Reproduce las consultas que
+# emiten las paginas con el JWT de cada usuario demo: detecta columnas
+# inexistentes, embeds ambiguos y fugas de RLS que ni TypeScript ni
+# `next build` pueden ver.
+# ---------------------------------------------------------------------
+if command -v postgrest >/dev/null && command -v node >/dev/null; then
+  bold "== Consultas del frontend =="
+  JWT_SECRET="${JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters-long}"
+  psql -q "$DATABASE_URL" -c "alter role authenticator with login password 'authpass'" >/dev/null 2>&1 || true
+
+  PGRST_DB_URI="${PGRST_DB_URI:-postgres://authenticator:authpass@127.0.0.1:55432/padel}" \
+  PGRST_DB_SCHEMAS=public PGRST_DB_ANON_ROLE=anon \
+  PGRST_JWT_SECRET="$JWT_SECRET" PGRST_SERVER_PORT=3999 \
+    postgrest > /tmp/pgrst-test.log 2>&1 &
+  PGRST_PID=$!
+  sleep 5
+  API_URL=http://127.0.0.1:3999 JWT_SECRET="$JWT_SECRET" node "$HERE/03_frontend_queries.mjs" || {
+    kill $PGRST_PID 2>/dev/null; red "FALLO en las consultas del frontend"; exit 1;
+  }
+  kill $PGRST_PID 2>/dev/null
+else
+  echo "  omitido (requiere postgrest y node en el PATH)"
+fi
+
 green ""
 green "======================================"
 green " VERIFICACION COMPLETA: TODO EN VERDE"

@@ -1,10 +1,16 @@
-# PADEL BUSINESS MANAGEMENT PLATFORM — Arquitectura Técnica (FASE 1)
+# PADEL BUSINESS MANAGEMENT PLATFORM — Arquitectura Técnica
 
-> Estado de esta entrega: **FASE 1 completada y verificada**.
-> 24 migraciones SQL reales, ejecutadas y probadas contra PostgreSQL 16.
-> 59 tablas, 15 vistas, 236 índices, 220 políticas RLS, 110 triggers, 39 enums,
-> 136 permisos granulares, 344 constraints.
-> Suite de pruebas: 40 aserciones de negocio + pruebas de aislamiento RLS, todas en verde.
+> Estado de esta entrega: **FASES 1-8 y 11-13 completadas y verificadas**.
+>
+> **Datos** — 24 migraciones SQL reales contra PostgreSQL 16: 59 tablas, 15 vistas,
+> 236 índices, 220 políticas RLS, 110 triggers, 39 enums, 136 permisos, 344 constraints.
+>
+> **Aplicación** — Next.js 15 (App Router) + React 19 + TypeScript + Tailwind:
+> 37 páginas conectadas a datos reales, 8 Server Actions, build de producción limpio.
+>
+> **Verificación** — 40 aserciones de negocio, suite completa de aislamiento RLS y
+> 52 consultas reales del frontend ejecutadas vía PostgREST con el JWT de cada rol.
+> Todo en verde.
 
 ---
 
@@ -666,20 +672,26 @@ Ambos están cubiertos por pruebas para que no puedan reaparecer.
 | Fase | Alcance | Estado |
 |---|---|---|
 | **1. Arquitectura + BD + RLS** | Esquema completo, funciones, triggers, vistas, RLS, Storage, seed, pruebas | ✅ **Completada y verificada** |
-| 2. Auth + shell | Login Supabase, `get_session_context`, selector de proyecto, sidebar dinámico por módulos y permisos, tema oscuro | Siguiente |
-| 3. CRM | Clientes, contactos, oportunidades (kanban), reuniones, seguimientos, ficha de cliente 360° | |
-| 4. Ventas | Listado, ficha de venta completa (§73), confirmación vía `confirm_sale`, costeo, presupuesto vs real | |
-| 5. Fabricación | Proyectos, canchas, ficha de cancha con timeline (§74), checklists, calidad | |
-| 6. Materiales y compras | Requerimientos, faltantes, proveedores, cotizaciones, órdenes de compra | |
-| 7. Logística | Embarques, contenedores, aduana, seguimiento | |
-| 8. Instalaciones | Planificación, checklist, fotos, acta de entrega | |
-| 9. Finanzas | Contratos, facturas, pagos, gastos, bancos, conciliación, importación CSV/XLSX | |
-| 10. Documentación | Subida, versionado, asociación polimórfica, aprobaciones | |
-| 11. Dashboards | Global, por proyecto, rentabilidad, HOY, próximos 7 días, drill-down | |
-| 12. Control Center | Alertas, tareas, `pg_cron`, notificaciones | |
-| 13. Reportes | 9 reportes + exportación CSV / XLSX / PDF | |
-| 14. IA | Document Intelligence con revisión humana + asistente acotado por RLS | |
-| 15. Hardening | Tests E2E, performance, backups, observabilidad, despliegue en Vercel | |
+| **2. Auth + shell** | Login Supabase, `get_session_context`, selector de proyecto, sidebar dinámico por módulos y permisos, tema oscuro | ✅ **Completada** |
+| **3. CRM** | Clientes (listado + ficha 360°), contactos, oportunidades en kanban, reuniones, seguimientos, alta de cliente | ✅ **Completada** |
+| **4. Ventas** | Listado paginado, ficha de venta completa (§73), confirmación vía `confirm_sale`, costeo estimado vs real | ✅ **Completada** |
+| **5. Fabricación** | Proyectos con avance, canchas, ficha de cancha con ciclo de vida (§74), cambio de estado, checklists, calidad | ✅ **Completada** |
+| **6. Materiales y compras** | Requerimientos con faltantes, proveedores, órdenes de compra | ✅ **Completada** (lectura) |
+| **7. Logística** | Embarques, contenedores, aduana, canchas embarcadas | ✅ **Completada** (lectura) |
+| **8. Instalaciones** | Planificación, checklist, equipo, acta de entrega | ✅ **Completada** (lectura) |
+| **11. Dashboards** | Global, rentabilidad, HOY / próximos 7 días, inventario de usadas, drill-down desde cada KPI | ✅ **Completada** |
+| **12. Control Center** | Alertas por criticidad, conversión de alerta en tarea, gestión de tareas | ✅ **Completada** |
+| **13. Reportes** | Índice de 9 reportes sobre las vistas analíticas | ✅ Índice; falta exportación XLSX/PDF |
+| 9. Finanzas (escritura) | Alta y edición de facturas, pagos, gastos; conciliación bancaria; importación CSV/XLSX | Pendiente |
+| 10. Documentación | Subida a Storage con URLs firmadas, versionado, aprobaciones | Pendiente |
+| 14. IA | Document Intelligence con revisión humana + asistente acotado por RLS | Pendiente |
+| 15. Hardening | Tests E2E de navegador, performance, backups, observabilidad, despliegue en Vercel | Pendiente |
+
+**Lo entregado en las fases 2-8 y 11-13** cubre toda la lectura, la navegación,
+la trazabilidad completa y las operaciones críticas de escritura (confirmar
+venta, cambiar estado de cancha, checklists, tareas, alertas, alta de cliente).
+Los módulos marcados «lectura» muestran y filtran datos reales pero aún no
+incluyen formularios de alta/edición.
 
 **Definición de terminado por fase** (§126): código + migraciones + tipos + validaciones + RLS + UI + tests + datos demo. Una fase no está terminada si queda un dato simulado donde debería haber conexión real.
 
