@@ -19,23 +19,39 @@ begin;
 -- 1. USUARIOS
 -- Password de todos los usuarios demo: Padel2026!
 -- ---------------------------------------------------------------------
+-- Los 4 campos "*_token"/"email_change" van con '' explicito, no NULL.
+-- GoTrue lee estas columnas en un tipo que no admite NULL: si quedan en
+-- NULL (el default de la tabla cuando no se listan en el INSERT), la
+-- lectura del usuario truena del lado de GoTrue con 500
+-- "unexpected_failure" al iniciar sesion -- no es un rechazo de
+-- credenciales, es una lectura que nunca llega a comparar la contrasena.
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
-  email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+  email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change
 ) values
   ('00000000-0000-0000-0000-000000000000','b0000000-0000-4000-8000-000000000001','authenticated','authenticated',
    'ernesto@padelbusiness.com',  crypt('Padel2026!', gen_salt('bf')), now(),
-   '{"provider":"email","providers":["email"]}', '{"full_name":"Ernesto Sodom"}', now(), now()),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Ernesto Sodom"}', now(), now(), '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000','b0000000-0000-4000-8000-000000000002','authenticated','authenticated',
    'comercial@padelbusiness.com', crypt('Padel2026!', gen_salt('bf')), now(),
-   '{"provider":"email","providers":["email"]}', '{"full_name":"Laura Fernandez"}', now(), now()),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Laura Fernandez"}', now(), now(), '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000','b0000000-0000-4000-8000-000000000003','authenticated','authenticated',
    'operaciones@padelbusiness.com', crypt('Padel2026!', gen_salt('bf')), now(),
-   '{"provider":"email","providers":["email"]}', '{"full_name":"Marco Rossi"}', now(), now()),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Marco Rossi"}', now(), now(), '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000','b0000000-0000-4000-8000-000000000004','authenticated','authenticated',
    'finanzas@padelbusiness.com', crypt('Padel2026!', gen_salt('bf')), now(),
-   '{"provider":"email","providers":["email"]}', '{"full_name":"Ana Molina"}', now(), now())
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Ana Molina"}', now(), now(), '', '', '', '')
 on conflict (id) do nothing;
+
+-- Repara instalaciones ya sembradas antes de este fix, donde esas
+-- columnas quedaron en NULL.
+update auth.users
+   set confirmation_token = coalesce(confirmation_token, ''),
+       recovery_token = coalesce(recovery_token, ''),
+       email_change_token_new = coalesce(email_change_token_new, ''),
+       email_change = coalesce(email_change, '')
+ where id::text like 'b0000000-%';
 
 -- Sin esto, `signInWithPassword` devuelve 400 "Invalid login credentials"
 -- aunque el usuario y el hash de la contrasena sean correctos: GoTrue

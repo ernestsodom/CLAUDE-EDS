@@ -42,7 +42,13 @@ create table if not exists auth.users (
   raw_app_meta_data   jsonb not null default '{}'::jsonb,
   raw_user_meta_data  jsonb not null default '{}'::jsonb,
   created_at          timestamptz not null default now(),
-  updated_at          timestamptz not null default now()
+  updated_at          timestamptz not null default now(),
+  -- Presentes solo para que el INSERT de seed.sql (que los fija en '' a
+  -- proposito, ver el comentario alli) valga igual en el shim.
+  confirmation_token      varchar(255) not null default '',
+  recovery_token          varchar(255) not null default '',
+  email_change_token_new  varchar(255) not null default '',
+  email_change            varchar(255) not null default ''
 );
 
 -- Subconjunto de auth.identities: seed.sql inserta aqui la fila que
