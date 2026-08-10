@@ -4,26 +4,29 @@ Sistema operativo de gestión del negocio de canchas de pádel: fabricación,
 comercialización, exportación, logística, instalación y gestión financiera,
 para Europa y Argentina.
 
-**Estado: FASES 1-14 completadas y verificadas.**
+**Estado: las 15 fases completadas y verificadas.**
 Base de datos + seguridad, aplicación Next.js conectada a datos reales,
 formularios de alta y edición para las 19 entidades del negocio, gestión
-documental sobre Supabase Storage, conciliación bancaria e IA con revisión
-humana obligatoria.
+documental sobre Supabase Storage, conciliación bancaria, IA con revisión
+humana obligatoria, y el hardening operativo para producción: exportación
+real de reportes, motor de alertas con disparo automático, healthcheck,
+backups, cabeceras de seguridad, CI y pruebas E2E de navegador.
 
 | | |
 |---|---|
-| Tablas | 59 |
-| Vistas analíticas | 15 |
-| Índices | 236 |
-| Políticas RLS | 220 |
+| Tablas | 60 |
+| Vistas analíticas | 18 |
+| Índices | 239 |
+| Políticas RLS | 224 (198 tablas + 26 Storage) |
 | Triggers | 110 |
 | Enums | 39 |
-| Permisos granulares | 136 |
-| Constraints | 344 |
-| Migraciones SQL | 26, ejecutables y probadas |
+| Permisos granulares | 139 |
+| Constraints | 351 |
+| Migraciones SQL | 27, ejecutables y probadas |
 | Páginas de la aplicación | 59 |
 | Server Actions | 71 |
-| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas, 29 escrituras y 42 comprobaciones de documentos, banca e IA |
+| Rutas API | 3 (`/api/health`, `/api/cron/alerts`, `/api/export`) |
+| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas, 29 escrituras y 42 comprobaciones de documentos, banca e IA — automatizadas en CI |
 
 La arquitectura completa está en **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
 
@@ -50,7 +53,7 @@ en PostgreSQL**, no por filtros en el frontend.
 cp .env.example .env.local     # y completa las claves del proyecto
 npm install
 supabase start
-supabase db reset              # aplica las 26 migraciones + seed.sql
+supabase db reset              # aplica las 27 migraciones + seed.sql
 npm run dev                    # http://localhost:3000
 ```
 
@@ -97,7 +100,7 @@ padel-platform/
 ├── types/       Tipos del dominio (regenerables con supabase gen types)
 ├── docs/ARCHITECTURE.md      Arquitectura técnica completa (ERD, RLS, KPIs, IA, plan)
 ├── supabase/
-│   ├── migrations/           26 migraciones SQL versionadas
+│   ├── migrations/           27 migraciones SQL versionadas
 │   ├── seed.sql              Datos demo realistas (idempotente)
 │   └── tests/
 │       ├── 00_supabase_shim.sql     Emula Supabase sobre PostgreSQL vanilla
@@ -107,6 +110,11 @@ padel-platform/
 │       ├── 04_frontend_writes.mjs   Las altas y ediciones, con triggers y RLS
 │       ├── 05_reconciliation_ai.mjs Conciliación, versionado documental y revisión de IA
 │       └── run.sh                   Runner completo
+├── app/api/     health · cron/alerts · export (rutas de servidor, FASE 15)
+├── scripts/backup.sh         pg_dump del esquema de negocio (npm run db:backup)
+├── e2e/                      Pruebas de navegador con Playwright (necesitan BASE_URL)
+├── .github/workflows/        CI en cada push/PR + cron de alertas por hora
+├── vercel.json                Cron de alertas para despliegue en Vercel
 └── .env.example
 ```
 
@@ -193,9 +201,27 @@ preguntas sobre el negocio. No escribe nada por su cuenta:
 Sin `AI_PROVIDER_API_KEY` la aplicación funciona entera; solo quedan inactivas
 esas dos pantallas.
 
-## Siguiente fase
+## Hardening operativo (FASE 15)
 
-FASE 15 — Hardening: pruebas E2E de navegador, exportación XLSX/PDF de reportes,
-observabilidad, backups y despliegue en Vercel.
+- **Exportación real.** `/api/export?project=EUROPA&entity=ventas&format=xlsx`
+  sirve CSV y XLSX de los nueve reportes con la misma RLS y el mismo permiso
+  `<módulo>.export` que la pantalla. Sin dependencias: el XLSX es el ZIP + XML
+  mínimo que Excel necesita.
+- **El motor de alertas se ejecuta solo.** `app.generate_alerts()` no tenía
+  ninguna vía de disparo en producción. `/api/cron/alerts`, protegido por
+  secreto compartido, lo dispara vía Vercel Cron (`vercel.json`) o el workflow
+  `.github/workflows/alerts-cron.yml` (cada hora, sin depender de Vercel).
+- **`/api/health`** distingue "la app responde" de "la base responde".
+- **`error.tsx` / `loading.tsx` / `not-found.tsx` / `global-error.tsx`** evitan
+  la pantalla en blanco de Next sin filtrar detalle técnico al usuario.
+- **`npm run db:backup`** (`scripts/backup.sh`) vuelca `public` y `app` con
+  `pg_dump -Fc`; complementa el PITR de Supabase sobre `auth` y `storage`.
+- **Cabeceras de seguridad** en `next.config.mjs`: no sustituyen a RLS, cierran
+  lo que RLS no puede tocar porque ocurre en el navegador.
+- **CI** (`.github/workflows/ci.yml`): `tsc`, `next build` y las cinco suites
+  de `run.sh` contra un PostgreSQL de servicio, en cada push y PR.
+- **E2E** (`playwright.config.ts`, `e2e/smoke.spec.ts`): camino crítico con una
+  sesión real de Supabase Auth. Requiere `BASE_URL` de un entorno desplegado;
+  se salta explícitamente si no está configurado.
 
-El plan completo de las 15 fases está en `docs/ARCHITECTURE.md` §18.
+Con esto, las 15 fases del plan en `docs/ARCHITECTURE.md` §18 están entregadas.

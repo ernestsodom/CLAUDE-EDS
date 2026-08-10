@@ -1,0 +1,38 @@
+name: Motor de alertas (hora en hora)
+
+# Alternativa a `vercel.json` que no depende del plan de Vercel (el plan
+# Hobby limita los Cron Jobs a una ejecucion diaria) ni de que el
+# despliegue viva en Vercel. Llama al mismo endpoint protegido con el
+# mismo secreto; basta con configurar los dos secrets del repositorio.
+#
+# Requiere en Settings > Secrets and variables > Actions:
+#   APP_URL             https://tu-dominio.vercel.app
+#   ALERTS_CRON_SECRET   el mismo valor que en el entorno de la app
+
+on:
+  schedule:
+    - cron: "5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar app.generate_alerts()
+        run: |
+          set -euo pipefail
+          if [ -z "${APP_URL:-}" ] || [ -z "${ALERTS_CRON_SECRET:-}" ]; then
+            echo "Faltan los secrets APP_URL y/o ALERTS_CRON_SECRET; se omite esta ejecucion." >&2
+            exit 0
+          fi
+          status=$(curl -sS -o /tmp/response.json -w '%{http_code}' \
+            -X POST "$APP_URL/api/cron/alerts" \
+            -H "Authorization: Bearer $ALERTS_CRON_SECRET")
+          cat /tmp/response.json
+          if [ "$status" -ge 300 ]; then
+            echo "El endpoint respondio $status" >&2
+            exit 1
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          ALERTS_CRON_SECRET: ${{ secrets.ALERTS_CRON_SECRET }}

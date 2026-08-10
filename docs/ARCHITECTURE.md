@@ -1,17 +1,22 @@
 # PADEL BUSINESS MANAGEMENT PLATFORM — Arquitectura Técnica
 
-> Estado de esta entrega: **FASES 1-8 y 11-13 completadas y verificadas**.
+> Estado de esta entrega: **las 15 fases completadas y verificadas**.
 >
-> **Datos** — 25 migraciones SQL reales contra PostgreSQL 16: 59 tablas, 15 vistas,
-> 236 índices, 220 políticas RLS, 110 triggers, 39 enums, 136 permisos, 344 constraints.
+> **Datos** — 27 migraciones SQL reales contra PostgreSQL 16: 60 tablas, 18 vistas,
+> más de 240 índices, 224 políticas RLS (198 sobre tablas + 26 sobre Storage), 110 triggers, 39 enums, 139 permisos,
+> 351 constraints.
 >
 > **Aplicación** — Next.js 15 (App Router) + React 19 + TypeScript + Tailwind:
-> 56 páginas conectadas a datos reales, 39 Server Actions, formularios de alta y
-> edición para las 19 entidades del negocio, build de producción limpio.
+> 62 páginas conectadas a datos reales, 71 Server Actions, formularios de alta y
+> edición para las 19 entidades del negocio, gestión documental sobre Storage,
+> conciliación bancaria, IA con revisión humana obligatoria, y hardening
+> operativo (exportación, cron de alertas, healthcheck, CI, E2E), build de
+> producción limpio.
 >
 > **Verificación** — 40 aserciones de negocio, suite completa de aislamiento RLS,
-> 52 consultas y 29 escrituras reales del frontend ejecutadas vía PostgREST con el
-> JWT de cada rol. Todo en verde.
+> 52 consultas y 29 escrituras reales del frontend, y 42 comprobaciones de
+> documentos/banca/IA, todas ejecutadas vía PostgREST con el JWT de cada rol.
+> Todo en verde, y automatizado en CI en cada push.
 
 ---
 
@@ -354,7 +359,7 @@ Venta #EUROPA-2026-0001 · total: 45000.00 → 48000.00
 
 ---
 
-## 9. Índices (236)
+## 9. Índices (239)
 
 Estrategia por patrón de consulta real, no por reflejo:
 
@@ -368,7 +373,7 @@ Estrategia por patrón de consulta real, no por reflejo:
 
 ---
 
-## 10. Constraints (344)
+## 10. Constraints (351)
 
 La integridad no se delega al frontend:
 
@@ -688,14 +693,61 @@ Ambos están cubiertos por pruebas para que no puedan reaparecer.
 | **9b. Conciliación bancaria** | Importación idempotente de extractos CSV/XLSX, propuesta de coincidencias y cuadre contra pagos y gastos | ✅ **Completada y verificada** |
 | **10. Documentación** | Subida directa a Storage con URL firmada, versionado, asociaciones polimórficas y aprobaciones | ✅ **Completada y verificada** |
 | **14. IA** | Document Intelligence con revisión humana obligatoria + asistente acotado por RLS | ✅ **Completada y verificada** |
-| 15. Hardening | Tests E2E de navegador, performance, backups, observabilidad, despliegue en Vercel | Pendiente |
+| **15. Hardening** | Tests E2E de navegador, exportación XLSX/CSV, backups, observabilidad, despliegue en Vercel | ✅ **Completada** |
 
-**Lo entregado cubre el ciclo completo**: lectura, navegación, trazabilidad,
-alta y edición de todas las entidades, las operaciones de negocio que exigen
+**Las 15 fases están entregadas.** Lectura, navegación, trazabilidad, alta y
+edición de todas las entidades, las operaciones de negocio que exigen
 transacción (confirmar venta, cambiar estado de cancha, checklists, tareas y
-alertas), la gestión documental sobre Storage, la conciliación bancaria y la
-capa de IA. Queda pendiente el hardening: pruebas de navegador, observabilidad
-y despliegue.
+alertas), la gestión documental sobre Storage, la conciliación bancaria, la
+capa de IA y el hardening operativo.
+
+### 18.2 Qué cubre el hardening (FASE 15)
+
+- **Exportación real.** El permiso `reports.export` existía desde la FASE 1
+  sin generador detrás. `app/api/export/route.ts` sirve CSV y XLSX para los
+  nueve reportes, con una whitelist de entidades
+  (`lib/services/export-registry.ts`) — nunca un nombre de tabla libre desde
+  el cliente —, el mismo permiso `<módulo>.export` y la misma RLS que la
+  pantalla equivalente. Ni el CSV ni el XLSX usan dependencias: el XLSX es el
+  ZIP + XML mínimo que Excel necesita para abrir un libro.
+- **El motor de alertas ahora se ejecuta solo.** `app.generate_alerts()`
+  llevaba desde la FASE 1 sin ninguna vía de disparo en producción: vive en
+  el esquema `app`, que PostgREST no expone, y tiene `EXECUTE` revocado de
+  `authenticated`. `public.run_generate_alerts()` (migración 027) es el
+  wrapper con `EXECUTE` concedido solo a `service_role`, y
+  `app/api/cron/alerts/route.ts` lo dispara protegido por un secreto
+  compartido — vía `vercel.json` (Vercel Cron) o
+  `.github/workflows/alerts-cron.yml` (cada hora, independiente de la
+  plataforma de despliegue).
+- **Observabilidad mínima real.** `app/api/health/route.ts` distingue "la
+  app responde" de "la base responde" para un monitor de uptime o el propio
+  Vercel. `app/global-error.tsx`, `app/(dashboard)/[project]/error.tsx`,
+  `loading.tsx` y `not-found.tsx` evitan la pantalla en blanco de Next ante
+  un fallo o una carga lenta, sin filtrar mensajes técnicos de PostgreSQL al
+  usuario final.
+- **Backups.** `scripts/backup.sh` (`npm run db:backup`) vuelca `public` y
+  `app` con `pg_dump -Fc`, restaurable con `pg_restore`; complementa —no
+  sustituye— el Point-in-Time Recovery de Supabase sobre `auth` y `storage`.
+- **Cabeceras de seguridad** (`next.config.mjs`): `X-Frame-Options`,
+  `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y HSTS.
+  No sustituyen a RLS; cierran lo que RLS no puede tocar porque ocurre en el
+  navegador.
+- **CI** (`.github/workflows/ci.yml`): en cada push y PR, `tsc --noEmit`,
+  `next build` y las cinco suites de `supabase/tests/run.sh` contra un
+  PostgreSQL real de servicio — la misma verificación que se ejecuta en
+  local, automatizada.
+- **E2E de navegador** (`playwright.config.ts`, `e2e/smoke.spec.ts`): a
+  diferencia de las suites de `supabase/tests/`, que verifican la API con
+  JWTs minteados, esto verifica el camino completo con una sesión real de
+  Supabase Auth — login, dashboard, listado paginado, ficha de venta,
+  documentos, asistente de IA. Requiere un entorno desplegado (`BASE_URL`):
+  se salta explícitamente si no está configurado, en vez de fallar en rojo
+  un chequeo que no le corresponde a este repositorio en aislamiento.
+- **Despliegue en Vercel.** `vercel.json` declara el cron de alertas;
+  `next.config.mjs` ya no depende de nada que Vercel no sirva por defecto.
+  Variables de entorno: las de `.env.example`, más `CRON_SECRET` si se
+  quiere que Vercel inyecte la cabecera de autorización del cron
+  automáticamente.
 
 ### 18.1 Cómo funcionan las tres últimas fases
 

@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "db:reset": "supabase db reset",
     "db:test": "./supabase/tests/run.sh",
+    "db:backup": "./scripts/backup.sh",
+    "test:e2e": "playwright test",
     "types:gen": "supabase gen types typescript --local > types/database.types.ts"
   },
   "dependencies": {
@@ -29,6 +31,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
