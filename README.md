@@ -83,7 +83,7 @@ Entrar con cada uno muestra el aislamiento por proyecto y por permisos funcionan
 ## Estructura
 
 ```
-padel-platform/
+./
 ├── app/
 │   ├── (auth)/login              Login real contra Supabase Auth
 │   └── (dashboard)/[project]/    El proyecto vive en la URL, no en estado global
