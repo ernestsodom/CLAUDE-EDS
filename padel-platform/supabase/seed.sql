@@ -37,6 +37,18 @@ insert into auth.users (
    '{"provider":"email","providers":["email"]}', '{"full_name":"Ana Molina"}', now(), now())
 on conflict (id) do nothing;
 
+-- Sin esto, `signInWithPassword` devuelve 400 "Invalid login credentials"
+-- aunque el usuario y el hash de la contrasena sean correctos: GoTrue
+-- exige una fila en auth.identities que vincule el proveedor "email" a
+-- cada usuario. `insert into auth.users` sola no la crea.
+insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+select gen_random_uuid(), u.id, u.id::text,
+       jsonb_build_object('sub', u.id::text, 'email', u.email),
+       'email', now(), now(), now()
+from auth.users u
+where u.id::text like 'b0000000-%'
+on conflict (provider_id, provider) do nothing;
+
 -- El trigger on_auth_user_created ya creo los perfiles; ajustamos datos.
 insert into public.profiles (id, email, full_name, active)
 select id, email, raw_user_meta_data->>'full_name', true from auth.users

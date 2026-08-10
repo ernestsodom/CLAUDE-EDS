@@ -45,6 +45,25 @@ create table if not exists auth.users (
   updated_at          timestamptz not null default now()
 );
 
+-- Subconjunto de auth.identities: seed.sql inserta aqui la fila que
+-- vincula el proveedor "email" a cada usuario (lo exige GoTrue en un
+-- proyecto real; el shim la necesita solo para que el mismo seed.sql
+-- corra sin tocarlo).
+create table if not exists auth.identities (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid not null references auth.users(id) on delete cascade,
+  provider_id       text not null,
+  identity_data     jsonb not null default '{}'::jsonb,
+  provider          text not null,
+  last_sign_in_at   timestamptz,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now(),
+
+  constraint identities_provider_id_provider_uk unique (provider_id, provider)
+);
+
+grant select on auth.identities to authenticated, service_role;
+
 -- auth.uid() lee el claim `sub` del JWT publicado en request.jwt.claims.
 create or replace function auth.uid()
 returns uuid
