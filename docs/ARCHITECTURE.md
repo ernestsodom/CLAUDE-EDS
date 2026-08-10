@@ -685,16 +685,66 @@ Ambos están cubiertos por pruebas para que no puedan reaparecer.
 | **12. Control Center** | Alertas por criticidad, conversión de alerta en tarea, gestión de tareas | ✅ **Completada** |
 | **13. Reportes** | Índice de 9 reportes sobre las vistas analíticas | ✅ Índice; falta exportación XLSX/PDF |
 | **9. Escritura completa** | Formularios de alta y edición para las 19 entidades: CRM, ventas con líneas y costos, facturas con líneas, pagos, contratos, gastos, bancos, proveedores, órdenes de compra con líneas, canchas, fabricación, materiales, logística, instalaciones y calidad | ✅ **Completada** |
-| 9b. Conciliación bancaria | Importación de extractos CSV/XLSX y cuadre contra pagos | Pendiente |
-| 10. Documentación | Subida a Storage con URLs firmadas, versionado, aprobaciones | Pendiente |
-| 14. IA | Document Intelligence con revisión humana + asistente acotado por RLS | Pendiente |
+| **9b. Conciliación bancaria** | Importación idempotente de extractos CSV/XLSX, propuesta de coincidencias y cuadre contra pagos y gastos | ✅ **Completada y verificada** |
+| **10. Documentación** | Subida directa a Storage con URL firmada, versionado, asociaciones polimórficas y aprobaciones | ✅ **Completada y verificada** |
+| **14. IA** | Document Intelligence con revisión humana obligatoria + asistente acotado por RLS | ✅ **Completada y verificada** |
 | 15. Hardening | Tests E2E de navegador, performance, backups, observabilidad, despliegue en Vercel | Pendiente |
 
 **Lo entregado cubre el ciclo completo**: lectura, navegación, trazabilidad,
-alta y edición de todas las entidades, y las operaciones de negocio que exigen
+alta y edición de todas las entidades, las operaciones de negocio que exigen
 transacción (confirmar venta, cambiar estado de cancha, checklists, tareas y
-alertas). Queda fuera la gestión documental sobre Storage, la conciliación
-bancaria y la capa de IA.
+alertas), la gestión documental sobre Storage, la conciliación bancaria y la
+capa de IA. Queda pendiente el hardening: pruebas de navegador, observabilidad
+y despliegue.
+
+### 18.1 Cómo funcionan las tres últimas fases
+
+**Documentación (FASE 10).** La subida ocurre en tres pasos: el servidor
+autoriza y firma un permiso de subida para una ruta concreta
+(`{PROJECT_CODE}/{entity_type}/{entity_id}/{uuid}_{filename}`), el navegador
+sube el binario directamente a Storage con ese ticket, y una Server Action
+registra los metadatos en PostgreSQL. El fichero nunca atraviesa el servidor de
+Next, no hay límite de payload de Server Action, y la autorización sigue siendo
+una Storage policy evaluada bajo el JWT del usuario. Ninguna operación usa la
+service role. Las descargas se firman con dos minutos de validez: un enlace
+copiado caduca solo. El número de versión lo asigna
+`public.add_document_version` dentro de la misma transacción, así que dos
+subidas simultáneas no pueden compartir versión.
+
+**Conciliación bancaria (FASE 9b).** El lector de CSV y XLSX no tiene
+dependencias: el XLSX es un ZIP con XML dentro y se descomprime con `zlib`. El
+extracto se sube a Storage —queda archivado para auditoría— y el servidor lo
+interpreta y devuelve una vista previa con el mapeo de columnas propuesto, las
+primeras filas y las líneas que no entiende. Solo entonces aparece el botón de
+importar. La idempotencia la da un índice único `(bank_account_id,
+import_hash)`: reimportar el mismo extracto no duplica nada, y dos movimientos
+legítimamente idénticos el mismo día se conservan ambos porque el hash incluye
+el ordinal de repetición. Conciliar valida en PostgreSQL
+(`reconcile_bank_transaction`) que coincidan proyecto, importe y dirección del
+dinero, y que un pago no se concilie dos veces.
+
+**IA (FASE 14).** Dos capacidades, ninguna de ellas con permiso de escritura
+sobre el negocio:
+
+- *Document Intelligence* extrae datos estructurados de facturas, BL, contratos
+  y cotizaciones con `output_config.format`, así que la respuesta viene validada
+  contra el esquema. Lo extraído se guarda en `ai_document_extractions` con
+  estado `EXTRAIDO` y ahí se queda. Tres capas lo garantizan: el constraint
+  `ai_extractions_applied_ck`, la revocación del `UPDATE` sobre las columnas de
+  revisión —ni el super admin puede firmarse la aprobación con un `PATCH`— y las
+  funciones `review_ai_extraction` / `mark_ai_extraction_applied`, que exigen
+  `documents.approve` y dejan registrado quién decidió y cuándo. Al aplicar, lo
+  que se escribe son los valores que la persona confirmó en pantalla, no el JSON
+  del modelo, que queda archivado como evidencia.
+- *Asistente*: repertorio cerrado de ocho consultas parametrizadas sobre las
+  vistas analíticas. El modelo elige cuál usar y con qué parámetros; no redacta
+  SQL. Cada consulta se ejecuta con el cliente Supabase de la sesión, así que RLS
+  acota la respuesta igual que acota las pantallas: un comercial de EUROPA no
+  obtiene datos de ATILA aunque los pida explícitamente, porque la base no se los
+  devuelve. Cada respuesta muestra de qué herramientas sale y cuántas filas leyó.
+
+La IA es opcional: sin `AI_PROVIDER_API_KEY` la aplicación funciona entera y
+solo quedan inactivas esas dos pantallas.
 
 ### Cómo se construyen los formularios
 

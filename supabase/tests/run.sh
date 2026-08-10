@@ -38,6 +38,9 @@ if [ -z "${DATABASE_URL:-}" ]; then
   export DATABASE_URL="postgresql://postgres@/padel?host=$TMPDIR_PG/run&port=55432"
   psql "postgresql://postgres@/postgres?host=$TMPDIR_PG/run&port=55432" -qc 'create database padel'
   APPLY_SHIM=1
+  # El cluster efimero solo escucha en socket unix (listen_addresses=''),
+  # asi que PostgREST tiene que conectarse por ahi y no por TCP.
+  PGRST_URI_DEFAULT="postgres://authenticator:authpass@/padel?host=$TMPDIR_PG/run&port=55432"
 else
   APPLY_SHIM="${APPLY_SHIM:-0}"
 fi
@@ -85,12 +88,27 @@ if command -v postgrest >/dev/null && command -v node >/dev/null; then
   JWT_SECRET="${JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters-long}"
   psql -q "$DATABASE_URL" -c "alter role authenticator with login password 'authpass'" >/dev/null 2>&1 || true
 
-  PGRST_DB_URI="${PGRST_DB_URI:-postgres://authenticator:authpass@127.0.0.1:55432/padel}" \
+  PGRST_LOG="${TMPDIR:-/tmp}/pgrst-test.log"
+  PGRST_DB_URI="${PGRST_DB_URI:-${PGRST_URI_DEFAULT:-postgres://authenticator:authpass@127.0.0.1:55432/padel}}" \
   PGRST_DB_SCHEMAS=public PGRST_DB_ANON_ROLE=anon \
   PGRST_JWT_SECRET="$JWT_SECRET" PGRST_SERVER_PORT=3999 \
-    postgrest > /tmp/pgrst-test.log 2>&1 &
+    postgrest > "$PGRST_LOG" 2>&1 &
   PGRST_PID=$!
-  sleep 5
+  # PostgREST no responde hasta que ha cargado el schema cache. Esperar un
+  # numero fijo de segundos hace que la suite falle en maquinas lentas y
+  # pierda tiempo en las rapidas: se espera al estado real.
+  for _ in $(seq 1 40); do
+    if curl -fsS "http://127.0.0.1:3999/projects?limit=1" >/dev/null 2>&1 \
+       || curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:3999/" 2>/dev/null | grep -qE '^(200|401|404)$'; then
+      break
+    fi
+    sleep 0.5
+  done
+  if ! curl -sS -o /dev/null "http://127.0.0.1:3999/" 2>/dev/null; then
+    kill $PGRST_PID 2>/dev/null
+    red "PostgREST no arranco. Log en $PGRST_LOG:"; tail -20 "$PGRST_LOG"; exit 1
+  fi
+
   API_URL=http://127.0.0.1:3999 JWT_SECRET="$JWT_SECRET" node "$HERE/03_frontend_queries.mjs" || {
     kill $PGRST_PID 2>/dev/null; red "FALLO en las consultas del frontend"; exit 1;
   }
@@ -98,6 +116,11 @@ if command -v postgrest >/dev/null && command -v node >/dev/null; then
   bold "== Escrituras del frontend (altas y ediciones) =="
   API_URL=http://127.0.0.1:3999 JWT_SECRET="$JWT_SECRET" node "$HERE/04_frontend_writes.mjs" || {
     kill $PGRST_PID 2>/dev/null; red "FALLO en las escrituras del frontend"; exit 1;
+  }
+
+  bold "== Conciliacion, documentos y revision de IA =="
+  API_URL=http://127.0.0.1:3999 JWT_SECRET="$JWT_SECRET" node "$HERE/05_reconciliation_ai.mjs" || {
+    kill $PGRST_PID 2>/dev/null; red "FALLO en conciliacion / documentos / IA"; exit 1;
   }
   kill $PGRST_PID 2>/dev/null
 else

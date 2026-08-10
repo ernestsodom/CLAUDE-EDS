@@ -20,18 +20,28 @@ export function Card({
 
 export function SectionTitle({
   children,
+  title,
+  subtitle,
   action,
   className,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
+  /** Alternativa a `children` cuando la seccion tambien lleva subtitulo. */
+  title?: ReactNode;
+  subtitle?: ReactNode;
   action?: ReactNode;
   className?: string;
 }) {
   return (
-    <div className={cn('mb-3 flex items-center justify-between gap-4', className)}>
-      <h2 className="text-xs font-semibold uppercase tracking-widest text-content-muted">
-        {children}
-      </h2>
+    <div className={cn('mb-3 flex items-start justify-between gap-4', className)}>
+      <div className="min-w-0">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-content-muted">
+          {children ?? title}
+        </h2>
+        {subtitle ? (
+          <p className="mt-1 text-2xs normal-case tracking-normal text-content-muted">{subtitle}</p>
+        ) : null}
+      </div>
       {action}
     </div>
   );
