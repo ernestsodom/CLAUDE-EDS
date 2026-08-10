@@ -716,9 +716,11 @@ capa de IA y el hardening operativo.
   `authenticated`. `public.run_generate_alerts()` (migración 027) es el
   wrapper con `EXECUTE` concedido solo a `service_role`, y
   `app/api/cron/alerts/route.ts` lo dispara protegido por un secreto
-  compartido — vía `vercel.json` (Vercel Cron) o
-  `.github/workflows/alerts-cron.yml` (cada hora, independiente de la
-  plataforma de despliegue).
+  compartido — vía `vercel.json` (Vercel Cron, **diario**: el plan Hobby
+  rechaza el despliegue si la frecuencia es mayor) o
+  `.github/workflows/alerts-cron.yml` (cada hora, independiente del plan y
+  de la plataforma de despliegue, y por tanto la opción recomendada si se
+  quiere frecuencia horaria).
 - **Observabilidad mínima real.** `app/api/health/route.ts` distingue "la
   app responde" de "la base responde" para un monitor de uptime o el propio
   Vercel. `app/global-error.tsx`, `app/(dashboard)/[project]/error.tsx`,
