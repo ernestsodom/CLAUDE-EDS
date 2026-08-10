@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/supabase/server";
 import { withErrorHandling, NotFoundError, ValidationError } from "@/lib/errors";
 import { env } from "@/lib/env";
+import { sanitizeStorageFileName } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -34,9 +35,8 @@ export const POST = withErrorHandling(
     }
 
     // El primer segmento debe ser la organización: es lo que valida la política
-    // de Storage. El nombre se sanea para no romper la ruta.
-    const safeName = file.name.replace(/[^\w.\-]+/g, "_").slice(0, 120);
-    const storagePath = `${profile.organization_id}/comentarios/${id}/${Date.now()}-${safeName}`;
+    // de Storage. El nombre se sanea para no romper la ruta (tildes, "°", etc.).
+    const storagePath = `${profile.organization_id}/comentarios/${id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const { error: uploadError } = await supabase.storage

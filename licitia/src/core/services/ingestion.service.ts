@@ -23,6 +23,7 @@ import {
   summarizeLocal,
 } from "./heuristic.service";
 import { audit } from "./audit.service";
+import { sanitizeStorageFileName } from "@/lib/utils";
 import type { PageText } from "@/core/domain/types";
 import {
   ENGINE_LABELS,
@@ -777,8 +778,17 @@ async function expandZip(db: DB, params: StageParams, buffer: Buffer) {
       .single();
     if (!version) continue;
 
-    const path = `${params.organizationId}/${child.id}/1/${entry.fileName}`;
-    await db.storage.from("documents").upload(path, entry.buffer, { contentType: entry.mimeType });
+    const path = `${params.organizationId}/${child.id}/1/${sanitizeStorageFileName(entry.fileName)}`;
+    const { error: uploadError } = await db.storage
+      .from("documents")
+      .upload(path, entry.buffer, { contentType: entry.mimeType });
+    if (uploadError) {
+      // Mismo criterio que la subida directa: sin archivo, sin documento
+      // huérfano. Un ZIP con una entrada problemática no debe frenar al resto.
+      await db.from("documents").delete().eq("id", child.id);
+      logger.warn("zip_entry_upload_failed", { documentId: child.id, entry: entry.fileName, error: uploadError.message });
+      continue;
+    }
     await db.from("files").insert({
       version_id: version.id,
       storage_path: path,

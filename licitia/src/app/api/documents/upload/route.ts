@@ -5,6 +5,7 @@ import { withErrorHandling, ValidationError } from "@/lib/errors";
 import { env } from "@/lib/env";
 import { createDocumentWithFile } from "@/core/repositories/documents.repo";
 import { audit } from "@/core/services/audit.service";
+import { sanitizeStorageFileName } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -55,11 +56,18 @@ export const POST = withErrorHandling(async (request: Request) => {
     projectId,
   });
 
-  const storagePath = `${profile.organization_id}/${documentId}/1/${file.name}`;
+  // La ruta física va con el nombre saneado (Storage rechaza tildes, "°", etc.
+  // con "Invalid key"); el nombre original se conserva en file_name/title.
+  const storagePath = `${profile.organization_id}/${documentId}/1/${sanitizeStorageFileName(file.name)}`;
   const { error: uploadError } = await supabase.storage
     .from("documents")
     .upload(storagePath, buffer, { contentType: file.type, upsert: true });
-  if (uploadError) throw new Error(`Error subiendo a Storage: ${uploadError.message}`);
+  if (uploadError) {
+    // Sin archivo en Storage el documento no sirve de nada: se borra el
+    // registro para no dejar una fila huérfana que luego falle al procesar.
+    await supabase.from("documents").delete().eq("id", documentId);
+    throw new Error(`Error subiendo a Storage: ${uploadError.message}`);
+  }
 
   await supabase.from("files").update({ storage_path: storagePath }).eq("version_id", versionId);
 
