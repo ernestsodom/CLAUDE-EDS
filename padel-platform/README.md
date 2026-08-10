@@ -4,9 +4,11 @@ Sistema operativo de gestión del negocio de canchas de pádel: fabricación,
 comercialización, exportación, logística, instalación y gestión financiera,
 para Europa y Argentina.
 
-**Estado: FASES 1-9 y 11-13 completadas y verificadas.**
-Base de datos + seguridad, aplicación Next.js conectada a datos reales y
-formularios de alta y edición para las 19 entidades del negocio.
+**Estado: FASES 1-14 completadas y verificadas.**
+Base de datos + seguridad, aplicación Next.js conectada a datos reales,
+formularios de alta y edición para las 19 entidades del negocio, gestión
+documental sobre Supabase Storage, conciliación bancaria e IA con revisión
+humana obligatoria.
 
 | | |
 |---|---|
@@ -18,10 +20,10 @@ formularios de alta y edición para las 19 entidades del negocio.
 | Enums | 39 |
 | Permisos granulares | 136 |
 | Constraints | 344 |
-| Migraciones SQL | 25, ejecutables y probadas |
-| Páginas de la aplicación | 56 |
-| Server Actions | 39 |
-| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas y 29 escrituras del frontend |
+| Migraciones SQL | 26, ejecutables y probadas |
+| Páginas de la aplicación | 59 |
+| Server Actions | 71 |
+| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas, 29 escrituras y 42 comprobaciones de documentos, banca e IA |
 
 La arquitectura completa está en **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
 
@@ -48,7 +50,7 @@ en PostgreSQL**, no por filtros en el frontend.
 cp .env.example .env.local     # y completa las claves del proyecto
 npm install
 supabase start
-supabase db reset              # aplica las 24 migraciones + seed.sql
+supabase db reset              # aplica las 26 migraciones + seed.sql
 npm run dev                    # http://localhost:3000
 ```
 
@@ -58,7 +60,7 @@ npm run dev                    # http://localhost:3000
 ./supabase/tests/run.sh
 ```
 
-Levanta un cluster efímero, aplica todo y ejecuta las dos suites de pruebas.
+Levanta un cluster efímero, aplica todo y ejecuta las cinco suites de pruebas.
 
 ### Usuarios demo
 
@@ -89,13 +91,13 @@ padel-platform/
 │       │                         compras · logística · instalaciones · calidad · inventario
 │       ├── finanzas/             contratos · facturas · pagos · gastos · bancos · rentabilidad
 │       └── documentos · tareas · reportes · configuración
-├── components/  ui · dashboard · commercial · operations · finance · shared
-├── lib/         supabase · auth · permissions · services · validations · format
+├── components/  ui · dashboard · commercial · operations · finance · documents · ai · shared
+├── lib/         supabase · auth · permissions · services · validations · format · ai
 ├── actions/     Server Actions: única vía de escritura
 ├── types/       Tipos del dominio (regenerables con supabase gen types)
 ├── docs/ARCHITECTURE.md      Arquitectura técnica completa (ERD, RLS, KPIs, IA, plan)
 ├── supabase/
-│   ├── migrations/           24 migraciones SQL versionadas
+│   ├── migrations/           26 migraciones SQL versionadas
 │   ├── seed.sql              Datos demo realistas (idempotente)
 │   └── tests/
 │       ├── 00_supabase_shim.sql     Emula Supabase sobre PostgreSQL vanilla
@@ -103,6 +105,7 @@ padel-platform/
 │       ├── 02_rls_security.sql      Aislamiento multi-proyecto y escalada de privilegios
 │       ├── 03_frontend_queries.mjs  Las 52 consultas reales de las páginas, vía PostgREST
 │       ├── 04_frontend_writes.mjs   Las altas y ediciones, con triggers y RLS
+│       ├── 05_reconciliation_ai.mjs Conciliación, versionado documental y revisión de IA
 │       └── run.sh                   Runner completo
 └── .env.example
 ```
@@ -158,9 +161,41 @@ Tres reglas comunes a todos:
   PostgreSQL es quien garantiza que el dato no entra mal por ninguna otra vía.
 - **El borrado es lógico** (`deleted_at`) en toda entidad con valor histórico.
 
+## Documentos, banca e IA
+
+**Documentos.** El archivo va del navegador a Supabase Storage directamente,
+con un permiso de subida firmado para una ruta concreta. El binario no pasa por
+el servidor de Next y la `service_role` no interviene: quien autoriza es una
+Storage policy bajo el JWT del usuario. Todos los buckets son privados; cada
+descarga genera un enlace que caduca en dos minutos. El número de versión lo
+asigna PostgreSQL, no el cliente.
+
+**Conciliación bancaria.** El lector de CSV y XLSX no arrastra dependencias: un
+XLSX es un ZIP con XML dentro. El extracto se sube, el servidor lo interpreta y
+enseña lo que ha entendido —incluidas las filas que no puede leer— antes de
+importar nada. Reimportar el mismo extracto no duplica movimientos: hay un
+índice único por cuenta y huella. Conciliar comprueba en la base que coincidan
+importe y dirección del dinero, y que un pago no se use dos veces.
+
+**IA.** Extrae datos de facturas, BL, contratos y cotizaciones, y responde
+preguntas sobre el negocio. No escribe nada por su cuenta:
+
+- Una extracción no puede marcarse como aplicada si no está aprobada por una
+  persona: lo impide un constraint.
+- Las columnas de revisión no admiten `UPDATE` directo — ni siquiera del super
+  admin. Solo las escribe la función que comprueba `documents.approve`.
+- Al aplicar, se guardan los valores que la persona confirmó en pantalla; el
+  JSON del modelo queda archivado como evidencia, no como fuente.
+- El asistente no escribe SQL: elige entre ocho consultas parametrizadas que se
+  ejecutan con la sesión de quien pregunta, así que RLS acota la respuesta. Si
+  no encuentra el dato, lo dice.
+
+Sin `AI_PROVIDER_API_KEY` la aplicación funciona entera; solo quedan inactivas
+esas dos pantallas.
+
 ## Siguiente fase
 
-FASE 10 y 14 — Subida de documentos a Storage con URLs firmadas, importación de
-extractos bancarios CSV/XLSX, exportación PDF y el asistente de IA acotado por RLS.
+FASE 15 — Hardening: pruebas E2E de navegador, exportación XLSX/PDF de reportes,
+observabilidad, backups y despliegue en Vercel.
 
 El plan completo de las 15 fases está en `docs/ARCHITECTURE.md` §18.

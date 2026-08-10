@@ -73,6 +73,7 @@ export const NAVIGATION: NavGroup[] = [
     label: null,
     items: [
       { label: 'Documentos', href: '/documentos', module: 'documents', icon: 'FolderOpen' },
+      { label: 'IA', href: '/ia', module: 'ai', icon: 'Sparkles' },
       { label: 'Tareas', href: '/tareas', module: 'tasks', icon: 'CheckSquare', badge: 'tasks' },
       { label: 'Reportes', href: '/reportes', module: 'reports', icon: 'BarChart3' },
       { label: 'Configuracion', href: '/configuracion', module: 'settings', icon: 'Settings' },

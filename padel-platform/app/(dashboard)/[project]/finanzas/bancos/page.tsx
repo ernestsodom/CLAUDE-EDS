@@ -37,12 +37,17 @@ export default async function BanksPage({ params }: { params: Promise<{ project:
         title="Bancos"
         subtitle={`${accounts.length} cuentas`}
         actions={
-          can(project, 'banks.create') ? (
-            <Link href={`/${project.code}/finanzas/bancos/form`} className="btn-primary">
-              <Plus size={15} />
-              Nueva cuenta
+          <>
+            <Link href={`/${project.code}/finanzas/bancos/conciliacion`} className="btn-secondary">
+              Conciliacion
             </Link>
-          ) : null
+            {can(project, 'banks.create') ? (
+              <Link href={`/${project.code}/finanzas/bancos/form`} className="btn-primary">
+                <Plus size={15} />
+                Nueva cuenta
+              </Link>
+            ) : null}
+          </>
         }
       />
 
