@@ -1,0 +1,94 @@
+name: CI
+
+# Verificacion completa en cada cambio: tipos, build y las cinco suites
+# de `supabase/tests/run.sh` contra un PostgreSQL real. Ninguna de las
+# tres cosas garantiza por si sola que el sistema funciona; las tres
+# juntas si acercan bastante:
+#   - tsc atrapa contratos de tipos rotos entre Server Actions y UI
+#   - next build atrapa lo que solo aparece al compilar para produccion
+#   - run.sh atrapa lo que ni tsc ni build pueden ver: RLS, triggers,
+#     constraints y las consultas reales que emiten las paginas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck-and-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: padel-platform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: padel-platform/package-lock.json
+
+      - run: npm ci
+
+      - name: Tipos (tsc)
+        run: npx tsc --noEmit
+
+      - name: Build de produccion
+        run: npm run build
+        env:
+          # Valores ficticios: el build no necesita una base real, solo
+          # que las variables publicas existan para que Next las inline.
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+
+  database-and-frontend-suite:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: padel-platform
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: padel
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: PostgREST
+        run: |
+          set -euo pipefail
+          curl -fsSL -o postgrest.tar.xz \
+            https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz
+          tar -xf postgrest.tar.xz
+          sudo mv postgrest /usr/local/bin/postgrest
+          postgrest --version
+
+      - name: Runner completo contra el postgres del servicio
+        working-directory: padel-platform/supabase/tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/padel
+          APPLY_SHIM: "1"
+          # `authenticator/authpass` es el rol que crea 00_supabase_shim.sql
+          # y cuya contrasena fija el propio run.sh; el puerto es el del
+          # servicio postgres de este job, no el 55432 del cluster efimero.
+          PGRST_DB_URI: postgres://authenticator:authpass@127.0.0.1:5432/padel
+        run: ./run.sh
