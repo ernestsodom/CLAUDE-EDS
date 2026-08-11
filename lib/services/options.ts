@@ -198,6 +198,13 @@ export async function getInstallationOptions(projectId: string): Promise<Option[
   }));
 }
 
+/** Roles del sistema (globales, no por proyecto). */
+export async function getRoleOptions(): Promise<Option[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from('roles').select('id, name').order('level', { ascending: false });
+  return (data ?? []).map((r) => ({ value: r.id, label: r.name }));
+}
+
 /** Carga un registro para editarlo, o null si es un alta. */
 export async function loadRecord<T>(
   table: string,

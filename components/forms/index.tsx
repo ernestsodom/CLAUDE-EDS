@@ -162,7 +162,7 @@ export function TextField({
 }: BaseFieldProps & {
   defaultValue?: string | null;
   placeholder?: string;
-  type?: 'text' | 'email' | 'tel' | 'url';
+  type?: 'text' | 'email' | 'tel' | 'url' | 'password';
   maxLength?: number;
 }) {
   const id = useId();
