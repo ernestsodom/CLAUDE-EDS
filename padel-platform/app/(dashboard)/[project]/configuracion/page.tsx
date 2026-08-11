@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { UserCog } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
@@ -115,8 +117,17 @@ export default async function SettingsPage({ params }: { params: Promise<{ proje
 
         {access.length > 0 ? (
           <Card padded={false} className="lg:col-span-2">
-            <div className="px-4 pt-4">
+            <div className="flex items-center justify-between px-4 pt-4">
               <SectionTitle>Usuarios con acceso ({access.length})</SectionTitle>
+              {can(project, 'settings.manage') ? (
+                <Link
+                  href={`/${project.code}/configuracion/usuarios`}
+                  className="inline-flex items-center gap-1.5 text-2xs font-medium text-accent hover:underline"
+                >
+                  <UserCog size={13} />
+                  Gestionar usuarios
+                </Link>
+              ) : null}
             </div>
             <ul className="divide-y divide-line border-t border-line">
               {access.map((a) => (
