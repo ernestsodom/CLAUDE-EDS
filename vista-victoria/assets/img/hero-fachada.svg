@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7f9bb8"/>
+      <stop offset="100%" stop-color="#c9d6c6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="750" fill="url(#g)"/>
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3">
+    <rect x="60" y="60" width="1080" height="630"/>
+  </g>
+  <text x="600" y="360" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="34" fill="#ffffff" opacity="0.9">Fachada Condominio Vista Victoria</text>
+  <text x="600" y="410" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="20" fill="#ffffff" opacity="0.7">Reemplazar por foto/render real</text>
+</svg>

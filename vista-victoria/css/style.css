@@ -1,0 +1,368 @@
+/* =========================================================
+   Condominio Vista Victoria — réplica funcional
+   Paleta y tipografía estimadas a partir de capturas de pantalla
+   del sitio original (vistavictoria.cl). Ajustar tokens abajo
+   para calzar exactamente con la marca real.
+   ========================================================= */
+
+:root {
+  --color-tan: #b9885e;
+  --color-tan-dark: #a97c53;
+  --color-sage: #8f9884;
+  --color-gray: #8b8883;
+  --color-taupe: #9a9086;
+  --color-white: #ffffff;
+  --color-cream: #faf5ef;
+  --color-dark: #262320;
+  --color-dark-soft: #2f2b26;
+
+  --font-heading: 'Quicksand', 'Poppins', sans-serif;
+  --font-body: 'Poppins', 'Quicksand', sans-serif;
+
+  --max-width: 1180px;
+  --pad-inline: clamp(1.5rem, 5vw, 4rem);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-dark);
+  background: var(--color-white);
+  line-height: 1.5;
+  font-weight: 300;
+}
+
+img { max-width: 100%; display: block; }
+
+.section {
+  padding: 3.5rem var(--pad-inline);
+}
+
+.section--tan   { background: var(--color-tan); color: var(--color-dark); }
+.section--sage  { background: var(--color-sage); color: var(--color-dark); }
+.section--gray  { background: var(--color-gray); color: var(--color-white); }
+.section--white { background: var(--color-white); color: var(--color-dark); }
+.section--taupe { background: var(--color-taupe); color: var(--color-white); }
+
+/* ---------- Headings ---------- */
+.h1, .h2, .lead__title, .balance__highlight {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  max-width: 900px;
+  line-height: 1.15;
+}
+
+.h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); }
+.h2--light { color: var(--color-white); }
+
+.h2--underline {
+  padding-bottom: 1rem;
+  border-bottom: 3px solid currentColor;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  min-height: 78vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #a9c4de 0%, #cfe0ec 60%, #e9edea 100%);
+}
+
+.hero__media, .hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__overlay {
+  position: relative;
+  z-index: 2;
+  padding: 2.5rem var(--pad-inline);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  color: var(--color-white);
+}
+
+.brand__mark {
+  width: 34px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.brand__text {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 0;
+  text-shadow: 0 1px 6px rgba(0,0,0,.25);
+}
+
+.brand__text strong { font-weight: 700; }
+
+.brand--footer { color: var(--color-white); margin-top: 3rem; justify-content: center; }
+.brand--footer .brand__text { color: var(--color-white); text-shadow: none; }
+
+/* ---------- Intro ---------- */
+.intro { padding-top: 3rem; padding-bottom: 2rem; }
+
+/* ---------- Lead form ---------- */
+.lead__title {
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+}
+
+.lead__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  max-width: 480px;
+}
+
+.field { border-bottom: 1px solid var(--color-dark); }
+
+.field input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: .6rem 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-dark);
+}
+
+.field input::placeholder { color: rgba(38,35,32,.65); }
+.field input:focus { outline: none; }
+
+.btn {
+  display: inline-block;
+  text-align: center;
+  padding: 1rem 2rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity .2s ease;
+}
+
+.btn:hover { opacity: .85; }
+
+.btn--dark {
+  background: var(--color-dark);
+  color: var(--color-tan);
+  margin-top: .5rem;
+}
+
+.btn--white {
+  background: var(--color-white);
+  color: var(--color-dark);
+}
+
+.lead__feedback {
+  min-height: 1.2em;
+  font-size: .9rem;
+  margin: 0;
+}
+
+/* ---------- Specs ---------- */
+.specs {
+  display: grid;
+  gap: 2.5rem;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.spec__icon {
+  width: 42px;
+  height: 42px;
+  color: var(--color-dark);
+  margin-bottom: .5rem;
+}
+
+.spec h3 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.6rem;
+  margin: 0 0 .75rem;
+}
+
+.spec hr {
+  border: none;
+  border-top: 1px solid rgba(38,35,32,.5);
+  margin: 0 0 .75rem;
+}
+
+.spec p { margin: 0; font-size: .95rem; }
+
+/* ---------- Balance ---------- */
+.balance { max-width: var(--max-width); margin: 0 auto; }
+.balance__copy { max-width: 640px; font-size: 1.05rem; margin: 1.25rem 0 2.5rem; }
+.balance__highlight {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  max-width: 640px;
+}
+
+/* ---------- Modern / tour ---------- */
+.modern {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.modern .h2--light { max-width: 620px; }
+
+/* ---------- Conjunto / La Casa shared ---------- */
+.conjunto, .la-casa {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.conjunto p, .la-casa p { max-width: 640px; font-size: 1.05rem; }
+
+.bullets {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.bullets li {
+  padding-left: 1.2rem;
+  position: relative;
+  font-size: 1rem;
+}
+
+.bullets li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+}
+
+.bullets--light li { color: var(--color-white); }
+
+/* ---------- Carousel ---------- */
+.carousel {
+  position: relative;
+  margin: 2rem 0;
+  overflow: hidden;
+  border-radius: 4px;
+  aspect-ratio: 16 / 10;
+  background: #d9d5cd;
+}
+
+.carousel__track { position: relative; width: 100%; height: 100%; }
+
+.carousel__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+
+.carousel__slide.is-active { opacity: 1; }
+
+.carousel__btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(0,0,0,.15);
+  width: 38px;
+  height: 38px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.carousel__btn--prev { left: .75rem; }
+.carousel__btn--next { right: .75rem; }
+.carousel__btn:hover { background: #fff; }
+
+/* ---------- Plans ---------- */
+.plans {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.plans__item { margin: 0; }
+.plans__item img { border: 1px solid #e5e1da; }
+.plans__item figcaption { margin-top: .75rem; font-size: 1.05rem; }
+
+/* ---------- Map ---------- */
+.map { padding: 0; }
+.map__frame {
+  width: 100%;
+  height: 420px;
+  border: 0;
+  display: block;
+}
+
+/* ---------- Footer / partners ---------- */
+.partners {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem 1.5rem;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.partner {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.partner__label { font-size: .85rem; opacity: .85; }
+.partner__name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: .02em;
+}
+
+/* =========================================================
+   Responsive — desktop breakpoints
+   ========================================================= */
+@media (min-width: 700px) {
+  .specs { grid-template-columns: repeat(2, 1fr); }
+  .plans { grid-template-columns: repeat(2, 1fr); }
+  .partners { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 980px) {
+  .specs { grid-template-columns: repeat(4, 1fr); }
+  .partners { grid-template-columns: repeat(6, 1fr); }
+  .hero { min-height: 92vh; }
+}
