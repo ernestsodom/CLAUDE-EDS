@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Condominio Vista Victoria | La Reina, Santiago</title>
+<meta name="description" content="Condominio Vista Victoria: 6 casas boutique en La Reina, con vistas a la cordillera, a pasos de colegios, servicios y estaciones de metro.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="inicio">
+  <div class="hero__media">
+    <!-- TODO: reemplazar por la foto real de fachada del condominio (render exterior) -->
+    <img src="assets/img/hero-fachada.svg" alt="Fachada Condominio Vista Victoria" class="hero__img">
+  </div>
+  <div class="hero__overlay">
+    <div class="brand">
+      <svg class="brand__mark" viewBox="0 0 60 70" aria-hidden="true">
+        <path d="M4 4 L18 60 L30 30" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M22 4 L36 60 L48 30" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <p class="brand__text">Condominio<br><strong>Vista Victoria</strong></p>
+    </div>
+  </div>
+</header>
+
+<!-- ============ INTRO ============ -->
+<section class="section section--tan intro">
+  <h1 class="h1">Descubre el balance entre diseño, conexión y calidad de vida</h1>
+</section>
+
+<!-- ============ FORMULARIO DE CONTACTO ============ -->
+<section class="section section--tan lead">
+  <h2 class="lead__title">Déjanos tus datos y conversemos</h2>
+  <form class="lead__form" id="leadForm" novalidate>
+    <div class="field">
+      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required>
+    </div>
+    <div class="field">
+      <input type="email" id="mail" name="mail" placeholder="Mail" required>
+    </div>
+    <div class="field">
+      <input type="tel" id="telefono" name="telefono" placeholder="Teléfono" required>
+    </div>
+    <div class="field">
+      <input type="text" id="rut" name="rut" placeholder="Rut" required>
+    </div>
+    <button type="submit" class="btn btn--dark">Enviar</button>
+    <p class="lead__feedback" id="leadFeedback" role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<!-- ============ FICHA TÉCNICA ============ -->
+<section class="section section--sage specs">
+  <div class="spec">
+    <svg class="spec__icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 24 L24 6 L44 24 M10 20 V42 H38 V20" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+    <h3>6 Casas</h3>
+    <hr>
+    <p>Desde 149 mts² interiores<br>Terrenos desde 140 mts²</p>
+  </div>
+  <div class="spec">
+    <svg class="spec__icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 30 V16 a4 4 0 0 1 4-4 h32 a4 4 0 0 1 4 4 v14 M4 30 h40 M4 30 v8 M44 30 v8 M10 22 h10 v-4 a3 3 0 0 0-3-3 h-4 a3 3 0 0 0-3 3 Z" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+    <h3>Programa</h3>
+    <hr>
+    <p>3D, 3B, sala de estar, home office (4D), loggia y terraza quincho</p>
+  </div>
+  <div class="spec">
+    <svg class="spec__icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 24 L24 6 L44 24 M10 20 V42 H38 V20" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="24" cy="28" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M24 32 v6" stroke="currentColor" stroke-width="2"/></svg>
+    <h3>Dirección</h3>
+    <hr>
+    <p>Reina Victoria 7001, La Reina</p>
+  </div>
+  <div class="spec">
+    <svg class="spec__icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 24 L24 6 L44 24 M10 20 V42 H38 V20" fill="none" stroke="currentColor" stroke-width="2.2"/><text x="24" y="33" text-anchor="middle" font-size="14" fill="currentColor" font-family="sans-serif">$</text></svg>
+    <h3>Valor</h3>
+    <hr>
+    <p>Desde UF 13.990</p>
+  </div>
+</section>
+
+<!-- ============ EQUILIBRIO / PRECIOS LANZAMIENTO ============ -->
+<section class="section section--sage balance">
+  <h2 class="h2">Equilibrio entre comunidad y vida privada</h2>
+  <p class="balance__copy">En el corazón de La Reina dentro de un entorno residencial consolidado, se ubica el <strong>Condominio Vista Victoria</strong>. Un proyecto boutique, de privilegiadas vistas a la cordillera, a pasos de colegios, servicios y estaciones de metro.</p>
+  <p class="balance__highlight">Aprovecha nuestros precios exclusivos por lanzamiento</p>
+</section>
+
+<!-- ============ ESPACIOS / TOUR VIRTUAL ============ -->
+<section class="section section--gray modern">
+  <h2 class="h2 h2--light">Espacios diseñados para la vida moderna</h2>
+  <a href="#" class="btn btn--white" id="tourVirtualBtn">Ver Tour Virtual</a>
+</section>
+
+<!-- ============ EL CONJUNTO ============ -->
+<section class="section section--white conjunto">
+  <h2 class="h2 h2--underline">El Conjunto</h2>
+  <p>Un modelo de habitar colectivo, que mezcla la seguridad de la vida en comunidad, junto a la independencia que entrega la privacidad de tu jardín.</p>
+  <ul class="bullets">
+    <li>Calle común pavimentada con paisajismo y mobiliario.</li>
+    <li>Estacionamientos de visitas</li>
+    <li>Bodegas asignadas por casa</li>
+    <li>Circuito de cámaras WIFI</li>
+  </ul>
+
+  <div class="carousel" data-carousel>
+    <button class="carousel__btn carousel__btn--prev" data-carousel-prev aria-label="Imagen anterior">&#10094;</button>
+    <div class="carousel__track">
+      <!-- TODO: reemplazar por fotos/renders reales del exterior -->
+      <img src="assets/img/exterior-1.svg" alt="Vista exterior del conjunto 1" class="carousel__slide is-active">
+      <img src="assets/img/exterior-2.svg" alt="Vista exterior del conjunto 2" class="carousel__slide">
+      <img src="assets/img/exterior-3.svg" alt="Vista exterior del conjunto 3" class="carousel__slide">
+    </div>
+    <button class="carousel__btn carousel__btn--next" data-carousel-next aria-label="Imagen siguiente">&#10095;</button>
+  </div>
+
+  <div class="plans">
+    <figure class="plans__item">
+      <!-- TODO: reemplazar por la planta real primer piso -->
+      <img src="assets/img/planta-1.svg" alt="Planta primer piso">
+      <figcaption><strong>Planta</strong> primer piso</figcaption>
+    </figure>
+    <figure class="plans__item">
+      <!-- TODO: reemplazar por la planta real segundo piso -->
+      <img src="assets/img/planta-2.svg" alt="Planta segundo piso">
+      <figcaption><strong>Planta</strong> segundo piso</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ LA CASA ============ -->
+<section class="section section--taupe la-casa">
+  <h2 class="h2 h2--underline h2--light">La Casa</h2>
+  <p>Lugares que priorizan la comodidad y el encuentro familiar a través de un cuidado estilo; sobrio y elegante.</p>
+  <ul class="bullets bullets--light">
+    <li>Superficie interior desde 149 mts²</li>
+    <li>3D, 3B, Home office (4to dorm), sala de estar y loggia</li>
+    <li>2 estacionamientos cubiertos</li>
+    <li>Cocina equipada</li>
+    <li>Terraza con quincho incluído</li>
+    <li>Ventanas PVC con termopanel</li>
+    <li>Calefacción central por radiadores</li>
+    <li>Iluminación incluída</li>
+    <li>Ductos disponibles para instalación de A/C en piezas y sala de estar</li>
+  </ul>
+
+  <div class="carousel" data-carousel>
+    <button class="carousel__btn carousel__btn--prev" data-carousel-prev aria-label="Imagen anterior">&#10094;</button>
+    <div class="carousel__track">
+      <!-- TODO: reemplazar por fotos/renders reales del interior -->
+      <img src="assets/img/interior-1.svg" alt="Interior living-comedor 1" class="carousel__slide is-active">
+      <img src="assets/img/interior-2.svg" alt="Interior living-comedor 2" class="carousel__slide">
+      <img src="assets/img/interior-3.svg" alt="Interior living-comedor 3" class="carousel__slide">
+    </div>
+    <button class="carousel__btn carousel__btn--next" data-carousel-next aria-label="Imagen siguiente">&#10095;</button>
+  </div>
+</section>
+
+<!-- ============ UBICACIÓN / MAPA ============ -->
+<section class="section map">
+  <iframe
+    class="map__frame"
+    src="https://www.google.com/maps?q=Reina+Victoria+7001,+La+Reina,+Santiago,+Chile&output=embed"
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"
+    title="Ubicación Condominio Vista Victoria">
+  </iframe>
+</section>
+
+<!-- ============ FOOTER / PARTNERS ============ -->
+<footer class="section section--tan footer">
+  <div class="partners">
+    <div class="partner">
+      <span class="partner__label">Desarrolla y Vende</span>
+      <strong class="partner__name">GRUPO IRV</strong>
+    </div>
+    <div class="partner">
+      <span class="partner__label">Arquitectura</span>
+      <strong class="partner__name">PAR ARQUITECTOS</strong>
+    </div>
+    <div class="partner">
+      <span class="partner__label">Ingenierías</span>
+      <strong class="partner__name">GRUPO NORTEM</strong>
+    </div>
+    <div class="partner">
+      <span class="partner__label">Construcción</span>
+      <strong class="partner__name">RCP CONSTRUCTORA</strong>
+    </div>
+    <div class="partner">
+      <span class="partner__label">Financiamiento</span>
+      <strong class="partner__name">itaú</strong>
+    </div>
+    <div class="partner">
+      <span class="partner__label">Legal</span>
+      <strong class="partner__name">ROSENTHAL &amp; CIA ABOGADOS</strong>
+    </div>
+  </div>
+
+  <div class="brand brand--footer">
+    <svg class="brand__mark" viewBox="0 0 60 70" aria-hidden="true">
+      <path d="M4 4 L18 60 L30 30" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M22 4 L36 60 L48 30" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <p class="brand__text">Condominio<br><strong>Vista Victoria</strong></p>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>
