@@ -1287,5 +1287,24 @@ create policy storage_docs_delete on storage.objects for delete
          and (storage.foldername(name))[1] = current_org_id()::text);
 
 -- ============================================================================
+-- Plazo de implementación y presupuesto en el resumen, plazo por punto
+-- crítico (incluida la migración de datos), y motor por versión del
+-- documento (equivale a la migración 0010).
+-- ============================================================================
+
+alter table document_summaries
+  add column if not exists implementation_deadline text,
+  add column if not exists budget_amount   real,
+  add column if not exists budget_currency text,
+  add column if not exists budget_period   text,
+  add column if not exists budget_detail   text;
+
+alter table requirements
+  add column if not exists deadline_text text;
+
+alter table document_versions
+  add column if not exists analysis_engine text;
+
+-- ============================================================================
 -- ✔ Instalación completa. Siguiente paso: Authentication → Users → Add user.
 -- ============================================================================

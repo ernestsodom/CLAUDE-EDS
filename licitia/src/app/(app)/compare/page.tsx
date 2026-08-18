@@ -3,21 +3,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChecklistComparator } from "@/components/checklist-comparator";
 import { CompareForm } from "@/components/compare-form";
 import { ComparisonResult } from "@/components/comparison-result";
+import { ClaimsWorkbench } from "@/components/claims-workbench";
 
 export const metadata = { title: "Comparador" };
 export const dynamic = "force-dynamic";
 
 /**
- * Comparador. Dos modos:
+ * Comparador. Tres modos:
  *  1. Checklist vs Excel (el principal): los sistemas y funcionalidades que
  *     exige el documento base contra el Excel de control con formato
  *     predeterminado. Determinista, instantáneo y sin consumo de IA.
  *  2. Dos documentos: diferencias/cumplimiento entre documentos analizados.
+ *  3. Reclamos: análisis de reclamos contra la biblioteca contractual — vive
+ *     aquí porque también es, en esencia, comparar lo reclamado contra lo
+ *     acordado y lo entregado.
  */
 export default async function ComparePage({
   searchParams,
 }: {
-  searchParams: Promise<{ r?: string }>;
+  searchParams: Promise<{ r?: string; tab?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -32,11 +36,21 @@ export default async function ComparePage({
     result = data;
   }
 
-  const { data: history } = await supabase
-    .from("comparisons")
-    .select("id, comparison_type, status, traffic_light, created_at, source:documents!comparisons_source_document_id_fkey(title), target:documents!comparisons_target_document_id_fkey(title)")
-    .order("created_at", { ascending: false })
-    .limit(10);
+  const [{ data: history }, { data: clients }, { data: claims }] = await Promise.all([
+    supabase
+      .from("comparisons")
+      .select("id, comparison_type, status, traffic_light, created_at, source:documents!comparisons_source_document_id_fkey(title), target:documents!comparisons_target_document_id_fkey(title)")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase.from("clients").select("id, name").order("name"),
+    supabase
+      .from("claims")
+      .select("id, subject, status, created_at, clients(name)")
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
+
+  const defaultTab = params.tab === "reclamos" ? "reclamos" : params.r ? "documentos" : "checklist";
 
   return (
     <div className="space-y-6">
@@ -45,14 +59,16 @@ export default async function ComparePage({
         <p className="text-sm text-muted-foreground">
           Los sistemas y funcionalidades comprometidos en la licitación, bases técnicas o contrato,
           contra tu propio control de entregas — destacando lo que entregaste de más, incluido lo
-          realizado sin costo.
+          realizado sin costo. Los reclamos también viven aquí: es la misma lógica de comparar lo
+          reclamado contra lo acordado.
         </p>
       </div>
 
-      <Tabs defaultValue={params.r ? "documentos" : "checklist"}>
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
           <TabsTrigger value="checklist">Checklist vs Excel</TabsTrigger>
           <TabsTrigger value="documentos">Comparar dos documentos</TabsTrigger>
+          <TabsTrigger value="reclamos">Reclamos ({claims?.length ?? 0})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="checklist">
@@ -64,6 +80,10 @@ export default async function ComparePage({
             <CompareForm history={(history ?? []) as never} />
             {result && <ComparisonResult comparison={result} />}
           </div>
+        </TabsContent>
+
+        <TabsContent value="reclamos">
+          <ClaimsWorkbench clients={clients ?? []} recentClaims={(claims ?? []) as never} />
         </TabsContent>
       </Tabs>
     </div>

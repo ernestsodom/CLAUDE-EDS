@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
-/** Botones de exportación: descargan el archivo generado por /api/export. */
+/** Botones de exportación: descargan el archivo generado por /api/export.
+ *  Solo Word y PDF — son los formatos en que se lee y comparte un informe;
+ *  Excel, PowerPoint y CSV se retiraron. */
 export function ExportButtons({
   kind,
   entityId,
 }: {
-  kind: "resumen" | "comparacion" | "variables" | "requerimientos";
+  kind: "resumen" | "comparacion" | "requerimientos";
   entityId: string;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export function ExportButtons({
 
   return (
     <div className="flex flex-wrap gap-1">
-      {(["pdf", "docx", "xlsx", "pptx", "csv"] as const).map((f) => (
+      {(["pdf", "docx"] as const).map((f) => (
         <Button
           key={f}
           variant="outline"

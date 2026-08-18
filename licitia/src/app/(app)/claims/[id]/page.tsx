@@ -39,7 +39,7 @@ export default async function ClaimDetailPage({
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/claims" className="text-sm text-muted-foreground hover:underline">
+          <Link href="/compare?tab=reclamos" className="text-sm text-muted-foreground hover:underline">
             ← Reclamos
           </Link>
           <h1 className="text-2xl font-semibold">{claim.subject ?? "Reclamo sin asunto"}</h1>

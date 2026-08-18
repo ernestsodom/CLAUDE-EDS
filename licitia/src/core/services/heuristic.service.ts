@@ -276,6 +276,7 @@ const CRITICOS: Array<[CriticalType, RegExp]> = [
   ["plazos", /(plazo (?:de|maximo|minimo)|fecha (?:limite|de cierre|de entrega)|dias corridos|dias habiles|a partir de la (?:firma|suscripcion))/],
   ["multas", /(multa|sancion|penalidad|descuento por atraso|termino anticipado|cobro de la garantia|utm por dia)/],
   ["certificados", /(certificad|acreditacion|iso 9001|iso 27001|cmmi|chileproveedores|inscripcion en el registro|certificacion)/],
+  ["migracion_datos", /(migracion de datos|migrar los datos|traspaso de datos|carga de datos hist(?:o|ó)ricos|migracion del sistema actual)/],
 ];
 
 /** Solo los puntos críticos y obligatorios para participar. */
@@ -294,7 +295,7 @@ export function extractRequirementsLocal(pages: PageText[]): Requirements {
     const [tipo] = match;
     if ((perType.get(tipo) ?? 0) >= MAX_POR_TIPO) continue;
     // Debe ser una exigencia, no una mención de pasada.
-    if (!OBLIGACION.test(s.text) && !/(multa|sancion|garantia|certificad|plazo)/.test(lower)) continue;
+    if (!OBLIGACION.test(s.text) && !/(multa|sancion|garantia|certificad|plazo|migracion)/.test(lower)) continue;
 
     const clean = s.text.replace(NUMERACION, "").trim();
     const key = norm(clean).slice(0, 80);
@@ -316,6 +317,7 @@ export function extractRequirementsLocal(pages: PageText[]): Requirements {
       titulo: clean.slice(0, 140),
       descripcion: clean.length > 140 ? clean : null,
       obligatorio: !/(deseable|opcional|podr[aá])/.test(norm(clean)),
+      plazo: clean.match(PLAZO_RE)?.[1] ?? null,
       pagina: s.page,
       cita: clean.slice(0, 300),
       prioridad,
@@ -544,6 +546,28 @@ export function summarizeLocal(pages: PageText[]): Summary {
     sents.find((s) => /(alcance|comprende|contempla|incluye)\b/i.test(s.text))?.text ??
     "Alcance no identificado en modo local.";
 
+  // Plazo de implementación: se prioriza una mención explícita de
+  // "implementación/puesta en marcha" con plazo; si no hay, se cae al plazo
+  // general del contrato ya detectado en la clasificación.
+  const implementacionSentence = sents.find(
+    (s) => /(implementaci[oó]n|puesta en marcha)/i.test(s.text) && PLAZO_RE.test(s.text)
+  );
+  const plazoImplementacion =
+    implementacionSentence?.text.match(PLAZO_RE)?.[1] ?? c.duracion_contrato;
+
+  // Periodicidad del presupuesto: se busca la palabra que la acompaña más
+  // cerca del monto detectado en la clasificación.
+  const presupuestoSentence = c.monto
+    ? sents.find((s) => norm(s.text).includes("mensual") || norm(s.text).includes("anual"))
+    : undefined;
+  const periodicidad: "mensual" | "anual" | "total" | "unico" | null = presupuestoSentence
+    ? /mensual/i.test(presupuestoSentence.text)
+      ? "mensual"
+      : "anual"
+    : c.monto
+      ? "total"
+      : null;
+
   const catCount = new Map<string, number>();
   for (const v of vars) catCount.set(v.categoria, (catCount.get(v.categoria) ?? 0) + 1);
   const topCats = [...catCount.entries()]
@@ -564,6 +588,10 @@ export function summarizeLocal(pages: PageText[]): Summary {
       `Este resumen se generó sin consumir cuota de IA; para un informe interpretativo completo, vuelve a analizar en modo IA.`,
     objetivo,
     alcance,
+    plazo_implementacion: plazoImplementacion,
+    presupuesto: c.monto
+      ? { monto: c.monto, moneda: c.moneda, periodicidad, detalle: null }
+      : null,
     problemas_detectados: pick(/(problema|dificultad|riesgo|incumplimiento|deficiencia|retraso)/i),
     requerimientos: reqs.slice(0, 15).map((r) => ({ titulo: r.codigo ?? "RQ", detalle: r.titulo })),
     obligaciones: pick(/(obligaci[oó]n|deber[aá]|responsabilidad del (?:proveedor|contratista))/i),
@@ -582,7 +610,7 @@ export function summarizeLocal(pages: PageText[]): Summary {
     recomendaciones: [
       "Resumen generado con el motor local: verifica las cláusulas citadas antes de tomar decisiones.",
       reqs.length > 0
-        ? `Revisa los ${reqs.length} puntos críticos detectados (garantías, plazos, multas, SLA, servidores y certificados).`
+        ? `Revisa los ${reqs.length} puntos críticos detectados (garantías, plazos, multas, SLA, servidores, certificados y migración de datos).`
         : "No se detectaron puntos críticos: revisa si el documento es escaneado o tiene poco texto.",
       "Cuando dispongas de cuota de IA, vuelve a analizar el documento para obtener el informe interpretativo.",
     ],

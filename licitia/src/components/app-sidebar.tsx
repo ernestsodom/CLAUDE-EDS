@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
-  LayoutDashboard, FileText, Upload, MessageSquare, GitCompare,
-  MailWarning, Search, ChevronLeft, ChevronRight, LogOut, Moon, Sun, FileSearch,
+  LayoutDashboard, FileText, MessageSquare, GitCompare,
+  Search, ChevronLeft, ChevronRight, LogOut, Moon, Sun, FileSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -16,10 +16,8 @@ import { Button } from "@/components/ui/button";
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/documents", label: "Documentos", icon: FileText },
-  { href: "/upload", label: "Subir", icon: Upload },
   { href: "/chat", label: "Chat IA", icon: MessageSquare },
   { href: "/compare", label: "Comparador", icon: GitCompare },
-  { href: "/claims", label: "Reclamos", icon: MailWarning },
   { href: "/search", label: "Búsqueda", icon: Search },
 ];
 

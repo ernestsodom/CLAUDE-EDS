@@ -236,7 +236,7 @@ export default async function DashboardPage() {
             ))}
             {(recent ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">
-                Sube tu primer documento en <Link href="/upload" className="text-primary underline">Subir</Link>.
+                Sube tu primer documento desde <Link href="/documents" className="text-primary underline">Documentos</Link>.
               </p>
             )}
           </CardContent>

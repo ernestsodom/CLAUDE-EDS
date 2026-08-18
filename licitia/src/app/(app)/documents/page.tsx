@@ -9,6 +9,7 @@ import { formatCLP, formatDate } from "@/lib/utils";
 import { DocumentFiltersBar } from "@/components/document-filters";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
 import { NewProjectButton } from "@/components/new-project-button";
+import { DocumentUploadPanel } from "@/components/document-upload-panel";
 import type { DocumentType } from "@/core/domain/types";
 
 export const metadata = { title: "Documentos" };
@@ -69,7 +70,10 @@ export default async function DocumentsPage({
             {total} documentos en {folders.length} {folders.length === 1 ? "carpeta" : "carpetas"}.
           </p>
         </div>
-        <NewProjectButton />
+        <div className="flex items-center gap-2">
+          <DocumentUploadPanel />
+          <NewProjectButton />
+        </div>
       </div>
 
       <section className="space-y-3">

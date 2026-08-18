@@ -6,6 +6,7 @@ import { Badge, statusVariant } from "@/components/ui/badge";
 import { formatCLP, formatDate } from "@/lib/utils";
 import { Folder } from "lucide-react";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
+import { DocumentUploadPanel } from "@/components/document-upload-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -53,9 +54,7 @@ export default async function ProjectDetailPage({
           <Link href="/documents" className="text-sm text-muted-foreground hover:underline">
             ← Todas las carpetas
           </Link>
-          <Link href="/upload" className="text-sm text-primary underline">
-            Subir a esta carpeta →
-          </Link>
+          <DocumentUploadPanel defaultProjectId={project.id} lockProject />
         </div>
       </div>
 
@@ -91,9 +90,8 @@ export default async function ProjectDetailPage({
           {(documents ?? []).length === 0 && (
             <TR>
               <TD colSpan={6} className="py-8 text-center text-muted-foreground">
-                Esta carpeta aún no tiene documentos. Súbelos desde{" "}
-                <Link href="/upload" className="text-primary underline">Subir</Link>{" "}
-                seleccionando esta carpeta.
+                Esta carpeta aún no tiene documentos. Súbelos con el botón{" "}
+                <span className="font-medium">Subir documentos</span> de arriba.
               </TD>
             </TR>
           )}

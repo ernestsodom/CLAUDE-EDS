@@ -5,14 +5,12 @@ import {
   RequirementsSchema,
   SummarySchema,
   SystemsSchema,
-  TechnicalVariablesSchema,
   TimelineSchema,
   type Classification,
   type DeliveredItems,
   type Requirements,
   type Summary,
   type Systems,
-  type TechnicalVariables,
   type Timeline,
 } from "@/core/ai/schemas";
 import type { PageText } from "@/core/domain/types";
@@ -55,29 +53,19 @@ export async function summarizeDocument(pages: PageText[], provider: ProviderId)
     speed: "chat",
     system:
       "Eres un consultor senior de licitaciones. Genera un informe ejecutivo completo del documento: " +
-      "resumen general, objetivo, alcance, problemas detectados, requerimientos, obligaciones, " +
-      "restricciones, riesgos (con nivel y mitigación), aspectos críticos, entregables, cronograma y " +
-      "recomendaciones accionables para el equipo comercial y técnico. Sé específico y fiel al texto.",
-    user: pagesToAnnotatedText(pages),
-  });
-}
-
-export async function extractTechnicalVariables(
-  pages: PageText[],
-  provider: ProviderId
-): Promise<TechnicalVariables> {
-  return structuredCompletion({
-    schema: TechnicalVariablesSchema,
-    schemaName: "variables_tecnicas",
-    provider,
-    speed: "chat",
-    system:
-      "Eres un analista técnico de licitaciones TI. Detecta TODAS las variables técnicas del documento: " +
-      "sistemas, módulos, funcionalidades, integraciones, APIs, reportes, dashboards, interfaces, " +
-      "servicios web, bases de datos, infraestructura, seguridad, backups, migraciones, capacitaciones, " +
-      "implementación, mesa de ayuda, soporte, SLA, hardware, software, licencias, multas, garantías, " +
-      "certificaciones, personal mínimo y experiencia exigida. " +
-      "Cada variable con su página de origen y una cita textual breve. Exhaustivo pero sin duplicados.",
+      "resumen general, objetivo, alcance, plazo de implementación, presupuesto, problemas detectados, " +
+      "requerimientos, obligaciones, restricciones, riesgos (con nivel y mitigación), aspectos críticos, " +
+      "entregables, cronograma y recomendaciones accionables para el equipo comercial y técnico.\n" +
+      "Presta especial atención a estos dos campos, que el usuario necesita ver siempre claros:\n" +
+      "- plazo_implementacion: el plazo para implementar/poner en marcha la solución completa " +
+      "(no un hito parcial), tal como lo indica el documento.\n" +
+      "- presupuesto: el monto y, sobre todo, su periodicidad — indica explícitamente si es un pago " +
+      "único (unico), un monto mensual (mensual, p.ej. arriendo de licencias o soporte), un monto " +
+      "anual (anual), o el total acumulado del contrato completo (total). Si el documento menciona " +
+      "varios montos con distinta periodicidad (p.ej. implementación única + soporte mensual), usa el " +
+      "monto más relevante (normalmente el total del contrato) y aclara los demás en 'detalle'. " +
+      "Nunca dejes un monto sin periodicidad si el documento la menciona.\n" +
+      "Sé específico y fiel al texto.",
     user: pagesToAnnotatedText(pages),
   });
 }
@@ -103,9 +91,14 @@ export async function extractRequirements(pages: PageText[], provider: ProviderI
       "- plazos: plazos de entrega, de implementación, de presentación de ofertas y fechas límite.\n" +
       "- multas: multas, sanciones, descuentos y causales de término anticipado.\n" +
       "- certificados: certificados, acreditaciones e inscripciones exigidas (ISO, ChileProveedores, etc.).\n" +
+      "- migracion_datos: migración de datos desde el/los sistema(s) actual(es) al nuevo — alcance de " +
+      "los datos a migrar, responsable, validación y, sobre todo, su plazo.\n" +
       "NO incluyas funcionalidades del software ni requisitos funcionales: esos se extraen aparte. " +
-      "Cada ítem con su cita textual y página. Si un tipo no aparece en el documento, simplemente no " +
-      "lo incluyas. Sé breve y concreto: mejor pocos ítems bien definidos que una lista larga.",
+      "Para cada ítem, extrae también su plazo cuando el documento lo indique (p.ej. 'la migración de " +
+      "datos deberá completarse en 30 días corridos previos a la marcha blanca'), con el texto tal cual " +
+      "aparece; si no hay plazo explícito, null. Cada ítem con su cita textual y página. Si un tipo no " +
+      "aparece en el documento, simplemente no lo incluyas. Sé breve y concreto: mejor pocos ítems bien " +
+      "definidos que una lista larga.",
     user: pagesToAnnotatedText(pages),
   });
 }

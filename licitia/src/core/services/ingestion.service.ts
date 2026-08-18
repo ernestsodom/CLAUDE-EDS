@@ -9,7 +9,6 @@ import {
   extractDeliveredItems,
   extractRequirements,
   extractSystems,
-  extractTechnicalVariables,
   extractTimeline,
   summarizeDocument,
 } from "./analysis.service";
@@ -18,7 +17,6 @@ import {
   extractDeliveredItemsLocal,
   extractRequirementsLocal,
   extractSystemsLocal,
-  extractTechnicalVariablesLocal,
   extractTimelineLocal,
   summarizeLocal,
 } from "./heuristic.service";
@@ -105,8 +103,11 @@ async function analyze<T>(
 //
 // Etapas (documents.processing_step marca la siguiente pendiente):
 //   extraccion_texto → chunking → embeddings* → clasificacion → resumen
-//   → variables → requerimientos → timeline → completado
+//   → sistemas → requerimientos → timeline → completado
 //   (*) embeddings se repite en lotes mientras queden chunks sin vectorizar.
+//   ("variables" — variables técnicas — se retiró: era redundante con
+//   sistemas/funcionalidades y puntos críticos, que ya cubren esa información
+//   de forma más específica y accionable.)
 // ============================================================================
 
 const EMBED_BATCH = 120;
@@ -132,8 +133,7 @@ const NEXT: Record<string, string> = {
   chunking: "embeddings",
   embeddings: "clasificacion",
   clasificacion: "resumen",
-  resumen: "variables",
-  variables: "sistemas",
+  resumen: "sistemas",
   sistemas: "requerimientos",
   requerimientos: "timeline",
   timeline: "completado",
@@ -146,7 +146,6 @@ export const STEP_LABELS: Record<string, string> = {
   embeddings: "generando vectores de búsqueda",
   clasificacion: "clasificando",
   resumen: "redactando el resumen ejecutivo",
-  variables: "extrayendo variables técnicas",
   sistemas: "identificando sistemas y funcionalidades",
   requerimientos: "extrayendo puntos críticos",
   timeline: "construyendo la línea de tiempo",
@@ -254,12 +253,6 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
         const r = await stageSummary(db, documentId, versionId, mode);
         await advance(NEXT[step]);
         return { step: NEXT[step], done: false, engine: r.engine };
-      }
-
-      case "variables": {
-        const r = await stageVariables(db, documentId, versionId, mode);
-        await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
       }
 
       case "sistemas": {
@@ -487,6 +480,11 @@ async function stageSummary(
       summary: s.resumen_general,
       objective: s.objetivo,
       scope: s.alcance,
+      implementation_deadline: s.plazo_implementacion,
+      budget_amount: s.presupuesto?.monto ?? null,
+      budget_currency: s.presupuesto?.moneda ?? null,
+      budget_period: s.presupuesto?.periodicidad ?? null,
+      budget_detail: s.presupuesto?.detalle ?? null,
       problems: s.problemas_detectados,
       requirements: s.requerimientos,
       obligations: s.obligaciones,
@@ -501,36 +499,6 @@ async function stageSummary(
     { onConflict: "version_id" }
   );
   return { engine };
-}
-
-async function stageVariables(
-  db: DB,
-  documentId: string,
-  versionId: string,
-  mode: AnalysisMode
-): Promise<{ detail: string; engine: AnalysisMode }> {
-  const pages = await loadPages(db, versionId);
-  const { data: v, engine } = await analyze(
-    mode,
-    (provider) => extractTechnicalVariables(pages, provider),
-    () => extractTechnicalVariablesLocal(pages)
-  );
-  await db.from("technical_variables").delete().eq("document_id", documentId);
-  if (v.variables.length > 0) {
-    await db.from("technical_variables").insert(
-      v.variables.map((x) => ({
-        document_id: documentId,
-        category: x.categoria,
-        name: x.nombre,
-        description: x.descripcion,
-        value: x.valor,
-        page: x.pagina,
-        quote: x.cita,
-        confidence: x.confianza,
-      }))
-    );
-  }
-  return { detail: `${v.variables.length} variables${engineSuffix(engine)}`, engine };
 }
 
 /**
@@ -674,6 +642,7 @@ async function stageRequirements(
         category: x.tipo_critico,
         critical_type: x.tipo_critico,
         mandatory: x.obligatorio,
+        deadline_text: x.plazo,
         page: x.pagina,
         quote: x.cita,
         priority: x.prioridad,

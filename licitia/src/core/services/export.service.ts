@@ -1,15 +1,18 @@
-import * as XLSX from "xlsx";
 import { Document as DocxDocument, Packer, Paragraph, HeadingLevel, TextRun } from "docx";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import PptxGenJS from "pptxgenjs";
 
 // ============================================================================
-// Exportaciones: CSV, Excel, Word, PDF y PowerPoint a partir de datos
-// tabulares o de secciones de texto (p.ej. resumen ejecutivo, comparaciones).
-// Devuelven Buffer listo para responder con el content-type adecuado.
+// Exportaciones: Word y PDF a partir de datos tabulares o de secciones de
+// texto (p.ej. resumen ejecutivo, comparaciones).
+//
+// Excel, PowerPoint y CSV se retiraron a pedido del usuario — el informe
+// ejecutivo y el de cumplimiento se leen y se comparten como documento
+// (Word/PDF), no como planilla o presentación. El Excel del comparador de
+// checklist (docs/formato-excel.md) es una función distinta y no se toca
+// aquí: ese sigue en checklist.service.ts.
 // ============================================================================
 
-export type ExportFormat = "csv" | "xlsx" | "docx" | "pdf" | "pptx";
+export type ExportFormat = "docx" | "pdf";
 
 export interface ExportSection {
   title: string;
@@ -23,41 +26,17 @@ export interface ExportPayload {
 }
 
 export const EXPORT_MIME: Record<ExportFormat, string> = {
-  csv: "text/csv; charset=utf-8",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   pdf: "application/pdf",
-  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 };
 
 export async function exportAs(format: ExportFormat, payload: ExportPayload): Promise<Buffer> {
   switch (format) {
-    case "csv":
-      return exportCsv(payload);
-    case "xlsx":
-      return exportXlsx(payload);
     case "docx":
       return exportDocx(payload);
     case "pdf":
       return exportPdf(payload);
-    case "pptx":
-      return exportPptx(payload);
   }
-}
-
-function exportCsv(payload: ExportPayload): Buffer {
-  const table = payload.table ?? { headers: ["Sección", "Contenido"], rows: flatten(payload) };
-  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
-  const lines = [table.headers.map(escape).join(","), ...table.rows.map((r) => r.map(escape).join(","))];
-  return Buffer.from("﻿" + lines.join("\n"), "utf-8");
-}
-
-function exportXlsx(payload: ExportPayload): Buffer {
-  const table = payload.table ?? { headers: ["Sección", "Contenido"], rows: flatten(payload) };
-  const sheet = XLSX.utils.aoa_to_sheet([table.headers, ...table.rows]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, sheet, payload.title.slice(0, 31) || "Datos");
-  return Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
 }
 
 async function exportDocx(payload: ExportPayload): Promise<Buffer> {
@@ -116,35 +95,6 @@ async function exportPdf(payload: ExportPayload): Promise<Buffer> {
     for (const row of payload.table.rows) write(row.join(" | "), 9);
   }
   return Buffer.from(await pdf.save());
-}
-
-async function exportPptx(payload: ExportPayload): Promise<Buffer> {
-  const pptx = new PptxGenJS();
-  const cover = pptx.addSlide();
-  cover.addText(payload.title, { x: 0.5, y: 2.2, w: 9, h: 1.5, fontSize: 30, bold: true });
-
-  for (const section of payload.sections ?? []) {
-    const slide = pptx.addSlide();
-    slide.addText(section.title, { x: 0.5, y: 0.4, w: 9, h: 0.7, fontSize: 22, bold: true });
-    slide.addText(section.paragraphs.join("\n\n").slice(0, 2500), {
-      x: 0.5, y: 1.3, w: 9, h: 4.5, fontSize: 12, valign: "top",
-    });
-  }
-  if (payload.table) {
-    const slide = pptx.addSlide();
-    slide.addText("Datos", { x: 0.5, y: 0.4, w: 9, h: 0.7, fontSize: 22, bold: true });
-    const toCells = (row: string[]) => row.map((text) => ({ text }));
-    slide.addTable(
-      [toCells(payload.table.headers), ...payload.table.rows.slice(0, 15).map(toCells)],
-      { x: 0.5, y: 1.3, w: 9, fontSize: 9 }
-    );
-  }
-  const data = (await pptx.write({ outputType: "nodebuffer" })) as Buffer;
-  return data;
-}
-
-function flatten(payload: ExportPayload): string[][] {
-  return (payload.sections ?? []).flatMap((s) => s.paragraphs.map((p) => [s.title, p]));
 }
 
 function wrapText(

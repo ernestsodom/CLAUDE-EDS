@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getDocumentDetail } from "@/core/repositories/documents.repo";
+import { getDocumentDetail, getVersionSummary } from "@/core/repositories/documents.repo";
 import { checklistProgress } from "@/core/repositories/checklist.repo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,53 +9,46 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { TimelineView } from "@/components/timeline-view";
 import { ChatPanel } from "@/components/chat-panel";
 import { ExportButtons } from "@/components/export-buttons";
-import { CommentsPanel, type Comment } from "@/components/comments-panel";
 import { SystemsChecklist } from "@/components/systems-checklist";
+import { CriticalPointsAccordion } from "@/components/critical-points-accordion";
 import { DocumentProcessButton } from "@/components/document-process-button";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
-import { CRITICAL_TYPE_LABELS } from "@/core/ai/schemas";
+import { ReanalyzeButton } from "@/components/reanalyze-button";
+import { BUDGET_PERIOD_LABELS } from "@/core/ai/schemas";
+import { ENGINE_LABELS, type AnalysisMode } from "@/lib/ai-providers";
 import { formatCLP, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type CriticalKey = keyof typeof CRITICAL_TYPE_LABELS;
-
 /** Ficha de documento: resumen ejecutivo, checklist de sistemas, puntos
- *  críticos, variables, línea de tiempo, chat IA, comentarios y versiones. */
+ *  críticos, línea de tiempo, chat IA y versiones. */
 export default async function DocumentDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ v?: string }>;
 }) {
   const { id } = await params;
+  const { v: viewVersionId } = await searchParams;
   const supabase = await createClient();
   const detail = await getDocumentDetail(supabase, id);
   const {
     document: doc,
-    summary,
-    variables,
     requirements,
     timeline,
     versions,
-    comments,
     deliveredItems,
     systems,
   } = detail;
 
-  const progress = checklistProgress(systems);
+  // Por defecto se ve el resumen de la versión actual; el usuario puede
+  // abrir el de cualquier otra desde la pestaña Versiones sin perder la de
+  // hoy — cada reanálisis con otro motor queda guardado aparte.
+  const viewingVersion = viewVersionId ? versions.find((v) => v.id === viewVersionId) : null;
+  const summary = viewingVersion ? await getVersionSummary(supabase, viewingVersion.id) : detail.summary;
 
-  // Los requerimientos ahora son solo los puntos críticos para participar.
-  // Los documentos analizados antes de este cambio no traen critical_type:
-  // se muestran igualmente, agrupados como "otros".
-  const grouped = new Map<string, typeof requirements>();
-  for (const r of requirements) {
-    const key = (r.critical_type as string | null) ?? "otros";
-    const list = grouped.get(key) ?? [];
-    list.push(r);
-    grouped.set(key, list);
-  }
-  const groupLabel = (key: string) =>
-    key === "otros" ? "Otros requerimientos" : CRITICAL_TYPE_LABELS[key as CriticalKey] ?? key;
+  const progress = checklistProgress(systems);
 
   const summaryList = (items: unknown) =>
     ((items ?? []) as Array<{ titulo: string; detalle: string }>).map((i, k) => (
@@ -91,9 +85,26 @@ export default async function DocumentDetailPage({
               ? `procesando: ${doc.processing_step}`
               : doc.status}
           </Badge>
+          {doc.status === "procesado" && <ReanalyzeButton documentId={doc.id} />}
           <DeleteDocumentButton documentId={doc.id} title={doc.title} />
         </div>
       </div>
+
+      {viewingVersion && (
+        <Card className="border-primary/40 bg-primary/5">
+          <CardContent className="flex flex-wrap items-center gap-2 p-3 text-sm">
+            <span>
+              Viendo el resumen de <span className="font-medium">v{viewingVersion.version}</span>
+              {viewingVersion.analysis_engine &&
+                ` (${ENGINE_LABELS[viewingVersion.analysis_engine as AnalysisMode] ?? viewingVersion.analysis_engine})`}
+              , no la versión actual.
+            </span>
+            <Link href={`/documents/${doc.id}`} className="font-medium text-primary underline">
+              Volver a la actual
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {doc.status !== "procesado" && (
         <Card className={doc.status === "error" ? "border-destructive/50" : undefined}>
@@ -105,7 +116,7 @@ export default async function DocumentDetailPage({
             ) : (
               <p className="text-sm text-muted-foreground">
                 Este documento aún no ha sido analizado por la IA. El análisis avanza por
-                etapas (extracción, clasificación, resumen, variables, sistemas, puntos críticos
+                etapas (extracción, clasificación, resumen, sistemas, puntos críticos
                 y cronograma) y puede tardar unos minutos.
               </p>
             )}
@@ -121,13 +132,11 @@ export default async function DocumentDetailPage({
             Sistemas ({systems.length}){progress.total > 0 && ` · ${progress.pct}%`}
           </TabsTrigger>
           <TabsTrigger value="requerimientos">Puntos críticos ({requirements.length})</TabsTrigger>
-          <TabsTrigger value="variables">Variables ({variables.length})</TabsTrigger>
           {deliveredItems.length > 0 && (
             <TabsTrigger value="entregas">Entregas ({deliveredItems.length})</TabsTrigger>
           )}
           <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
           <TabsTrigger value="chat">Chat IA</TabsTrigger>
-          <TabsTrigger value="comentarios">Comentarios ({comments.length})</TabsTrigger>
           <TabsTrigger value="versiones">Versiones ({versions.length})</TabsTrigger>
         </TabsList>
 
@@ -149,6 +158,36 @@ export default async function DocumentDetailPage({
                   <CardContent className="space-y-2 text-sm">
                     <p><span className="font-medium">Objetivo:</span> {summary.objective}</p>
                     <p><span className="font-medium">Alcance:</span> {summary.scope}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader><CardTitle className="text-base">Plazo y presupuesto</CardTitle></CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <p>
+                      <span className="font-medium">Plazo de implementación:</span>{" "}
+                      {summary.implementation_deadline ?? "No especificado en el documento"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Presupuesto:</span>{" "}
+                      {summary.budget_amount != null ? (
+                        <>
+                          {formatCLP(summary.budget_amount)}
+                          {summary.budget_currency && summary.budget_currency !== "CLP" && ` ${summary.budget_currency}`}
+                          {" "}
+                          <Badge variant="secondary">
+                            {summary.budget_period
+                              ? BUDGET_PERIOD_LABELS[summary.budget_period as keyof typeof BUDGET_PERIOD_LABELS] ??
+                                summary.budget_period
+                              : "periodicidad no especificada"}
+                          </Badge>
+                        </>
+                      ) : (
+                        "No especificado en el documento"
+                      )}
+                    </p>
+                    {summary.budget_detail && (
+                      <p className="text-xs text-muted-foreground">{summary.budget_detail}</p>
+                    )}
                   </CardContent>
                 </Card>
                 <Card>
@@ -204,73 +243,18 @@ export default async function DocumentDetailPage({
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Solo los puntos críticos y obligatorios para participar: boleta de garantía,
-              condiciones de servidores, SLA, plazos, multas y certificados. Las funcionalidades del
-              software están en la pestaña <span className="font-medium">Sistemas</span>.
+              condiciones de servidores, SLA, plazos, multas, certificados y migración de datos.
+              Las funcionalidades del software están en la pestaña{" "}
+              <span className="font-medium">Sistemas</span>. Pulsa un punto para ver su detalle.
             </p>
             <ExportButtons kind="requerimientos" entityId={doc.id} />
-            {requirements.length === 0 && (
+            {requirements.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No se identificaron puntos críticos en este documento.
               </p>
+            ) : (
+              <CriticalPointsAccordion requirements={requirements} />
             )}
-            {[...grouped.entries()].map(([key, items]) => (
-              <Card key={key}>
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    {groupLabel(key)} <span className="text-muted-foreground">({items.length})</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <THead>
-                      <TR><TH>Exigencia</TH><TH>Obligatorio</TH><TH>Pág.</TH><TH>Prioridad</TH></TR>
-                    </THead>
-                    <TBody>
-                      {items.map((r) => (
-                        <TR key={r.id}>
-                          <TD>
-                            <p className="font-medium">{r.title}</p>
-                            {r.description && (
-                              <p className="text-xs text-muted-foreground">{r.description}</p>
-                            )}
-                            {r.quote && (
-                              <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
-                                “{r.quote}”
-                              </p>
-                            )}
-                          </TD>
-                          <TD>{r.mandatory ? "Sí" : "No"}</TD>
-                          <TD>{r.page ?? "—"}</TD>
-                          <TD><Badge variant={statusVariant(r.priority)}>{r.priority}</Badge></TD>
-                        </TR>
-                      ))}
-                    </TBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="variables">
-          <div className="space-y-3">
-            <ExportButtons kind="variables" entityId={doc.id} />
-            <Table>
-              <THead>
-                <TR><TH>Categoría</TH><TH>Nombre</TH><TH>Descripción</TH><TH>Pág.</TH><TH>Confianza</TH></TR>
-              </THead>
-              <TBody>
-                {variables.map((v) => (
-                  <TR key={v.id}>
-                    <TD><Badge variant="secondary" className="capitalize">{v.category.replace(/_/g, " ")}</Badge></TD>
-                    <TD className="font-medium">{v.name}</TD>
-                    <TD className="text-muted-foreground">{v.description ?? "—"}</TD>
-                    <TD>{v.page ?? "—"}</TD>
-                    <TD>{v.confidence != null ? `${Math.round(v.confidence * 100)}%` : "—"}</TD>
-                  </TR>
-                ))}
-              </TBody>
-            </Table>
           </div>
         </TabsContent>
 
@@ -319,26 +303,46 @@ export default async function DocumentDetailPage({
           <ChatPanel documentId={doc.id} agent="analista" />
         </TabsContent>
 
-        <TabsContent value="comentarios">
-          <CommentsPanel documentId={doc.id} initialComments={comments as Comment[]} />
-        </TabsContent>
-
         <TabsContent value="versiones">
-          <Table>
-            <THead>
-              <TR><TH>Versión</TH><TH>Nota de cambio</TH><TH>Fecha</TH><TH>Actual</TH></TR>
-            </THead>
-            <TBody>
-              {versions.map((v) => (
-                <TR key={v.id}>
-                  <TD className="font-medium">v{v.version}</TD>
-                  <TD>{v.change_note ?? "—"}</TD>
-                  <TD>{formatDate(v.created_at)}</TD>
-                  <TD>{v.is_current ? <Badge variant="success">actual</Badge> : "—"}</TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Cada reanálisis con otro motor de IA crea una versión nueva sin perder la anterior.
+              Pulsa <span className="font-medium">Ver resumen</span> para revisar lo que produjo
+              cada una.
+            </p>
+            <Table>
+              <THead>
+                <TR><TH>Versión</TH><TH>Motor</TH><TH>Nota de cambio</TH><TH>Fecha</TH><TH>Actual</TH><TH>&nbsp;</TH></TR>
+              </THead>
+              <TBody>
+                {versions.map((v) => (
+                  <TR key={v.id}>
+                    <TD className="font-medium">v{v.version}</TD>
+                    <TD>
+                      {v.analysis_engine ? (
+                        <Badge variant="secondary">
+                          {ENGINE_LABELS[v.analysis_engine as AnalysisMode] ?? v.analysis_engine}
+                        </Badge>
+                      ) : (
+                        "—"
+                      )}
+                    </TD>
+                    <TD>{v.change_note ?? "—"}</TD>
+                    <TD>{formatDate(v.created_at)}</TD>
+                    <TD>{v.is_current ? <Badge variant="success">actual</Badge> : "—"}</TD>
+                    <TD>
+                      <Link
+                        href={v.is_current ? `/documents/${doc.id}` : `/documents/${doc.id}?v=${v.id}`}
+                        className="text-primary underline"
+                      >
+                        Ver resumen
+                      </Link>
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

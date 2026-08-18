@@ -37,10 +37,35 @@ export type Classification = z.infer<typeof ClassificationSchema>;
 
 const ItemSchema = z.object({ titulo: z.string(), detalle: z.string() });
 
+/** Periodicidad del presupuesto: sin esto, un monto es ambiguo — ¿es lo que
+ *  se paga una vez, cada mes o cada año? */
+export const BUDGET_PERIODS = ["unico", "mensual", "anual", "total"] as const;
+export const BUDGET_PERIOD_LABELS: Record<(typeof BUDGET_PERIODS)[number], string> = {
+  unico: "Pago único",
+  mensual: "Mensual",
+  anual: "Anual",
+  total: "Total del contrato",
+};
+
 export const SummarySchema = z.object({
   resumen_general: z.string(),
   objetivo: z.string(),
   alcance: z.string(),
+  plazo_implementacion: z
+    .string()
+    .nullable()
+    .describe("Plazo para implementar/poner en marcha la solución, tal como lo indica el documento (p.ej. '90 días corridos desde la firma')"),
+  presupuesto: z
+    .object({
+      monto: z.number().nullable(),
+      moneda: z.string().nullable(),
+      periodicidad: z
+        .enum(BUDGET_PERIODS)
+        .nullable()
+        .describe("unico=pago único, mensual, anual, o total=suma de todo el contrato"),
+      detalle: z.string().nullable().describe("Aclaración breve si el documento distingue varios montos (p.ej. 'implementación única + soporte mensual')"),
+    })
+    .nullable(),
   problemas_detectados: z.array(ItemSchema),
   requerimientos: z.array(ItemSchema),
   obligaciones: z.array(ItemSchema),
@@ -92,6 +117,7 @@ export const CRITICAL_TYPES = [
   "plazos",
   "multas",
   "certificados",
+  "migracion_datos",
 ] as const;
 
 export const CRITICAL_TYPE_LABELS: Record<(typeof CRITICAL_TYPES)[number], string> = {
@@ -101,6 +127,7 @@ export const CRITICAL_TYPE_LABELS: Record<(typeof CRITICAL_TYPES)[number], strin
   plazos: "Plazos",
   multas: "Multas",
   certificados: "Certificados",
+  migracion_datos: "Migración de datos",
 };
 
 export const RequirementsSchema = z.object({
@@ -111,6 +138,7 @@ export const RequirementsSchema = z.object({
       titulo: z.string(),
       descripcion: z.string().nullable(),
       obligatorio: z.boolean(),
+      plazo: z.string().nullable().describe("Plazo asociado a este punto crítico, tal como lo indica el documento, si existe"),
       pagina: z.number().int().nullable(),
       cita: z.string().nullable(),
       prioridad: z.enum(["bajo", "medio", "alto", "critico"]),

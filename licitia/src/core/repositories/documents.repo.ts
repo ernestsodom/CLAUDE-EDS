@@ -46,32 +46,39 @@ export async function getDocument(supabase: SupabaseClient, id: string): Promise
 
 export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
   const document = await getDocument(supabase, id);
-  const [summary, variables, requirements, timeline, versions, comments, delivered, systems] =
+  const [summary, requirements, timeline, versions, delivered, systems] =
     await Promise.all([
       supabase.from("document_summaries").select("*").eq("document_id", id).maybeSingle(),
-      supabase.from("technical_variables").select("*").eq("document_id", id).order("category"),
       supabase.from("requirements").select("*").eq("document_id", id).order("created_at"),
       supabase.from("timelines").select("*, milestones(*)").eq("document_id", id).maybeSingle(),
       supabase.from("document_versions").select("*").eq("document_id", id).order("version", { ascending: false }),
-      supabase
-        .from("notes")
-        .select("*, note_attachments(id, file_name, mime_type, size_bytes)")
-        .eq("document_id", id)
-        .order("created_at", { ascending: false }),
       supabase.from("delivered_items").select("*").eq("document_id", id).order("delivered_on", { ascending: false }),
       getChecklist(supabase, id),
     ]);
   return {
     document,
     summary: summary.data,
-    variables: variables.data ?? [],
     requirements: requirements.data ?? [],
     timeline: timeline.data,
     versions: versions.data ?? [],
-    comments: comments.data ?? [],
     deliveredItems: delivered.data ?? [],
     systems,
   };
+}
+
+/**
+ * Resumen ejecutivo de una versión concreta (no necesariamente la actual):
+ * cada reanálisis con otro motor genera su propio resumen sin pisar el
+ * anterior, así que se puede ver — y en el futuro comparar — lo que produjo
+ * cada motor.
+ */
+export async function getVersionSummary(supabase: SupabaseClient, versionId: string) {
+  const { data } = await supabase
+    .from("document_summaries")
+    .select("*")
+    .eq("version_id", versionId)
+    .maybeSingle();
+  return data;
 }
 
 /** Crea documento + versión 1 + registro de archivo. Devuelve IDs para el pipeline. */
@@ -127,7 +134,8 @@ export async function createNewVersion(
   supabase: SupabaseClient,
   documentId: string,
   userId: string,
-  changeNote: string | null
+  changeNote: string | null,
+  engine?: string | null
 ) {
   const { data: latest } = await supabase
     .from("document_versions")
@@ -151,9 +159,41 @@ export async function createNewVersion(
       change_note: changeNote,
       created_by: userId,
       is_current: true,
+      analysis_engine: engine ?? null,
     })
     .select("id, version")
     .single();
   if (error || !version) throw new Error(`Error creando versión: ${error?.message}`);
   return version;
+}
+
+/**
+ * Copia el archivo de la versión actual a una versión nueva: reanalizar con
+ * otro motor no implica volver a subir el mismo PDF, solo volver a leerlo.
+ */
+export async function copyCurrentFileToVersion(
+  supabase: SupabaseClient,
+  documentId: string,
+  newVersionId: string
+) {
+  const { data: currentVersion } = await supabase
+    .from("document_versions")
+    .select("id")
+    .eq("document_id", documentId)
+    .neq("id", newVersionId)
+    .order("version", { ascending: false })
+    .limit(1)
+    .single();
+  if (!currentVersion) throw new Error("No se encontró la versión anterior del documento");
+
+  const { data: file } = await supabase
+    .from("files")
+    .select("storage_path, file_name, mime_type, size_bytes, checksum_sha256")
+    .eq("version_id", currentVersion.id)
+    .limit(1)
+    .single();
+  if (!file) throw new Error("No se encontró el archivo de la versión anterior");
+
+  const { error } = await supabase.from("files").insert({ ...file, version_id: newVersionId });
+  if (error) throw new Error(`Error copiando el archivo a la nueva versión: ${error.message}`);
 }

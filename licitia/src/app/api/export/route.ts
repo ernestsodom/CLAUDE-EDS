@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const BodySchema = z.object({
-  format: z.enum(["csv", "xlsx", "docx", "pdf", "pptx"]),
-  kind: z.enum(["resumen", "comparacion", "variables", "requerimientos"]),
+  format: z.enum(["docx", "pdf"]),
+  kind: z.enum(["resumen", "comparacion", "requerimientos"]),
   entityId: z.string().uuid(),
 });
 
@@ -80,22 +80,6 @@ export const POST = withErrorHandling(async (request: Request) => {
             String(i.priority ?? ""),
           ]
         ),
-      },
-    };
-  } else if (kind === "variables") {
-    const { data: vars } = await supabase
-      .from("technical_variables")
-      .select("*")
-      .eq("document_id", entityId)
-      .order("category");
-    payload = {
-      title: "Variables Técnicas",
-      table: {
-        headers: ["Categoría", "Nombre", "Descripción", "Valor", "Página", "Confianza"],
-        rows: (vars ?? []).map((v) => [
-          v.category, v.name, v.description ?? "", v.value ?? "",
-          String(v.page ?? ""), String(v.confidence ?? ""),
-        ]),
       },
     };
   } else {
