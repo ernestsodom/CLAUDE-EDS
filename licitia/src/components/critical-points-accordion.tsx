@@ -96,10 +96,13 @@ export function CriticalPointsAccordion({ requirements }: { requirements: Requir
                       )}
                       {r.quote && (
                         <p className="border-l-2 pl-2 text-xs italic text-muted-foreground">
-                          “{r.quote}”
+                          “{r.quote}”{r.page != null && ` (pág. ${r.page})`}
                         </p>
                       )}
-                      {!r.description && !r.quote && !r.deadline_text && (
+                      {!r.quote && r.page != null && (
+                        <p className="text-xs text-muted-foreground">Página: {r.page}</p>
+                      )}
+                      {!r.description && !r.quote && !r.deadline_text && r.page == null && (
                         <p className="text-xs text-muted-foreground">Sin detalle adicional.</p>
                       )}
                     </div>
