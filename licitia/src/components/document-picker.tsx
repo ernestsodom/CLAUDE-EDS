@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { EngineSelector } from "@/components/engine-selector";
 import { processDocument } from "@/lib/process-document";
+import { uploadDocument } from "@/lib/upload-document";
 import type { AnalysisMode } from "@/lib/ai-providers";
 
 export interface PickedDocument {
@@ -79,15 +80,11 @@ export function DocumentPicker({
     setUploading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/documents/upload", { method: "POST", body: formData });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error?.message ?? "Error al subir");
-      onChange({ id: json.documentId, title: file.name, doc_type: "otro", status: "procesando" });
+      const { documentId } = await uploadDocument(file);
+      onChange({ id: documentId, title: file.name, doc_type: "otro", status: "procesando" });
       setSearching(false);
       setUploading(false);
-      await runAnalysis(json.documentId, file.name);
+      await runAnalysis(documentId, file.name);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
       setUploading(false);

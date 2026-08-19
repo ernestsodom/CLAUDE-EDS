@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectPicker } from "@/components/project-picker";
 import { EngineSelector } from "@/components/engine-selector";
 import { processDocument } from "@/lib/process-document";
+import { uploadDocument } from "@/lib/upload-document";
 import type { AnalysisMode } from "@/lib/ai-providers";
 
 type UploadState = {
@@ -48,22 +49,16 @@ export function DocumentUploadPanel({
       for (const file of Array.from(files)) {
         setUploads((prev) => [...prev, { name: file.name, status: "subiendo" }]);
         try {
-          const formData = new FormData();
-          formData.append("file", file);
-          if (projectId) formData.append("projectId", projectId);
-
-          const res = await fetch("/api/documents/upload", { method: "POST", body: formData });
-          const json = await res.json();
-          if (!res.ok) throw new Error(json.error?.message ?? "Error al subir");
+          const { documentId } = await uploadDocument(file, { projectId });
 
           patch(file.name, {
             status: "procesando",
-            documentId: json.documentId,
+            documentId,
             detail: "iniciando análisis…",
           });
 
           const result = await processDocument(
-            json.documentId,
+            documentId,
             (label) => patch(file.name, { detail: label }),
             { mode }
           );
