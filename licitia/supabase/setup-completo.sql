@@ -1306,5 +1306,13 @@ alter table document_versions
   add column if not exists analysis_engine text;
 
 -- ============================================================================
+-- Comparador de dos documentos: resumen macro en viñetas y página de origen
+-- de cada diferencia en cada documento (equivale a la migración 0011).
+-- ============================================================================
+
+alter table comparisons
+  add column if not exists summary_points jsonb;
+
+-- ============================================================================
 -- ✔ Instalación completa. Siguiente paso: Authentication → Users → Add user.
 -- ============================================================================

@@ -90,6 +90,16 @@ function ComplianceTables({ items }: { items: ComparisonItem[] }) {
   );
 }
 
+interface DiffItem {
+  tema: string;
+  documento_a: string;
+  pagina_a?: number | null;
+  documento_b: string;
+  pagina_b?: number | null;
+  impacto: string;
+  comentario: string;
+}
+
 interface Comparison {
   id: string;
   comparison_type: string;
@@ -101,10 +111,55 @@ interface Comparison {
   pct_out_of_scope: number | null;
   traffic_light: string | null;
   summary: string | null;
-  differences: Array<{ tema: string; documento_a: string; documento_b: string; impacto: string; comentario: string }> | null;
+  summary_points: string[] | null;
+  differences: DiffItem[] | null;
   comparison_items: ComparisonItem[];
   source: { title: string } | null;
   target: { title: string } | null;
+}
+
+/** Diferencia a diferencia, con la página de origen en cada documento —
+ *  el detalle que sigue al resumen macro. */
+function DiffList({ differences, sourceTitle, targetTitle }: {
+  differences: DiffItem[];
+  sourceTitle: string;
+  targetTitle: string;
+}) {
+  return (
+    <div className="space-y-3">
+      {differences.map((d, i) => (
+        <Card key={i}>
+          <CardContent className="space-y-2 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-medium">
+                {i + 1}. {d.tema}
+              </p>
+              <Badge variant={statusVariant(d.impacto)} className="uppercase">
+                {d.impacto}
+              </Badge>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-md border p-2.5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {sourceTitle}
+                  {d.pagina_a != null && <span> · pág. {d.pagina_a}</span>}
+                </p>
+                <p className="mt-1 text-sm">{d.documento_a}</p>
+              </div>
+              <div className="rounded-md border p-2.5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {targetTitle}
+                  {d.pagina_b != null && <span> · pág. {d.pagina_b}</span>}
+                </p>
+                <p className="mt-1 text-sm">{d.documento_b}</p>
+              </div>
+            </div>
+            {d.comentario && <p className="text-xs text-muted-foreground">{d.comentario}</p>}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 /** Resultado de comparación: KPIs de cumplimiento + semáforo + tabla de evidencia,
@@ -144,7 +199,9 @@ export function ComparisonResult({ comparison }: { comparison: Comparison }) {
               ))}
             </div>
           )}
-          {comparison.summary && <p className="text-sm text-muted-foreground">{comparison.summary}</p>}
+          {isCompliance && comparison.summary && (
+            <p className="text-sm text-muted-foreground">{comparison.summary}</p>
+          )}
           <ExportButtons kind="comparacion" entityId={comparison.id} />
         </CardContent>
       </Card>
@@ -152,22 +209,38 @@ export function ComparisonResult({ comparison }: { comparison: Comparison }) {
       {isCompliance ? (
         <ComplianceTables items={comparison.comparison_items} />
       ) : (
-        <Table>
-          <THead>
-            <TR><TH>Tema</TH><TH>Documento A</TH><TH>Documento B</TH><TH>Impacto</TH><TH>Comentario</TH></TR>
-          </THead>
-          <TBody>
-            {(comparison.differences ?? []).map((d, i) => (
-              <TR key={i}>
-                <TD className="font-medium">{d.tema}</TD>
-                <TD className="max-w-[260px] text-xs">{d.documento_a}</TD>
-                <TD className="max-w-[260px] text-xs">{d.documento_b}</TD>
-                <TD><Badge variant={statusVariant(d.impacto)}>{d.impacto}</Badge></TD>
-                <TD className="max-w-[260px] text-xs">{d.comentario}</TD>
-              </TR>
-            ))}
-          </TBody>
-        </Table>
+        <div className="space-y-4">
+          {(comparison.summary || (comparison.summary_points?.length ?? 0) > 0) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Resumen macro de las diferencias</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {comparison.summary && <p className="text-sm">{comparison.summary}</p>}
+                {(comparison.summary_points?.length ?? 0) > 0 && (
+                  <ul className="list-disc space-y-1 pl-4 text-sm">
+                    {comparison.summary_points!.map((p, i) => <li key={i}>{p}</li>)}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">
+              Detalle punto por punto ({(comparison.differences ?? []).length})
+            </h3>
+            {(comparison.differences ?? []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">No se identificaron diferencias.</p>
+            ) : (
+              <DiffList
+                differences={comparison.differences!}
+                sourceTitle={comparison.source?.title ?? "Documento A"}
+                targetTitle={comparison.target?.title ?? "Documento B"}
+              />
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

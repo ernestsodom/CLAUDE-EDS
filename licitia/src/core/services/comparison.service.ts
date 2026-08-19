@@ -305,13 +305,26 @@ export async function runDiffComparison(
       system:
         "Eres un analista legal-técnico. Compara los dos documentos e identifica todas las diferencias " +
         "relevantes: alcance, montos, plazos, requerimientos agregados/eliminados/modificados, multas, " +
-        "garantías y condiciones. Evalúa el impacto de cada diferencia.",
+        "garantías y condiciones. Evalúa el impacto de cada diferencia.\n" +
+        "Entrega dos niveles de lectura:\n" +
+        "1. resumen y resumen_puntos: la vista macro — de qué tratan, en conjunto, los cambios entre " +
+        "ambos documentos (3 a 8 viñetas cortas más un párrafo breve), sin entrar en el detalle de cada " +
+        "una todavía.\n" +
+        "2. diferencias: el detalle punto por punto. Cada página del texto viene marcada con " +
+        "'=== PÁGINA N ==='; para cada diferencia indica en pagina_a y pagina_b la página exacta donde " +
+        "aparece ese contenido en cada documento (null si el tema simplemente no aparece en ese " +
+        "documento). Nunca dejes una página sin indicar si el contenido está presente en el texto.",
       user: `DOCUMENTO A:\n${textA}\n\n########\n\nDOCUMENTO B:\n${textB}`,
     });
 
     await db
       .from("comparisons")
-      .update({ status: "completado", differences: result.diferencias, summary: result.resumen })
+      .update({
+        status: "completado",
+        differences: result.diferencias,
+        summary: result.resumen,
+        summary_points: result.resumen_puntos,
+      })
       .eq("id", comparisonId);
   } catch (err) {
     await db

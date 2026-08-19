@@ -236,16 +236,31 @@ export const ComplianceSchema = z.object({
 export type Compliance = z.infer<typeof ComplianceSchema>;
 
 export const DiffSchema = z.object({
+  resumen: z
+    .string()
+    .describe(
+      "Resumen ejecutivo en prosa (3-6 líneas) de las diferencias más importantes a nivel macro entre ambos documentos."
+    ),
+  resumen_puntos: z
+    .array(z.string())
+    .describe(
+      "Entre 3 y 8 viñetas cortas (una línea cada una) con los cambios macro más relevantes: qué cambió y su impacto general — la vista rápida antes del detalle punto por punto."
+    ),
   diferencias: z.array(
     z.object({
       tema: z.string(),
-      documento_a: z.string(),
-      documento_b: z.string(),
+      documento_a: z
+        .string()
+        .describe("Qué dice o cómo trata este tema el Documento A; si el tema no aparece en A, indícalo explícitamente ('No aparece en este documento')."),
+      pagina_a: z.number().int().nullable().describe("Página del Documento A donde aparece este contenido; null si no aparece en A."),
+      documento_b: z
+        .string()
+        .describe("Qué dice o cómo trata este tema el Documento B; si el tema no aparece en B, indícalo explícitamente ('No aparece en este documento')."),
+      pagina_b: z.number().int().nullable().describe("Página del Documento B donde aparece este contenido; null si no aparece en B."),
       impacto: z.enum(["bajo", "medio", "alto", "critico"]),
       comentario: z.string(),
     })
   ),
-  resumen: z.string(),
 });
 export type Diff = z.infer<typeof DiffSchema>;
 

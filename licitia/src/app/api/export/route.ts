@@ -64,24 +64,49 @@ export const POST = withErrorHandling(async (request: Request) => {
       .eq("id", entityId)
       .maybeSingle();
     if (!cmp) throw new NotFoundError("Comparación no encontrada");
-    payload = {
-      title: `Informe de Cumplimiento (${cmp.traffic_light ?? "s/e"})`,
-      sections: [{ title: "Resumen", paragraphs: [cmp.summary ?? ""] }],
-      table: {
-        headers: ["Requerimiento", "Estado", "Evidencia", "Página", "Comentario IA", "Riesgo", "Prioridad"],
-        rows: (cmp.comparison_items ?? []).map(
-          (i: Record<string, unknown>) => [
-            String(i.requirement_text ?? ""),
-            String(i.status ?? ""),
-            String(i.evidence_quote ?? ""),
-            String(i.evidence_page ?? ""),
-            String(i.ai_comment ?? ""),
-            String(i.risk ?? ""),
-            String(i.priority ?? ""),
-          ]
-        ),
-      },
-    };
+
+    if (cmp.comparison_type === "cumplimiento") {
+      payload = {
+        title: `Informe de Cumplimiento (${cmp.traffic_light ?? "s/e"})`,
+        sections: [{ title: "Resumen", paragraphs: [cmp.summary ?? ""] }],
+        table: {
+          headers: ["Requerimiento", "Estado", "Evidencia", "Página", "Comentario IA", "Riesgo", "Prioridad"],
+          rows: (cmp.comparison_items ?? []).map(
+            (i: Record<string, unknown>) => [
+              String(i.requirement_text ?? ""),
+              String(i.status ?? ""),
+              String(i.evidence_quote ?? ""),
+              String(i.evidence_page ?? ""),
+              String(i.ai_comment ?? ""),
+              String(i.risk ?? ""),
+              String(i.priority ?? ""),
+            ]
+          ),
+        },
+      };
+    } else {
+      // Diferencias entre dos documentos: resumen macro + detalle punto por
+      // punto con la página de origen en cada documento.
+      const points = (cmp.summary_points ?? []) as string[];
+      payload = {
+        title: "Informe de Diferencias entre Documentos",
+        sections: [
+          { title: "Resumen macro", paragraphs: [cmp.summary ?? "", ...points.map((p) => `• ${p}`)] },
+        ],
+        table: {
+          headers: ["Tema", "Documento A", "Pág. A", "Documento B", "Pág. B", "Impacto", "Comentario"],
+          rows: ((cmp.differences ?? []) as Array<Record<string, unknown>>).map((d) => [
+            String(d.tema ?? ""),
+            String(d.documento_a ?? ""),
+            String(d.pagina_a ?? ""),
+            String(d.documento_b ?? ""),
+            String(d.pagina_b ?? ""),
+            String(d.impacto ?? ""),
+            String(d.comentario ?? ""),
+          ]),
+        },
+      };
+    }
   } else {
     const { data: reqs } = await supabase
       .from("requirements")
