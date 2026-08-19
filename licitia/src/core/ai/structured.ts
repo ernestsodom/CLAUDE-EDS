@@ -4,6 +4,12 @@ import type { z } from "zod";
 import { getProviderClient, isOpenAICompatible, modelFor, type ProviderId } from "@/lib/ai-providers";
 import { anthropic, CLAUDE_MAX_TOKENS } from "@/lib/anthropic";
 import { logger } from "@/lib/logger";
+import type { UsageEvent } from "@/core/services/ai-usage.service";
+
+/** Callback opcional: quien llama puede registrar el consumo real que el
+ *  proveedor reportó en la respuesta (ver ai-usage.service.ts). Sin él, la
+ *  llamada funciona igual — es puramente medición, nunca un requisito. */
+type OnUsage = (u: UsageEvent) => void;
 
 /**
  * Salida estructurada con Claude (SDK oficial de Anthropic).
@@ -16,7 +22,7 @@ import { logger } from "@/lib/logger";
  * de Anthropic, en lugar de reimplementar esa conversión a mano.
  */
 async function claudeStructured<T extends z.ZodTypeAny>(
-  opts: { schema: T; schemaName: string; system: string; user: string },
+  opts: { schema: T; schemaName: string; system: string; user: string; onUsage?: OnUsage },
   model: string
 ): Promise<z.infer<T>> {
   const jsonSchema = (
@@ -37,6 +43,13 @@ async function claudeStructured<T extends z.ZodTypeAny>(
         parse: (content: string) => opts.schema.parse(JSON.parse(content)) as z.infer<T>,
       },
     },
+  });
+
+  opts.onUsage?.({
+    provider: "claude",
+    model,
+    inputTokens: response.usage.input_tokens,
+    outputTokens: response.usage.output_tokens,
   });
 
   const parsed = response.parsed_output;
@@ -86,6 +99,8 @@ export async function structuredCompletion<T extends z.ZodTypeAny>(opts: {
   provider?: ProviderId;
   speed?: "fast" | "chat";
   model?: string;
+  /** Registra los tokens reales que devolvió el proveedor (ver ai-usage.service.ts). */
+  onUsage?: OnUsage;
 }): Promise<z.infer<T>> {
   const provider = opts.provider ?? "gemini";
   const model = opts.model ?? modelFor(provider, opts.speed ?? "fast");
@@ -98,6 +113,16 @@ export async function structuredCompletion<T extends z.ZodTypeAny>(opts: {
 
   const client = getProviderClient(provider);
 
+  const recordUsage = (usage: { prompt_tokens?: number; completion_tokens?: number } | null | undefined) => {
+    if (!usage) return;
+    opts.onUsage?.({
+      provider,
+      model,
+      inputTokens: usage.prompt_tokens ?? 0,
+      outputTokens: usage.completion_tokens ?? 0,
+    });
+  };
+
   const callStrict = async () => {
     const completion = await client.beta.chat.completions.parse({
       model,
@@ -107,6 +132,7 @@ export async function structuredCompletion<T extends z.ZodTypeAny>(opts: {
       ],
       response_format: zodResponseFormat(opts.schema, opts.schemaName),
     });
+    recordUsage(completion.usage);
     const parsed = completion.choices[0]?.message.parsed;
     if (!parsed) throw new Error("Respuesta sin contenido estructurado");
     return parsed;
@@ -132,6 +158,7 @@ export async function structuredCompletion<T extends z.ZodTypeAny>(opts: {
       ],
       response_format: { type: "json_object" },
     });
+    recordUsage(completion.usage);
     const raw = completion.choices[0]?.message?.content;
     if (!raw) throw new Error("Respuesta vacía del proveedor");
     const candidate: unknown = JSON.parse(raw);
@@ -179,6 +206,8 @@ export async function textCompletion(opts: {
   provider?: ProviderId;
   speed?: "fast" | "chat";
   maxTokens?: number;
+  /** Registra los tokens reales que devolvió el proveedor (ver ai-usage.service.ts). */
+  onUsage?: OnUsage;
 }): Promise<string> {
   const provider = opts.provider ?? "gemini";
   const model = modelFor(provider, opts.speed ?? "chat");
@@ -189,6 +218,12 @@ export async function textCompletion(opts: {
       max_tokens: opts.maxTokens ?? CLAUDE_MAX_TOKENS,
       system: opts.system,
       messages: [{ role: "user", content: opts.user }],
+    });
+    opts.onUsage?.({
+      provider: "claude",
+      model,
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
     });
     // content es una unión discriminada: hay que estrechar por .type antes de
     // leer .text (puede traer bloques de otros tipos).
@@ -205,5 +240,13 @@ export async function textCompletion(opts: {
       { role: "user", content: opts.user },
     ],
   });
+  if (completion.usage) {
+    opts.onUsage?.({
+      provider,
+      model,
+      inputTokens: completion.usage.prompt_tokens ?? 0,
+      outputTokens: completion.usage.completion_tokens ?? 0,
+    });
+  }
   return completion.choices[0]?.message.content ?? "";
 }

@@ -11,6 +11,7 @@ import {
 import { AGENT_PROMPTS, buildRagContext } from "@/core/ai/agents";
 import type { AgentKind, SearchFilters } from "@/core/domain/types";
 import { fetchDocTitles, retrieve } from "./rag.service";
+import type { UsageEvent } from "./ai-usage.service";
 
 // ============================================================================
 // Chat RAG con streaming y citas.
@@ -58,6 +59,9 @@ export interface ChatTurnInput {
   history: Array<{ role: "user" | "assistant"; content: string }>;
   filters: SearchFilters;
   engine?: ChatEngine;
+  /** Se llama una vez, con los tokens reales, cuando el stream termina de
+   *  emitirse por completo (ver ai-usage.service.ts). */
+  onUsage?: (u: UsageEvent) => void;
 }
 
 export interface ChatTurnResult {
@@ -69,7 +73,7 @@ export interface ChatTurnResult {
 }
 
 export async function streamChatTurn(input: ChatTurnInput): Promise<ChatTurnResult> {
-  const { supabase, agent, question, history, filters } = input;
+  const { supabase, agent, question, history, filters, onUsage } = input;
 
   const engine = input.engine ?? listChatEngines()[0]?.id ?? "gemini";
   if (!isChatEngineConfigured(engine)) {
@@ -106,6 +110,18 @@ Solo incluye chunk_ids presentes en el contexto.`;
           yield event.delta.text;
         }
       }
+      // El SDK acumula el mensaje completo mientras se consume el stream;
+      // una vez que termina de iterarse, .finalMessage() resuelve al toque
+      // con los tokens reales — no hay que volver a pedirle nada al modelo.
+      if (onUsage) {
+        const final = await stream.finalMessage();
+        onUsage({
+          provider: "claude",
+          model,
+          inputTokens: final.usage.input_tokens,
+          outputTokens: final.usage.output_tokens,
+        });
+      }
     }
 
     return { textStream: claudeText(), retrievedChunks: chunks, engine, model };
@@ -115,6 +131,10 @@ Solo incluye chunk_ids presentes en el contexto.`;
   const stream = await getProviderClient(engine).chat.completions.create({
     model,
     stream: true,
+    // Pide que el último chunk del stream traiga el conteo real de tokens
+    // (soportado por Groq y por la capa OpenAI-compatible de Gemini); ese
+    // chunk no trae texto, solo 'usage', así que no afecta lo que se emite.
+    stream_options: { include_usage: true },
     messages: [
       { role: "system", content: system },
       ...turns,
@@ -126,6 +146,14 @@ Solo incluye chunk_ids presentes en el contexto.`;
     for await (const part of stream) {
       const delta = part.choices[0]?.delta?.content;
       if (delta) yield delta;
+      if (part.usage && onUsage) {
+        onUsage({
+          provider: engine,
+          model,
+          inputTokens: part.usage.prompt_tokens ?? 0,
+          outputTokens: part.usage.completion_tokens ?? 0,
+        });
+      }
     }
   }
 

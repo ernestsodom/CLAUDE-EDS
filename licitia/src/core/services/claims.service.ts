@@ -4,6 +4,7 @@ import { ClaimAnalysisSchema, type ClaimAnalysis } from "@/core/ai/schemas";
 import { isProviderId, modelFor, type AnalysisMode, type ProviderId } from "@/lib/ai-providers";
 import { AGENT_PROMPTS, buildRagContext } from "@/core/ai/agents";
 import { fetchDocTitles, retrieve } from "./rag.service";
+import type { UsageEvent } from "./ai-usage.service";
 import type { Citation } from "@/core/domain/types";
 
 // ============================================================================
@@ -25,7 +26,8 @@ export async function analyzeClaim(
   supabase: SupabaseClient,
   rawEmail: string,
   clientId: string | null,
-  provider: ProviderId = "gemini"
+  provider: ProviderId = "gemini",
+  onUsage?: (u: UsageEvent) => void
 ): Promise<{ analysis: ClaimAnalysis; evidence: Awaited<ReturnType<typeof retrieve>> }> {
   // Evidencia relevante de toda la biblioteca autorizada (filtrada por cliente si se conoce)
   const evidence = await retrieve(
@@ -42,6 +44,7 @@ export async function analyzeClaim(
     schemaName: "analisis_reclamo",
     provider,
     speed: "chat",
+    onUsage,
     system:
       "Eres un analista de contratos. Analiza el reclamo del cliente contrastándolo con la evidencia " +
       "documental: qué reclama, qué solicita, qué contrato aplica, qué requerimientos corresponden, " +
@@ -59,7 +62,8 @@ export async function draftClaimResponse(
   rawEmail: string,
   analysis: ClaimAnalysis,
   clientId: string | null,
-  provider: ProviderId = "gemini"
+  provider: ProviderId = "gemini",
+  onUsage?: (u: UsageEvent) => void
 ): Promise<{ content: string; citations: Citation[]; model: string }> {
   const evidence = await retrieve(
     supabase,
@@ -73,6 +77,7 @@ export async function draftClaimResponse(
   const content = await textCompletion({
     provider,
     speed: "chat",
+    onUsage,
     system: AGENT_PROMPTS.reclamos,
     user:
       `RECLAMO ORIGINAL:\n${rawEmail}\n\n` +

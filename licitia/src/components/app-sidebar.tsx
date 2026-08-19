@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   LayoutDashboard, FileText, MessageSquare, GitCompare,
-  Search, ChevronLeft, ChevronRight, LogOut, Moon, Sun, FileSearch,
+  Search, Gauge, ChevronLeft, ChevronRight, LogOut, Moon, Sun, FileSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -19,6 +19,7 @@ const NAV = [
   { href: "/chat", label: "Chat IA", icon: MessageSquare },
   { href: "/compare", label: "Comparador", icon: GitCompare },
   { href: "/search", label: "Búsqueda", icon: Search },
+  { href: "/ai-usage", label: "Uso de IA", icon: Gauge },
 ];
 
 /** Navegación lateral colapsable con selector de tema y cierre de sesión. */

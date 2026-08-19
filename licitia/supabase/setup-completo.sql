@@ -1314,5 +1314,31 @@ alter table comparisons
   add column if not exists summary_points jsonb;
 
 -- ============================================================================
+-- Registro de consumo real de IA por proveedor (equivale a la migración 0012)
+-- ============================================================================
+
+create table if not exists ai_usage_log (
+  id               uuid primary key default gen_random_uuid(),
+  organization_id  uuid not null references organizations(id) on delete cascade,
+  provider         text not null,
+  model            text not null,
+  feature          text not null,
+  input_tokens     int not null default 0,
+  output_tokens    int not null default 0,
+  document_id      uuid references documents(id) on delete set null,
+  created_by       uuid references profiles(id) on delete set null,
+  created_at       timestamptz not null default now()
+);
+
+create index if not exists idx_ai_usage_org_created on ai_usage_log(organization_id, created_at desc);
+create index if not exists idx_ai_usage_org_provider on ai_usage_log(organization_id, provider, created_at desc);
+
+alter table ai_usage_log enable row level security;
+
+drop policy if exists ai_usage_select on ai_usage_log;
+create policy ai_usage_select on ai_usage_log for select
+  using (organization_id = current_org_id());
+
+-- ============================================================================
 -- ✔ Instalación completa. Siguiente paso: Authentication → Users → Add user.
 -- ============================================================================

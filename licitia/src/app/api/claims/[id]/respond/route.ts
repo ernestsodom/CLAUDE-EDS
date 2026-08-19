@@ -4,6 +4,7 @@ import { withErrorHandling, NotFoundError } from "@/lib/errors";
 import { draftClaimResponse, claimProviderFor } from "@/core/services/claims.service";
 import { ALL_PROVIDERS, type AnalysisMode } from "@/lib/ai-providers";
 import { audit } from "@/core/services/audit.service";
+import { usageLogger } from "@/core/services/ai-usage.service";
 
 export const runtime = "nodejs";
 export const maxDuration = 180;
@@ -24,12 +25,19 @@ export const POST = withErrorHandling(
     if (!claim) throw new NotFoundError("Reclamo no encontrado");
     if (!claim.analysis) throw new NotFoundError("El reclamo aún no tiene análisis");
 
+    const onUsage = usageLogger({
+      organizationId: profile.organization_id,
+      documentId: claim.contract_document_id,
+      userId: user.id,
+      feature: "reclamo_respuesta",
+    });
     const { content, citations, model } = await draftClaimResponse(
       supabase,
       claim.raw_email,
       claim.analysis,
       claim.client_id,
-      provider
+      provider,
+      onUsage
     );
 
     const { data: response, error } = await supabase

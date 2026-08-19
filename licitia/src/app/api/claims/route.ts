@@ -5,6 +5,7 @@ import { withErrorHandling, ValidationError } from "@/lib/errors";
 import { analyzeClaim, claimProviderFor } from "@/core/services/claims.service";
 import { ALL_PROVIDERS, type AnalysisMode } from "@/lib/ai-providers";
 import { audit } from "@/core/services/audit.service";
+import { usageLogger } from "@/core/services/ai-usage.service";
 
 export const runtime = "nodejs";
 export const maxDuration = 180;
@@ -25,7 +26,13 @@ export const POST = withErrorHandling(async (request: Request) => {
   const body = parsed.data;
 
   const provider = claimProviderFor(body.mode as AnalysisMode | undefined);
-  const { analysis } = await analyzeClaim(supabase, body.rawEmail, body.clientId, provider);
+  const onUsage = usageLogger({
+    organizationId: profile.organization_id,
+    documentId: body.contractDocumentId,
+    userId: user.id,
+    feature: "reclamo_analisis",
+  });
+  const { analysis } = await analyzeClaim(supabase, body.rawEmail, body.clientId, provider, onUsage);
 
   const { data: claim, error } = await supabase
     .from("claims")

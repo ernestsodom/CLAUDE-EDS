@@ -5,6 +5,7 @@ import { embedQuery } from "@/lib/openai";
 import { isProviderId, type AnalysisMode, type ProviderId } from "@/lib/ai-providers";
 import { logger } from "@/lib/logger";
 import { extractDeliveredItems } from "./analysis.service";
+import { usageLogger, type UsageEvent } from "./ai-usage.service";
 import type { PageText } from "@/core/domain/types";
 
 // ============================================================================
@@ -44,6 +45,12 @@ export async function runComplianceComparison(
 
   const { data: cmp } = await db.from("comparisons").select("*").eq("id", comparisonId).single();
   if (!cmp) throw new Error("Comparación no encontrada");
+  const onUsage = usageLogger({
+    organizationId: cmp.organization_id,
+    documentId: cmp.source_document_id,
+    userId: cmp.created_by,
+    feature: "comparacion_cumplimiento",
+  });
 
   try {
     const { data: requirements } = await db
@@ -88,6 +95,7 @@ export async function runComplianceComparison(
         schemaName: "analisis_cumplimiento",
         provider,
         speed: "chat",
+        onUsage,
         system:
           "Eres un auditor de cumplimiento contractual. Para cada requerimiento, clasifica su estado " +
           "según la evidencia del documento de avance: cumplido, parcial, pendiente, no_aplica, " +
@@ -115,7 +123,7 @@ export async function runComplianceComparison(
 
     // Pasada inversa: entregas del documento de control que no responden a
     // ningún requerimiento del acuerdo → "adicional" (con marca de gratuito)
-    const extras = await fetchAdditionalDeliveries(db, cmp.target_document_id, provider);
+    const extras = await fetchAdditionalDeliveries(db, cmp.target_document_id, provider, onUsage);
     let freeCount = 0;
     for (const extra of extras) {
       if (extra.is_free) freeCount++;
@@ -199,7 +207,8 @@ interface AdditionalDelivery {
 async function fetchAdditionalDeliveries(
   db: ReturnType<typeof createAdminClient>,
   documentId: string,
-  provider: ProviderId
+  provider: ProviderId,
+  onUsage?: (u: UsageEvent) => void
 ): Promise<AdditionalDelivery[]> {
   const { data: existing } = await db
     .from("delivered_items")
@@ -234,7 +243,7 @@ async function fetchAdditionalDeliveries(
   // Extracción al vuelo con el mismo motor que eligió el usuario para la
   // comparación: mezclar proveedores a mitad de un análisis daría resultados
   // difíciles de explicar.
-  const delivered = await extractDeliveredItems(pageTexts, provider);
+  const delivered = await extractDeliveredItems(pageTexts, provider, onUsage);
 
   if (delivered.entregas.length > 0) {
     await db.from("delivered_items").insert(
@@ -268,6 +277,12 @@ export async function runDiffComparison(
   const provider = providerFor(mode);
   const { data: cmp } = await db.from("comparisons").select("*").eq("id", comparisonId).single();
   if (!cmp) throw new Error("Comparación no encontrada");
+  const onUsage = usageLogger({
+    organizationId: cmp.organization_id,
+    documentId: cmp.source_document_id,
+    userId: cmp.created_by,
+    feature: "comparacion_diff",
+  });
 
   /** Texto anotado por página, hasta maxChars. Informa si tuvo que cortar
    *  antes del final para poder avisarlo — un documento truncado a mitad no
@@ -312,6 +327,7 @@ export async function runDiffComparison(
       schemaName: "diferencias_documentos",
       provider,
       speed: "chat",
+      onUsage,
       system:
         "Eres un analista legal-técnico especializado en detectar diferencias entre dos versiones de un " +
         "MISMO tipo de documento (dos licitaciones, dos propuestas, dos contratos, o dos versiones) que " +

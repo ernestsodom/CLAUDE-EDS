@@ -21,6 +21,7 @@ import {
   summarizeLocal,
 } from "./heuristic.service";
 import { audit } from "./audit.service";
+import { usageLogger } from "./ai-usage.service";
 import { sanitizeStorageFileName } from "@/lib/utils";
 import type { PageText } from "@/core/domain/types";
 import {
@@ -250,25 +251,25 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
       }
 
       case "resumen": {
-        const r = await stageSummary(db, documentId, versionId, mode);
+        const r = await stageSummary(db, documentId, versionId, mode, params.organizationId, params.userId);
         await advance(NEXT[step]);
         return { step: NEXT[step], done: false, engine: r.engine };
       }
 
       case "sistemas": {
-        const r = await stageSystems(db, documentId, versionId, doc.doc_type, mode);
+        const r = await stageSystems(db, documentId, versionId, doc.doc_type, mode, params.organizationId, params.userId);
         await advance(NEXT[step]);
         return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
       }
 
       case "requerimientos": {
-        const r = await stageRequirements(db, documentId, versionId, doc.doc_type, mode);
+        const r = await stageRequirements(db, documentId, versionId, doc.doc_type, mode, params.organizationId, params.userId);
         await advance(NEXT[step]);
         return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
       }
 
       case "timeline": {
-        const r = await stageTimeline(db, documentId, versionId, mode);
+        const r = await stageTimeline(db, documentId, versionId, mode, params.organizationId, params.userId);
         await advance("completado");
         await audit(params.organizationId, params.userId, "document.processed", "document", documentId);
         logger.info("document_processed", { documentId, mode });
@@ -427,9 +428,15 @@ async function stageClassify(
   mode: AnalysisMode
 ): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
+  const onUsage = usageLogger({
+    organizationId: params.organizationId,
+    documentId: params.documentId,
+    userId: params.userId,
+    feature: "clasificacion",
+  });
   const { data: c, engine } = await analyze(
     mode,
-    (provider) => classifyDocument(pages, provider),
+    (provider) => classifyDocument(pages, provider, onUsage),
     () => classifyDocumentLocal(pages)
   );
 
@@ -465,12 +472,15 @@ async function stageSummary(
   db: DB,
   documentId: string,
   versionId: string,
-  mode: AnalysisMode
+  mode: AnalysisMode,
+  organizationId: string,
+  userId: string | null
 ): Promise<{ engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
+  const onUsage = usageLogger({ organizationId, documentId, userId, feature: "resumen" });
   const { data: s, engine } = await analyze(
     mode,
-    (provider) => summarizeDocument(pages, provider),
+    (provider) => summarizeDocument(pages, provider, onUsage),
     () => summarizeLocal(pages)
   );
   await db.from("document_summaries").upsert(
@@ -511,16 +521,19 @@ async function stageSystems(
   documentId: string,
   versionId: string,
   docType: string,
-  mode: AnalysisMode
+  mode: AnalysisMode,
+  organizationId: string,
+  userId: string | null
 ): Promise<{ detail: string; engine: AnalysisMode }> {
   if (["control_entregas", "avance", "acta", "reclamo"].includes(docType)) {
     return { detail: "no aplica a este tipo de documento", engine: mode };
   }
 
   const pages = await loadPages(db, versionId);
+  const onUsage = usageLogger({ organizationId, documentId, userId, feature: "sistemas" });
   const { data: s, engine } = await analyze(
     mode,
-    (provider) => extractSystems(pages, provider),
+    (provider) => extractSystems(pages, provider, onUsage),
     () => extractSystemsLocal(pages)
   );
 
@@ -593,16 +606,19 @@ async function stageRequirements(
   documentId: string,
   versionId: string,
   docType: string,
-  mode: AnalysisMode
+  mode: AnalysisMode,
+  organizationId: string,
+  userId: string | null
 ): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
+  const onUsage = usageLogger({ organizationId, documentId, userId, feature: "requerimientos" });
 
   // Documentos de control/avance: se extraen las entregas realizadas
   // (incluidos trabajos adicionales y gratuitos) en lugar de requerimientos.
   if (["control_entregas", "avance", "informe", "acta"].includes(docType)) {
     const { data: d, engine } = await analyze(
       mode,
-      (provider) => extractDeliveredItems(pages, provider),
+      (provider) => extractDeliveredItems(pages, provider, onUsage),
       () => extractDeliveredItemsLocal(pages)
     );
     await db.from("delivered_items").delete().eq("document_id", documentId);
@@ -628,7 +644,7 @@ async function stageRequirements(
 
   const { data: r, engine } = await analyze(
     mode,
-    (provider) => extractRequirements(pages, provider),
+    (provider) => extractRequirements(pages, provider, onUsage),
     () => extractRequirementsLocal(pages)
   );
   await db.from("requirements").delete().eq("document_id", documentId);
@@ -656,12 +672,15 @@ async function stageTimeline(
   db: DB,
   documentId: string,
   versionId: string,
-  mode: AnalysisMode
+  mode: AnalysisMode,
+  organizationId: string,
+  userId: string | null
 ): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
+  const onUsage = usageLogger({ organizationId, documentId, userId, feature: "timeline" });
   const { data: t, engine } = await analyze(
     mode,
-    (provider) => extractTimeline(pages, provider),
+    (provider) => extractTimeline(pages, provider, onUsage),
     () => extractTimelineLocal(pages)
   );
   if (t.hitos.length === 0) return { detail: `sin hitos${engineSuffix(engine)}`, engine };

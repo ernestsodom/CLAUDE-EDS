@@ -13,6 +13,7 @@ import {
   getOrCreateConversation,
 } from "@/core/repositories/conversations.repo";
 import { audit } from "@/core/services/audit.service";
+import { usageLogger } from "@/core/services/ai-usage.service";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -69,6 +70,12 @@ export const POST = withErrorHandling(async (request: Request) => {
       docType: body.filters?.docType as never,
       clientId: body.filters?.clientId,
     },
+    onUsage: usageLogger({
+      organizationId: profile.organization_id,
+      documentId: body.documentId,
+      userId: user.id,
+      feature: "chat",
+    }),
   });
 
   const encoder = new TextEncoder();

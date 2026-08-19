@@ -15,6 +15,11 @@ import {
 } from "@/core/ai/schemas";
 import type { PageText } from "@/core/domain/types";
 import type { ProviderId } from "@/lib/ai-providers";
+import type { UsageEvent } from "@/core/services/ai-usage.service";
+
+/** Registra los tokens reales que devolvió el proveedor en esta llamada
+ *  (ver ai-usage.service.ts) — opcional, quien no lo pase no pierde nada. */
+type OnUsage = (u: UsageEvent) => void;
 
 /**
  * Prepara el texto del documento para análisis, anotando páginas y
@@ -31,12 +36,17 @@ export function pagesToAnnotatedText(pages: PageText[], maxChars = 300_000): str
   return out.trim();
 }
 
-export async function classifyDocument(pages: PageText[], provider: ProviderId): Promise<Classification> {
+export async function classifyDocument(
+  pages: PageText[],
+  provider: ProviderId,
+  onUsage?: OnUsage
+): Promise<Classification> {
   return structuredCompletion({
     schema: ClassificationSchema,
     schemaName: "clasificacion_documento",
     provider,
     speed: "fast",
+    onUsage,
     system:
       "Eres un clasificador experto de documentos de licitaciones públicas chilenas. " +
       "Extrae los metadatos solicitados del documento. Usa null cuando el dato no aparezca. " +
@@ -45,12 +55,17 @@ export async function classifyDocument(pages: PageText[], provider: ProviderId):
   });
 }
 
-export async function summarizeDocument(pages: PageText[], provider: ProviderId): Promise<Summary> {
+export async function summarizeDocument(
+  pages: PageText[],
+  provider: ProviderId,
+  onUsage?: OnUsage
+): Promise<Summary> {
   return structuredCompletion({
     schema: SummarySchema,
     schemaName: "resumen_ejecutivo",
     provider,
     speed: "chat",
+    onUsage,
     system:
       "Eres un consultor senior de licitaciones. Genera un informe ejecutivo completo del documento: " +
       "resumen general, objetivo, alcance, plazo de implementación, presupuesto, problemas detectados, " +
@@ -75,12 +90,17 @@ export async function summarizeDocument(pages: PageText[], provider: ProviderId)
  * participación o exponen a sanción. Las funcionalidades del software NO van
  * aquí — se extraen como sistemas (extractSystems).
  */
-export async function extractRequirements(pages: PageText[], provider: ProviderId): Promise<Requirements> {
+export async function extractRequirements(
+  pages: PageText[],
+  provider: ProviderId,
+  onUsage?: OnUsage
+): Promise<Requirements> {
   return structuredCompletion({
     schema: RequirementsSchema,
     schemaName: "requerimientos_criticos",
     provider,
     speed: "chat",
+    onUsage,
     system:
       "Eres un experto en participación en licitaciones públicas chilenas. Extrae ÚNICAMENTE los " +
       "puntos críticos y obligatorios para poder participar o que exponen a sanción, clasificados en " +
@@ -107,12 +127,17 @@ export async function extractRequirements(pages: PageText[], provider: ProviderI
  * Extrae los sistemas (software) que el documento exige y las funcionalidades
  * concretas de cada uno. Es la base del checklist de cumplimiento.
  */
-export async function extractSystems(pages: PageText[], provider: ProviderId): Promise<Systems> {
+export async function extractSystems(
+  pages: PageText[],
+  provider: ProviderId,
+  onUsage?: OnUsage
+): Promise<Systems> {
   return structuredCompletion({
     schema: SystemsSchema,
     schemaName: "sistemas_y_funcionalidades",
     provider,
     speed: "chat",
+    onUsage,
     system:
       "Eres un analista funcional de licitaciones TI. Identifica los SISTEMAS o módulos de software " +
       "que el documento exige desarrollar, implementar o proveer, y para cada uno lista sus " +
@@ -139,13 +164,15 @@ export async function extractSystems(pages: PageText[], provider: ProviderId): P
  */
 export async function extractDeliveredItems(
   pages: PageText[],
-  provider: ProviderId
+  provider: ProviderId,
+  onUsage?: OnUsage
 ): Promise<DeliveredItems> {
   return structuredCompletion({
     schema: DeliveredItemsSchema,
     schemaName: "entregas_realizadas",
     provider,
     speed: "chat",
+    onUsage,
     system:
       "Eres un auditor de entregas de proyectos TI. El documento es un registro de control de lo " +
       "realmente entregado (informe de avance, acta o control interno del proveedor). " +
@@ -160,12 +187,17 @@ export async function extractDeliveredItems(
   });
 }
 
-export async function extractTimeline(pages: PageText[], provider: ProviderId): Promise<Timeline> {
+export async function extractTimeline(
+  pages: PageText[],
+  provider: ProviderId,
+  onUsage?: OnUsage
+): Promise<Timeline> {
   return structuredCompletion({
     schema: TimelineSchema,
     schemaName: "linea_de_tiempo",
     provider,
     speed: "fast",
+    onUsage,
     system:
       "Eres un planificador de proyectos. Construye la línea de tiempo del documento identificando: " +
       "inicio, hitos, capacitaciones, implementación, marcha blanca, recepción, garantía, soporte y término. " +
