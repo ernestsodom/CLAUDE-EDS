@@ -269,6 +269,9 @@ export async function runDiffComparison(
   const { data: cmp } = await db.from("comparisons").select("*").eq("id", comparisonId).single();
   if (!cmp) throw new Error("Comparación no encontrada");
 
+  /** Texto anotado por página, hasta maxChars. Informa si tuvo que cortar
+   *  antes del final para poder avisarlo — un documento truncado a mitad no
+   *  debe hacer pasar por "sin diferencias" lo que en realidad no se leyó. */
   const getText = async (documentId: string, maxChars: number) => {
     const { data: version } = await db
       .from("document_versions")
@@ -276,25 +279,32 @@ export async function runDiffComparison(
       .eq("document_id", documentId)
       .eq("is_current", true)
       .single();
-    if (!version) return "";
+    if (!version) return { text: "", truncated: false, totalPages: 0, includedPages: 0 };
     const { data: pages } = await db
       .from("document_pages")
       .select("page_number, content")
       .eq("version_id", version.id)
       .order("page_number");
+    const all = pages ?? [];
     let out = "";
-    for (const p of pages ?? []) {
+    let included = 0;
+    for (const p of all) {
       const block = `\n=== PÁGINA ${p.page_number} ===\n${p.content}`;
       if (out.length + block.length > maxChars) break;
       out += block;
+      included++;
     }
-    return out;
+    return { text: out, truncated: included < all.length, totalPages: all.length, includedPages: included };
   };
 
   try {
-    const [textA, textB] = await Promise.all([
-      getText(cmp.source_document_id, 120_000),
-      getText(cmp.target_document_id, 120_000),
+    // 200K caracteres por documento (~500-600 páginas de texto corrido):
+    // dos documentos "muy similares" pueden ser licitaciones largas con
+    // anexos, y una comparación que se corta a la mitad hace más daño que
+    // uno lento — se avisa explícitamente si aun así hubo que truncar.
+    const [a, b] = await Promise.all([
+      getText(cmp.source_document_id, 200_000),
+      getText(cmp.target_document_id, 200_000),
     ]);
 
     const result = await structuredCompletion({
@@ -303,19 +313,45 @@ export async function runDiffComparison(
       provider,
       speed: "chat",
       system:
-        "Eres un analista legal-técnico. Compara los dos documentos e identifica todas las diferencias " +
-        "relevantes: alcance, montos, plazos, requerimientos agregados/eliminados/modificados, multas, " +
-        "garantías y condiciones. Evalúa el impacto de cada diferencia.\n" +
-        "Entrega dos niveles de lectura:\n" +
-        "1. resumen y resumen_puntos: la vista macro — de qué tratan, en conjunto, los cambios entre " +
-        "ambos documentos (3 a 8 viñetas cortas más un párrafo breve), sin entrar en el detalle de cada " +
-        "una todavía.\n" +
-        "2. diferencias: el detalle punto por punto. Cada página del texto viene marcada con " +
-        "'=== PÁGINA N ==='; para cada diferencia indica en pagina_a y pagina_b la página exacta donde " +
-        "aparece ese contenido en cada documento (null si el tema simplemente no aparece en ese " +
-        "documento). Nunca dejes una página sin indicar si el contenido está presente en el texto.",
-      user: `DOCUMENTO A:\n${textA}\n\n########\n\nDOCUMENTO B:\n${textB}`,
+        "Eres un analista legal-técnico especializado en detectar diferencias entre dos versiones de un " +
+        "MISMO tipo de documento (dos licitaciones, dos propuestas, dos contratos, o dos versiones) que " +
+        "deberían ser muy parecidas entre sí — no documentos de naturaleza distinta. Tu tarea NO es " +
+        "resumir cada documento por separado: es encontrar, punto por punto, todo lo que cambió de uno " +
+        "al otro.\n" +
+        "Sé exhaustivo y granular. Revisa cláusula por cláusula, sección por sección. Cada cambio " +
+        "concreto es un ítem separado en 'diferencias' — nunca agrupes varios cambios distintos bajo un " +
+        "solo tema genérico ('Condiciones generales', 'Requisitos'). Reporta explícitamente: montos y " +
+        "cifras que cambiaron (aunque sea en un decimal o porcentaje), fechas y plazos modificados, " +
+        "cláusulas o requisitos agregados, cláusulas o requisitos eliminados, redacciones que cambian el " +
+        "sentido u obligación aunque las palabras se parezcan, boletas de garantía, multas y SLA, y " +
+        "cualquier sección presente en un documento y ausente en el otro. Ignora diferencias irrelevantes " +
+        "de formato, numeración de página o ruido de OCR que no cambian el contenido.\n" +
+        "Para cada diferencia:\n" +
+        "- seccion: el punto/cláusula/artículo tal como está numerado o titulado en el documento (p.ej. " +
+        "'Cláusula 8.3', 'Punto 4.2 — Garantías'); si el documento no numera secciones, usa el título del " +
+        "apartado más cercano.\n" +
+        "- documento_a / documento_b: cita o paráfrasis puntual de ESE contenido específico en cada " +
+        "documento (nunca una descripción genérica del documento completo).\n" +
+        "- pagina_a / pagina_b: la página exacta, marcada en el texto con '=== PÁGINA N ==='; null solo " +
+        "si el contenido de verdad no aparece en ese documento.\n" +
+        "Entrega también dos niveles de lectura antes del detalle:\n" +
+        "1. resumen: párrafo breve (3-6 líneas) de las diferencias más relevantes en conjunto.\n" +
+        "2. resumen_puntos: 3 a 8 viñetas cortas con los cambios macro más importantes — la vista rápida " +
+        "antes de entrar al detalle punto por punto de 'diferencias'.",
+      user: `DOCUMENTO A:\n${a.text}\n\n########\n\nDOCUMENTO B:\n${b.text}`,
     });
+
+    const summaryPoints = [...result.resumen_puntos];
+    if (a.truncated) {
+      summaryPoints.unshift(
+        `⚠ Documento A: solo se analizaron las primeras ${a.includedPages} de ${a.totalPages} páginas por tamaño — puede haber diferencias más allá de esa página no detectadas.`
+      );
+    }
+    if (b.truncated) {
+      summaryPoints.unshift(
+        `⚠ Documento B: solo se analizaron las primeras ${b.includedPages} de ${b.totalPages} páginas por tamaño — puede haber diferencias más allá de esa página no detectadas.`
+      );
+    }
 
     await db
       .from("comparisons")
@@ -323,7 +359,7 @@ export async function runDiffComparison(
         status: "completado",
         differences: result.diferencias,
         summary: result.resumen,
-        summary_points: result.resumen_puntos,
+        summary_points: summaryPoints,
       })
       .eq("id", comparisonId);
   } catch (err) {

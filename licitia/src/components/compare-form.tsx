@@ -104,7 +104,7 @@ export function CompareForm({ history }: { history: HistoryItem[] }) {
             onChange={setTarget}
           />
 
-          {isCompliance && (
+          {isCompliance ? (
             <p className="text-xs text-muted-foreground">
               El sistema clasifica cada <span className="font-medium">punto crítico</span> del
               documento base (garantías, servidores, SLA, plazos, multas y certificados) contra tu
@@ -114,6 +114,15 @@ export function CompareForm({ history }: { history: HistoryItem[] }) {
               Para contrastar las <span className="font-medium">funcionalidades del software</span>,
               usa la pestaña <span className="font-medium">Checklist vs Excel</span>: es exacta y no
               consume cuota de IA.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Para dos documentos <span className="font-medium">del mismo tipo y muy parecidos entre
+              sí</span> (dos versiones de una licitación, dos borradores de contrato…): el sistema
+              revisa cláusula por cláusula y lista cada diferencia — qué cambió, en qué punto/sección
+              del documento y en qué página de cada uno aparece. No es para comparar la licitación
+              contra tu propio control de entregas; para eso usa{" "}
+              <span className="font-medium">Control de cumplimiento</span>.
             </p>
           )}
           {source && target && source.id === target.id && (

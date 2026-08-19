@@ -248,14 +248,18 @@ export const DiffSchema = z.object({
     ),
   diferencias: z.array(
     z.object({
-      tema: z.string(),
+      tema: z.string().describe("Título breve y concreto de la diferencia puntual (p.ej. 'Monto de la boleta de garantía', 'Plazo de entrega del Módulo 2'), NUNCA una categoría genérica."),
+      seccion: z
+        .string()
+        .nullable()
+        .describe("El punto, cláusula, artículo o sección del documento donde vive este contenido, tal como está numerado/titulado allí (p.ej. 'Cláusula 8.3', 'Punto 4.2 — Garantías', 'Anexo B'). null solo si el documento no numera ni titula secciones."),
       documento_a: z
         .string()
-        .describe("Qué dice o cómo trata este tema el Documento A; si el tema no aparece en A, indícalo explícitamente ('No aparece en este documento')."),
+        .describe("Cita o paráfrasis puntual y textual de qué dice el Documento A en esa sección (no un resumen genérico); si el punto no aparece en A, indícalo explícitamente ('No aparece en este documento')."),
       pagina_a: z.number().int().nullable().describe("Página del Documento A donde aparece este contenido; null si no aparece en A."),
       documento_b: z
         .string()
-        .describe("Qué dice o cómo trata este tema el Documento B; si el tema no aparece en B, indícalo explícitamente ('No aparece en este documento')."),
+        .describe("Cita o paráfrasis puntual y textual de qué dice el Documento B en esa sección (no un resumen genérico); si el punto no aparece en B, indícalo explícitamente ('No aparece en este documento')."),
       pagina_b: z.number().int().nullable().describe("Página del Documento B donde aparece este contenido; null si no aparece en B."),
       impacto: z.enum(["bajo", "medio", "alto", "critico"]),
       comentario: z.string(),

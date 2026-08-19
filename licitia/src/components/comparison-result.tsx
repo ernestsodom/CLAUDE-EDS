@@ -92,6 +92,7 @@ function ComplianceTables({ items }: { items: ComparisonItem[] }) {
 
 interface DiffItem {
   tema: string;
+  seccion?: string | null;
   documento_a: string;
   pagina_a?: number | null;
   documento_b: string;
@@ -131,9 +132,14 @@ function DiffList({ differences, sourceTitle, targetTitle }: {
         <Card key={i}>
           <CardContent className="space-y-2 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="font-medium">
-                {i + 1}. {d.tema}
-              </p>
+              <div>
+                <p className="font-medium">
+                  {i + 1}. {d.tema}
+                </p>
+                {d.seccion && (
+                  <p className="text-xs text-muted-foreground">Punto: {d.seccion}</p>
+                )}
+              </div>
               <Badge variant={statusVariant(d.impacto)} className="uppercase">
                 {d.impacto}
               </Badge>

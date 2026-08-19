@@ -94,9 +94,10 @@ export const POST = withErrorHandling(async (request: Request) => {
           { title: "Resumen macro", paragraphs: [cmp.summary ?? "", ...points.map((p) => `• ${p}`)] },
         ],
         table: {
-          headers: ["Tema", "Documento A", "Pág. A", "Documento B", "Pág. B", "Impacto", "Comentario"],
+          headers: ["Tema", "Punto/Sección", "Documento A", "Pág. A", "Documento B", "Pág. B", "Impacto", "Comentario"],
           rows: ((cmp.differences ?? []) as Array<Record<string, unknown>>).map((d) => [
             String(d.tema ?? ""),
+            String(d.seccion ?? ""),
             String(d.documento_a ?? ""),
             String(d.pagina_a ?? ""),
             String(d.documento_b ?? ""),
