@@ -45,7 +45,7 @@ function providerFor(mode: AnalysisMode | undefined): ProviderId {
 const CHAR_BUDGET_PER_DOC: Record<ProviderId, number> = {
   groq: 40_000,
   gemini: 200_000,
-  claude: 150_000,
+  claude: 200_000,
 };
 
 /** Tope de tokens de la respuesta, por proveedor. Sin esto, Claude usa el
@@ -319,17 +319,38 @@ async function getPages(db: ReturnType<typeof createAdminClient>, documentId: st
 /** Texto anotado por página, hasta maxChars, para el prompt de IA. Informa
  *  si tuvo que cortar antes del final para poder avisarlo — un documento
  *  truncado a mitad no debe hacer pasar por "sin diferencias" lo que en
- *  realidad no se leyó. El motor local no usa esto: no tiene ese límite. */
+ *  realidad no se leyó. El motor local no usa esto: no tiene ese límite.
+ *
+ *  Si una página individual no cabe entera en lo que queda de presupuesto,
+ *  se corta SU CONTENIDO para aprovechar el espacio restante en vez de
+ *  saltarla completa — algunos documentos (p.ej. exportados desde Excel o
+ *  un PDF sin separación real de páginas) llegan como una sola "página" de
+ *  150.000+ caracteres, y saltarla entera dejaba el documento vacío para
+ *  el comparador aunque el presupuesto no fuera cero. */
 function annotatePages(pages: PageText[], maxChars: number) {
   let out = "";
   let included = 0;
+  let contentCut = false;
   for (const p of pages) {
-    const block = `\n=== PÁGINA ${p.pageNumber} ===\n${p.content}`;
-    if (out.length + block.length > maxChars) break;
-    out += block;
-    included++;
+    const header = `\n=== PÁGINA ${p.pageNumber} ===\n`;
+    const remaining = maxChars - out.length - header.length;
+    if (remaining <= 0) break;
+    if (p.content.length <= remaining) {
+      out += header + p.content;
+      included++;
+    } else {
+      out += header + p.content.slice(0, remaining);
+      included++;
+      contentCut = true;
+      break;
+    }
   }
-  return { text: out, truncated: included < pages.length, totalPages: pages.length, includedPages: included };
+  return {
+    text: out,
+    truncated: included < pages.length || contentCut,
+    totalPages: pages.length,
+    includedPages: included,
+  };
 }
 
 /**
