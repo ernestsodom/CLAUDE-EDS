@@ -14,6 +14,8 @@ import { CriticalPointsAccordion } from "@/components/critical-points-accordion"
 import { DocumentProcessButton } from "@/components/document-process-button";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
 import { ReanalyzeButton } from "@/components/reanalyze-button";
+import { RenameDocumentButton } from "@/components/rename-document-button";
+import { MoveToFolderButton } from "@/components/move-to-folder-button";
 import { BUDGET_PERIOD_LABELS } from "@/core/ai/schemas";
 import { ENGINE_LABELS, type AnalysisMode } from "@/lib/ai-providers";
 import { formatCLP, formatDate } from "@/lib/utils";
@@ -61,7 +63,10 @@ export default async function DocumentDetailPage({
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{doc.title}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold">{doc.title}</h1>
+            <RenameDocumentButton documentId={doc.id} title={doc.title} />
+          </div>
           <p className="text-sm text-muted-foreground">
             {[
               doc.doc_type.replace(/_/g, " "),
@@ -86,6 +91,7 @@ export default async function DocumentDetailPage({
               : doc.status}
           </Badge>
           {doc.status === "procesado" && <ReanalyzeButton documentId={doc.id} />}
+          <MoveToFolderButton documentId={doc.id} currentProjectId={doc.project_id} />
           <DeleteDocumentButton documentId={doc.id} title={doc.title} />
         </div>
       </div>

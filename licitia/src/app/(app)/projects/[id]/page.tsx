@@ -7,6 +7,8 @@ import { formatCLP, formatDate } from "@/lib/utils";
 import { Folder } from "lucide-react";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
 import { DocumentUploadPanel } from "@/components/document-upload-panel";
+import { RenameDocumentButton } from "@/components/rename-document-button";
+import { MoveToFolderButton } from "@/components/move-to-folder-button";
 
 export const dynamic = "force-dynamic";
 
@@ -68,9 +70,12 @@ export default async function ProjectDetailPage({
           {(documents ?? []).map((d) => (
             <TR key={d.id}>
               <TD>
-                <Link href={`/documents/${d.id}`} className="font-medium text-primary hover:underline">
-                  {d.title}
-                </Link>
+                <div className="flex items-center gap-1.5">
+                  <Link href={`/documents/${d.id}`} className="font-medium text-primary hover:underline">
+                    {d.title}
+                  </Link>
+                  <RenameDocumentButton documentId={d.id} title={d.title} />
+                </div>
               </TD>
               <TD className="capitalize">{d.doc_type.replace(/_/g, " ")}</TD>
               <TD>{formatDate(d.doc_date)}</TD>
@@ -83,7 +88,10 @@ export default async function ProjectDetailPage({
                 </Badge>
               </TD>
               <TD>
-                <DeleteDocumentButton documentId={d.id} title={d.title} redirectTo={null} />
+                <div className="flex items-center justify-end gap-1">
+                  <MoveToFolderButton documentId={d.id} currentProjectId={project.id} />
+                  <DeleteDocumentButton documentId={d.id} title={d.title} redirectTo={null} />
+                </div>
               </TD>
             </TR>
           ))}
