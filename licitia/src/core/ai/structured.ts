@@ -22,7 +22,7 @@ type OnUsage = (u: UsageEvent) => void;
  * de Anthropic, en lugar de reimplementar esa conversión a mano.
  */
 async function claudeStructured<T extends z.ZodTypeAny>(
-  opts: { schema: T; schemaName: string; system: string; user: string; onUsage?: OnUsage },
+  opts: { schema: T; schemaName: string; system: string; user: string; onUsage?: OnUsage; maxTokens?: number },
   model: string
 ): Promise<z.infer<T>> {
   const jsonSchema = (
@@ -33,7 +33,7 @@ async function claudeStructured<T extends z.ZodTypeAny>(
 
   const response = await anthropic().messages.parse({
     model,
-    max_tokens: CLAUDE_MAX_TOKENS,
+    max_tokens: opts.maxTokens ?? CLAUDE_MAX_TOKENS,
     system: opts.system,
     messages: [{ role: "user", content: opts.user }],
     output_config: {
@@ -101,6 +101,12 @@ export async function structuredCompletion<T extends z.ZodTypeAny>(opts: {
   model?: string;
   /** Registra los tokens reales que devolvió el proveedor (ver ai-usage.service.ts). */
   onUsage?: OnUsage;
+  /** Tope de tokens de la respuesta. Sin esto, Claude usa CLAUDE_MAX_TOKENS
+   *  (8000) y los proveedores OpenAI-compatible usan el default del propio
+   *  proveedor — insuficiente para esquemas con arrays largos (p.ej. el
+   *  detalle de un diff extenso), donde la respuesta se corta a mitad de un
+   *  string y el JSON queda inválido. Súbelo explícitamente en esos casos. */
+  maxTokens?: number;
 }): Promise<z.infer<T>> {
   const provider = opts.provider ?? "gemini";
   const model = opts.model ?? modelFor(provider, opts.speed ?? "fast");
@@ -126,6 +132,7 @@ export async function structuredCompletion<T extends z.ZodTypeAny>(opts: {
   const callStrict = async () => {
     const completion = await client.beta.chat.completions.parse({
       model,
+      ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
       messages: [
         { role: "system", content: opts.system },
         { role: "user", content: opts.user },
@@ -146,6 +153,7 @@ export async function structuredCompletion<T extends z.ZodTypeAny>(opts: {
     };
     const completion = await client.chat.completions.create({
       model,
+      ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
       messages: [
         {
           role: "system",

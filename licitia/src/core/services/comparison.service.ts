@@ -37,6 +37,30 @@ function providerFor(mode: AnalysisMode | undefined): ProviderId {
   return mode && isProviderId(mode) ? mode : "gemini";
 }
 
+/** Caracteres de entrada permitidos POR DOCUMENTO en el comparador de
+ *  diferencias. Groq responde "413 Request too large" muy por debajo de lo
+ *  que aceptan Gemini o Claude para el mismo par de documentos — confirmado
+ *  en producción con `openai/gpt-oss-120b`. Gemini y Claude toleran mucho
+ *  más contexto, así que solo Groq necesita un presupuesto conservador. */
+const CHAR_BUDGET_PER_DOC: Record<ProviderId, number> = {
+  groq: 40_000,
+  gemini: 200_000,
+  claude: 150_000,
+};
+
+/** Tope de tokens de la respuesta, por proveedor. Sin esto, Claude usa el
+ *  default global (CLAUDE_MAX_TOKENS = 8000) y los proveedores OpenAI-
+ *  compatible usan el default del propio proveedor — insuficiente para un
+ *  array de diferencias largo, que se corta a mitad de un string y deja el
+ *  JSON inválido (confirmado en producción: "Unterminated string" al
+ *  parsear). Groq además cuenta tokens de entrada + salida contra el mismo
+ *  límite por minuto, así que su tope de salida se mantiene más bajo. */
+const OUTPUT_MAX_TOKENS: Record<ProviderId, number> = {
+  groq: 6_000,
+  gemini: 16_000,
+  claude: 16_000,
+};
+
 export async function runComplianceComparison(
   comparisonId: string,
   mode?: AnalysisMode
@@ -344,12 +368,16 @@ export async function runDiffComparison(
         feature: "comparacion_diff",
       });
 
-      // 200K caracteres por documento (~500-600 páginas de texto corrido):
-      // dos documentos "muy similares" pueden ser licitaciones largas con
-      // anexos, y una comparación que se corta a la mitad hace más daño que
-      // uno lento — se avisa explícitamente si aun así hubo que truncar.
-      const a = annotatePages(pagesA, 200_000);
-      const b = annotatePages(pagesB, 200_000);
+      // El presupuesto de caracteres de ENTRADA y el tope de tokens de SALIDA
+      // dependen del proveedor: Groq rechaza con "413 Request too large" muy
+      // por debajo de lo que aceptan Gemini o Claude, y una respuesta con un
+      // array de diferencias largo se corta a mitad de un string si no se fija
+      // un max_tokens explícito generoso (confirmado en producción: 413 en
+      // Groq y "Unterminated string" al parsear JSON truncado). Se avisa
+      // explícitamente si aun así hubo que truncar el documento de entrada.
+      const charBudget = CHAR_BUDGET_PER_DOC[provider];
+      const a = annotatePages(pagesA, charBudget);
+      const b = annotatePages(pagesB, charBudget);
 
       result = await structuredCompletion({
         schema: DiffSchema,
@@ -357,6 +385,7 @@ export async function runDiffComparison(
         provider,
         speed: "chat",
         onUsage,
+        maxTokens: OUTPUT_MAX_TOKENS[provider],
         system:
           "Eres un analista legal-técnico especializado en detectar diferencias entre dos versiones de un " +
           "MISMO tipo de documento (dos licitaciones, dos propuestas, dos contratos, o dos versiones) que " +
@@ -376,9 +405,13 @@ export async function runDiffComparison(
           "'Cláusula 8.3', 'Punto 4.2 — Garantías'); si el documento no numera secciones, usa el título del " +
           "apartado más cercano.\n" +
           "- documento_a / documento_b: cita o paráfrasis puntual de ESE contenido específico en cada " +
-          "documento (nunca una descripción genérica del documento completo).\n" +
+          "documento (nunca una descripción genérica del documento completo), en pocas líneas — sin " +
+          "transcribir párrafos completos.\n" +
           "- pagina_a / pagina_b: la página exacta, marcada en el texto con '=== PÁGINA N ==='; null solo " +
           "si el contenido de verdad no aparece en ese documento.\n" +
+          "Reporta como máximo las 40 diferencias más relevantes — si hay más, prioriza primero impacto " +
+          "alto, luego medio, y agrupa el resto en 'resumen_puntos'. La respuesta debe ser compacta: " +
+          "prefiere paráfrasis breve a cita textual larga.\n" +
           "Entrega también dos niveles de lectura antes del detalle:\n" +
           "1. resumen: párrafo breve (3-6 líneas) de las diferencias más relevantes en conjunto.\n" +
           "2. resumen_puntos: 3 a 8 viñetas cortas con los cambios macro más importantes — la vista rápida " +
