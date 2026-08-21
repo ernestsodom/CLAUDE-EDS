@@ -132,9 +132,16 @@ export function CompareForm({ history }: { history: HistoryItem[] }) {
 
           <div className="space-y-1">
             <p className="text-xs font-medium">Motor de análisis</p>
-            {/* Sin "Automático" ni "Sin IA": esta comparación necesita un
-                modelo que interprete la evidencia, así que se elige uno. */}
-            <EngineSelector value={mode} onChange={setMode} hideLocal hideAuto />
+            {isCompliance ? (
+              // Sin "Automático" ni "Sin IA": el control de cumplimiento
+              // necesita un modelo que interprete la evidencia.
+              <EngineSelector value={mode} onChange={setMode} hideLocal hideAuto />
+            ) : (
+              // Comparar dos documentos sí admite "Sin IA": un diff léxico
+              // exacto (biblioteca `diff`) sin llamar a Gemini, Groq ni
+              // Claude — instantáneo y sin límite de tamaño de documento.
+              <EngineSelector value={mode} onChange={setMode} hideAuto />
+            )}
           </div>
 
           <Button onClick={run} disabled={busy || !bothReady}>

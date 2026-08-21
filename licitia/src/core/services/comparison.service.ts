@@ -1,10 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { structuredCompletion } from "@/core/ai/structured";
-import { ComplianceSchema, DiffSchema } from "@/core/ai/schemas";
+import { ComplianceSchema, DiffSchema, type Diff } from "@/core/ai/schemas";
 import { embedQuery } from "@/lib/openai";
 import { isProviderId, type AnalysisMode, type ProviderId } from "@/lib/ai-providers";
 import { logger } from "@/lib/logger";
 import { extractDeliveredItems } from "./analysis.service";
+import { compareDocumentsLocal } from "./heuristic.service";
 import { usageLogger, type UsageEvent } from "./ai-usage.service";
 import type { PageText } from "@/core/domain/types";
 
@@ -268,106 +269,136 @@ async function fetchAdditionalDeliveries(
     .map((e) => ({ title: e.titulo, quote: e.cita, page: e.pagina, is_free: e.es_gratuito }));
 }
 
-/** Comparación de diferencias entre dos documentos (licitaciones, propuestas, contratos o versiones). */
+/** Todas las páginas de la versión actual de un documento, tal cual (sin
+ *  recortar): la usan tanto el motor local (que no tiene límite de contexto
+ *  porque no llama a ningún proveedor) como el anotado para IA. */
+async function getPages(db: ReturnType<typeof createAdminClient>, documentId: string): Promise<PageText[]> {
+  const { data: version } = await db
+    .from("document_versions")
+    .select("id")
+    .eq("document_id", documentId)
+    .eq("is_current", true)
+    .single();
+  if (!version) return [];
+  const { data: pages } = await db
+    .from("document_pages")
+    .select("page_number, content, ocr_used")
+    .eq("version_id", version.id)
+    .order("page_number");
+  return (pages ?? []).map((p) => ({
+    pageNumber: p.page_number,
+    content: p.content,
+    ocrUsed: p.ocr_used,
+  }));
+}
+
+/** Texto anotado por página, hasta maxChars, para el prompt de IA. Informa
+ *  si tuvo que cortar antes del final para poder avisarlo — un documento
+ *  truncado a mitad no debe hacer pasar por "sin diferencias" lo que en
+ *  realidad no se leyó. El motor local no usa esto: no tiene ese límite. */
+function annotatePages(pages: PageText[], maxChars: number) {
+  let out = "";
+  let included = 0;
+  for (const p of pages) {
+    const block = `\n=== PÁGINA ${p.pageNumber} ===\n${p.content}`;
+    if (out.length + block.length > maxChars) break;
+    out += block;
+    included++;
+  }
+  return { text: out, truncated: included < pages.length, totalPages: pages.length, includedPages: included };
+}
+
+/**
+ * Comparación de diferencias entre dos documentos (licitaciones, propuestas,
+ * contratos o versiones). mode === "local" corre el motor sin IA
+ * (compareDocumentsLocal, diff léxico exacto); cualquier otro modo usa el
+ * proveedor elegido.
+ */
 export async function runDiffComparison(
   comparisonId: string,
   mode?: AnalysisMode
 ): Promise<void> {
   const db = createAdminClient();
-  const provider = providerFor(mode);
   const { data: cmp } = await db.from("comparisons").select("*").eq("id", comparisonId).single();
   if (!cmp) throw new Error("Comparación no encontrada");
-  const onUsage = usageLogger({
-    organizationId: cmp.organization_id,
-    documentId: cmp.source_document_id,
-    userId: cmp.created_by,
-    feature: "comparacion_diff",
-  });
-
-  /** Texto anotado por página, hasta maxChars. Informa si tuvo que cortar
-   *  antes del final para poder avisarlo — un documento truncado a mitad no
-   *  debe hacer pasar por "sin diferencias" lo que en realidad no se leyó. */
-  const getText = async (documentId: string, maxChars: number) => {
-    const { data: version } = await db
-      .from("document_versions")
-      .select("id")
-      .eq("document_id", documentId)
-      .eq("is_current", true)
-      .single();
-    if (!version) return { text: "", truncated: false, totalPages: 0, includedPages: 0 };
-    const { data: pages } = await db
-      .from("document_pages")
-      .select("page_number, content")
-      .eq("version_id", version.id)
-      .order("page_number");
-    const all = pages ?? [];
-    let out = "";
-    let included = 0;
-    for (const p of all) {
-      const block = `\n=== PÁGINA ${p.page_number} ===\n${p.content}`;
-      if (out.length + block.length > maxChars) break;
-      out += block;
-      included++;
-    }
-    return { text: out, truncated: included < all.length, totalPages: all.length, includedPages: included };
-  };
 
   try {
-    // 200K caracteres por documento (~500-600 páginas de texto corrido):
-    // dos documentos "muy similares" pueden ser licitaciones largas con
-    // anexos, y una comparación que se corta a la mitad hace más daño que
-    // uno lento — se avisa explícitamente si aun así hubo que truncar.
-    const [a, b] = await Promise.all([
-      getText(cmp.source_document_id, 200_000),
-      getText(cmp.target_document_id, 200_000),
+    const [pagesA, pagesB] = await Promise.all([
+      getPages(db, cmp.source_document_id),
+      getPages(db, cmp.target_document_id),
     ]);
 
-    const result = await structuredCompletion({
-      schema: DiffSchema,
-      schemaName: "diferencias_documentos",
-      provider,
-      speed: "chat",
-      onUsage,
-      system:
-        "Eres un analista legal-técnico especializado en detectar diferencias entre dos versiones de un " +
-        "MISMO tipo de documento (dos licitaciones, dos propuestas, dos contratos, o dos versiones) que " +
-        "deberían ser muy parecidas entre sí — no documentos de naturaleza distinta. Tu tarea NO es " +
-        "resumir cada documento por separado: es encontrar, punto por punto, todo lo que cambió de uno " +
-        "al otro.\n" +
-        "Sé exhaustivo y granular. Revisa cláusula por cláusula, sección por sección. Cada cambio " +
-        "concreto es un ítem separado en 'diferencias' — nunca agrupes varios cambios distintos bajo un " +
-        "solo tema genérico ('Condiciones generales', 'Requisitos'). Reporta explícitamente: montos y " +
-        "cifras que cambiaron (aunque sea en un decimal o porcentaje), fechas y plazos modificados, " +
-        "cláusulas o requisitos agregados, cláusulas o requisitos eliminados, redacciones que cambian el " +
-        "sentido u obligación aunque las palabras se parezcan, boletas de garantía, multas y SLA, y " +
-        "cualquier sección presente en un documento y ausente en el otro. Ignora diferencias irrelevantes " +
-        "de formato, numeración de página o ruido de OCR que no cambian el contenido.\n" +
-        "Para cada diferencia:\n" +
-        "- seccion: el punto/cláusula/artículo tal como está numerado o titulado en el documento (p.ej. " +
-        "'Cláusula 8.3', 'Punto 4.2 — Garantías'); si el documento no numera secciones, usa el título del " +
-        "apartado más cercano.\n" +
-        "- documento_a / documento_b: cita o paráfrasis puntual de ESE contenido específico en cada " +
-        "documento (nunca una descripción genérica del documento completo).\n" +
-        "- pagina_a / pagina_b: la página exacta, marcada en el texto con '=== PÁGINA N ==='; null solo " +
-        "si el contenido de verdad no aparece en ese documento.\n" +
-        "Entrega también dos niveles de lectura antes del detalle:\n" +
-        "1. resumen: párrafo breve (3-6 líneas) de las diferencias más relevantes en conjunto.\n" +
-        "2. resumen_puntos: 3 a 8 viñetas cortas con los cambios macro más importantes — la vista rápida " +
-        "antes de entrar al detalle punto por punto de 'diferencias'.",
-      user: `DOCUMENTO A:\n${a.text}\n\n########\n\nDOCUMENTO B:\n${b.text}`,
-    });
+    let result: Diff;
+    const extraSummaryPoints: string[] = [];
 
-    const summaryPoints = [...result.resumen_puntos];
-    if (a.truncated) {
-      summaryPoints.unshift(
-        `⚠ Documento A: solo se analizaron las primeras ${a.includedPages} de ${a.totalPages} páginas por tamaño — puede haber diferencias más allá de esa página no detectadas.`
-      );
+    if (mode === "local") {
+      // Motor local: diff léxico exacto, sin llamar a Gemini, Groq ni
+      // Claude. Instantáneo y sin límite de tamaño de documento.
+      result = compareDocumentsLocal(pagesA, pagesB);
+    } else {
+      const provider = providerFor(mode);
+      const onUsage = usageLogger({
+        organizationId: cmp.organization_id,
+        documentId: cmp.source_document_id,
+        userId: cmp.created_by,
+        feature: "comparacion_diff",
+      });
+
+      // 200K caracteres por documento (~500-600 páginas de texto corrido):
+      // dos documentos "muy similares" pueden ser licitaciones largas con
+      // anexos, y una comparación que se corta a la mitad hace más daño que
+      // uno lento — se avisa explícitamente si aun así hubo que truncar.
+      const a = annotatePages(pagesA, 200_000);
+      const b = annotatePages(pagesB, 200_000);
+
+      result = await structuredCompletion({
+        schema: DiffSchema,
+        schemaName: "diferencias_documentos",
+        provider,
+        speed: "chat",
+        onUsage,
+        system:
+          "Eres un analista legal-técnico especializado en detectar diferencias entre dos versiones de un " +
+          "MISMO tipo de documento (dos licitaciones, dos propuestas, dos contratos, o dos versiones) que " +
+          "deberían ser muy parecidas entre sí — no documentos de naturaleza distinta. Tu tarea NO es " +
+          "resumir cada documento por separado: es encontrar, punto por punto, todo lo que cambió de uno " +
+          "al otro.\n" +
+          "Sé exhaustivo y granular. Revisa cláusula por cláusula, sección por sección. Cada cambio " +
+          "concreto es un ítem separado en 'diferencias' — nunca agrupes varios cambios distintos bajo un " +
+          "solo tema genérico ('Condiciones generales', 'Requisitos'). Reporta explícitamente: montos y " +
+          "cifras que cambiaron (aunque sea en un decimal o porcentaje), fechas y plazos modificados, " +
+          "cláusulas o requisitos agregados, cláusulas o requisitos eliminados, redacciones que cambian el " +
+          "sentido u obligación aunque las palabras se parezcan, boletas de garantía, multas y SLA, y " +
+          "cualquier sección presente en un documento y ausente en el otro. Ignora diferencias irrelevantes " +
+          "de formato, numeración de página o ruido de OCR que no cambian el contenido.\n" +
+          "Para cada diferencia:\n" +
+          "- seccion: el punto/cláusula/artículo tal como está numerado o titulado en el documento (p.ej. " +
+          "'Cláusula 8.3', 'Punto 4.2 — Garantías'); si el documento no numera secciones, usa el título del " +
+          "apartado más cercano.\n" +
+          "- documento_a / documento_b: cita o paráfrasis puntual de ESE contenido específico en cada " +
+          "documento (nunca una descripción genérica del documento completo).\n" +
+          "- pagina_a / pagina_b: la página exacta, marcada en el texto con '=== PÁGINA N ==='; null solo " +
+          "si el contenido de verdad no aparece en ese documento.\n" +
+          "Entrega también dos niveles de lectura antes del detalle:\n" +
+          "1. resumen: párrafo breve (3-6 líneas) de las diferencias más relevantes en conjunto.\n" +
+          "2. resumen_puntos: 3 a 8 viñetas cortas con los cambios macro más importantes — la vista rápida " +
+          "antes de entrar al detalle punto por punto de 'diferencias'.",
+        user: `DOCUMENTO A:\n${a.text}\n\n########\n\nDOCUMENTO B:\n${b.text}`,
+      });
+
+      if (a.truncated) {
+        extraSummaryPoints.push(
+          `⚠ Documento A: solo se analizaron las primeras ${a.includedPages} de ${a.totalPages} páginas por tamaño — puede haber diferencias más allá de esa página no detectadas.`
+        );
+      }
+      if (b.truncated) {
+        extraSummaryPoints.push(
+          `⚠ Documento B: solo se analizaron las primeras ${b.includedPages} de ${b.totalPages} páginas por tamaño — puede haber diferencias más allá de esa página no detectadas.`
+        );
+      }
     }
-    if (b.truncated) {
-      summaryPoints.unshift(
-        `⚠ Documento B: solo se analizaron las primeras ${b.includedPages} de ${b.totalPages} páginas por tamaño — puede haber diferencias más allá de esa página no detectadas.`
-      );
-    }
+
+    const summaryPoints = [...extraSummaryPoints, ...result.resumen_puntos];
 
     await db
       .from("comparisons")

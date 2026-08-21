@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { ExportButtons } from "@/components/export-buttons";
+import { MoveComparisonButton } from "@/components/move-comparison-button";
 
 interface ComparisonItem {
   id: string;
@@ -117,6 +118,9 @@ interface Comparison {
   comparison_items: ComparisonItem[];
   source: { title: string } | null;
   target: { title: string } | null;
+  project_id: string | null;
+  folder_id: string | null;
+  comparison_folders: { name: string } | null;
 }
 
 /** Diferencia a diferencia, con la página de origen en cada documento —
@@ -208,7 +212,19 @@ export function ComparisonResult({ comparison }: { comparison: Comparison }) {
           {isCompliance && comparison.summary && (
             <p className="text-sm text-muted-foreground">{comparison.summary}</p>
           )}
-          <ExportButtons kind="comparacion" entityId={comparison.id} />
+          {comparison.folder_id && comparison.comparison_folders && (
+            <p className="text-xs text-muted-foreground">
+              Archivada en <span className="font-medium">{comparison.comparison_folders.name}</span>
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButtons kind="comparacion" entityId={comparison.id} />
+            <MoveComparisonButton
+              comparisonId={comparison.id}
+              currentProjectId={comparison.project_id}
+              currentFolderId={comparison.folder_id}
+            />
+          </div>
         </CardContent>
       </Card>
 

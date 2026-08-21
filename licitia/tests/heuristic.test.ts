@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   classifyDocumentLocal,
+  compareDocumentsLocal,
   extractDeliveredItemsLocal,
   extractRequirementsLocal,
   extractSystemsLocal,
@@ -244,5 +245,104 @@ describe("motor local — robustez", () => {
     expect(() => classifyDocumentLocal(vacio)).not.toThrow();
     expect(extractRequirementsLocal(vacio).requerimientos).toEqual([]);
     expect(extractTimelineLocal(vacio).hitos).toEqual([]);
+  });
+});
+
+describe("motor local — comparador de dos documentos (sin IA)", () => {
+  const DOC_A: PageText[] = [
+    {
+      pageNumber: 1,
+      ocrUsed: false,
+      content:
+        "1. Objeto del contrato. El presente contrato tiene por objeto la implementación de un sistema de gestión municipal.",
+    },
+    {
+      pageNumber: 2,
+      ocrUsed: false,
+      content:
+        "8.3 Boleta de garantía. El oferente deberá presentar una boleta de garantía de fiel cumplimiento por el 5% del monto total del contrato. " +
+        "9.1 Plazo de implementación. El plazo máximo de implementación será de 90 días corridos desde la firma del contrato.",
+    },
+    {
+      pageNumber: 3,
+      ocrUsed: false,
+      content: "10.1 Confidencialidad. Ambas partes se obligan a mantener confidencialidad sobre la información intercambiada.",
+    },
+  ];
+
+  const DOC_B: PageText[] = [
+    {
+      pageNumber: 1,
+      ocrUsed: false,
+      content:
+        "1. Objeto del contrato. El presente contrato tiene por objeto la implementación de un sistema de gestión municipal.",
+    },
+    {
+      pageNumber: 2,
+      ocrUsed: false,
+      content:
+        "8.3 Boleta de garantía. El oferente deberá presentar una boleta de garantía de fiel cumplimiento por el 10% del monto total del contrato. " +
+        "9.1 Plazo de implementación. El plazo máximo de implementación será de 120 días corridos desde la firma del contrato.",
+    },
+    // La cláusula de confidencialidad (pág. 3 en A) desaparece en B, y se
+    // agrega una cláusula de migración de datos nueva.
+    {
+      pageNumber: 3,
+      ocrUsed: false,
+      content: "11.1 Migración de datos. El proveedor deberá migrar los datos históricos del sistema actual en un plazo de 30 días corridos.",
+    },
+  ];
+
+  const IDENTICAL_TEXT = "Esta es exactamente la misma cláusula en ambos documentos, sin ningún cambio de ningún tipo.";
+  const DOC_IDENTICAL_A: PageText[] = [{ pageNumber: 1, ocrUsed: false, content: IDENTICAL_TEXT }];
+  const DOC_IDENTICAL_B: PageText[] = [{ pageNumber: 1, ocrUsed: false, content: IDENTICAL_TEXT }];
+
+  it("no reporta diferencias entre dos documentos idénticos", () => {
+    const result = compareDocumentsLocal(DOC_IDENTICAL_A, DOC_IDENTICAL_B);
+    expect(result.diferencias).toEqual([]);
+  });
+
+  it("detecta el monto de la boleta de garantía modificado, con página en cada lado", () => {
+    const result = compareDocumentsLocal(DOC_A, DOC_B);
+    const boleta = result.diferencias.find((d) => /boleta de garant[ií]a/i.test(d.documento_a));
+    expect(boleta).toBeTruthy();
+    expect(boleta!.documento_a).toContain("5%");
+    expect(boleta!.documento_b).toContain("10%");
+    expect(boleta!.pagina_a).toBe(2);
+    expect(boleta!.pagina_b).toBe(2);
+    // Toca un punto crítico (boleta de garantía) ⇒ impacto alto.
+    expect(boleta!.impacto).toBe("alto");
+  });
+
+  it("detecta el plazo de implementación modificado", () => {
+    const result = compareDocumentsLocal(DOC_A, DOC_B);
+    const plazo = result.diferencias.find((d) => /plazo m[aá]ximo de implementaci[oó]n/i.test(d.documento_a));
+    expect(plazo).toBeTruthy();
+    expect(plazo!.documento_a).toContain("90 días");
+    expect(plazo!.documento_b).toContain("120 días");
+  });
+
+  it("marca la cláusula de confidencialidad como ausente en el Documento B", () => {
+    const result = compareDocumentsLocal(DOC_A, DOC_B);
+    const confidencialidad = result.diferencias.find((d) => /confidencialidad/i.test(d.documento_a));
+    expect(confidencialidad).toBeTruthy();
+    expect(confidencialidad!.pagina_a).toBe(3);
+    expect(confidencialidad!.documento_b).toMatch(/no aparece/i);
+    expect(confidencialidad!.pagina_b).toBeNull();
+  });
+
+  it("marca la cláusula de migración de datos como agregada en el Documento B", () => {
+    const result = compareDocumentsLocal(DOC_A, DOC_B);
+    const migracion = result.diferencias.find((d) => /migrar los datos/i.test(d.documento_b));
+    expect(migracion).toBeTruthy();
+    expect(migracion!.documento_a).toMatch(/no aparece/i);
+    expect(migracion!.pagina_a).toBeNull();
+    expect(migracion!.pagina_b).toBe(3);
+  });
+
+  it("no menciona IA en el resumen y advierte que es una comparación literal", () => {
+    const result = compareDocumentsLocal(DOC_A, DOC_B);
+    expect(result.resumen.toLowerCase()).toContain("sin ia");
+    expect(result.resumen_puntos.length).toBeGreaterThan(0);
   });
 });

@@ -1,7 +1,9 @@
+import { diffArrays } from "diff";
 import type { PageText } from "@/core/domain/types";
 import type {
   Classification,
   DeliveredItems,
+  Diff,
   Requirements,
   Summary,
   Systems,
@@ -614,5 +616,255 @@ export function summarizeLocal(pages: PageText[]): Summary {
         : "No se detectaron puntos críticos: revisa si el documento es escaneado o tiene poco texto.",
       "Cuando dispongas de cuota de IA, vuelve a analizar el documento para obtener el informe interpretativo.",
     ],
+  };
+}
+
+// ─── Comparador de dos documentos (sin IA) ─────────────────────────────────
+
+const MONTO_O_NUMERO = /(\$\s?\d|\bUF\b|\bUTM\b|\d{1,3}(?:[.,]\d{3})+|\d+\s*%|\d+\s*(?:d[ií]as|meses|a[ñn]os))/i;
+const NO_APARECE = "No aparece en este documento.";
+const MAX_DIFERENCIAS = 60;
+const MIN_LARGO_CAMBIO = 8;
+
+/** El punto/cláusula numerado más cercano hacia atrás, sin salir de la
+ *  página — el mejor sustituto sin IA de "en qué punto del documento". */
+function nearestHeading(sents: Located[], index: number): string | null {
+  if (index < 0) return null;
+  const page = sents[index].page;
+  for (let i = index - 1; i >= 0 && sents[i].page === page; i--) {
+    if (NUMERACION.test(sents[i].text) && sents[i].text.length <= 140) {
+      return sents[i].text.replace(/\s+/g, " ").trim().slice(0, 120);
+    }
+  }
+  return null;
+}
+
+/** Sin interpretación posible sin modelo, se usa una señal barata: si el
+ *  texto toca un punto crítico (garantías, multas, plazos…) es alto; si
+ *  cambia una cifra (monto, plazo, porcentaje) es medio; el resto, bajo. */
+function classifyImpactLocal(text: string): "bajo" | "medio" | "alto" | "critico" {
+  const lower = norm(text);
+  if (CRITICOS.some(([, re]) => re.test(lower))) return "alto";
+  if (MONTO_O_NUMERO.test(text)) return "medio";
+  return "bajo";
+}
+
+/** Código de numeración inicial ("8.3", "10.1"…), si la oración empieza con uno. */
+function clauseNumber(text: string): string | null {
+  return text.match(/^\s*(\d+(?:\.\d+)*)/)?.[1] ?? null;
+}
+
+/** Palabras "de contenido" (≥4 letras) en común sobre el menor de los dos
+ *  conjuntos — cuán reconocible es un texto en el otro sin usar ningún modelo. */
+function wordOverlap(a: string, b: string): number {
+  const words = (t: string) => new Set(norm(t).split(/[^a-zñ0-9]+/).filter((w) => w.length >= 4));
+  const wa = words(a);
+  const wb = words(b);
+  if (wa.size === 0 || wb.size === 0) return 0;
+  let common = 0;
+  for (const w of wa) if (wb.has(w)) common++;
+  return common / Math.min(wa.size, wb.size);
+}
+
+const REWRITE_THRESHOLD = 0.35;
+
+/** Empareja, de un bloque quitado y uno agregado adyacentes, los elementos
+ *  que parecen ser la misma cláusula reescrita (mejor coincidencia primero,
+ *  greedy); lo que no encuentra pareja razonable queda como quite/agregado
+ *  puro en vez de forzarse a una pareja arbitraria por posición. */
+function pairRewrites(
+  removedItems: Located[],
+  addedItems: Located[]
+): { pairs: Array<[Located, Located]>; leftoverRemoved: Located[]; leftoverAdded: Located[] } {
+  const scored: Array<{ i: number; j: number; score: number }> = [];
+  for (let i = 0; i < removedItems.length; i++) {
+    for (let j = 0; j < addedItems.length; j++) {
+      const a = removedItems[i].text;
+      const b = addedItems[j].text;
+      const ca = clauseNumber(a);
+      const cb = clauseNumber(b);
+      const score = ca && cb && ca === cb ? 1 : wordOverlap(a, b);
+      if (score >= REWRITE_THRESHOLD) scored.push({ i, j, score });
+    }
+  }
+  scored.sort((x, y) => y.score - x.score);
+
+  const usedRemoved = new Set<number>();
+  const usedAdded = new Set<number>();
+  const pairs: Array<[Located, Located]> = [];
+  for (const { i, j } of scored) {
+    if (usedRemoved.has(i) || usedAdded.has(j)) continue;
+    usedRemoved.add(i);
+    usedAdded.add(j);
+    pairs.push([removedItems[i], addedItems[j]]);
+  }
+
+  return {
+    pairs,
+    leftoverRemoved: removedItems.filter((_, i) => !usedRemoved.has(i)),
+    leftoverAdded: addedItems.filter((_, j) => !usedAdded.has(j)),
+  };
+}
+
+/**
+ * Compara dos documentos SIN IA: diff léxico oración por oración (Myers, vía
+ * la librería `diff`), alineando por igualdad exacta tras normalizar
+ * acentos/mayúsculas/espacios. Pensado para dos documentos del mismo tipo y
+ * muy parecidos entre sí (dos versiones de una licitación, dos borradores de
+ * contrato) — no interpreta el sentido de cada cambio como un modelo, pero
+ * es exacto en lo literal: exactamente qué cambió y en qué página de cada
+ * documento, instantáneo y sin consumir cuota de ningún proveedor.
+ */
+export function compareDocumentsLocal(pagesA: PageText[], pagesB: PageText[]): Diff {
+  const sentsA = sentences(pagesA);
+  const sentsB = sentences(pagesB);
+
+  const parts = diffArrays(sentsA, sentsB, {
+    comparator: (a, b) => norm(a.text) === norm(b.text),
+  });
+
+  interface Item {
+    documento_a: string;
+    pagina_a: number | null;
+    documento_b: string;
+    pagina_b: number | null;
+    seccion: string | null;
+  }
+  const items: Item[] = [];
+  let added = 0;
+  let removed = 0;
+  let modified = 0;
+
+  const seccionFor = (b: Located | null, a: Located | null) => {
+    if (b) {
+      const idx = sentsB.indexOf(b);
+      const s = nearestHeading(sentsB, idx);
+      if (s) return s;
+    }
+    if (a) {
+      const idx = sentsA.indexOf(a);
+      return nearestHeading(sentsA, idx);
+    }
+    return null;
+  };
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (!part.removed && !part.added) continue; // contexto: igual en ambos documentos
+
+    if (part.removed) {
+      const next = parts[i + 1];
+      if (next?.added) {
+        // Bloque quitado seguido de uno agregado: puede ser la misma
+        // cláusula reescrita, o dos contenidos distintos que solo quedaron
+        // adyacentes en el diff — se empareja por similitud, no por
+        // posición, y lo que no encuentra pareja razonable queda como
+        // quite/agregado puro.
+        const { pairs, leftoverRemoved, leftoverAdded } = pairRewrites(part.value, next.value);
+        for (const [a, b] of pairs) {
+          items.push({
+            documento_a: a.text,
+            pagina_a: a.page,
+            documento_b: b.text,
+            pagina_b: b.page,
+            seccion: seccionFor(b, a),
+          });
+          modified++;
+        }
+        for (const a of leftoverRemoved) {
+          items.push({
+            documento_a: a.text,
+            pagina_a: a.page,
+            documento_b: NO_APARECE,
+            pagina_b: null,
+            seccion: seccionFor(null, a),
+          });
+          removed++;
+        }
+        for (const b of leftoverAdded) {
+          items.push({
+            documento_a: NO_APARECE,
+            pagina_a: null,
+            documento_b: b.text,
+            pagina_b: b.page,
+            seccion: seccionFor(b, null),
+          });
+          added++;
+        }
+        i++; // el bloque 'added' siguiente ya se consumió
+        continue;
+      }
+      for (const s of part.value) {
+        items.push({
+          documento_a: s.text,
+          pagina_a: s.page,
+          documento_b: NO_APARECE,
+          pagina_b: null,
+          seccion: seccionFor(null, s),
+        });
+        removed++;
+      }
+    } else if (part.added) {
+      for (const s of part.value) {
+        items.push({
+          documento_a: NO_APARECE,
+          pagina_a: null,
+          documento_b: s.text,
+          pagina_b: s.page,
+          seccion: seccionFor(s, null),
+        });
+        added++;
+      }
+    }
+  }
+
+  // Ruido de OCR/formato (cambios ínfimos sin dígitos) no cuenta como
+  // diferencia real; un cambio numérico corto ($, %, fechas) sí importa.
+  const relevant = items.filter((it) => {
+    const combined = `${it.documento_a} ${it.documento_b}`;
+    return combined.length >= MIN_LARGO_CAMBIO || MONTO_O_NUMERO.test(combined);
+  });
+
+  const capped = relevant.slice(0, MAX_DIFERENCIAS);
+
+  const diferencias: Diff["diferencias"] = capped.map((it, k) => {
+    const sourceText = it.documento_b !== NO_APARECE ? it.documento_b : it.documento_a;
+    return {
+      tema: sourceText.slice(0, 70).replace(/\s+/g, " ").trim() || `Diferencia ${k + 1}`,
+      seccion: it.seccion,
+      documento_a: it.documento_a,
+      pagina_a: it.pagina_a,
+      documento_b: it.documento_b,
+      pagina_b: it.pagina_b,
+      impacto: classifyImpactLocal(sourceText),
+      comentario:
+        it.documento_a === NO_APARECE
+          ? "Contenido agregado en el Documento B, ausente en el A."
+          : it.documento_b === NO_APARECE
+            ? "Contenido presente en el Documento A, ausente en el B."
+            : "Contenido modificado entre ambos documentos.",
+    };
+  });
+
+  const resumen_puntos = [
+    `${modified} fragmentos modificados, ${added} agregados, ${removed} eliminados entre ambos documentos (comparación literal, sin IA).`,
+  ];
+  if (relevant.length > MAX_DIFERENCIAS) {
+    resumen_puntos.unshift(
+      `⚠ Se detectaron ${relevant.length} diferencias; se muestran las primeras ${MAX_DIFERENCIAS}. Si son muchas, puede ser señal de que los documentos no son versiones del mismo original.`
+    );
+  }
+  if (sentsA.length > 0 && relevant.length > sentsA.length * 0.6) {
+    resumen_puntos.unshift(
+      "⚠ Más de la mitad del contenido difiere: confirma que ambos documentos sean realmente versiones del mismo original antes de fiarte de este detalle."
+    );
+  }
+
+  return {
+    resumen:
+      `Comparación literal con el motor local (sin IA): ${diferencias.length} diferencias listadas de ${relevant.length} detectadas. ` +
+      "Cada una indica la página exacta en cada documento; a diferencia del modo con IA, el motor local no interpreta el impacto legal o de negocio de cada cambio, solo lo señala.",
+    resumen_puntos,
+    diferencias,
   };
 }

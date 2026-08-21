@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Stream } from "openai/streaming";
+import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import { anthropic, CLAUDE_MAX_TOKENS } from "@/lib/anthropic";
 import {
   getProviderClient,
@@ -12,6 +14,12 @@ import { AGENT_PROMPTS, buildRagContext } from "@/core/ai/agents";
 import type { AgentKind, SearchFilters } from "@/core/domain/types";
 import { fetchDocTitles, retrieve } from "./rag.service";
 import type { UsageEvent } from "./ai-usage.service";
+import { logger } from "@/lib/logger";
+
+/** Un proveedor rechazó el parámetro 'stream_options' en sí (no la
+ *  petición en general): reintentar sin él es seguro. Cualquier otro error
+ *  —cuota, autenticación, red— se propaga tal cual, sin reintento inútil. */
+const UNKNOWN_PARAM_ERROR = /stream_options|unrecognized|unsupported|unknown.?parameter|not.?support/i;
 
 // ============================================================================
 // Chat RAG con streaming y citas.
@@ -128,19 +136,32 @@ Solo incluye chunk_ids presentes en el contexto.`;
   }
 
   const model = modelFor(engine, "chat");
-  const stream = await getProviderClient(engine).chat.completions.create({
-    model,
-    stream: true,
-    // Pide que el último chunk del stream traiga el conteo real de tokens
-    // (soportado por Groq y por la capa OpenAI-compatible de Gemini); ese
-    // chunk no trae texto, solo 'usage', así que no afecta lo que se emite.
-    stream_options: { include_usage: true },
-    messages: [
-      { role: "system", content: system },
-      ...turns,
-      { role: "user", content: userMessage },
-    ],
-  });
+  const client = getProviderClient(engine);
+  const messages = [
+    { role: "system" as const, content: system },
+    ...turns,
+    { role: "user" as const, content: userMessage },
+  ];
+
+  // Pide que el último chunk del stream traiga el conteo real de tokens
+  // (soportado por Groq y por la capa OpenAI-compatible de Gemini); ese
+  // chunk no trae texto, solo 'usage'. Si algún proveedor cambia de
+  // comportamiento y lo rechaza, NO debe tumbar el chat — se reintenta sin
+  // ese parámetro y simplemente no se registra el consumo de esa respuesta.
+  let stream: Stream<ChatCompletionChunk>;
+  try {
+    stream = await client.chat.completions.create({
+      model,
+      stream: true,
+      stream_options: { include_usage: true },
+      messages,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (!UNKNOWN_PARAM_ERROR.test(message)) throw err;
+    logger.warn("chat_stream_options_rejected", { engine, model, error: message });
+    stream = await client.chat.completions.create({ model, stream: true, messages });
+  }
 
   async function* openaiText(): AsyncIterable<string> {
     for await (const part of stream) {

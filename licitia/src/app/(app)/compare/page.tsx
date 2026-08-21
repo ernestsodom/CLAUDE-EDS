@@ -30,7 +30,7 @@ export default async function ComparePage({
   if (params.r) {
     const { data } = await supabase
       .from("comparisons")
-      .select("*, comparison_items(*), source:documents!comparisons_source_document_id_fkey(title), target:documents!comparisons_target_document_id_fkey(title)")
+      .select("*, comparison_items(*), comparison_folders(name), source:documents!comparisons_source_document_id_fkey(title), target:documents!comparisons_target_document_id_fkey(title)")
       .eq("id", params.r)
       .maybeSingle();
     result = data;

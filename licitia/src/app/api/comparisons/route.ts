@@ -22,21 +22,29 @@ const BodySchema = z.object({
   ]),
   sourceDocumentId: z.string().uuid(),
   targetDocumentId: z.string().uuid(),
-  // Motor elegido por el usuario. 'auto' y 'local' no aplican a este análisis
-  // (necesita un modelo), así que solo se aceptan proveedores concretos.
-  mode: z.enum(ALL_PROVIDERS as [string, ...string[]]).optional(),
+  // Motor elegido por el usuario. 'cumplimiento' necesita un modelo que
+  // interprete evidencia, así que ahí solo se aceptan proveedores concretos
+  // ('auto' y 'local' no aplican). Comparar dos documentos SÍ admite 'local'
+  // (diff léxico sin IA); 'auto' sigue sin aplicar ahí tampoco.
+  mode: z.enum([...ALL_PROVIDERS, "local"] as unknown as [string, ...string[]]).optional(),
 });
 
 /**
  * POST /api/comparisons — crea y ejecuta una comparación.
- * 'cumplimiento' → tabla requerimiento a requerimiento con semáforo.
- * resto → detección de diferencias entre documentos.
+ * 'cumplimiento' → tabla requerimiento a requerimiento con semáforo (siempre con IA).
+ * resto → detección de diferencias entre documentos (con IA, o 'local' sin IA).
  */
 export const POST = withErrorHandling(async (request: Request) => {
   const { supabase, user, profile } = await requireUser();
   const parsed = BodySchema.safeParse(await request.json());
   if (!parsed.success) throw new ValidationError(parsed.error.message);
   const body = parsed.data;
+
+  if (body.comparisonType === "cumplimiento" && body.mode === "local") {
+    throw new ValidationError(
+      "El motor local no aplica a 'Control de cumplimiento': esa comparación necesita interpretar evidencia con un modelo. Úsalo en 'Comparar dos documentos'."
+    );
+  }
 
   const { data: comparison, error } = await supabase
     .from("comparisons")
