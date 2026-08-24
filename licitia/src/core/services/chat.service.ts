@@ -16,6 +16,7 @@ import { fetchDocTitles, retrieve } from "./rag.service";
 import type { UsageEvent } from "./ai-usage.service";
 import { logger } from "@/lib/logger";
 import { getDocumentDetail } from "@/core/repositories/documents.repo";
+import { wordOverlap } from "@/lib/text-match";
 
 /** Un proveedor rechazó el parámetro 'stream_options' en sí (no la
  *  petición en general): reintentar sin él es seguro. Cualquier otro error
@@ -38,27 +39,34 @@ const UNKNOWN_PARAM_ERROR = /stream_options|unrecognized|unsupported|unknown.?pa
 export const CITATION_DELIMITER = "<!--citas-->";
 
 /**
- * Motores del chat: los mismos proveedores que analizan documentos. El chat no
- * tiene modo local (no hay respuesta conversacional sin modelo) ni 'auto'
- * (aquí la elección es por conversación y debe ser visible), así que se queda
- * con la lista de proveedores configurados tal cual.
+ * Motores del chat: los mismos proveedores que analizan documentos, más
+ * "local" — búsqueda léxica pura (full text en español + coincidencia por
+ * palabras contra el análisis ya procesado), sin llamar a ningún proveedor
+ * de IA. No hay 'auto' (aquí la elección es por conversación y debe ser
+ * visible), así que además de "local" se queda con los proveedores
+ * configurados tal cual.
  */
-export const CHAT_ENGINES = ["gemini", "groq", "claude"] as const;
-export type ChatEngine = ProviderId;
+export const CHAT_ENGINES = ["gemini", "groq", "claude", "local"] as const;
+export type ChatEngine = ProviderId | "local";
 
 export const CHAT_ENGINE_LABELS: Record<ChatEngine, string> = {
   gemini: "Gemini",
   groq: "Groq",
   claude: "Claude Haiku 4.5",
+  local: "Sin IA",
 };
 
 export function isChatEngineConfigured(engine: ChatEngine): boolean {
-  return isProviderConfigured(engine);
+  // "local" no depende de ninguna API key: siempre está disponible.
+  return engine === "local" ? true : isProviderConfigured(engine);
 }
 
 /** Motores de chat realmente disponibles. */
 export function listChatEngines(): Array<{ id: ChatEngine; label: string; isPaid: boolean }> {
-  return listConfiguredProviders().map((p) => ({ id: p.id, label: p.label, isPaid: p.isPaid }));
+  return [
+    ...listConfiguredProviders().map((p) => ({ id: p.id as ChatEngine, label: p.label, isPaid: p.isPaid })),
+    { id: "local" as ChatEngine, label: CHAT_ENGINE_LABELS.local, isPaid: false },
+  ];
 }
 
 export interface ChatTurnInput {
@@ -197,6 +205,148 @@ async function buildProcessedContext(
   return parts.join("\n\n");
 }
 
+interface LocalMatch {
+  kind: string;
+  text: string;
+  page: number | null;
+}
+
+/** Busca coincidencias por palabras contra el análisis YA PROCESADO de un
+ *  documento (mismo texto que buildProcessedContext, ver arriba) — sin IA,
+ *  solo comparación léxica (wordOverlap). Es la mitad "estructurada" de la
+ *  respuesta local; search_chunks_text (SQL) aporta la otra mitad, sobre el
+ *  texto crudo del documento. */
+function localProcessedMatches(
+  detail: Awaited<ReturnType<typeof getDocumentDetail>>,
+  question: string
+): LocalMatch[] {
+  const results: LocalMatch[] = [];
+  const push = (kind: string, text: string, page: number | null, minScore = 0.15) => {
+    if (text && wordOverlap(question, text) >= minScore) results.push({ kind, text, page });
+  };
+  const pushList = (value: unknown, kind: string) => {
+    if (!Array.isArray(value)) return;
+    for (const item of value) {
+      const text =
+        typeof item === "string"
+          ? item
+          : `${(item as { titulo?: string }).titulo ?? ""}: ${(item as { detalle?: string }).detalle ?? ""}`;
+      push(kind, text, null);
+    }
+  };
+
+  const s = detail.summary as Record<string, unknown> | null;
+  if (s) {
+    push("Resumen", String(s.summary ?? ""), null, 0.1);
+    pushList(s.critical_points, "Aspecto crítico");
+    pushList(s.obligations, "Obligación");
+    pushList(s.restrictions, "Restricción");
+    pushList(s.deliverables, "Entregable");
+  }
+
+  for (const r of detail.requirements as Array<Record<string, unknown>>) {
+    const text = `${r.title}${r.description ? `: ${r.description}` : ""}`;
+    push(`Punto crítico (${r.category ?? r.critical_type})`, text, (r.page as number | null) ?? null);
+  }
+
+  const systems = detail.systems as Array<{
+    name: string;
+    features: Array<{ name: string }>;
+  }>;
+  for (const sys of systems) {
+    push("Sistema", sys.name, null);
+    for (const f of sys.features) push(`Funcionalidad (${sys.name})`, f.name, null, 0.25);
+  }
+
+  const milestones =
+    (detail.timeline as { milestones?: Array<Record<string, unknown>> } | null)?.milestones ?? [];
+  for (const m of milestones) {
+    push("Hito", String(m.title ?? ""), (m.page as number | null) ?? null);
+  }
+
+  return results.sort((a, b) => wordOverlap(question, b.text) - wordOverlap(question, a.text)).slice(0, 8);
+}
+
+/**
+ * Motor de chat "Sin IA": búsqueda léxica pura (full text en español vía
+ * search_chunks_text — sin embeddings, sin llamar a ningún proveedor) sobre
+ * los fragmentos del documento, más coincidencia por palabras contra el
+ * análisis ya procesado cuando el chat está acotado a un documento. No hay
+ * generación de lenguaje: la "respuesta" es literalmente lo que se
+ * encontró, tal cual, con su página de origen — cero riesgo de invención,
+ * pero también sin capacidad de razonar, resumir o responder preguntas que
+ * no calcen con las palabras del documento.
+ */
+async function localChatAnswer(
+  supabase: SupabaseClient,
+  question: string,
+  filters: SearchFilters
+): Promise<string> {
+  const documentIds = filters.documentIds ?? [];
+
+  const [{ data: hits, error }, detail] = await Promise.all([
+    supabase.rpc("search_chunks_text", {
+      query_text: question,
+      match_count: 10,
+      filter_document_ids: documentIds.length ? documentIds : null,
+      filter_doc_type: filters.docType ?? null,
+      filter_client_id: filters.clientId ?? null,
+    }),
+    documentIds.length === 1 ? getDocumentDetail(supabase, documentIds[0]).catch(() => null) : null,
+  ]);
+  if (error) throw new Error(`Error en búsqueda local: ${error.message}`);
+
+  const chunkHits = (hits ?? []) as Array<{
+    chunk_id: string;
+    document_id: string;
+    content: string;
+    page_start: number | null;
+    page_end: number | null;
+    section: string | null;
+    rank: number;
+  }>;
+  const processedHits = detail ? localProcessedMatches(detail, question) : [];
+
+  const citations: Array<{ chunk_id: string; cita_textual: string; pagina: number | null; seccion: string | null }> =
+    [];
+  const lines: string[] = [];
+
+  if (processedHits.length > 0) {
+    lines.push("**Del análisis ya procesado del documento:**");
+    for (const h of processedHits) {
+      lines.push(`- [${h.kind}] ${h.text}${h.page != null ? ` (pág. ${h.page})` : ""}`);
+      citations.push({ chunk_id: "", cita_textual: h.text.slice(0, 200), pagina: h.page, seccion: h.kind });
+    }
+  }
+
+  if (chunkHits.length > 0) {
+    const titles = await fetchDocTitles(supabase, chunkHits.map((c) => c.document_id));
+    if (lines.length > 0) lines.push("");
+    lines.push("**Fragmentos del documento que coinciden con tu pregunta:**");
+    for (const c of chunkHits) {
+      const docTitle = titles.get(c.document_id);
+      const pageLabel =
+        c.page_start != null ? `pág. ${c.page_start}${c.page_end && c.page_end !== c.page_start ? `–${c.page_end}` : ""}` : "";
+      const label = [docTitle, c.section, pageLabel].filter(Boolean).join(" · ");
+      const quote = c.content.trim().slice(0, 400) + (c.content.length > 400 ? "…" : "");
+      lines.push(`- ${label ? `${label}\n  ` : ""}"${quote}"`);
+      citations.push({ chunk_id: c.chunk_id, cita_textual: quote.slice(0, 200), pagina: c.page_start, seccion: c.section });
+    }
+  }
+
+  if (lines.length === 0) {
+    lines.push(
+      "No se encontraron coincidencias literales para esa pregunta. La búsqueda local busca palabras " +
+        "exactas del documento, no significado — prueba con otros términos, o cambia a un motor con IA " +
+        "en el selector de arriba para una búsqueda que entienda sinónimos y contexto."
+    );
+  }
+
+  const answer = lines.join("\n");
+  const citationsJson = JSON.stringify({ citas: citations, confianza: null });
+  return `${answer}\n\n${CITATION_DELIMITER}\n${citationsJson}`;
+}
+
 export interface ChatTurnResult {
   /** Fragmentos de texto en el orden en que los emite el modelo. */
   textStream: AsyncIterable<string>;
@@ -213,6 +363,17 @@ export async function streamChatTurn(input: ChatTurnInput): Promise<ChatTurnResu
     throw new Error(
       `El motor ${CHAT_ENGINE_LABELS[engine]} no está configurado. Elige otro en el selector del chat.`
     );
+  }
+
+  // "Sin IA": ni RAG semántico (usa embeddings) ni ningún proveedor — se
+  // resuelve aparte y se corta acá. onUsage no se llama: no hay consumo que
+  // registrar.
+  if (engine === "local") {
+    const full = await localChatAnswer(supabase, question, filters);
+    async function* localText(): AsyncIterable<string> {
+      yield full;
+    }
+    return { textStream: localText(), retrievedChunks: [], engine, model: "motor-local" };
   }
 
   // Groq aplica 8.000 tokens/minuto en total (entrada + salida) al modelo que
@@ -340,7 +501,8 @@ ya procesado, deja chunk_id como cadena vacía "".`;
       if (delta) yield delta;
       if (part.usage && onUsage) {
         onUsage({
-          provider: engine,
+          // engine ya no puede ser "local" acá: ese caso retorna antes.
+          provider: engine as ProviderId,
           model,
           inputTokens: part.usage.prompt_tokens ?? 0,
           outputTokens: part.usage.completion_tokens ?? 0,

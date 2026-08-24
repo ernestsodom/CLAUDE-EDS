@@ -29,25 +29,26 @@ describe("motores del chat", () => {
   beforeEach(() => vi.resetModules());
   afterEach(() => vi.doUnmock("@/lib/env"));
 
-  it("solo ofrece los motores con API key configurada", async () => {
+  it("solo ofrece los motores con API key configurada, más 'local' siempre", async () => {
     const { listChatEngines } = await loadWithEnv({
       OPENAI_API_KEY: "clave-gemini-valida",
       ANTHROPIC_API_KEY: "clave-anthropic-valida",
     });
-    expect(listChatEngines().map((e) => e.id)).toEqual(["gemini", "claude"]);
+    expect(listChatEngines().map((e) => e.id)).toEqual(["gemini", "claude", "local"]);
   });
 
   it("no ofrece Claude si falta ANTHROPIC_API_KEY", async () => {
     const { listChatEngines, isChatEngineConfigured } = await loadWithEnv({
       OPENAI_API_KEY: "clave-gemini-valida",
     });
-    expect(listChatEngines().map((e) => e.id)).toEqual(["gemini"]);
+    expect(listChatEngines().map((e) => e.id)).toEqual(["gemini", "local"]);
     expect(isChatEngineConfigured("claude")).toBe(false);
   });
 
-  it("devuelve una lista vacía cuando no hay ningún motor configurado", async () => {
-    const { listChatEngines } = await loadWithEnv({});
-    expect(listChatEngines()).toEqual([]);
+  it("ofrece solo 'local' cuando no hay ningún proveedor de IA configurado", async () => {
+    const { listChatEngines, isChatEngineConfigured } = await loadWithEnv({});
+    expect(listChatEngines().map((e) => e.id)).toEqual(["local"]);
+    expect(isChatEngineConfigured("local")).toBe(true);
   });
 
   it("etiqueta Claude con su modelo económico (Haiku 4.5)", async () => {

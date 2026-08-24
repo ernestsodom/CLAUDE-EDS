@@ -10,6 +10,7 @@ import type {
   TechnicalVariables,
   Timeline,
 } from "@/core/ai/schemas";
+import { norm, wordOverlap } from "@/lib/text-match";
 
 // ============================================================================
 // MOTOR LOCAL (sin IA)
@@ -23,9 +24,6 @@ import type {
 // organismos, cláusulas obligatorias, integraciones, garantías y multas.
 // Cada dato conserva su página y su cita textual, igual que en modo IA.
 // ============================================================================
-
-const norm = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 interface Located {
   text: string;
@@ -652,18 +650,6 @@ function classifyImpactLocal(text: string): "bajo" | "medio" | "alto" | "critico
 /** Código de numeración inicial ("8.3", "10.1"…), si la oración empieza con uno. */
 function clauseNumber(text: string): string | null {
   return text.match(/^\s*(\d+(?:\.\d+)*)/)?.[1] ?? null;
-}
-
-/** Palabras "de contenido" (≥4 letras) en común sobre el menor de los dos
- *  conjuntos — cuán reconocible es un texto en el otro sin usar ningún modelo. */
-function wordOverlap(a: string, b: string): number {
-  const words = (t: string) => new Set(norm(t).split(/[^a-zñ0-9]+/).filter((w) => w.length >= 4));
-  const wa = words(a);
-  const wb = words(b);
-  if (wa.size === 0 || wb.size === 0) return 0;
-  let common = 0;
-  for (const w of wa) if (wb.has(w)) common++;
-  return common / Math.min(wa.size, wb.size);
 }
 
 const REWRITE_THRESHOLD = 0.35;

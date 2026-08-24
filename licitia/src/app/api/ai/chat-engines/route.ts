@@ -7,9 +7,10 @@ export const runtime = "nodejs";
 
 /**
  * GET /api/ai/chat-engines
- * Motores disponibles para el Chat IA (Gemini, Groq, Claude), solo los que
- * tienen API key configurada. A diferencia de /api/ai/providers no incluye
- * "auto" ni "sin IA": una conversación necesita un modelo concreto.
+ * Motores disponibles para el Chat IA: Gemini, Groq y Claude (solo los que
+ * tienen API key configurada) más "local" (búsqueda léxica, sin IA, siempre
+ * disponible). A diferencia de /api/ai/providers no incluye "auto": aquí la
+ * elección es por conversación y debe ser visible.
  * No expone claves: id, etiqueta y si el proveedor es de pago.
  */
 export const GET = withErrorHandling(async () => {
