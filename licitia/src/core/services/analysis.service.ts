@@ -36,6 +36,29 @@ export function pagesToAnnotatedText(pages: PageText[], maxChars = 300_000): str
   return out.trim();
 }
 
+// Groq aplica un límite de tokens POR MINUTO (TPM) al modelo openai/gpt-oss-120b
+// en el tier gratuito ("on_demand") mucho más estricto que su ventana de
+// contexto — confirmado en producción: "413 ... Limit 8000, Requested 39091
+// ... tokens per minute (TPM)". Ese límite cubre entrada + salida de la MISMA
+// llamada, así que para Groq se recorta el documento a un presupuesto muy por
+// debajo de lo que usan Gemini o Claude, y además se topa la respuesta — sin
+// esto, cualquier documento de más de ~15-20 páginas falla siempre con Groq,
+// sin importar cuánto se optimice el resto del pipeline.
+const GROQ_MAX_INPUT_CHARS = 16_000;
+const GROQ_MAX_OUTPUT_TOKENS = 3_000;
+
+/** Presupuesto de caracteres de entrada a usar según el proveedor: el mismo
+ *  `defaultMax` para Gemini/Claude, recortado para Groq. */
+function charBudgetFor(provider: ProviderId, defaultMax: number): number {
+  return provider === "groq" ? Math.min(defaultMax, GROQ_MAX_INPUT_CHARS) : defaultMax;
+}
+
+/** Tope de tokens de salida a pasar a structuredCompletion, solo cuando el
+ *  proveedor lo necesita (Groq); Gemini y Claude usan sus valores por defecto. */
+function outputCapFor(provider: ProviderId): number | undefined {
+  return provider === "groq" ? GROQ_MAX_OUTPUT_TOKENS : undefined;
+}
+
 export async function classifyDocument(
   pages: PageText[],
   provider: ProviderId,
@@ -47,11 +70,12 @@ export async function classifyDocument(
     provider,
     speed: "fast",
     onUsage,
+    maxTokens: outputCapFor(provider),
     system:
       "Eres un clasificador experto de documentos de licitaciones públicas chilenas. " +
       "Extrae los metadatos solicitados del documento. Usa null cuando el dato no aparezca. " +
       "El monto debe ser numérico sin separadores. Las fechas en formato ISO YYYY-MM-DD.",
-    user: pagesToAnnotatedText(pages, 120_000),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 120_000)),
   });
 }
 
@@ -66,6 +90,7 @@ export async function summarizeDocument(
     provider,
     speed: "chat",
     onUsage,
+    maxTokens: outputCapFor(provider),
     system:
       "Eres un consultor senior de licitaciones. Genera un informe ejecutivo completo del documento: " +
       "resumen general, objetivo, alcance, plazo de implementación, presupuesto, problemas detectados, " +
@@ -81,7 +106,7 @@ export async function summarizeDocument(
       "monto más relevante (normalmente el total del contrato) y aclara los demás en 'detalle'. " +
       "Nunca dejes un monto sin periodicidad si el documento la menciona.\n" +
       "Sé específico y fiel al texto.",
-    user: pagesToAnnotatedText(pages),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
   });
 }
 
@@ -101,6 +126,7 @@ export async function extractRequirements(
     provider,
     speed: "chat",
     onUsage,
+    maxTokens: outputCapFor(provider),
     system:
       "Eres un experto en participación en licitaciones públicas chilenas. Extrae ÚNICAMENTE los " +
       "puntos críticos y obligatorios para poder participar o que exponen a sanción, clasificados en " +
@@ -119,7 +145,7 @@ export async function extractRequirements(
       "aparece; si no hay plazo explícito, null. Cada ítem con su cita textual y página. Si un tipo no " +
       "aparece en el documento, simplemente no lo incluyas. Sé breve y concreto: mejor pocos ítems bien " +
       "definidos que una lista larga.",
-    user: pagesToAnnotatedText(pages),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
   });
 }
 
@@ -138,6 +164,7 @@ export async function extractSystems(
     provider,
     speed: "chat",
     onUsage,
+    maxTokens: outputCapFor(provider),
     system:
       "Eres un analista funcional de licitaciones TI. Identifica los SISTEMAS o módulos de software " +
       "que el documento exige desarrollar, implementar o proveer, y para cada uno lista sus " +
@@ -153,7 +180,7 @@ export async function extractSystems(
       "- Si el documento describe un único sistema, devuelve un solo sistema con todas sus " +
       "  funcionalidades. Si describe requisitos sueltos sin agrupar, agrúpalos tú por sistema/módulo.\n" +
       "- No inventes: cada funcionalidad debe poder respaldarse con una cita del documento.",
-    user: pagesToAnnotatedText(pages),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
   });
 }
 
@@ -173,6 +200,7 @@ export async function extractDeliveredItems(
     provider,
     speed: "chat",
     onUsage,
+    maxTokens: outputCapFor(provider),
     system:
       "Eres un auditor de entregas de proyectos TI. El documento es un registro de control de lo " +
       "realmente entregado (informe de avance, acta o control interno del proveedor). " +
@@ -183,7 +211,7 @@ export async function extractDeliveredItems(
       "similar), y es_gratuito=true cuando se hizo sin costo para el cliente. " +
       "Si el ítem responde a un requerimiento contractual, indica su código o título en " +
       "referencia_requerimiento. Sé exhaustivo, sin duplicados.",
-    user: pagesToAnnotatedText(pages),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
   });
 }
 
@@ -198,11 +226,12 @@ export async function extractTimeline(
     provider,
     speed: "fast",
     onUsage,
+    maxTokens: outputCapFor(provider),
     system:
       "Eres un planificador de proyectos. Construye la línea de tiempo del documento identificando: " +
       "inicio, hitos, capacitaciones, implementación, marcha blanca, recepción, garantía, soporte y término. " +
       "Si hay fechas absolutas úsalas; si solo hay plazos relativos ('30 días desde la firma'), " +
       "regístralos en plazo_texto y deja las fechas en null. Ordena cronológicamente.",
-    user: pagesToAnnotatedText(pages, 150_000),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
