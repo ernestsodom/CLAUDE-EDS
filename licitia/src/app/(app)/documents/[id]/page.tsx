@@ -8,6 +8,7 @@ import { Badge, statusVariant } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { TimelineView } from "@/components/timeline-view";
 import { ChatPanel } from "@/components/chat-panel";
+import { DocumentChatHistory } from "@/components/document-chat-history";
 import { ExportButtons } from "@/components/export-buttons";
 import { SystemsChecklist } from "@/components/systems-checklist";
 import { CriticalPointsAccordion } from "@/components/critical-points-accordion";
@@ -29,10 +30,10 @@ export default async function DocumentDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ v?: string }>;
+  searchParams: Promise<{ v?: string; c?: string }>;
 }) {
   const { id } = await params;
-  const { v: viewVersionId } = await searchParams;
+  const { v: viewVersionId, c: requestedConversationId } = await searchParams;
   const supabase = await createClient();
   const detail = await getDocumentDetail(supabase, id);
   const {
@@ -51,6 +52,42 @@ export default async function DocumentDetailPage({
   const summary = viewingVersion ? await getVersionSummary(supabase, viewingVersion.id) : detail.summary;
 
   const progress = checklistProgress(systems);
+
+  // El Chat IA ya guardaba cada conversación en la base de datos (igual que
+  // el resumen u otro dato procesado), pero la pantalla nunca las mostraba:
+  // cada visita arrancaba en blanco. Ahora se listan las conversaciones de
+  // ESTE documento y, si no se pidió una en particular (?c=) ni "nueva"
+  // (?c=new), se retoma la más reciente automáticamente — igual que el
+  // resumen, que también muestra lo último ya procesado sin pedirlo.
+  const { data: conversations } = await supabase
+    .from("conversations")
+    .select("id, title, updated_at")
+    .eq("document_id", id)
+    .order("updated_at", { ascending: false })
+    .limit(20);
+  const conversationList = conversations ?? [];
+
+  const startingNew = requestedConversationId === "new";
+  const activeConversationId = startingNew
+    ? undefined
+    : (requestedConversationId ?? conversationList[0]?.id);
+
+  let chatInitialMessages: Array<{
+    role: "user" | "assistant";
+    content: string;
+    citations?: never[];
+    confidence?: number | null;
+  }> = [];
+  if (activeConversationId) {
+    const { data: messages } = await supabase
+      .from("messages")
+      .select("role, content, citations, confidence")
+      .eq("conversation_id", activeConversationId)
+      .order("created_at", { ascending: true });
+    chatInitialMessages = (messages ?? []).filter((m) => m.role !== "system") as never;
+  }
+
+  const defaultTab = requestedConversationId ? "chat" : "resumen";
 
   const summaryList = (items: unknown) =>
     ((items ?? []) as Array<{ titulo: string; detalle: string }>).map((i, k) => (
@@ -131,7 +168,7 @@ export default async function DocumentDetailPage({
         </Card>
       )}
 
-      <Tabs defaultValue="resumen">
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
           <TabsTrigger value="resumen">Resumen</TabsTrigger>
           <TabsTrigger value="sistemas">
@@ -306,7 +343,26 @@ export default async function DocumentDetailPage({
         </TabsContent>
 
         <TabsContent value="chat">
-          <ChatPanel documentId={doc.id} agent="analista" />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground">
+                Las conversaciones quedan guardadas en el documento — se retoma la más reciente al
+                volver.
+              </p>
+              <DocumentChatHistory
+                documentId={doc.id}
+                conversations={conversationList}
+                activeId={activeConversationId}
+              />
+            </div>
+            <ChatPanel
+              key={activeConversationId ?? "new"}
+              documentId={doc.id}
+              agent="analista"
+              initialConversationId={activeConversationId}
+              initialMessages={chatInitialMessages}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="versiones">
