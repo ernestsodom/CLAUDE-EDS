@@ -13,6 +13,7 @@ interface Milestone {
   starts_on: string | null;
   ends_on: string | null;
   duration_label: string | null;
+  is_estimated: boolean;
   page: number | null;
   quote: string | null;
   sort_order: number;
@@ -56,12 +57,23 @@ export function TimelineView({ milestones }: { milestones: Milestone[] }) {
                   {m.milestone_type.replace(/_/g, " ")}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
-                  {m.starts_on ? formatDate(m.starts_on) : m.duration_label ?? "sin fecha"}
+                  {m.starts_on ? formatDate(m.starts_on) : (m.duration_label ?? "sin fecha")}
                   {m.ends_on && m.ends_on !== m.starts_on ? ` → ${formatDate(m.ends_on)}` : ""}
                 </span>
+                {m.starts_on && m.is_estimated && (
+                  <Badge variant="warning" title="Fecha calculada a partir de un plazo relativo, no indicada así en el documento">
+                    estimada
+                  </Badge>
+                )}
               </div>
               {open && (
                 <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  {m.is_estimated && m.duration_label && (
+                    <p className="text-xs">
+                      Fecha estimada a partir de <span className="italic">“{m.duration_label}”</span>{" "}
+                      — el documento no da una fecha calendario para este hito; no es un dato literal.
+                    </p>
+                  )}
                   {m.description && <p>{m.description}</p>}
                   {m.quote && (
                     <blockquote className="border-l-2 pl-2 italic">

@@ -242,8 +242,14 @@ export async function extractTimeline(
     system:
       "Eres un planificador de proyectos. Construye la línea de tiempo del documento identificando: " +
       "inicio, hitos, capacitaciones, implementación, marcha blanca, recepción, garantía, soporte y término. " +
-      "Si hay fechas absolutas úsalas; si solo hay plazos relativos ('30 días desde la firma'), " +
-      "regístralos en plazo_texto y deja las fechas en null. Ordena cronológicamente.",
+      "Si el documento da una fecha calendario explícita para un hito, úsala en fecha_inicio/fecha_fin. " +
+      "Si solo da un plazo relativo ('30 días corridos desde la firma del contrato'), NO calcules tú una " +
+      "fecha: deja fecha_inicio en null y registra el plazo en plazo_texto (tal cual aparece), " +
+      "plazo_dias (el número de días, convertido: semanas ×7, meses ×30) y ancla — 'documento' si se " +
+      "cuenta desde un evento único de referencia (firma del contrato, adjudicación, publicación), o " +
+      "'hito_anterior' si se cuenta desde que se completó el hito anterior de esta misma línea de " +
+      "tiempo. El cálculo de la fecha real lo hace el sistema, no tú — tu trabajo es extraer el plazo " +
+      "y su punto de partida con precisión. Ordena cronológicamente.",
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }

@@ -1388,5 +1388,16 @@ alter table document_summaries
   add column if not exists requested_annexes       jsonb;
 
 -- ============================================================================
+-- Línea de tiempo: fechas calendario concretas para los plazos relativos
+-- ("40 días corridos desde la firma del contrato"), calculadas desde la
+-- fecha del documento. is_estimated distingue una fecha calculada por el
+-- sistema de una que el documento indica literalmente (equivale a la
+-- migración 0015).
+-- ============================================================================
+
+alter table milestones
+  add column if not exists is_estimated boolean not null default false;
+
+-- ============================================================================
 -- ✔ Instalación completa. Siguiente paso: Authentication → Users → Add user.
 -- ============================================================================

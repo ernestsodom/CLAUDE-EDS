@@ -203,6 +203,8 @@ export const SystemsSchema = z.object({
 });
 export type Systems = z.infer<typeof SystemsSchema>;
 
+export const TIMELINE_ANCHORS = ["documento", "hito_anterior"] as const;
+
 export const TimelineSchema = z.object({
   hitos: z.array(
     z.object({
@@ -212,15 +214,44 @@ export const TimelineSchema = z.object({
       ]),
       titulo: z.string(),
       descripcion: z.string().nullable(),
-      fecha_inicio: z.string().nullable().describe("ISO 8601 si es determinable"),
+      fecha_inicio: z
+        .string()
+        .nullable()
+        .describe(
+          "ISO 8601 SOLO si el documento indica una fecha calendario explícita para este hito. " +
+            "Si el documento solo da un plazo relativo ('30 días desde la firma'), déjalo en null y " +
+            "usa plazo_texto/plazo_dias/ancla en su lugar — NUNCA calcules tú la fecha."
+        ),
       fecha_fin: z.string().nullable(),
-      plazo_texto: z.string().nullable().describe("'30 días corridos desde la firma', etc."),
+      plazo_texto: z
+        .string()
+        .nullable()
+        .describe("El plazo relativo tal como aparece en el documento, p.ej. '30 días corridos desde la firma'."),
+      plazo_dias: z
+        .number()
+        .int()
+        .nullable()
+        .describe(
+          "El número de días de plazo_texto, convertido a un entero (semanas ×7, meses ×30). " +
+            "Null si no hay plazo relativo o si ya hay fecha_inicio explícita."
+        ),
+      ancla: z
+        .enum(TIMELINE_ANCHORS)
+        .nullable()
+        .describe(
+          "Desde qué evento se cuenta plazo_dias: 'documento' si se cuenta desde la firma del " +
+            "contrato, la adjudicación, la publicación u otro evento único de referencia del proceso " +
+            "(el punto de partida general de todo el cronograma); 'hito_anterior' si se cuenta desde " +
+            "que se completó el hito inmediatamente anterior en esta línea de tiempo. Null si no hay " +
+            "plazo relativo."
+        ),
       pagina: z.number().int().nullable(),
       cita: z.string().nullable(),
     })
   ),
 });
 export type Timeline = z.infer<typeof TimelineSchema>;
+export type TimelineMilestone = Timeline["hitos"][number];
 
 export const DeliveredItemsSchema = z.object({
   entregas: z.array(

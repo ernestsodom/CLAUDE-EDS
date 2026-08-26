@@ -495,6 +495,16 @@ const HITOS: Array<[Timeline["hitos"][number]["tipo"], RegExp]> = [
   ["entregable", /(entregable|hito de pago|informe final)/i],
 ];
 
+const DIAS_POR_UNIDAD: Record<string, number> = { dia: 1, día: 1, semana: 7, mes: 30, año: 365, ano: 365 };
+
+/** "40 días", "3 meses", "2 semanas" → días corridos. Solo lo que hace falta
+ *  para la aritmética del resolver; sin este parseo, el motor local no podía
+ *  ofrecer ninguna fecha calculada para plazos relativos. */
+function plazoADias(cantidad: number, unidad: string): number {
+  const clave = unidad.toLowerCase().replace(/s$/, "").normalize("NFD").replace(/[̀-ͯ]/g, "");
+  return Math.round(cantidad * (DIAS_POR_UNIDAD[clave] ?? 1));
+}
+
 export function extractTimelineLocal(pages: PageText[]): Timeline {
   const sents = sentences(pages);
   const hitos: Timeline["hitos"] = [];
@@ -506,15 +516,21 @@ export function extractTimelineLocal(pages: PageText[]): Timeline {
       if (used.has(tipo)) break;
       used.add(tipo);
 
-      const plazo = s.text.match(/(\d{1,3})\s*(d[ií]as|meses|semanas|a[ñn]os)/i)?.[0] ?? null;
+      const plazoMatch = s.text.match(/(\d{1,3})\s*(d[ií]as|meses|semanas|a[ñn]os)/i);
       const f = s.text.match(/\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b/);
+      // Sin fecha explícita en la oración pero con un plazo relativo: se
+      // ancla al documento — el motor local no distingue "hito anterior" de
+      // "documento" con la misma finura que un modelo de lenguaje.
+      const tieneFechaExplicita = Boolean(f);
       hitos.push({
         tipo,
         titulo: s.text.replace(NUMERACION, "").slice(0, 120),
         descripcion: null,
         fecha_inicio: f ? `${f[3]}-${f[2].padStart(2, "0")}-${f[1].padStart(2, "0")}` : null,
         fecha_fin: null,
-        plazo_texto: plazo,
+        plazo_texto: plazoMatch?.[0] ?? null,
+        plazo_dias: !tieneFechaExplicita && plazoMatch ? plazoADias(Number(plazoMatch[1]), plazoMatch[2]) : null,
+        ancla: !tieneFechaExplicita && plazoMatch ? "documento" : null,
         pagina: s.page,
         cita: s.text.slice(0, 300),
       });

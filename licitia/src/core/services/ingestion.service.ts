@@ -22,6 +22,7 @@ import {
 } from "./heuristic.service";
 import { audit } from "./audit.service";
 import { usageLogger } from "./ai-usage.service";
+import { resolveTimelineDates } from "./timeline-resolver";
 import { sanitizeStorageFileName } from "@/lib/utils";
 import type { PageText } from "@/core/domain/types";
 import {
@@ -159,7 +160,7 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
 
   const { data: doc } = await db
     .from("documents")
-    .select("id, doc_type, status, processing_step")
+    .select("id, doc_type, status, processing_step, doc_date")
     .eq("id", documentId)
     .single();
   if (!doc) throw new Error("Documento no encontrado");
@@ -269,7 +270,7 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
       }
 
       case "timeline": {
-        const r = await stageTimeline(db, documentId, versionId, mode, params.organizationId, params.userId);
+        const r = await stageTimeline(db, documentId, versionId, doc.doc_date, mode, params.organizationId, params.userId);
         await advance("completado");
         await audit(params.organizationId, params.userId, "document.processed", "document", documentId);
         logger.info("document_processed", { documentId, mode });
@@ -675,6 +676,7 @@ async function stageTimeline(
   db: DB,
   documentId: string,
   versionId: string,
+  docDate: string | null,
   mode: AnalysisMode,
   organizationId: string,
   userId: string | null
@@ -688,6 +690,12 @@ async function stageTimeline(
   );
   if (t.hitos.length === 0) return { detail: `sin hitos${engineSuffix(engine)}`, engine };
 
+  // Convierte los plazos relativos ("40 días desde la firma del contrato")
+  // en fechas calendario concretas, usando la fecha del documento como
+  // ancla — ver timeline-resolver.ts para el porqué y las marca como
+  // estimadas para que nunca se muestren como un dato literal del documento.
+  const resolved = resolveTimelineDates(t.hitos, docDate);
+
   await db.from("timelines").delete().eq("document_id", documentId);
   const { data: tl } = await db
     .from("timelines")
@@ -696,7 +704,7 @@ async function stageTimeline(
     .single();
   if (tl) {
     await db.from("milestones").insert(
-      t.hitos.map((h, i) => ({
+      resolved.map((h, i) => ({
         timeline_id: tl.id,
         milestone_type: h.tipo,
         title: h.titulo,
@@ -704,6 +712,7 @@ async function stageTimeline(
         starts_on: h.fecha_inicio,
         ends_on: h.fecha_fin,
         duration_label: h.plazo_texto,
+        is_estimated: h.fecha_estimada,
         page: h.pagina,
         quote: h.cita,
         sort_order: i,

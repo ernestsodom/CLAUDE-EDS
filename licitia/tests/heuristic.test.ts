@@ -200,6 +200,20 @@ describe("motor local — línea de tiempo", () => {
     const mb = hitos.find((h) => h.tipo === "marcha_blanca");
     expect(mb?.plazo_texto).toMatch(/60\s*d[ií]as/i);
   });
+
+  it("convierte el plazo relativo a días y lo ancla al documento, para que el resolver pueda calcular la fecha", () => {
+    const mb = hitos.find((h) => h.tipo === "marcha_blanca");
+    expect(mb?.plazo_dias).toBe(60);
+    expect(mb?.ancla).toBe("documento");
+  });
+
+  it("un hito con fecha explícita no lleva plazo_dias/ancla (no hay nada que calcular)", () => {
+    const conFecha = extractTimelineLocal([
+      { pageNumber: 1, ocrUsed: false, content: "El inicio de los trabajos será el 15/03/2026." },
+    ]).hitos.find((h) => h.tipo === "inicio");
+    expect(conFecha?.fecha_inicio).toBe("2026-03-15");
+    expect(conFecha?.plazo_dias).toBeNull();
+  });
 });
 
 describe("motor local — entregas y trabajos adicionales", () => {
