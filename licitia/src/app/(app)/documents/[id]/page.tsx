@@ -11,13 +11,12 @@ import { ChatPanel } from "@/components/chat-panel";
 import { DocumentChatHistory } from "@/components/document-chat-history";
 import { ExportButtons } from "@/components/export-buttons";
 import { SystemsChecklist } from "@/components/systems-checklist";
-import { CriticalPointsAccordion } from "@/components/critical-points-accordion";
 import { DocumentProcessButton } from "@/components/document-process-button";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
 import { ReanalyzeButton } from "@/components/reanalyze-button";
 import { RenameDocumentButton } from "@/components/rename-document-button";
 import { MoveToFolderButton } from "@/components/move-to-folder-button";
-import { BUDGET_PERIOD_LABELS } from "@/core/ai/schemas";
+import { BUDGET_PERIOD_LABELS, CRITICAL_TYPE_LABELS } from "@/core/ai/schemas";
 import { ENGINE_LABELS, type AnalysisMode } from "@/lib/ai-providers";
 import { formatCLP, formatDate } from "@/lib/utils";
 
@@ -174,7 +173,6 @@ export default async function DocumentDetailPage({
           <TabsTrigger value="sistemas">
             Sistemas ({systems.length}){progress.total > 0 && ` · ${progress.pct}%`}
           </TabsTrigger>
-          <TabsTrigger value="requerimientos">Puntos críticos ({requirements.length})</TabsTrigger>
           {deliveredItems.length > 0 && (
             <TabsTrigger value="entregas">Entregas ({deliveredItems.length})</TabsTrigger>
           )}
@@ -340,23 +338,44 @@ export default async function DocumentDetailPage({
                     </ul>
                   </CardContent>
                 </Card>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-base font-semibold">
-                  Puntos críticos ({requirements.length})
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Las condiciones críticas y obligatorias para participar — también disponibles en su
-                  propia pestaña, aquí para tenerlas junto con el resto del resumen.
-                </p>
-                {requirements.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No se identificaron puntos críticos en este documento.
-                  </p>
-                ) : (
-                  <CriticalPointsAccordion requirements={requirements} />
-                )}
+                <Card className="lg:col-span-2">
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+                    <CardTitle className="text-base">Puntos críticos ({requirements.length})</CardTitle>
+                    {requirements.length > 0 && <ExportButtons kind="requerimientos" entityId={doc.id} />}
+                  </CardHeader>
+                  <CardContent className="text-sm">
+                    {requirements.length === 0 ? (
+                      <p className="text-muted-foreground">
+                        No se identificaron puntos críticos en este documento.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {requirements.map((r) => (
+                          <li key={r.id} className="rounded-md border p-2.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-medium">{r.title}</span>
+                              <Badge variant={statusVariant(r.priority)}>{r.priority}</Badge>
+                              {r.mandatory && <Badge variant="secondary">obligatorio</Badge>}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {r.critical_type &&
+                                (CRITICAL_TYPE_LABELS[r.critical_type as keyof typeof CRITICAL_TYPE_LABELS] ??
+                                  r.critical_type)}
+                              {r.deadline_text && ` · plazo: ${r.deadline_text}`}
+                              {r.page != null && ` · pág. ${r.page}`}
+                            </p>
+                            {r.description && <p className="mt-1 text-xs">{r.description}</p>}
+                            {r.quote && (
+                              <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
+                                “{r.quote}”
+                              </p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </div>
           )}
@@ -370,25 +389,6 @@ export default async function DocumentDetailPage({
               guarda al instante y se conserva aunque vuelvas a procesar el documento.
             </p>
             <SystemsChecklist systems={systems} />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="requerimientos">
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Solo los puntos críticos y obligatorios para participar: boleta de garantía,
-              condiciones de servidores, SLA, plazos, multas, certificados y migración de datos.
-              Las funcionalidades del software están en la pestaña{" "}
-              <span className="font-medium">Sistemas</span>. Pulsa un punto para ver su detalle.
-            </p>
-            <ExportButtons kind="requerimientos" entityId={doc.id} />
-            {requirements.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No se identificaron puntos críticos en este documento.
-              </p>
-            ) : (
-              <CriticalPointsAccordion requirements={requirements} />
-            )}
           </div>
         </TabsContent>
 
