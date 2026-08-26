@@ -90,6 +90,31 @@ async function analyze<T>(
   return { data: local(), engine: "local" };
 }
 
+/**
+ * Corre una promesa con un tope de tiempo propio, bien por debajo del límite
+ * de la función serverless (ver comentario del pipeline más abajo). Sin
+ * esto, una llamada a la IA que se cuelga no lanza ninguna excepción — la
+ * plataforma mata la función a la fuerza antes de que el catch de
+ * runNextStage llegue a registrar el error, y el documento queda
+ * "procesando" para siempre sin ninguna pista de qué pasó (visto en
+ * producción con un documento de 147 páginas en la etapa de línea de
+ * tiempo). Con el timeout propio, en cambio, se lanza un error claro con
+ * tiempo de sobra para guardarlo — y como el mensaje incluye "timeout", el
+ * cliente (processDocument) lo reintenta solo, sin que el usuario tenga que
+ * hacer nada.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`${label} tardó demasiado (timeout de ${Math.round(ms / 1000)}s) y se interrumpió.`)),
+        ms
+      )
+    ),
+  ]);
+}
+
 // ============================================================================
 // Pipeline de ingesta POR ETAPAS.
 //
@@ -683,10 +708,14 @@ async function stageTimeline(
 ): Promise<{ detail: string; engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
   const onUsage = usageLogger({ organizationId, documentId, userId, feature: "timeline" });
-  const { data: t, engine } = await analyze(
-    mode,
-    (provider) => extractTimeline(pages, provider, onUsage),
-    () => extractTimelineLocal(pages)
+  const { data: t, engine } = await withTimeout(
+    analyze(
+      mode,
+      (provider) => extractTimeline(pages, provider, onUsage),
+      () => extractTimelineLocal(pages)
+    ),
+    45_000,
+    "La extracción de la línea de tiempo"
   );
   if (t.hitos.length === 0) return { detail: `sin hitos${engineSuffix(engine)}`, engine };
 
