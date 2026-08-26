@@ -237,6 +237,47 @@ describe("motor local — resumen ejecutivo", () => {
   it("recoge las multas como riesgos", () => {
     expect(s.riesgos.some((r) => /multa|utm/i.test(r.riesgo))).toBe(true);
   });
+
+  it("sin mención de criterios de evaluación o anexos, devuelve listas vacías (no inventa)", () => {
+    expect(s.criterios_evaluacion).toEqual([]);
+    expect(s.anexos_solicitados).toEqual([]);
+  });
+});
+
+describe("motor local — criterios de evaluación y anexos", () => {
+  const CON_EVALUACION: PageText[] = [
+    {
+      pageNumber: 5,
+      ocrUsed: false,
+      content: `5. CRITERIOS DE EVALUACIÓN
+La oferta se evaluará según los siguientes criterios de evaluación: Precio, con una ponderación de 40%.
+Experiencia del oferente, con una ponderación de 30%.
+Presentación técnica, con una ponderación de 30 puntos sobre el puntaje total.
+El puntaje total será la suma ponderada de cada criterio; en caso de empate se preferirá al oferente con menor precio.
+
+6. ANEXOS
+Deberá adjuntarse el ANEXO N°1 — Identificación del oferente, con los datos de contacto del representante legal.
+Deberá adjuntarse también el ANEXO N°2 — Declaración jurada de no inhabilidad para contratar con el Estado.`,
+    },
+  ];
+  const s = summarizeLocal(CON_EVALUACION);
+
+  it("detecta los criterios de evaluación con su ponderación", () => {
+    expect(s.criterios_evaluacion.length).toBeGreaterThan(0);
+    const ponderaciones = s.criterios_evaluacion.map((c) => c.ponderacion).filter(Boolean);
+    expect(ponderaciones.some((p) => p?.includes("40"))).toBe(true);
+  });
+
+  it("detecta la metodología general de evaluación", () => {
+    expect(s.metodologia_evaluacion).toMatch(/puntaje total|empate/i);
+  });
+
+  it("detecta los anexos solicitados sin duplicarlos", () => {
+    const nombres = s.anexos_solicitados.map((a) => a.nombre);
+    expect(nombres).toContain("ANEXO N°1");
+    expect(nombres).toContain("ANEXO N°2");
+    expect(new Set(nombres).size).toBe(nombres.length);
+  });
 });
 
 describe("motor local — robustez", () => {

@@ -504,6 +504,9 @@ async function stageSummary(
       deliverables: s.entregables,
       schedule: s.cronograma,
       recommendations: s.recomendaciones,
+      evaluation_criteria: s.criterios_evaluacion,
+      evaluation_methodology: s.metodologia_evaluacion,
+      requested_annexes: s.anexos_solicitados,
       model: engine === "local" ? "motor-local" : engine === "gemini" ? MODELS.chat : engine,
     },
     { onConflict: "version_id" }

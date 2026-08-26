@@ -81,6 +81,34 @@ export const SummarySchema = z.object({
   entregables: z.array(ItemSchema),
   cronograma: z.array(z.object({ hito: z.string(), plazo: z.string() })),
   recomendaciones: z.array(z.string()),
+  criterios_evaluacion: z
+    .array(
+      z.object({
+        criterio: z.string().describe("Nombre del criterio tal como aparece en el documento (p.ej. 'Precio', 'Experiencia del oferente')"),
+        ponderacion: z
+          .string()
+          .nullable()
+          .describe("Peso del criterio tal como lo indica el documento (p.ej. '25%', '30 puntos')"),
+        pauta: z
+          .string()
+          .nullable()
+          .describe("Cómo se calcula o asigna el puntaje de este criterio — fórmula, tabla de puntajes, umbrales, tramos, etc."),
+      })
+    )
+    .describe("Criterios de evaluación de la oferta y su ponderación/pauta de cálculo, si el documento las define."),
+  metodologia_evaluacion: z
+    .string()
+    .nullable()
+    .describe("Reglas generales de evaluación no atadas a un criterio puntual: cómo se calcula el puntaje total, desempates, causales de inadmisibilidad, etc."),
+  anexos_solicitados: z
+    .array(
+      z.object({
+        nombre: z.string().describe("Nombre o número del anexo tal como aparece en el documento (p.ej. 'Anexo N°3 — Declaración Jurada')"),
+        descripcion: z.string().nullable().describe("Qué debe contener o acreditar este anexo"),
+        obligatorio: z.boolean().nullable(),
+      })
+    )
+    .describe("Anexos, formularios o documentos adjuntos que el documento exige presentar."),
 });
 export type Summary = z.infer<typeof SummarySchema>;
 

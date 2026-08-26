@@ -576,6 +576,43 @@ export function summarizeLocal(pages: PageText[]): Summary {
     .map(([k, v]) => `${k.replace(/_/g, " ")} (${v})`)
     .join(", ");
 
+  // Criterios de evaluación: oraciones con "criterio(s) de evaluación",
+  // "ponderación" o "puntaje máximo", con el porcentaje/puntaje que
+  // aparezca en la misma oración, si lo hay — sin poder distinguir la
+  // "pauta" (cómo se calcula) del criterio en sí, que queda en null.
+  const EVAL_RE = /(criterio.{0,25}evaluaci[oó]n|pondera(ci[oó]n)?|puntaje m[aá]ximo|escala de evaluaci[oó]n)/i;
+  const PORC_RE = /(\d{1,3}\s?%|\d{1,3}\s*puntos)/i;
+  const criteriosEvaluacion = sents
+    .filter((s) => EVAL_RE.test(s.text))
+    .slice(0, 10)
+    .map((s) => ({
+      criterio: s.text.slice(0, 150),
+      ponderacion: s.text.match(PORC_RE)?.[1] ?? null,
+      pauta: null,
+    }));
+  const metodologiaEvaluacion =
+    sents.find((s) =>
+      /(metodolog[ií]a de evaluaci[oó]n|puntaje total|f[oó]rmula de evaluaci[oó]n|criterio de desempate)/i.test(
+        s.text
+      )
+    )?.text ?? null;
+
+  // Anexos solicitados: oraciones que mencionan "Anexo N°..." — se agrupan
+  // por número de anexo para no repetir el mismo anexo citado varias veces
+  // en el documento.
+  const ANEXO_RE = /\bANEXO\s*N?[°º]?\s*\d+/i;
+  const anexosSolicitados: Array<{ nombre: string; descripcion: string | null; obligatorio: boolean | null }> = [];
+  const seenAnexos = new Set<string>();
+  for (const s of sents) {
+    const match = s.text.match(ANEXO_RE);
+    if (!match) continue;
+    const nombre = match[0].toUpperCase().replace(/\s+/g, " ");
+    if (seenAnexos.has(nombre)) continue;
+    seenAnexos.add(nombre);
+    anexosSolicitados.push({ nombre, descripcion: s.text.slice(0, 200), obligatorio: null });
+    if (anexosSolicitados.length >= 20) break;
+  }
+
   return {
     resumen_general:
       `Análisis local (sin IA) de un documento de tipo ${c.tipo_documento.replace(/_/g, " ")}` +
@@ -607,6 +644,9 @@ export function summarizeLocal(pages: PageText[]): Summary {
       hito: h.titulo.slice(0, 120),
       plazo: h.plazo_texto ?? h.fecha_inicio ?? "sin plazo explícito",
     })),
+    criterios_evaluacion: criteriosEvaluacion,
+    metodologia_evaluacion: metodologiaEvaluacion,
+    anexos_solicitados: anexosSolicitados,
     recomendaciones: [
       "Resumen generado con el motor local: verifica las cláusulas citadas antes de tomar decisiones.",
       reqs.length > 0

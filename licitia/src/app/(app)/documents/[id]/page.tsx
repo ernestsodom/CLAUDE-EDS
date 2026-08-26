@@ -259,6 +259,80 @@ export default async function DocumentDetailPage({
                   <CardContent><ul className="list-disc space-y-1 pl-4 text-sm">{summaryList(summary.deliverables)}</ul></CardContent>
                 </Card>
                 <Card className="lg:col-span-2">
+                  <CardHeader><CardTitle className="text-base">Criterios de evaluación</CardTitle></CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    {((summary.evaluation_criteria ?? []) as Array<{
+                      criterio: string;
+                      ponderacion: string | null;
+                      pauta: string | null;
+                    }>).length === 0 ? (
+                      <p className="text-muted-foreground">
+                        No se identificaron criterios de evaluación en el documento.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {(
+                          summary.evaluation_criteria as Array<{
+                            criterio: string;
+                            ponderacion: string | null;
+                            pauta: string | null;
+                          }>
+                        ).map((c, k) => (
+                          <li key={k} className="rounded-md border p-2.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-medium">{c.criterio}</span>
+                              {c.ponderacion && <Badge variant="secondary">{c.ponderacion}</Badge>}
+                            </div>
+                            {c.pauta && <p className="mt-1 text-xs text-muted-foreground">{c.pauta}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {summary.evaluation_methodology && (
+                      <p className="border-t pt-2 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Metodología general: </span>
+                        {summary.evaluation_methodology}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card className="lg:col-span-2">
+                  <CardHeader><CardTitle className="text-base">Anexos solicitados</CardTitle></CardHeader>
+                  <CardContent className="text-sm">
+                    {((summary.requested_annexes ?? []) as Array<{
+                      nombre: string;
+                      descripcion: string | null;
+                      obligatorio: boolean | null;
+                    }>).length === 0 ? (
+                      <p className="text-muted-foreground">
+                        No se identificaron anexos solicitados en el documento.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {(
+                          summary.requested_annexes as Array<{
+                            nombre: string;
+                            descripcion: string | null;
+                            obligatorio: boolean | null;
+                          }>
+                        ).map((a, k) => (
+                          <li key={k} className="rounded-md border p-2.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-medium">{a.nombre}</span>
+                              {a.obligatorio != null && (
+                                <Badge variant={a.obligatorio ? "danger" : "secondary"}>
+                                  {a.obligatorio ? "obligatorio" : "opcional"}
+                                </Badge>
+                              )}
+                            </div>
+                            {a.descripcion && <p className="mt-1 text-xs text-muted-foreground">{a.descripcion}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card className="lg:col-span-2">
                   <CardHeader><CardTitle className="text-base">Recomendaciones</CardTitle></CardHeader>
                   <CardContent>
                     <ul className="list-disc space-y-1 pl-4 text-sm">
@@ -266,6 +340,23 @@ export default async function DocumentDetailPage({
                     </ul>
                   </CardContent>
                 </Card>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold">
+                  Puntos críticos ({requirements.length})
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Las condiciones críticas y obligatorias para participar — también disponibles en su
+                  propia pestaña, aquí para tenerlas junto con el resto del resumen.
+                </p>
+                {requirements.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No se identificaron puntos críticos en este documento.
+                  </p>
+                ) : (
+                  <CriticalPointsAccordion requirements={requirements} />
+                )}
               </div>
             </div>
           )}

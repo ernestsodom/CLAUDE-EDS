@@ -1377,5 +1377,16 @@ create policy comparisons_update on comparisons for update
   using (organization_id = current_org_id() and can_read_document(source_document_id));
 
 -- ============================================================================
+-- Resumen ejecutivo: criterios de evaluación (con ponderación y pauta de
+-- cálculo), metodología general de evaluación, y anexos/formularios
+-- solicitados (equivale a la migración 0014).
+-- ============================================================================
+
+alter table document_summaries
+  add column if not exists evaluation_criteria    jsonb,
+  add column if not exists evaluation_methodology  text,
+  add column if not exists requested_annexes       jsonb;
+
+-- ============================================================================
 -- ✔ Instalación completa. Siguiente paso: Authentication → Users → Add user.
 -- ============================================================================

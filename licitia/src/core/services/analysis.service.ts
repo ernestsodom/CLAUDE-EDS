@@ -95,8 +95,9 @@ export async function summarizeDocument(
       "Eres un consultor senior de licitaciones. Genera un informe ejecutivo completo del documento: " +
       "resumen general, objetivo, alcance, plazo de implementación, presupuesto, problemas detectados, " +
       "requerimientos, obligaciones, restricciones, riesgos (con nivel y mitigación), aspectos críticos, " +
-      "entregables, cronograma y recomendaciones accionables para el equipo comercial y técnico.\n" +
-      "Presta especial atención a estos dos campos, que el usuario necesita ver siempre claros:\n" +
+      "entregables, cronograma, criterios de evaluación, anexos solicitados y recomendaciones accionables " +
+      "para el equipo comercial y técnico.\n" +
+      "Presta especial atención a estos campos, que el usuario necesita ver siempre claros:\n" +
       "- plazo_implementacion: el plazo para implementar/poner en marcha la solución completa " +
       "(no un hito parcial), tal como lo indica el documento.\n" +
       "- presupuesto: el monto y, sobre todo, su periodicidad — indica explícitamente si es un pago " +
@@ -105,6 +106,17 @@ export async function summarizeDocument(
       "varios montos con distinta periodicidad (p.ej. implementación única + soporte mensual), usa el " +
       "monto más relevante (normalmente el total del contrato) y aclara los demás en 'detalle'. " +
       "Nunca dejes un monto sin periodicidad si el documento la menciona.\n" +
+      "- criterios_evaluacion: cada criterio con el que se evaluará y adjudicará la oferta (p.ej. " +
+      "Precio, Experiencia, Presentación técnica, Soporte), con su ponderación exacta (porcentaje o " +
+      "puntaje) y, en 'pauta', CÓMO se calcula o asigna el puntaje de ese criterio — fórmula, tabla de " +
+      "puntajes por tramo, umbrales mínimos, etc., tal como lo describe el documento. Si el documento " +
+      "trae una tabla de evaluación, cada fila es un criterio separado — no la resumas en un solo ítem. " +
+      "Usa metodologia_evaluacion para reglas generales que no son de un criterio puntual: cómo se " +
+      "suma el puntaje total, desempates, causales de inadmisibilidad u ofertas fuera de bases.\n" +
+      "- anexos_solicitados: cada anexo, formulario o documento adjunto que el documento exige presentar " +
+      "(identificado por su número o nombre tal como aparece, p.ej. 'Anexo N°3 — Declaración Jurada'), " +
+      "con qué debe contener o acreditar y si es obligatorio. Sé exhaustivo: lista TODOS los anexos " +
+      "mencionados, no solo los primeros.\n" +
       "Sé específico y fiel al texto.",
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
   });
