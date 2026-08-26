@@ -277,6 +277,7 @@ const CRITICOS: Array<[CriticalType, RegExp]> = [
   ["multas", /(multa|sancion|penalidad|descuento por atraso|termino anticipado|cobro de la garantia|utm por dia)/],
   ["certificados", /(certificad|acreditacion|iso 9001|iso 27001|cmmi|chileproveedores|inscripcion en el registro|certificacion)/],
   ["migracion_datos", /(migracion de datos|migrar los datos|traspaso de datos|carga de datos hist(?:o|ó)ricos|migracion del sistema actual)/],
+  ["experiencia", /(experiencia (?:m[ií]nima|acreditada|comprobable|del oferente|del proponente)|a[ñn]os de experiencia|contratos similares|acreditar experiencia)/],
 ];
 
 /** Solo los puntos críticos y obligatorios para participar. */

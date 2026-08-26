@@ -146,6 +146,7 @@ export const CRITICAL_TYPES = [
   "multas",
   "certificados",
   "migracion_datos",
+  "experiencia",
 ] as const;
 
 export const CRITICAL_TYPE_LABELS: Record<(typeof CRITICAL_TYPES)[number], string> = {
@@ -156,6 +157,7 @@ export const CRITICAL_TYPE_LABELS: Record<(typeof CRITICAL_TYPES)[number], strin
   multas: "Multas",
   certificados: "Certificados",
   migracion_datos: "Migración de datos",
+  experiencia: "Experiencia solicitada",
 };
 
 export const RequirementsSchema = z.object({

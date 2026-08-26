@@ -151,6 +151,10 @@ export async function extractRequirements(
       "- certificados: certificados, acreditaciones e inscripciones exigidas (ISO, ChileProveedores, etc.).\n" +
       "- migracion_datos: migración de datos desde el/los sistema(s) actual(es) al nuevo — alcance de " +
       "los datos a migrar, responsable, validación y, sobre todo, su plazo.\n" +
+      "- experiencia: experiencia mínima exigida al oferente para poder participar o para puntuar en la " +
+      "evaluación — años de experiencia en el rubro, número o monto de contratos similares ya " +
+      "ejecutados, cantidad de usuarios/registros de esos contratos, certificados de conformidad " +
+      "exigidos para acreditarla, etc. Un ítem por cada exigencia de experiencia distinta.\n" +
       "NO incluyas funcionalidades del software ni requisitos funcionales: esos se extraen aparte. " +
       "Para cada ítem, extrae también su plazo cuando el documento lo indique (p.ej. 'la migración de " +
       "datos deberá completarse en 30 días corridos previos a la marcha blanca'), con el texto tal cual " +
