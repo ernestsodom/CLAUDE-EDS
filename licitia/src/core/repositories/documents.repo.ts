@@ -46,18 +46,27 @@ export async function getDocument(supabase: SupabaseClient, id: string): Promise
 
 export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
   const document = await getDocument(supabase, id);
-  const [summary, requirements, timeline, versions, delivered, systems] =
-    await Promise.all([
-      supabase.from("document_summaries").select("*").eq("document_id", id).maybeSingle(),
-      supabase.from("requirements").select("*").eq("document_id", id).order("created_at"),
-      supabase.from("timelines").select("*, milestones(*)").eq("document_id", id).maybeSingle(),
-      supabase.from("document_versions").select("*").eq("document_id", id).order("version", { ascending: false }),
-      supabase.from("delivered_items").select("*").eq("document_id", id).order("delivered_on", { ascending: false }),
-      getChecklist(supabase, id),
-    ]);
+  const [requirements, timeline, versions, delivered, systems] = await Promise.all([
+    supabase.from("requirements").select("*").eq("document_id", id).order("created_at"),
+    supabase.from("timelines").select("*, milestones(*)").eq("document_id", id).maybeSingle(),
+    supabase.from("document_versions").select("*").eq("document_id", id).order("version", { ascending: false }),
+    supabase.from("delivered_items").select("*").eq("document_id", id).order("delivered_on", { ascending: false }),
+    getChecklist(supabase, id),
+  ]);
+
+  // document_summaries no tiene un único registro por documento — tiene uno
+  // POR VERSIÓN (unique(version_id)), porque cada reanálisis con otro motor
+  // genera su propio resumen sin pisar el anterior. Filtrar solo por
+  // document_id, como hacía antes, trae más de una fila apenas el documento
+  // tiene 2+ versiones: .maybeSingle() falla silenciosamente (el error se
+  // descarta) y el resumen se ve como "no generado" aunque sí exista. Se
+  // busca explícitamente el de la versión actual, igual que getVersionSummary.
+  const currentVersion = (versions.data ?? []).find((v) => v.is_current);
+  const summary = currentVersion ? await getVersionSummary(supabase, currentVersion.id) : null;
+
   return {
     document,
-    summary: summary.data,
+    summary,
     requirements: requirements.data ?? [],
     timeline: timeline.data,
     versions: versions.data ?? [],
