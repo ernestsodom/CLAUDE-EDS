@@ -182,7 +182,17 @@ const NEXT: Record<string, string> = {
   extraccion_texto: "chunking",
   chunking: "embeddings",
   embeddings: "clasificacion",
-  clasificacion: "resumen",
+  // Después de clasificar, el siguiente paso real se decide en el propio
+  // case "clasificacion" (ver más abajo): "analisis" (resumen + sistemas +
+  // puntos críticos + línea de tiempo EN PARALELO) para todo motor salvo
+  // Groq, o la cadena secuencial de siempre para Groq — cuyo límite de
+  // tokens por minuto (ver GROQ_MAX_INPUT_CHARS en analysis.service.ts) se
+  // vuelve mucho más fácil de superar con 4 llamadas simultáneas que una
+  // detrás de otra. Esta entrada es solo el valor por defecto/documental.
+  clasificacion: "analisis",
+  analisis: "completado",
+  // Cadena secuencial: la ruta real para Groq, y la que queda como
+  // referencia/fallback para cualquier caso que necesite forzarla.
   resumen: "sistemas",
   sistemas: "requerimientos",
   requerimientos: "timeline",
@@ -195,6 +205,7 @@ export const STEP_LABELS: Record<string, string> = {
   chunking: "dividiendo el documento",
   embeddings: "generando vectores de búsqueda",
   clasificacion: "clasificando",
+  analisis: "generando resumen, sistemas, puntos críticos y línea de tiempo",
   resumen: "redactando el resumen ejecutivo",
   sistemas: "identificando sistemas y funcionalidades",
   requerimientos: "extrayendo puntos críticos",
@@ -295,8 +306,58 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
 
       case "clasificacion": {
         const r = await stageClassify(db, params, versionId, mode);
-        await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
+        // Resumen, sistemas, puntos críticos y línea de tiempo son
+        // independientes entre sí (cada uno lee las páginas y escribe su
+        // propia tabla) — correrlos en paralelo en "analisis" corta a una
+        // cuarta parte el tiempo de espera de la parte más pesada del
+        // pipeline. Groq queda afuera: su límite de tokens por minuto (ver
+        // GROQ_MAX_INPUT_CHARS en analysis.service.ts) ya es ajustado con
+        // una sola llamada a la vez — 4 simultáneas lo harían casi
+        // imposible de cumplir — así que sigue la cadena secuencial.
+        const nextStep = mode === "groq" ? "resumen" : "analisis";
+        await advance(nextStep);
+        return { step: nextStep, done: false, detail: r.detail, engine: r.engine };
+      }
+
+      case "analisis": {
+        const pages = await loadPages(db, versionId);
+        // allSettled, no all: si una de las cuatro falla (p.ej. cuota
+        // agotada), las otras tres igual terminan de escribir su tabla
+        // antes de decidir si la etapa completa falló — con Promise.all,
+        // el primer rechazo corta la espera y esas escrituras en curso
+        // quedan "colgando" sin garantía de terminar antes de que la
+        // función responda. Se sigue reintentando la etapa completa ante
+        // cualquier falla (mismo comportamiento simple de siempre), pero
+        // sin arriesgar escrituras a medias.
+        const results = await Promise.allSettled([
+          stageSummary(db, documentId, versionId, mode, params.organizationId, params.userId, pages),
+          stageSystems(db, documentId, versionId, doc.doc_type, mode, params.organizationId, params.userId, pages),
+          stageRequirements(db, documentId, versionId, doc.doc_type, mode, params.organizationId, params.userId, pages),
+          stageTimeline(db, documentId, versionId, doc.doc_date, mode, params.organizationId, params.userId, pages),
+        ]);
+        const failed = results.find(
+          (r): r is PromiseRejectedResult => r.status === "rejected"
+        );
+        if (failed) throw failed.reason;
+        // A esta altura ninguno rechazó — TS no lo infiere solo del find()
+        // de arriba, así que se afirma explícitamente en vez de repetir el
+        // chequeo por cada resultado.
+        const [summary, systems, requirements, timeline] = results as [
+          PromiseFulfilledResult<Awaited<ReturnType<typeof stageSummary>>>,
+          PromiseFulfilledResult<Awaited<ReturnType<typeof stageSystems>>>,
+          PromiseFulfilledResult<Awaited<ReturnType<typeof stageRequirements>>>,
+          PromiseFulfilledResult<Awaited<ReturnType<typeof stageTimeline>>>,
+        ];
+
+        await advance("completado");
+        await audit(params.organizationId, params.userId, "document.processed", "document", documentId);
+        logger.info("document_processed", { documentId, mode });
+        return {
+          step: "completado",
+          done: true,
+          detail: `${systems.value.detail}; ${requirements.value.detail}; ${timeline.value.detail}`,
+          engine: summary.value.engine,
+        };
       }
 
       case "resumen": {
@@ -527,9 +588,10 @@ async function stageSummary(
   versionId: string,
   mode: AnalysisMode,
   organizationId: string,
-  userId: string | null
+  userId: string | null,
+  preloadedPages?: PageText[]
 ): Promise<{ engine: AnalysisMode }> {
-  const pages = await loadPages(db, versionId);
+  const pages = preloadedPages ?? (await loadPages(db, versionId));
   const onUsage = usageLogger({ organizationId, documentId, userId, feature: "resumen" });
   const { data: s, engine } = await withTimeout(
     analyze(
@@ -583,13 +645,14 @@ async function stageSystems(
   docType: string,
   mode: AnalysisMode,
   organizationId: string,
-  userId: string | null
+  userId: string | null,
+  preloadedPages?: PageText[]
 ): Promise<{ detail: string; engine: AnalysisMode }> {
   if (["control_entregas", "avance", "acta", "reclamo"].includes(docType)) {
     return { detail: "no aplica a este tipo de documento", engine: mode };
   }
 
-  const pages = await loadPages(db, versionId);
+  const pages = preloadedPages ?? (await loadPages(db, versionId));
   const onUsage = usageLogger({ organizationId, documentId, userId, feature: "sistemas" });
   const { data: s, engine } = await withTimeout(
     analyze(
@@ -672,9 +735,10 @@ async function stageRequirements(
   docType: string,
   mode: AnalysisMode,
   organizationId: string,
-  userId: string | null
+  userId: string | null,
+  preloadedPages?: PageText[]
 ): Promise<{ detail: string; engine: AnalysisMode }> {
-  const pages = await loadPages(db, versionId);
+  const pages = preloadedPages ?? (await loadPages(db, versionId));
   const onUsage = usageLogger({ organizationId, documentId, userId, feature: "requerimientos" });
 
   // Documentos de control/avance: se extraen las entregas realizadas
@@ -747,9 +811,10 @@ async function stageTimeline(
   docDate: string | null,
   mode: AnalysisMode,
   organizationId: string,
-  userId: string | null
+  userId: string | null,
+  preloadedPages?: PageText[]
 ): Promise<{ detail: string; engine: AnalysisMode }> {
-  const pages = await loadPages(db, versionId);
+  const pages = preloadedPages ?? (await loadPages(db, versionId));
   const onUsage = usageLogger({ organizationId, documentId, userId, feature: "timeline" });
   const { data: t, engine } = await withTimeout(
     analyze(
