@@ -14,10 +14,10 @@ const BodySchema = z.object({
  * POST /api/documents/comparative-export
  * Cuadro comparativo de varias licitaciones en un solo Excel: una fila por
  * documento con número de licitación, cliente, software solicitado, plazos,
- * presupuesto, servidores, multas, SLA, experiencia, migración,
- * certificaciones y pauta de evaluación — ensamblado desde lo que ya quedó
- * extraído al procesar cada documento (RLS del cliente del usuario decide
- * qué puede ver; no se usa el cliente admin acá).
+ * presupuesto, ubicación de servidores, experiencia, migración, certificado
+ * ISO 9001 y ponderación de cada criterio de evaluación — ensamblado desde
+ * lo que ya quedó extraído al procesar cada documento (RLS del cliente del
+ * usuario decide qué puede ver; no se usa el cliente admin acá).
  */
 export const POST = withErrorHandling(async (request: Request) => {
   const { supabase } = await requireUser();
@@ -29,7 +29,7 @@ export const POST = withErrorHandling(async (request: Request) => {
     throw new ValidationError("No se encontró ninguno de los documentos seleccionados, o no tienes acceso a ellos.");
   }
 
-  const buffer = buildComparativeWorkbook(rows);
+  const buffer = await buildComparativeWorkbook(rows);
   const fileName = `cuadro-comparativo-${new Date().toISOString().slice(0, 10)}.xlsx`;
 
   return new Response(new Uint8Array(buffer), {
