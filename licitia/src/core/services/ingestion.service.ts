@@ -93,15 +93,21 @@ async function analyze<T>(
 /**
  * Corre una promesa con un tope de tiempo propio, bien por debajo del límite
  * de la función serverless (ver comentario del pipeline más abajo). Sin
- * esto, una llamada a la IA que se cuelga no lanza ninguna excepción — la
- * plataforma mata la función a la fuerza antes de que el catch de
- * runNextStage llegue a registrar el error, y el documento queda
- * "procesando" para siempre sin ninguna pista de qué pasó (visto en
- * producción con un documento de 147 páginas en la etapa de línea de
- * tiempo). Con el timeout propio, en cambio, se lanza un error claro con
- * tiempo de sobra para guardarlo — y como el mensaje incluye "timeout", el
- * cliente (processDocument) lo reintenta solo, sin que el usuario tenga que
- * hacer nada.
+ * esto, una llamada a la IA que se cuelga o tarda demasiado no lanza
+ * ninguna excepción manejable — la plataforma mata la función a la fuerza
+ * (o responde 504 Gateway Timeout ella misma) antes de que el catch de
+ * runNextStage llegue a registrar un error útil, y el usuario ve un "Error
+ * 504" genérico o el documento queda "procesando" sin ninguna pista de qué
+ * pasó (visto en producción, en distintas etapas — clasificación, resumen,
+ * sistemas, requerimientos, línea de tiempo — con documentos grandes).
+ *
+ * Con el timeout propio, en cambio, se lanza un error claro con tiempo de
+ * sobra para guardarlo — y como el mensaje incluye "timeout", el cliente
+ * (processDocument) lo reintenta solo, sin que el usuario tenga que hacer
+ * nada. Se aplica a TODAS las etapas que llaman a un proveedor de IA, no
+ * solo a la que falló la última vez: la causa (demasiado texto + demasiado
+ * tiempo de generación para el límite de 60s de la función) es la misma en
+ * cualquiera de ellas.
  */
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -460,10 +466,14 @@ async function stageClassify(
     userId: params.userId,
     feature: "clasificacion",
   });
-  const { data: c, engine } = await analyze(
-    mode,
-    (provider) => classifyDocument(pages, provider, onUsage),
-    () => classifyDocumentLocal(pages)
+  const { data: c, engine } = await withTimeout(
+    analyze(
+      mode,
+      (provider) => classifyDocument(pages, provider, onUsage),
+      () => classifyDocumentLocal(pages)
+    ),
+    45_000,
+    "La clasificación del documento"
   );
 
   await db
@@ -504,10 +514,14 @@ async function stageSummary(
 ): Promise<{ engine: AnalysisMode }> {
   const pages = await loadPages(db, versionId);
   const onUsage = usageLogger({ organizationId, documentId, userId, feature: "resumen" });
-  const { data: s, engine } = await analyze(
-    mode,
-    (provider) => summarizeDocument(pages, provider, onUsage),
-    () => summarizeLocal(pages)
+  const { data: s, engine } = await withTimeout(
+    analyze(
+      mode,
+      (provider) => summarizeDocument(pages, provider, onUsage),
+      () => summarizeLocal(pages)
+    ),
+    45_000,
+    "El resumen ejecutivo"
   );
   await db.from("document_summaries").upsert(
     {
@@ -560,10 +574,14 @@ async function stageSystems(
 
   const pages = await loadPages(db, versionId);
   const onUsage = usageLogger({ organizationId, documentId, userId, feature: "sistemas" });
-  const { data: s, engine } = await analyze(
-    mode,
-    (provider) => extractSystems(pages, provider, onUsage),
-    () => extractSystemsLocal(pages)
+  const { data: s, engine } = await withTimeout(
+    analyze(
+      mode,
+      (provider) => extractSystems(pages, provider, onUsage),
+      () => extractSystemsLocal(pages)
+    ),
+    45_000,
+    "La extracción de sistemas"
   );
 
   // Borrar y reinsertar: el borrado en cascada se lleva las funcionalidades.
@@ -645,10 +663,14 @@ async function stageRequirements(
   // Documentos de control/avance: se extraen las entregas realizadas
   // (incluidos trabajos adicionales y gratuitos) en lugar de requerimientos.
   if (["control_entregas", "avance", "informe", "acta"].includes(docType)) {
-    const { data: d, engine } = await analyze(
-      mode,
-      (provider) => extractDeliveredItems(pages, provider, onUsage),
-      () => extractDeliveredItemsLocal(pages)
+    const { data: d, engine } = await withTimeout(
+      analyze(
+        mode,
+        (provider) => extractDeliveredItems(pages, provider, onUsage),
+        () => extractDeliveredItemsLocal(pages)
+      ),
+      45_000,
+      "La extracción de entregas"
     );
     await db.from("delivered_items").delete().eq("document_id", documentId);
     if (d.entregas.length > 0) {
@@ -671,10 +693,14 @@ async function stageRequirements(
     return { detail: `${d.entregas.length} entregas${engineSuffix(engine)}`, engine };
   }
 
-  const { data: r, engine } = await analyze(
-    mode,
-    (provider) => extractRequirements(pages, provider, onUsage),
-    () => extractRequirementsLocal(pages)
+  const { data: r, engine } = await withTimeout(
+    analyze(
+      mode,
+      (provider) => extractRequirements(pages, provider, onUsage),
+      () => extractRequirementsLocal(pages)
+    ),
+    45_000,
+    "La extracción de puntos críticos"
   );
   await db.from("requirements").delete().eq("document_id", documentId);
   if (r.requerimientos.length > 0) {

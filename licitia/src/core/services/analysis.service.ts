@@ -118,7 +118,7 @@ export async function summarizeDocument(
       "con qué debe contener o acreditar y si es obligatorio. Sé exhaustivo: lista TODOS los anexos " +
       "mencionados, no solo los primeros.\n" +
       "Sé específico y fiel al texto.",
-    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
 
@@ -161,7 +161,7 @@ export async function extractRequirements(
       "aparece; si no hay plazo explícito, null. Cada ítem con su cita textual y página. Si un tipo no " +
       "aparece en el documento, simplemente no lo incluyas. Sé breve y concreto: mejor pocos ítems bien " +
       "definidos que una lista larga.",
-    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
 
@@ -196,7 +196,7 @@ export async function extractSystems(
       "- Si el documento describe un único sistema, devuelve un solo sistema con todas sus " +
       "  funcionalidades. Si describe requisitos sueltos sin agrupar, agrúpalos tú por sistema/módulo.\n" +
       "- No inventes: cada funcionalidad debe poder respaldarse con una cita del documento.",
-    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
 
@@ -227,7 +227,7 @@ export async function extractDeliveredItems(
       "similar), y es_gratuito=true cuando se hizo sin costo para el cliente. " +
       "Si el ítem responde a un requerimiento contractual, indica su código o título en " +
       "referencia_requerimiento. Sé exhaustivo, sin duplicados.",
-    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 300_000)),
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
 

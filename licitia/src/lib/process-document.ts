@@ -36,10 +36,12 @@ export async function processDocument(
 
       if (!res.ok) {
         const message = json?.error?.message ?? `Error ${res.status}`;
-        // Cuota agotada de forma transitoria: solo reintenta en modo 'auto'
-        // (donde el servidor ya intentó otros proveedores) o cuando el
-        // propio proveedor elegido puede recuperarse en unos segundos.
-        if (retries < 2 && /429|quota|rate|timeout|exhausted/i.test(message)) {
+        // Cuota agotada de forma transitoria, o timeout de la etapa (propio
+        // o el 504 Gateway Timeout que devuelve la plataforma cuando la
+        // función se corta sola): en ambos casos reintentar sin que el
+        // usuario tenga que volver a apretar "Reanalizar" a mano suele
+        // bastar — la etapa retoma justo donde quedó, no desde cero.
+        if (retries < 2 && /429|5\d\d|quota|rate|timeout|exhausted/i.test(message)) {
           retries++;
           onProgress?.(`esperando cuota de la IA (reintento ${retries}/2)…`);
           await new Promise((r) => setTimeout(r, 10000 * retries));
