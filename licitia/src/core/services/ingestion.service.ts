@@ -121,6 +121,23 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ]);
 }
 
+/**
+ * Tope interno para cada etapa que llama a la IA, usado con withTimeout()
+ * en todas ellas. maxDuration de la función es 60s (ver runtime config de
+ * /api/documents/:id/process) — este valor NO puede acercarse demasiado a
+ * ese límite (dejaría a la plataforma sin margen para cortar la conexión
+ * ella misma primero, volviendo al 504 crudo que este mecanismo existe
+ * para evitar) NI quedarse demasiado corto (abortaría a la fuerza llamadas
+ * que de verdad iban a terminar bien un poco más tarde, todavía dentro de
+ * los 60s — la primera versión de este límite, en 45s, hacía justo eso:
+ * documentos que antes procesaban lento pero sin problema empezaron a
+ * fallar siempre, porque 45s ya no les alcanzaba). 52s deja ~8s de margen
+ * para la lectura de páginas y el guardado en la base alrededor de la
+ * llamada — suficiente en la práctica — sin sacrificar más de lo
+ * necesario a las llamadas genuinamente lentas.
+ */
+const STAGE_TIMEOUT_MS = 52_000;
+
 // ============================================================================
 // Pipeline de ingesta POR ETAPAS.
 //
@@ -472,7 +489,7 @@ async function stageClassify(
       (provider) => classifyDocument(pages, provider, onUsage),
       () => classifyDocumentLocal(pages)
     ),
-    45_000,
+    STAGE_TIMEOUT_MS,
     "La clasificación del documento"
   );
 
@@ -520,7 +537,7 @@ async function stageSummary(
       (provider) => summarizeDocument(pages, provider, onUsage),
       () => summarizeLocal(pages)
     ),
-    45_000,
+    STAGE_TIMEOUT_MS,
     "El resumen ejecutivo"
   );
   await db.from("document_summaries").upsert(
@@ -580,7 +597,7 @@ async function stageSystems(
       (provider) => extractSystems(pages, provider, onUsage),
       () => extractSystemsLocal(pages)
     ),
-    45_000,
+    STAGE_TIMEOUT_MS,
     "La extracción de sistemas"
   );
 
@@ -669,7 +686,7 @@ async function stageRequirements(
         (provider) => extractDeliveredItems(pages, provider, onUsage),
         () => extractDeliveredItemsLocal(pages)
       ),
-      45_000,
+      STAGE_TIMEOUT_MS,
       "La extracción de entregas"
     );
     await db.from("delivered_items").delete().eq("document_id", documentId);
@@ -699,7 +716,7 @@ async function stageRequirements(
       (provider) => extractRequirements(pages, provider, onUsage),
       () => extractRequirementsLocal(pages)
     ),
-    45_000,
+    STAGE_TIMEOUT_MS,
     "La extracción de puntos críticos"
   );
   await db.from("requirements").delete().eq("document_id", documentId);
@@ -740,7 +757,7 @@ async function stageTimeline(
       (provider) => extractTimeline(pages, provider, onUsage),
       () => extractTimelineLocal(pages)
     ),
-    45_000,
+    STAGE_TIMEOUT_MS,
     "La extracción de la línea de tiempo"
   );
   if (t.hitos.length === 0) return { detail: `sin hitos${engineSuffix(engine)}`, engine };
