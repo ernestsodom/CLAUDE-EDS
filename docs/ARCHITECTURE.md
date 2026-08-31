@@ -876,11 +876,17 @@ repartidos por el árbol.
 ```
 court_models        catálogo editable: Atila Pro / Atila Full / Cancha Normal
 logo_positions      catálogo editable: entrada / postes de luz / postes de red / cubre resortes
+turf_colors         catálogo editable: carta de color del césped
+light_post_colors   catálogo editable: carta de color de los postes de luz
 deals               el negocio: club, estado, comisión, fechas
-  └── deal_courts   UNA FILA POR CANCHA (no una cantidad): tipo, personalizada, comisión, specs
+  └── deal_courts   UNA FILA POR CANCHA (no una cantidad): tipo, acabados, personalizada, comisión
         └── deal_court_logos   marca (ATILA|CLUB) × posición, solo si la cancha es personalizada
-v_deal_board        una fila por negocio: mezcla de tipos, comisión, días hasta la entrega
+v_deal_board        una fila por negocio: tipos, acabados, comisión, días hasta la entrega
 ```
+
+Las dos cartas de color son tablas separadas y no una sola con un discriminador:
+así el propio `FOREIGN KEY` garantiza que un color de césped no pueda acabar en
+el campo de los postes, sin necesidad de un trigger que lo vigile.
 
 Una fila por cancha y no un `quantity` porque **cada cancha puede personalizarse
 distinto**, y eso es justo lo que el trader tiene que trasladar a la fábrica.
@@ -899,6 +905,8 @@ puede representar sin texto libre.
 | La comisión por defecto sale del negocio o del catálogo | trigger `deal_court_defaults` |
 | El total del negocio = suma de sus canchas | trigger `deal_courts_recalc` |
 | Una cancha no cuelga de un negocio de otro proyecto | trigger `deal_child_project_guard` |
+| El tipo y los colores son del mismo proyecto que la cancha | trigger `deal_court_catalog_guard` |
+| La geometría 3D solo admite panoramica/semi/normal | `court_models_preview_type_ck` |
 
 El formulario esconde las fechas mientras el negocio esté abierto y la Server
 Action las anula explícitamente al reabrirlo, pero ninguna de esas dos capas es
@@ -907,7 +915,24 @@ sigue rechazándolo. `supabase/tests/06_atila_deals.sql` comprueba cada fila de
 esa tabla, y `04_frontend_writes.mjs` repite el flujo completo contra PostgREST
 con el JWT de cada rol.
 
-### 20.4 Navegación
+### 20.4 Visualizador 3D de muestra
+
+La cancha se ve en 3D con sus colores reales, pero el motor 3D **no vive aquí**:
+lo sirve [PadelStudio](https://padelstudio-theta.vercel.app), el configurador
+que ya existía. Su botón "Compartir" codifica la configuración como
+`base64(JSON)` en el hash de la URL, y `components/deals/court-preview.tsx`
+construye exactamente ese hash con el color de césped, el de los postes, el
+nombre del club y la geometría que indica `court_models.preview_court_type`.
+
+Reutilizarlo en lugar de reimplementarlo evita mantener dos motores 3D que
+acabarían dibujando canchas distintas, y no añade dependencias al bundle. A
+cambio, la vista depende de que ese sitio siga publicado: si algún día deja de
+estarlo, la ficha del negocio sigue funcionando y solo se pierde la muestra.
+
+La pantalla rotula la vista como **imagen de muestra** y aclara que no es un
+plano de fabricación: es para acordar el aspecto con el cliente.
+
+### 20.5 Navegación
 
 `landingPath()` (`lib/navigation.ts`) devuelve la primera entrada del menú que
 el usuario puede ver de verdad. No se puede dar por hecho que todo proyecto

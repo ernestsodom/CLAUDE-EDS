@@ -14,19 +14,19 @@ backups, cabeceras de seguridad, CI y pruebas E2E de navegador.
 
 | | |
 |---|---|
-| Tablas | 60 |
-| Vistas analíticas | 18 |
-| Índices | 239 |
-| Políticas RLS | 224 (198 tablas + 26 Storage) |
-| Triggers | 110 |
-| Enums | 39 |
-| Permisos granulares | 139 |
-| Constraints | 351 |
-| Migraciones SQL | 27, ejecutables y probadas |
-| Páginas de la aplicación | 59 |
-| Server Actions | 71 |
+| Tablas | 67 |
+| Vistas analíticas | 19 |
+| Índices | 263 |
+| Políticas RLS | 244 (218 tablas + 26 Storage) |
+| Triggers | 125 |
+| Enums | 41 |
+| Permisos granulares | 144 |
+| Constraints | 391 |
+| Migraciones SQL | 29, ejecutables y probadas |
+| Páginas de la aplicación | 65 |
+| Server Actions | 85 |
 | Rutas API | 3 (`/api/health`, `/api/cron/alerts`, `/api/export`) |
-| Pruebas | 40 aserciones de negocio + suite RLS + 52 consultas, 29 escrituras y 42 comprobaciones de documentos, banca e IA — automatizadas en CI |
+| Pruebas | 40 aserciones de negocio + 38 del módulo Negocios + suite RLS + 61 consultas, 47 escrituras y 42 comprobaciones de documentos, banca e IA — automatizadas en CI |
 
 La arquitectura completa está en **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
 
@@ -37,7 +37,7 @@ La arquitectura completa está en **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.m
 | Proyecto | Código | Alcance |
 |---|---|---|
 | Europa | `EUROPA` | Fabricación y venta de canchas nuevas |
-| Atila | `ATILA` | Unidad de negocio Atila |
+| Atila | `ATILA` | Trading: intermediación entre la fábrica y Atila (módulo Negocios) |
 | Canchas usadas | `VENTA_USADAS` | Compra, refurbishment y reventa |
 
 Todo dato operacional lleva `project_id` y los proyectos están **aislados por RLS
@@ -53,7 +53,7 @@ en PostgreSQL**, no por filtros en el frontend.
 cp .env.example .env.local     # y completa las claves del proyecto
 npm install
 supabase start
-supabase db reset              # aplica las 27 migraciones + seed.sql
+supabase db reset              # aplica las 29 migraciones + seed.sql
 npm run dev                    # http://localhost:3000
 ```
 
@@ -63,7 +63,7 @@ npm run dev                    # http://localhost:3000
 ./supabase/tests/run.sh
 ```
 
-Levanta un cluster efímero, aplica todo y ejecuta las cinco suites de pruebas.
+Levanta un cluster efímero, aplica todo y ejecuta las seis suites de pruebas.
 
 ### Usuarios demo
 
@@ -88,6 +88,7 @@ Entrar con cada uno muestra el aislamiento por proyecto y por permisos funcionan
 │   ├── (auth)/login              Login real contra Supabase Auth
 │   └── (dashboard)/[project]/    El proyecto vive en la URL, no en estado global
 │       ├── dashboard · hoy · control-center
+│       ├── negocios/             tablero del trader · ficha con canchas, acabados y logos
 │       ├── comercial/            clientes (+360) · oportunidades · reuniones · seguimientos
 │       ├── ventas/               listado + ficha completa (§73)
 │       ├── operaciones/          fabricación · canchas (+ficha §74) · materiales · proveedores
@@ -100,15 +101,16 @@ Entrar con cada uno muestra el aislamiento por proyecto y por permisos funcionan
 ├── types/       Tipos del dominio (regenerables con supabase gen types)
 ├── docs/ARCHITECTURE.md      Arquitectura técnica completa (ERD, RLS, KPIs, IA, plan)
 ├── supabase/
-│   ├── migrations/           27 migraciones SQL versionadas
+│   ├── migrations/           29 migraciones SQL versionadas
 │   ├── seed.sql              Datos demo realistas (idempotente)
 │   └── tests/
 │       ├── 00_supabase_shim.sql     Emula Supabase sobre PostgreSQL vanilla
 │       ├── 01_business_cases.sql    Casos §101, §102, §103 y cálculos financieros
 │       ├── 02_rls_security.sql      Aislamiento multi-proyecto y escalada de privilegios
-│       ├── 03_frontend_queries.mjs  Las 52 consultas reales de las páginas, vía PostgREST
+│       ├── 03_frontend_queries.mjs  Las 61 consultas reales de las páginas, vía PostgREST
 │       ├── 04_frontend_writes.mjs   Las altas y ediciones, con triggers y RLS
 │       ├── 05_reconciliation_ai.mjs Conciliación, versionado documental y revisión de IA
+│       ├── 06_atila_deals.sql       Reglas del módulo Negocios (trader / Atila)
 │       └── run.sh                   Runner completo
 ├── app/api/     health · cron/alerts · export (rutas de servidor, FASE 15)
 ├── scripts/backup.sh         pg_dump del esquema de negocio (npm run db:backup)
@@ -241,9 +243,18 @@ así que ATILA no usa las mismas pantallas que EUROPA.
   comisión (1.700 USD por defecto, ajustable) y, si es personalizada, la
   ubicación de cada logo en una rejilla *marca × posición* (Atila / club ×
   entrada, postes de luz, postes de red, cubre resortes).
-- **Tipos de cancha y ubicaciones de logo son catálogos editables**
-  (`/ATILA/configuracion/catalogos`): renombrar "Atila Pro" o añadir un modelo
-  nuevo es un dato, no un despliegue.
+- **Acabados por cancha**: color de césped y color de los postes de luz, cada
+  uno de su propia carta de color (Azul, Negro, Terracota, Gris oscuro de
+  partida). Son cartas distintas a propósito: la del césped y la de los postes
+  no tienen por qué coincidir.
+- **Visualizador 3D de muestra**: cada cancha abre una vista 3D con sus colores
+  reales, servida por [PadelStudio](https://padelstudio-theta.vercel.app) —el
+  configurador que ya existía— cargando la configuración por su propio formato
+  de enlace. La pantalla avisa de forma visible que es una imagen de muestra y
+  no un plano de fabricación.
+- **Los cuatro catálogos son editables** (`/ATILA/configuracion/catalogos`):
+  tipos de cancha, ubicaciones de logo, colores de césped y colores de postes.
+  Renombrar "Atila Pro" o añadir un color es un dato, no un despliegue.
 - **Sin venta cerrada no hay fecha de entrega.** La regla vive en el CHECK
   `deals_dates_ck`; el formulario ni siquiera muestra el campo mientras el
   negocio siga abierto. Las dos capas se verifican en

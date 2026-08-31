@@ -289,6 +289,12 @@ async function main() {
     { minRows: 4, columns: ['name'] });
   await check('negocios · canchas de un negocio', 'admin',
     `/deal_courts?select=*&project_id=eq.${AT}&order=position`);
+  await check('negocios · carta de color de cesped', 'admin',
+    `/turf_colors?select=id,code,name,hex,sort_order,active&project_id=eq.${AT}&order=sort_order`,
+    { minRows: 4, columns: ['name', 'hex'] });
+  await check('negocios · carta de color de postes de luz', 'admin',
+    `/light_post_colors?select=id,code,name,hex,sort_order,active&project_id=eq.${AT}&order=sort_order`,
+    { minRows: 4, columns: ['name', 'hex'] });
 
   // El menu de ATILA quedo reducido al trabajo del trader.
   const atilaModules = await query('admin', `/project_modules?select=module_code&project_id=eq.${AT}&enabled=is.true`);

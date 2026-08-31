@@ -35,6 +35,8 @@ export const EXPORTS: Record<string, ExportDefinition> = {
       { key: 'country', header: 'Pais' },
       { key: 'courts_count', header: 'Canchas' },
       { key: 'court_mix', header: 'Tipos de cancha' },
+      { key: 'turf_colors', header: 'Color de cesped' },
+      { key: 'light_post_colors', header: 'Color postes de luz' },
       { key: 'custom_courts', header: 'Personalizadas' },
       { key: 'total_commission_usd', header: 'Comision USD' },
       { key: 'opened_at', header: 'Alta' },
