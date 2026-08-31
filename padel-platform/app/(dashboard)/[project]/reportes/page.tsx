@@ -18,6 +18,7 @@ export const metadata: Metadata = { title: 'Reportes' };
  * `<module>.export` y aplica la misma RLS que la pantalla.
  */
 const REPORTS = [
+  { title: 'Reporte de negocios', description: 'Negocios por estado, canchas comprometidas, comision y fechas de entrega.', href: '/negocios', module: 'deals', entity: 'negocios' },
   { title: 'Reporte comercial', description: 'Pipeline, oportunidades por etapa y tasa de conversion.', href: '/comercial/oportunidades', module: 'opportunities', entity: 'oportunidades' },
   { title: 'Reporte de ventas', description: 'Ventas por estado, cliente y periodo, con avance de entrega.', href: '/ventas', module: 'sales', entity: 'ventas' },
   { title: 'Reporte de fabricacion', description: 'Avance por proyecto, atrasos y materiales faltantes.', href: '/operaciones/fabricacion', module: 'manufacturing', entity: 'fabricacion' },

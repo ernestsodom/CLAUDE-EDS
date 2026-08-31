@@ -842,3 +842,75 @@ Usuarios demo (contraseña `Padel2026!`):
 | `finanzas@padelbusiness.com` | FINANZAS en EUROPA |
 
 Iniciar sesión con cada uno es la forma más rápida de ver el aislamiento por proyecto y por permisos funcionando de verdad.
+
+---
+
+## 20. Módulo Negocios (trader) — migración 028
+
+### 20.1 Por qué existe
+
+ATILA no es una réplica pequeña de EUROPA: es **otro papel en la cadena**. En
+EUROPA la empresa fabrica y vende; en ATILA es el **trader** entre la fábrica y
+Atila —una empresa argentina que negocia, fija precios y vende al club final—,
+y su ingreso es una **comisión fija por cancha**.
+
+De ahí se sigue qué información es relevante y cuál solo estorba:
+
+| Información | Dueño | ¿Relevante para el trader? |
+|---|---|---|
+| Precio final al club, negociación, márgenes del club | Atila | No |
+| Materiales, costos de fabricación, calidad, galvanizado | Fábrica | No (sí en EUROPA) |
+| Qué club, cuántas canchas, de qué tipo | Trader | **Sí** |
+| Personalización y ubicación de logos | Trader | **Sí** |
+| Comisión comprometida | Trader | **Sí** |
+| Fechas de cierre y entrega | Trader | **Sí** |
+
+La respuesta no fue una segunda aplicación, sino usar el mecanismo que el
+sistema ya tenía: `project_modules`. ATILA queda con cinco módulos (Negocios,
+Documentos, Tareas, Reportes, Configuración) y EUROPA conserva los suyos. Una
+sola base de código, dos experiencias distintas, sin `if (project === 'ATILA')`
+repartidos por el árbol.
+
+### 20.2 Modelo de datos
+
+```
+court_models        catálogo editable: Atila Pro / Atila Full / Cancha Normal
+logo_positions      catálogo editable: entrada / postes de luz / postes de red / cubre resortes
+deals               el negocio: club, estado, comisión, fechas
+  └── deal_courts   UNA FILA POR CANCHA (no una cantidad): tipo, personalizada, comisión, specs
+        └── deal_court_logos   marca (ATILA|CLUB) × posición, solo si la cancha es personalizada
+v_deal_board        una fila por negocio: mezcla de tipos, comisión, días hasta la entrega
+```
+
+Una fila por cancha y no un `quantity` porque **cada cancha puede personalizarse
+distinto**, y eso es justo lo que el trader tiene que trasladar a la fábrica.
+Con una cantidad, "3 canchas, una con el logo del club en los postes" no se
+puede representar sin texto libre.
+
+### 20.3 Las reglas viven en la base
+
+| Regla de negocio | Dónde se garantiza |
+|---|---|
+| Sin venta cerrada no hay fecha de entrega ni de cierre | `deals_dates_ck` |
+| Una venta cerrada exige fecha de cierre | `deals_dates_ck` |
+| La entrega no puede ser anterior al cierre | `deals_delivery_after_close_ck` |
+| Solo una cancha personalizada admite logos | trigger `deal_court_logos_require_custom` |
+| Quitar la personalización borra sus logos | trigger `deal_courts_clear_logos` |
+| La comisión por defecto sale del negocio o del catálogo | trigger `deal_court_defaults` |
+| El total del negocio = suma de sus canchas | trigger `deal_courts_recalc` |
+| Una cancha no cuelga de un negocio de otro proyecto | trigger `deal_child_project_guard` |
+
+El formulario esconde las fechas mientras el negocio esté abierto y la Server
+Action las anula explícitamente al reabrirlo, pero ninguna de esas dos capas es
+la frontera: si alguien escribe desde la consola de Supabase, `deals_dates_ck`
+sigue rechazándolo. `supabase/tests/06_atila_deals.sql` comprueba cada fila de
+esa tabla, y `04_frontend_writes.mjs` repite el flujo completo contra PostgREST
+con el JWT de cada rol.
+
+### 20.4 Navegación
+
+`landingPath()` (`lib/navigation.ts`) devuelve la primera entrada del menú que
+el usuario puede ver de verdad. No se puede dar por hecho que todo proyecto
+tenga Dashboard: ATILA aterriza en Negocios. El Dashboard, si está apagado,
+redirige en lugar de mostrar tarjetas vacías de una operación que en esa unidad
+de negocio no existe.

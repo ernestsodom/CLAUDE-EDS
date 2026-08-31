@@ -198,6 +198,19 @@ export async function getInstallationOptions(projectId: string): Promise<Option[
   }));
 }
 
+/** Tipos de cancha comercializables (catalogo editable del proyecto). */
+export async function getCourtModelOptions(projectId: string): Promise<Option[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('court_models')
+    .select('id, name')
+    .eq('project_id', projectId)
+    .eq('active', true)
+    .order('sort_order')
+    .limit(LIMIT);
+  return (data ?? []).map((r) => ({ value: r.id, label: r.name }));
+}
+
 /** Roles del sistema (globales, no por proyecto). */
 export async function getRoleOptions(): Promise<Option[]> {
   const supabase = await createClient();

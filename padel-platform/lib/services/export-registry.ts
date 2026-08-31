@@ -23,6 +23,30 @@ export interface ExportDefinition {
 }
 
 export const EXPORTS: Record<string, ExportDefinition> = {
+  negocios: {
+    from: 'v_deal_board',
+    module: 'deals',
+    orderBy: { column: 'opened_at', ascending: false },
+    columns: [
+      { key: 'code', header: 'Codigo' },
+      { key: 'client_name', header: 'Club / cliente' },
+      { key: 'status', header: 'Estado' },
+      { key: 'city', header: 'Ciudad' },
+      { key: 'country', header: 'Pais' },
+      { key: 'courts_count', header: 'Canchas' },
+      { key: 'court_mix', header: 'Tipos de cancha' },
+      { key: 'custom_courts', header: 'Personalizadas' },
+      { key: 'total_commission_usd', header: 'Comision USD' },
+      { key: 'opened_at', header: 'Alta' },
+      { key: 'expected_close_date', header: 'Cierre estimado' },
+      { key: 'closed_at', header: 'Cierre real' },
+      { key: 'delivery_date', header: 'Entrega' },
+      { key: 'contact_name', header: 'Contacto' },
+      { key: 'contact_email', header: 'Email' },
+      { key: 'contact_phone', header: 'Telefono' },
+    ],
+  },
+
   ventas: {
     from: 'v_sale_financials',
     module: 'sales',

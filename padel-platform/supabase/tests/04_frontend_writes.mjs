@@ -274,6 +274,104 @@ async function main() {
   }, 'trigger de aislamiento multi-tenant');
 
   // ------------------------------------------------------------------
+  // Negocios (modulo trader / ATILA)
+  //
+  // Reproduce el trabajo real: registrar un negocio potencial, anadir
+  // canchas, personalizar una y cerrarlo. Y comprueba las dos reglas que
+  // no pueden depender del formulario: sin venta cerrada no hay fecha de
+  // entrega, y sin cancha personalizada no hay logos.
+  // ------------------------------------------------------------------
+  console.log('\n== Negocios (trader) ==');
+
+  const models = await call('admin', 'GET',
+    `/court_models?select=id,code,default_commission_usd&project_id=eq.${ATILA}&order=sort_order`);
+  const positions = await call('admin', 'GET',
+    `/logo_positions?select=id,code&project_id=eq.${ATILA}&order=sort_order`);
+
+  const modelPro = models.data?.find((m) => m.code === 'ATILA_PRO');
+  const modelNormal = models.data?.find((m) => m.code === 'NORMAL');
+  const posEntrada = positions.data?.find((p) => p.code === 'ENTRADA');
+
+  if (!modelPro || !posEntrada) {
+    fail('catalogos de ATILA disponibles', JSON.stringify({ models: models.data, positions: positions.data }));
+  } else {
+    ok('catalogos de ATILA disponibles', `${models.data.length} tipos, ${positions.data.length} posiciones`);
+
+    // La regla clave, por la via que usaria un cliente cualquiera.
+    await expectRejected('negocio sin cerrar con fecha de entrega', 'admin', 'POST', '/deals', {
+      project_id: ATILA, client_name: 'Club de prueba automatizada',
+      status: 'POTENCIAL', delivery_date: '2027-01-15',
+    }, 'deals_dates_ck');
+
+    const deal = await expectWrite('alta de negocio potencial', 'admin', 'POST', '/deals', {
+      project_id: ATILA,
+      client_name: 'Club de prueba automatizada',
+      city: 'Rosario', country: 'AR',
+      status: 'POTENCIAL',
+      commission_per_court_usd: 1700,
+    });
+    if (deal) cleanup.push(['deals', deal.id]);
+
+    if (deal) {
+      if (/^ATILA-\d{4}-\d{4}$/.test(deal.code)) ok('codigo correlativo asignado', deal.code);
+      else fail('codigo correlativo asignado', deal.code);
+
+      // Dos canchas: una normal y una personalizada.
+      const court1 = await expectWrite('alta de cancha (comision del catalogo)', 'admin', 'POST', '/deal_courts', {
+        project_id: ATILA, deal_id: deal.id, court_model_id: modelPro.id, position: 1,
+      });
+      const court2 = await expectWrite('alta de cancha personalizada', 'admin', 'POST', '/deal_courts', {
+        project_id: ATILA, deal_id: deal.id, court_model_id: modelNormal.id, position: 2,
+        is_custom: true, specs: 'Estructura negra',
+      });
+
+      if (court1 && Number(court1.commission_usd) === 1700) ok('comision heredada del negocio', '1700 USD');
+      else fail('comision heredada del negocio', JSON.stringify(court1));
+
+      // Los logos solo existen en la cancha personalizada.
+      if (court1) {
+        await expectRejected('logo en cancha no personalizada', 'admin', 'POST', '/deal_court_logos', {
+          project_id: ATILA, deal_court_id: court1.id, brand: 'ATILA', logo_position_id: posEntrada.id,
+        }, 'trigger de personalizacion');
+      }
+      if (court2) {
+        await expectWrite('logo Atila en la entrada', 'admin', 'POST', '/deal_court_logos', {
+          project_id: ATILA, deal_court_id: court2.id, brand: 'ATILA', logo_position_id: posEntrada.id,
+        });
+        await expectWrite('logo del club en la entrada', 'admin', 'POST', '/deal_court_logos', {
+          project_id: ATILA, deal_court_id: court2.id, brand: 'CLUB', logo_position_id: posEntrada.id,
+        });
+      }
+
+      // El trigger de totales suma las dos canchas.
+      const board = await call('admin', 'GET',
+        `/v_deal_board?select=courts_count,total_commission_usd,court_mix,delivery_date&deal_id=eq.${deal.id}`);
+      const row = board.data?.[0];
+      if (row && row.courts_count === 2 && Number(row.total_commission_usd) === 3400) {
+        ok('totales del negocio recalculados', `${row.courts_count} canchas, ${row.total_commission_usd} USD`);
+      } else {
+        fail('totales del negocio recalculados', JSON.stringify(row));
+      }
+      if (row && row.delivery_date === null) ok('negocio abierto sin fecha de entrega');
+      else fail('negocio abierto sin fecha de entrega', JSON.stringify(row));
+
+      // Cerrar la venta habilita las fechas.
+      const closed = await expectWrite('cierre de la venta', 'admin', 'PATCH', `/deals?id=eq.${deal.id}`, {
+        status: 'CERRADA',
+        closed_at: new Date().toISOString().slice(0, 10),
+        delivery_date: '2027-03-01',
+      });
+      if (closed?.delivery_date === '2027-03-01') ok('fecha de entrega admitida al cerrar');
+      else fail('fecha de entrega admitida al cerrar', JSON.stringify(closed));
+
+      // Un rol de solo lectura no puede tocar nada de esto.
+      await expectRejected('LECTURA no crea negocios', 'operaciones', 'POST', '/deals', {
+        project_id: ATILA, client_name: 'Intento sin permiso', status: 'POTENCIAL',
+      }, 'RLS deals.create');
+    }
+  }
+
+  // ------------------------------------------------------------------
   // Limpieza
   // ------------------------------------------------------------------
   console.log('\n== Limpieza ==');

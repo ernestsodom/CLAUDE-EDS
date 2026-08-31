@@ -398,3 +398,87 @@ export interface ChecklistItem {
   completed_at: string | null;
   due_date: string | null;
 }
+
+// ---------------------------------------------------------------------
+// Negocios (modulo trader)
+// ---------------------------------------------------------------------
+export type DealStatus =
+  | 'POTENCIAL' | 'EN_NEGOCIACION' | 'CERRADA' | 'ENTREGADA' | 'PERDIDA';
+
+export type LogoBrand = 'ATILA' | 'CLUB';
+
+export interface Deal {
+  id: string;
+  project_id: string;
+  code: string;
+  client_name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  country: string | null;
+  city: string | null;
+  status: DealStatus;
+  commission_per_court_usd: number;
+  courts_count: number;
+  total_commission_usd: number;
+  opened_at: string;
+  expected_close_date: string | null;
+  closed_at: string | null;
+  delivery_date: string | null;
+  lost_reason: string | null;
+  notes: string | null;
+}
+
+/** Fila del tablero del trader (vista v_deal_board). */
+export interface DealBoardRow {
+  deal_id: string;
+  code: string;
+  client_name: string;
+  country: string | null;
+  city: string | null;
+  status: DealStatus;
+  courts_count: number;
+  total_commission_usd: number;
+  opened_at: string;
+  expected_close_date: string | null;
+  closed_at: string | null;
+  delivery_date: string | null;
+  court_mix: string;
+  custom_courts: number;
+  days_to_delivery: number | null;
+}
+
+export interface DealCourt {
+  id: string;
+  deal_id: string;
+  court_model_id: string;
+  position: number;
+  is_custom: boolean;
+  commission_usd: number;
+  specs: string | null;
+}
+
+export interface CourtModel {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  default_commission_usd: number;
+  sort_order: number;
+  active: boolean;
+}
+
+export interface LogoPosition {
+  id: string;
+  code: string;
+  name: string;
+  sort_order: number;
+  active: boolean;
+}
+
+export interface DealCourtLogo {
+  id: string;
+  deal_court_id: string;
+  brand: LogoBrand;
+  logo_position_id: string;
+}
