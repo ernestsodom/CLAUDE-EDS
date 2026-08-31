@@ -11,7 +11,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { DealCourts } from '@/components/deals/deal-courts';
 import { isClosedStatus } from '@/lib/validations/deals';
 import type {
-  CourtModel, Deal, DealCourt, DealCourtLogo, LogoPosition,
+  ColorOption, CourtModel, Deal, DealCourt, DealCourtLogo, LogoPosition,
 } from '@/types/database.types';
 
 export const metadata: Metadata = { title: 'Negocio' };
@@ -35,11 +35,13 @@ export default async function DealDetailPage({
   }
 
   const supabase = await createClient();
-  const [dealRes, courtsRes, modelsRes, positionsRes] = await Promise.all([
+  const [dealRes, courtsRes, modelsRes, positionsRes, turfRes, postRes] = await Promise.all([
     supabase.from('deals').select('*').eq('id', id).is('deleted_at', null).maybeSingle(),
     supabase.from('deal_courts').select('*').eq('deal_id', id).order('position'),
     supabase.from('court_models').select('*').eq('project_id', project.id).order('sort_order'),
     supabase.from('logo_positions').select('*').eq('project_id', project.id).eq('active', true).order('sort_order'),
+    supabase.from('turf_colors').select('*').eq('project_id', project.id).order('sort_order'),
+    supabase.from('light_post_colors').select('*').eq('project_id', project.id).order('sort_order'),
   ]);
 
   const deal = dealRes.data as Deal | null;
@@ -48,6 +50,8 @@ export default async function DealDetailPage({
   const courts = (courtsRes.data ?? []) as DealCourt[];
   const models = (modelsRes.data ?? []) as CourtModel[];
   const positions = (positionsRes.data ?? []) as LogoPosition[];
+  const turfColors = (turfRes.data ?? []) as ColorOption[];
+  const postColors = (postRes.data ?? []) as ColorOption[];
 
   // Solo los logos de las canchas de ESTE negocio: pedir los del proyecto
   // entero y filtrarlos en el servidor seria traer datos para tirarlos.
@@ -148,6 +152,9 @@ export default async function DealDetailPage({
             models={models}
             positions={positions}
             logos={logos}
+            turfColors={turfColors}
+            postColors={postColors}
+            clientName={deal.client_name}
             defaultCommission={deal.commission_per_court_usd}
             editable={can(project, 'deals.update')}
             deletable={can(project, 'deals.delete')}

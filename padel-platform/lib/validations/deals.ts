@@ -93,6 +93,8 @@ export const DealSchema = z
 export const DealCourtSchema = z.object({
   deal_id: z.string().uuid(),
   court_model_id: z.string().uuid('Selecciona un tipo de cancha'),
+  turf_color_id: z.string().uuid('Selecciona un color de cesped valido').optional(),
+  light_post_color_id: z.string().uuid('Selecciona un color de postes valido').optional(),
   position: z.coerce.number().int().min(1).default(1),
   is_custom: z.boolean().default(false),
   commission_usd: z.coerce
@@ -100,6 +102,15 @@ export const DealCourtSchema = z.object({
     .min(0, 'La comision no puede ser negativa'),
   specs: optionalText(1000),
 });
+
+export type CatalogTable =
+  | 'court_models'
+  | 'logo_positions'
+  | 'turf_colors'
+  | 'light_post_colors';
+
+/** Geometrias que sabe dibujar el visualizador 3D de muestra. */
+export const PREVIEW_COURT_TYPES = ['panoramica', 'semi', 'normal'] as const;
 
 export const CourtModelSchema = z.object({
   code: z
@@ -113,6 +124,24 @@ export const CourtModelSchema = z.object({
     .number({ invalid_type_error: 'La comision debe ser un numero' })
     .min(0, 'La comision no puede ser negativa')
     .default(1700),
+  preview_court_type: z.enum(PREVIEW_COURT_TYPES).default('panoramica'),
+  sort_order: z.coerce.number().int().min(0).default(100),
+  active: z.boolean().default(true),
+});
+
+/** Catalogos editables del modulo Negocios. */
+export const ColorOptionSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9_]{2,32}$/, 'Usa mayusculas, numeros y guion bajo (ej. GRIS_OSCURO)'),
+  name: z.string().trim().min(2, 'El nombre es obligatorio').max(100),
+  hex: z
+    .string()
+    .trim()
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Usa un color en formato #RRGGBB')
+    .optional(),
   sort_order: z.coerce.number().int().min(0).default(100),
   active: z.boolean().default(true),
 });

@@ -287,6 +287,10 @@ async function main() {
     `/court_models?select=id,code,default_commission_usd&project_id=eq.${ATILA}&order=sort_order`);
   const positions = await call('admin', 'GET',
     `/logo_positions?select=id,code&project_id=eq.${ATILA}&order=sort_order`);
+  const turf = await call('admin', 'GET',
+    `/turf_colors?select=id,code,name,hex&project_id=eq.${ATILA}&active=is.true&order=sort_order`);
+  const posts = await call('admin', 'GET',
+    `/light_post_colors?select=id,code,name,hex&project_id=eq.${ATILA}&active=is.true&order=sort_order`);
 
   const modelPro = models.data?.find((m) => m.code === 'ATILA_PRO');
   const modelNormal = models.data?.find((m) => m.code === 'NORMAL');
@@ -317,8 +321,15 @@ async function main() {
       else fail('codigo correlativo asignado', deal.code);
 
       // Dos canchas: una normal y una personalizada.
-      const court1 = await expectWrite('alta de cancha (comision del catalogo)', 'admin', 'POST', '/deal_courts', {
+      const azul = turf.data?.find((c) => c.code === 'AZUL');
+      const postNegro = posts.data?.find((c) => c.code === 'NEGRO');
+
+      if (azul && postNegro) ok('cartas de color disponibles', `${turf.data.length} cesped, ${posts.data.length} postes`);
+      else fail('cartas de color disponibles', JSON.stringify({ turf: turf.data, posts: posts.data }));
+
+      const court1 = await expectWrite('alta de cancha con acabados', 'admin', 'POST', '/deal_courts', {
         project_id: ATILA, deal_id: deal.id, court_model_id: modelPro.id, position: 1,
+        turf_color_id: azul?.id ?? null, light_post_color_id: postNegro?.id ?? null,
       });
       const court2 = await expectWrite('alta de cancha personalizada', 'admin', 'POST', '/deal_courts', {
         project_id: ATILA, deal_id: deal.id, court_model_id: modelNormal.id, position: 2,
@@ -345,7 +356,7 @@ async function main() {
 
       // El trigger de totales suma las dos canchas.
       const board = await call('admin', 'GET',
-        `/v_deal_board?select=courts_count,total_commission_usd,court_mix,delivery_date&deal_id=eq.${deal.id}`);
+        `/v_deal_board?select=courts_count,total_commission_usd,court_mix,turf_colors,light_post_colors,delivery_date&deal_id=eq.${deal.id}`);
       const row = board.data?.[0];
       if (row && row.courts_count === 2 && Number(row.total_commission_usd) === 3400) {
         ok('totales del negocio recalculados', `${row.courts_count} canchas, ${row.total_commission_usd} USD`);
@@ -354,6 +365,21 @@ async function main() {
       }
       if (row && row.delivery_date === null) ok('negocio abierto sin fecha de entrega');
       else fail('negocio abierto sin fecha de entrega', JSON.stringify(row));
+
+      if (row && row.turf_colors === 'Azul' && row.light_post_colors === 'Negro') {
+        ok('acabados resumidos en el tablero', `${row.turf_colors} / ${row.light_post_colors}`);
+      } else {
+        fail('acabados resumidos en el tablero', JSON.stringify(row));
+      }
+
+      // Un color del catalogo de otro proyecto no entra por la API.
+      const otherTurf = await call('admin', 'GET',
+        `/turf_colors?select=id&project_id=neq.${ATILA}&limit=1`);
+      if (otherTurf.data?.[0] && court1) {
+        await expectRejected('color de cesped de otro proyecto', 'admin', 'PATCH',
+          `/deal_courts?id=eq.${court1.id}`,
+          { turf_color_id: otherTurf.data[0].id }, 'trigger de aislamiento');
+      }
 
       // Cerrar la venta habilita las fechas.
       const closed = await expectWrite('cierre de la venta', 'admin', 'PATCH', `/deals?id=eq.${deal.id}`, {

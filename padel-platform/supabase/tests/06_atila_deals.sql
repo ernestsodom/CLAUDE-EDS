@@ -51,6 +51,10 @@ declare
   v_normal    uuid;
   v_entrada   uuid;
   v_postes    uuid;
+  v_azul      uuid;
+  v_negro     uuid;
+  v_post_gris uuid;
+  v_other     uuid;
   v_deal      uuid;
   v_court     uuid;
   v_code      text;
@@ -78,6 +82,21 @@ begin
 
   select id into v_entrada from public.logo_positions where project_id = v_project and code = 'ENTRADA';
   select id into v_postes  from public.logo_positions where project_id = v_project and code = 'POSTES_LUZ';
+
+  -- Cartas de color: cesped y postes de luz son catalogos separados.
+  select count(*) into n from public.turf_colors where project_id = v_project and active;
+  perform pg_temp.assert_eq('carta de color de cesped', n, 4);
+
+  select count(*) into n from public.light_post_colors where project_id = v_project and active;
+  perform pg_temp.assert_eq('carta de color de postes de luz', n, 4);
+
+  select count(*) into n from public.turf_colors
+   where project_id = v_project and code in ('AZUL','NEGRO','TERRACOTA','GRIS_OSCURO');
+  perform pg_temp.assert_eq('los cuatro colores de cesped definidos', n, 4);
+
+  select id into v_azul      from public.turf_colors where project_id = v_project and code = 'AZUL';
+  select id into v_negro     from public.turf_colors where project_id = v_project and code = 'NEGRO';
+  select id into v_post_gris from public.light_post_colors where project_id = v_project and code = 'GRIS_OSCURO';
 
   -- ===================================================================
   -- REGLA CLAVE: sin venta cerrada no hay fecha de entrega
@@ -141,6 +160,36 @@ begin
 
   select commission_usd into t from public.deal_courts where id = v_court;
   perform pg_temp.assert_eq('comision heredada del catalogo', t, 1700.00::numeric);
+
+  -- Los acabados son opcionales al crear y se completan despues, que es
+  -- como ocurre de verdad: primero se cierra el numero, luego el color.
+  update public.deal_courts
+     set turf_color_id = v_azul, light_post_color_id = v_post_gris
+   where id = v_court;
+
+  select count(*) into n from public.deal_courts
+   where id = v_court and turf_color_id = v_azul and light_post_color_id = v_post_gris;
+  perform pg_temp.assert_eq('acabados guardados en la cancha', n, 1);
+
+  -- Un color de otra unidad de negocio no entra, aunque el id exista.
+  -- Hay que crearlo primero: si el subquery devolviera NULL, el UPDATE
+  -- pasaria por vaciar el campo y la prueba se daria por buena sin haber
+  -- ejercido la regla.
+  insert into public.turf_colors (project_id, code, name, hex, sort_order)
+  select p.id, 'AZUL_EU', 'Azul Europa', '#123456', 10
+    from public.projects p where p.code = 'EUROPA'
+  returning id into v_other;
+
+  perform pg_temp.assert_fails(
+    'color de cesped de otro proyecto',
+    format('update public.deal_courts set turf_color_id = %L where id = %L', v_other, v_court),
+    'aislamiento'
+  );
+
+  -- El acabado de la cancha sigue intacto tras el intento fallido.
+  select count(*) into n from public.deal_courts
+   where id = v_court and turf_color_id = v_azul;
+  perform pg_temp.assert_eq('el acabado sobrevive al intento rechazado', n, 1);
 
   insert into public.deal_courts (project_id, deal_id, court_model_id, position, is_custom)
   values (v_project, v_deal, v_full,   2, true),
@@ -212,6 +261,8 @@ begin
   perform pg_temp.assert_eq('tablero: mezcla de tipos', v.court_mix,
     '1x Atila Full, 1x Atila Pro, 1x Cancha Normal');
   perform pg_temp.assert_eq('tablero: dias hasta la entrega', v.days_to_delivery, 45);
+  perform pg_temp.assert_eq('tablero: colores de cesped', v.turf_colors, 'Azul');
+  perform pg_temp.assert_eq('tablero: colores de postes', v.light_post_colors, 'Gris oscuro');
 
   -- Un negocio sin cerrar no puede mostrar cuenta atras de entrega.
   insert into public.deals (project_id, client_name, status)
@@ -221,6 +272,21 @@ begin
   select * into v from public.v_deal_board where deal_id = v_deal;
   perform pg_temp.assert_eq('tablero: potencial sin fecha de entrega', v.delivery_date, null::date);
   perform pg_temp.assert_eq('tablero: potencial sin cuenta atras', v.days_to_delivery, null::integer);
+
+  -- ===================================================================
+  -- Vista 3D de muestra: cada modelo dice con que geometria se dibuja
+  -- ===================================================================
+  select preview_court_type into v_code from public.court_models where id = v_normal;
+  perform pg_temp.assert_eq('cancha normal se dibuja como normal', v_code, 'normal');
+
+  select preview_court_type into v_code from public.court_models where id = v_pro;
+  perform pg_temp.assert_eq('Atila Pro se dibuja como panoramica', v_code, 'panoramica');
+
+  perform pg_temp.assert_fails(
+    'geometria 3D desconocida rechazada',
+    format('update public.court_models set preview_court_type = ''isometrica'' where id = %L', v_pro),
+    'court_models_preview_type_ck'
+  );
 
   -- ===================================================================
   -- Menu de ATILA reducido al trabajo del trader

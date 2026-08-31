@@ -444,6 +444,8 @@ export interface DealBoardRow {
   closed_at: string | null;
   delivery_date: string | null;
   court_mix: string;
+  turf_colors: string;
+  light_post_colors: string;
   custom_courts: number;
   days_to_delivery: number | null;
 }
@@ -452,10 +454,22 @@ export interface DealCourt {
   id: string;
   deal_id: string;
   court_model_id: string;
+  turf_color_id: string | null;
+  light_post_color_id: string | null;
   position: number;
   is_custom: boolean;
   commission_usd: number;
   specs: string | null;
+}
+
+/** Entrada de una carta de color (cesped o postes de luz). */
+export interface ColorOption {
+  id: string;
+  code: string;
+  name: string;
+  hex: string | null;
+  sort_order: number;
+  active: boolean;
 }
 
 export interface CourtModel {
@@ -464,6 +478,7 @@ export interface CourtModel {
   name: string;
   description: string | null;
   default_commission_usd: number;
+  preview_court_type: 'panoramica' | 'semi' | 'normal';
   sort_order: number;
   active: boolean;
 }

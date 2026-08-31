@@ -7,8 +7,9 @@ import { deleteDealCourt, saveDealCourt, toggleCourtLogo } from '@/actions/deals
 import { formatMoney } from '@/lib/format';
 import { Card, SectionTitle } from '@/components/ui';
 import { LOGO_BRANDS, LOGO_BRAND_LABEL } from '@/lib/validations/deals';
+import { CourtPreview } from '@/components/deals/court-preview';
 import type {
-  CourtModel, DealCourt, DealCourtLogo, LogoBrand, LogoPosition,
+  ColorOption, CourtModel, DealCourt, DealCourtLogo, LogoBrand, LogoPosition,
 } from '@/types/database.types';
 
 /**
@@ -27,6 +28,9 @@ export function DealCourts({
   models,
   positions,
   logos,
+  turfColors,
+  postColors,
+  clientName,
   defaultCommission,
   editable,
   deletable,
@@ -38,6 +42,9 @@ export function DealCourts({
   models: CourtModel[];
   positions: LogoPosition[];
   logos: DealCourtLogo[];
+  turfColors: ColorOption[];
+  postColors: ColorOption[];
+  clientName: string;
   defaultCommission: number;
   editable: boolean;
   deletable: boolean;
@@ -51,6 +58,24 @@ export function DealCourts({
 
   const modelName = (id: string) => models.find((m) => m.id === id)?.name ?? '—';
   const activeModels = models.filter((m) => m.active || courts.some((c) => c.court_model_id === m.id));
+
+  // Un color desactivado en el catalogo sigue mostrandose si alguna
+  // cancha ya lo tiene: ocultarlo dejaria el desplegable vacio y borraria
+  // el color acordado al primer guardado.
+  const availableColors = (all: ColorOption[], usedId: string | null) =>
+    all.filter((c) => c.active || c.id === usedId);
+
+  const colorOf = (all: ColorOption[], id: string | null) =>
+    (id ? all.find((c) => c.id === id) : undefined) ?? null;
+
+  const ColorDot = ({ color }: { color: ColorOption | null }) =>
+    color ? (
+      <span
+        className="inline-block h-2.5 w-2.5 shrink-0 rounded-full border border-line-strong align-middle"
+        style={{ background: color.hex ?? 'transparent' }}
+        aria-hidden="true"
+      />
+    ) : null;
 
   function submit(formData: FormData, onDone: () => void) {
     setError(null);
@@ -147,6 +172,34 @@ export function DealCourts({
         </label>
       </div>
 
+      <div className="col-span-6 sm:col-span-3">
+        <label className="label">Color de cesped</label>
+        <select
+          name="turf_color_id"
+          defaultValue={court?.turf_color_id ?? ''}
+          className="input"
+        >
+          <option value="">Sin definir</option>
+          {availableColors(turfColors, court?.turf_color_id ?? null).map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="col-span-6 sm:col-span-3">
+        <label className="label">Color postes de luz</label>
+        <select
+          name="light_post_color_id"
+          defaultValue={court?.light_post_color_id ?? ''}
+          className="input"
+        >
+          <option value="">Sin definir</option>
+          {availableColors(postColors, court?.light_post_color_id ?? null).map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="col-span-12">
         <label className="label">Especificaciones</label>
         <input
@@ -207,6 +260,16 @@ export function DealCourts({
                       Personalizada
                     </span>
                   ) : null}
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-content-muted">
+                    <span className="inline-flex items-center gap-1.5">
+                      <ColorDot color={colorOf(turfColors, court.turf_color_id)} />
+                      Cesped: {colorOf(turfColors, court.turf_color_id)?.name ?? 'sin definir'}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <ColorDot color={colorOf(postColors, court.light_post_color_id)} />
+                      Postes de luz: {colorOf(postColors, court.light_post_color_id)?.name ?? 'sin definir'}
+                    </span>
+                  </span>
                   {court.specs ? (
                     <span className="block text-2xs text-content-muted">{court.specs}</span>
                   ) : null}
@@ -214,6 +277,17 @@ export function DealCourts({
 
                 <div className="flex items-center gap-2">
                   <span className="tabular text-sm">{formatMoney(court.commission_usd, 'USD')}</span>
+                  <CourtPreview
+                    label={`#${court.position} · ${modelName(court.court_model_id)}`}
+                    config={{
+                      turfHex: colorOf(turfColors, court.turf_color_id)?.hex ?? null,
+                      postHex: colorOf(postColors, court.light_post_color_id)?.hex ?? null,
+                      courtType:
+                        models.find((m) => m.id === court.court_model_id)?.preview_court_type
+                        ?? 'panoramica',
+                      club: clientName,
+                    }}
+                  />
                   {editable ? (
                     <button
                       type="button"

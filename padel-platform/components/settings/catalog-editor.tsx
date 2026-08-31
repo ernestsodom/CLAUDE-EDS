@@ -3,19 +3,46 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Loader2, Pencil, Plus, ToggleLeft, ToggleRight } from 'lucide-react';
-import { saveCourtModel, saveLogoPosition, setCatalogItemActive } from '@/actions/deals';
+import {
+  saveCourtModel, saveLightPostColor, saveLogoPosition, saveTurfColor, setCatalogItemActive,
+} from '@/actions/deals';
 import { formatMoney } from '@/lib/format';
 import { Card, SectionTitle } from '@/components/ui';
-import type { CourtModel, LogoPosition } from '@/types/database.types';
+import { PREVIEW_COURT_TYPES, type CatalogTable } from '@/lib/validations/deals';
+import type { ColorOption, CourtModel, LogoPosition } from '@/types/database.types';
 
-type Kind = 'court_models' | 'logo_positions';
-type Row = (CourtModel | LogoPosition) & { default_commission_usd?: number; description?: string | null };
+type Row = (CourtModel | LogoPosition | ColorOption) & {
+  default_commission_usd?: number;
+  preview_court_type?: string;
+  description?: string | null;
+  hex?: string | null;
+};
+
+const SAVE_ACTION = {
+  court_models: saveCourtModel,
+  logo_positions: saveLogoPosition,
+  turf_colors: saveTurfColor,
+  light_post_colors: saveLightPostColor,
+} as const;
+
+const PLACEHOLDER = {
+  court_models: { name: 'Atila Pro', code: 'ATILA_PRO' },
+  logo_positions: { name: 'Postes de luz', code: 'POSTES_LUZ' },
+  turf_colors: { name: 'Gris oscuro', code: 'GRIS_OSCURO' },
+  light_post_colors: { name: 'Negro', code: 'NEGRO' },
+} as const;
+
+const PREVIEW_TYPE_LABEL: Record<string, string> = {
+  panoramica: 'Panoramica',
+  semi: 'Semi panoramica',
+  normal: 'Normal',
+};
 
 /**
  * Editor de un catalogo del proyecto.
  *
- * Los tipos de cancha y las ubicaciones de logo son datos, no codigo:
- * renombrar "Atila Pro" o anadir un modelo nuevo se hace aqui y surte
+ * Tipos de cancha, ubicaciones de logo y cartas de color son datos, no
+ * codigo: renombrar "Atila Pro" o anadir un color se hace aqui y surte
  * efecto en el siguiente render, sin desplegar nada.
  *
  * Nada se borra: una entrada usada por negocios historicos se desactiva,
@@ -30,7 +57,7 @@ export function CatalogEditor({
   editable,
 }: {
   projectCode: string;
-  kind: Kind;
+  kind: CatalogTable;
   title: string;
   description: string;
   rows: Row[];
@@ -43,7 +70,9 @@ export function CatalogEditor({
   const [isPending, startTransition] = useTransition();
 
   const isCourtModel = kind === 'court_models';
-  const save = isCourtModel ? saveCourtModel : saveLogoPosition;
+  const isColor = kind === 'turf_colors' || kind === 'light_post_colors';
+  const save = SAVE_ACTION[kind];
+  const hint = PLACEHOLDER[kind];
 
   function submit(formData: FormData, onDone: () => void) {
     setError(null);
@@ -80,7 +109,7 @@ export function CatalogEditor({
         <label className="label">Nombre</label>
         <input
           type="text" name="name" required defaultValue={row?.name ?? ''}
-          placeholder={isCourtModel ? 'Atila Pro' : 'Postes de luz'} className="input"
+          placeholder={hint.name} className="input"
         />
       </div>
 
@@ -88,20 +117,43 @@ export function CatalogEditor({
         <label className="label">Codigo</label>
         <input
           type="text" name="code" required defaultValue={row?.code ?? ''}
-          placeholder={isCourtModel ? 'ATILA_PRO' : 'POSTES_LUZ'} className="input uppercase"
-          readOnly={Boolean(row)}
+          placeholder={hint.code} className="input uppercase" readOnly={Boolean(row)}
         />
       </div>
 
-      {isCourtModel ? (
+      {isColor ? (
         <div className="col-span-6 sm:col-span-3">
-          <label className="label">Comision por defecto (USD)</label>
+          <label className="label">Color</label>
           <input
-            type="number" name="default_commission_usd" step="0.01" min={0}
-            defaultValue={(row as CourtModel | null)?.default_commission_usd ?? 1700}
-            className="input tabular"
+            type="color" name="hex" defaultValue={row?.hex ?? '#1F4FD8'}
+            className="input h-[38px] cursor-pointer p-1"
           />
         </div>
+      ) : null}
+
+      {isCourtModel ? (
+        <>
+          <div className="col-span-6 sm:col-span-3">
+            <label className="label">Comision por defecto (USD)</label>
+            <input
+              type="number" name="default_commission_usd" step="0.01" min={0}
+              defaultValue={(row as CourtModel | null)?.default_commission_usd ?? 1700}
+              className="input tabular"
+            />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <label className="label">Tipo en la vista 3D</label>
+            <select
+              name="preview_court_type"
+              defaultValue={(row as CourtModel | null)?.preview_court_type ?? 'panoramica'}
+              className="input"
+            >
+              {PREVIEW_COURT_TYPES.map((t) => (
+                <option key={t} value={t}>{PREVIEW_TYPE_LABEL[t]}</option>
+              ))}
+            </select>
+          </div>
+        </>
       ) : null}
 
       <div className="col-span-6 sm:col-span-2">
@@ -159,15 +211,27 @@ export function CatalogEditor({
             <li key={row.id}>{rowForm(row)}</li>
           ) : (
             <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5">
-              <span>
-                <span className={`text-sm ${row.active ? '' : 'text-content-muted line-through'}`}>
-                  {row.name}
-                </span>
-                <span className="block text-2xs text-content-muted">
-                  {row.code}
-                  {isCourtModel
-                    ? ` · ${formatMoney((row as CourtModel).default_commission_usd, 'USD')} por cancha`
-                    : ''}
+              <span className="flex items-center gap-2.5">
+                {isColor ? (
+                  <span
+                    className="h-5 w-5 shrink-0 rounded border border-line-strong"
+                    style={{ background: row.hex ?? 'transparent' }}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                <span>
+                  <span className={`text-sm ${row.active ? '' : 'text-content-muted line-through'}`}>
+                    {row.name}
+                  </span>
+                  <span className="block text-2xs text-content-muted">
+                    {row.code}
+                    {isCourtModel
+                      ? ` · ${formatMoney((row as CourtModel).default_commission_usd, 'USD')} · ${
+                          PREVIEW_TYPE_LABEL[(row as CourtModel).preview_court_type] ?? ''
+                        }`
+                      : ''}
+                    {isColor && row.hex ? ` · ${row.hex.toUpperCase()}` : ''}
+                  </span>
                 </span>
               </span>
 

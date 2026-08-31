@@ -7,7 +7,8 @@ import { requireProject } from '@/lib/auth/session';
 import { can } from '@/lib/permissions';
 import { formToObject, persistRecord, softDeleteRecord } from '@/lib/services/persist';
 import {
-  CourtModelSchema, DealCourtSchema, DealSchema, LogoPositionSchema, isClosedStatus,
+  ColorOptionSchema, CourtModelSchema, DealCourtSchema, DealSchema, LogoPositionSchema,
+  isClosedStatus, type CatalogTable,
 } from '@/lib/validations/deals';
 import { failure, success, toUserMessage, type ActionResult } from '@/actions/types';
 
@@ -182,10 +183,18 @@ export async function saveLogoPosition(_prev: FormState, formData: FormData): Pr
   return saveCatalogItem(formData, 'logo_positions', LogoPositionSchema);
 }
 
+export async function saveTurfColor(_prev: FormState, formData: FormData): Promise<FormState> {
+  return saveCatalogItem(formData, 'turf_colors', ColorOptionSchema);
+}
+
+export async function saveLightPostColor(_prev: FormState, formData: FormData): Promise<FormState> {
+  return saveCatalogItem(formData, 'light_post_colors', ColorOptionSchema);
+}
+
 async function saveCatalogItem(
   formData: FormData,
-  table: 'court_models' | 'logo_positions',
-  schema: typeof CourtModelSchema | typeof LogoPositionSchema,
+  table: CatalogTable,
+  schema: typeof CourtModelSchema | typeof LogoPositionSchema | typeof ColorOptionSchema,
 ): Promise<FormState> {
   const { projectCode, id } = context(formData);
 
@@ -244,7 +253,7 @@ async function saveCatalogItem(
  */
 export async function setCatalogItemActive(
   projectCode: string,
-  table: 'court_models' | 'logo_positions',
+  table: CatalogTable,
   id: string,
   active: boolean,
 ): Promise<ActionResult<null>> {
