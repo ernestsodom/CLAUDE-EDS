@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { UserCog } from 'lucide-react';
+import { UserCog, ListTree } from 'lucide-react';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
 import { formatPercent, humanize } from '@/lib/format';
 import { Card, ErrorState, Field, PageHeader, SectionTitle } from '@/components/ui';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { ModuleToggles } from '@/components/settings/module-toggles';
 
 export const metadata: Metadata = { title: 'Configuracion' };
 
@@ -24,9 +25,13 @@ export default async function SettingsPage({ params }: { params: Promise<{ proje
   }
 
   const supabase = await createClient();
-  const [projectRes, modulesRes, accessRes] = await Promise.all([
+  const [projectRes, modulesRes, catalogRes, accessRes] = await Promise.all([
     supabase.from('projects').select('*').eq('id', project.id).maybeSingle(),
-    supabase.from('project_modules').select('module_code, enabled, modules(name, category)').eq('project_id', project.id),
+    supabase.from('project_modules').select('module_code, enabled').eq('project_id', project.id),
+    // El catalogo completo, no solo lo ya configurado: un modulo que
+    // nunca se activo no tiene fila en project_modules y aun asi debe
+    // poder encenderse.
+    supabase.from('modules').select('code, name, category, sort_order').order('sort_order'),
     can(project, 'settings.manage')
       ? supabase.from('user_project_access')
           // `user_project_access` tiene DOS claves foraneas hacia `profiles`
@@ -43,9 +48,21 @@ export default async function SettingsPage({ params }: { params: Promise<{ proje
     cost_deviation_threshold_pct: number; min_margin_threshold_pct: number;
   } | null;
 
-  const modules = (modulesRes.data ?? []) as unknown as {
-    module_code: string; enabled: boolean; modules: { name: string; category: string } | null;
-  }[];
+  const enabledByCode = new Map(
+    ((modulesRes.data ?? []) as { module_code: string; enabled: boolean }[]).map((m) => [
+      m.module_code,
+      m.enabled,
+    ]),
+  );
+
+  const modules = ((catalogRes.data ?? []) as { code: string; name: string; category: string }[]).map(
+    (m) => ({
+      module_code: m.code,
+      name: m.name,
+      category: m.category,
+      enabled: enabledByCode.get(m.code) ?? false,
+    }),
+  );
 
   const access = (accessRes.data ?? []) as unknown as {
     id: string; active: boolean;
@@ -87,23 +104,36 @@ export default async function SettingsPage({ params }: { params: Promise<{ proje
           </p>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <SectionTitle>Modulos habilitados ({modules.filter((m) => m.enabled).length})</SectionTitle>
-          <ul className="grid grid-cols-2 gap-1.5">
-            {modules.map((m) => (
-              <li key={m.module_code} className="flex items-center gap-2 text-sm">
-                <span className={`h-1.5 w-1.5 rounded-full ${m.enabled ? 'bg-success' : 'bg-line-strong'}`} />
-                <span className={m.enabled ? 'text-content-secondary' : 'text-content-muted line-through'}>
-                  {m.modules?.name ?? m.module_code}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <ModuleToggles
+            projectCode={project.code}
+            modules={modules}
+            editable={can(project, 'settings.manage')}
+          />
           <p className="mt-3 text-2xs text-content-muted">
             Activar o desactivar un modulo es un cambio de datos, no de codigo: el menu se
-            reconstruye en el siguiente render.
+            reconstruye en el siguiente render. Apagar un modulo no borra su informacion, solo
+            deja de mostrarla.
           </p>
         </Card>
+
+        {project.modules.includes('deals') ? (
+          <Card>
+            <SectionTitle>Catalogos de negocio</SectionTitle>
+            <p className="text-sm text-content-secondary">
+              Los tipos de cancha y las ubicaciones de logo son datos editables: se cambian aqui,
+              sin tocar el codigo ni desplegar.
+            </p>
+            <Link
+              href={`/${project.code}/configuracion/catalogos`}
+              className="btn-secondary mt-4 inline-flex"
+            >
+              <ListTree size={15} />
+              Gestionar catalogos
+            </Link>
+          </Card>
+        ) : null}
 
         <Card>
           <SectionTitle>Tu acceso</SectionTitle>

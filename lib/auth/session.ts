@@ -3,6 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { landingPath } from '@/lib/navigation';
 import type { SessionContext, SessionProject } from '@/types/database.types';
 
 /**
@@ -60,7 +61,7 @@ export async function requireProject(projectCode: string): Promise<{
   if (!project) {
     const fallback = session.projects[0];
     if (!fallback) redirect('/sin-acceso');
-    redirect(`/${fallback.code}/dashboard`);
+    redirect(landingPath(fallback));
   }
 
   return { session, project };

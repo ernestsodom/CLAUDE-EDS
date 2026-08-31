@@ -225,3 +225,34 @@ esas dos pantallas.
   se salta explícitamente si no está configurado.
 
 Con esto, las 15 fases del plan en `docs/ARCHITECTURE.md` §18 están entregadas.
+
+## Módulo Negocios: la unidad de negocio ATILA (migración 028)
+
+En ATILA la empresa **no fabrica ni vende al club final: es el trader** entre la
+fábrica y Atila, que es quien negocia, pone precios y vende. Ni el detalle
+comercial de Atila ni el industrial de la fábrica aportan nada a ese trabajo,
+así que ATILA no usa las mismas pantallas que EUROPA.
+
+- **Negocios** (`/ATILA/negocios`) es la única pantalla operativa: cada negocio
+  potencial con su club, sus canchas, la comisión y las fechas. Los KPIs miran
+  todos los negocios (no la página visible): comisión potencial, comisión
+  cerrada y próxima entrega.
+- **Una fila por cancha**, no una cantidad: cada cancha lleva su tipo, su
+  comisión (1.700 USD por defecto, ajustable) y, si es personalizada, la
+  ubicación de cada logo en una rejilla *marca × posición* (Atila / club ×
+  entrada, postes de luz, postes de red, cubre resortes).
+- **Tipos de cancha y ubicaciones de logo son catálogos editables**
+  (`/ATILA/configuracion/catalogos`): renombrar "Atila Pro" o añadir un modelo
+  nuevo es un dato, no un despliegue.
+- **Sin venta cerrada no hay fecha de entrega.** La regla vive en el CHECK
+  `deals_dates_ck`; el formulario ni siquiera muestra el campo mientras el
+  negocio siga abierto. Las dos capas se verifican en
+  `supabase/tests/06_atila_deals.sql` y en la suite de escrituras del frontend.
+- **Menú reducido a lo que usa un trader**: Negocios, Documentos, Tareas,
+  Reportes y Configuración. Lo apagado no se borra, y cualquier administrador
+  puede volver a encenderlo desde Configuración → Módulos, que ahora es
+  interactivo. Entrar a la aplicación lleva a la primera pantalla habilitada de
+  cada proyecto, no siempre al Dashboard.
+
+EUROPA y VENTA_USADAS mantienen su operación completa: la diferencia entre
+unidades de negocio es configuración (`project_modules`), no código duplicado.

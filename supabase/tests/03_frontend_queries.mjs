@@ -263,11 +263,43 @@ async function main() {
   await check('tareas', 'admin',
     `/tasks?select=id,title,description,due_date,priority,status,related_entity_type&project_id=eq.${EU}&order=due_date.asc&limit=25`,
     { minRows: 2 });
-  await check('configuracion · modulos', 'admin',
-    `/project_modules?select=module_code,enabled,modules(name,category)&project_id=eq.${EU}`, { minRows: 20 });
+  await check('configuracion · modulos del proyecto', 'admin',
+    `/project_modules?select=module_code,enabled&project_id=eq.${EU}`, { minRows: 20 });
+  await check('configuracion · catalogo de modulos', 'admin',
+    `/modules?select=code,name,category,sort_order&order=sort_order`,
+    { minRows: 25, columns: ['code', 'name'] });
   await check('configuracion · usuarios con acceso', 'admin',
     `/user_project_access?select=id,active,profiles!user_project_access_user_id_fkey(full_name,email),roles(code,name)&project_id=eq.${EU}`,
     { minRows: 4 });
+
+  console.log('\n== Negocios (trader / ATILA) ==');
+  const AT = PROJECTS.ATILA;
+  // Consultas exactas de las paginas del modulo. Sin filas todavia (el
+  // seed no trae negocios), pero un nombre de columna equivocado o un
+  // embed mal escrito devolverian 400 y esto lo detecta.
+  await check('negocios · tablero', 'admin',
+    `/v_deal_board?select=*&project_id=eq.${AT}&order=opened_at.desc&limit=25`);
+  await check('negocios · KPIs', 'admin',
+    `/v_deal_board?select=status,courts_count,total_commission_usd,delivery_date&project_id=eq.${AT}`);
+  await check('negocios · catalogo de tipos de cancha', 'admin',
+    `/court_models?select=id,code,name,description,default_commission_usd,sort_order,active&project_id=eq.${AT}&order=sort_order`,
+    { minRows: 3, columns: ['name', 'default_commission_usd'] });
+  await check('negocios · catalogo de posiciones de logo', 'admin',
+    `/logo_positions?select=id,code,name,sort_order,active&project_id=eq.${AT}&active=is.true&order=sort_order`,
+    { minRows: 4, columns: ['name'] });
+  await check('negocios · canchas de un negocio', 'admin',
+    `/deal_courts?select=*&project_id=eq.${AT}&order=position`);
+
+  // El menu de ATILA quedo reducido al trabajo del trader.
+  const atilaModules = await query('admin', `/project_modules?select=module_code&project_id=eq.${AT}&enabled=is.true`);
+  const codes = (atilaModules.data ?? []).map((m) => m.module_code).sort();
+  if (codes.join(',') === 'deals,documents,reports,settings,tasks') {
+    console.log(`  ok     ATILA · menu reducido (${codes.join(', ')})`);
+    passed++;
+  } else {
+    console.error(`  FALLO  ATILA · menu reducido :: ${codes.join(', ')}`);
+    failed++;
+  }
 
   console.log('\n== RLS a traves de la API (lo que ve cada rol) ==');
   const comercialAtila = await query('comercial', `/clients?select=id&project_id=eq.${PROJECTS.ATILA}`);

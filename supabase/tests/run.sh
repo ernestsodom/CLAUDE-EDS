@@ -76,6 +76,10 @@ bold "== Seguridad / RLS =="
 psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f "$HERE/02_rls_security.sql" 2>&1 \
   | grep -oP '(OK\s+.*|FALLO.*|TODAS.*)' || { red "FALLO en pruebas de seguridad"; exit 1; }
 
+bold "== Negocios (trader / Atila) =="
+psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f "$HERE/06_atila_deals.sql" 2>&1 \
+  | grep -oP '(OK\s+.*|FALLO.*|TODAS.*)' || { red "FALLO en las reglas de negocios"; exit 1; }
+
 # ---------------------------------------------------------------------
 # Consultas del frontend (opcional).
 # Requiere el binario `postgrest` en el PATH. Reproduce las consultas que

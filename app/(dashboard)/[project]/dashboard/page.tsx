@@ -4,9 +4,11 @@ import {
   AlertTriangle, Banknote, Building2, Clock, Factory, LayoutGrid,
   Package, Ship, Target, TrendingUp, Truck, Wallet,
 } from 'lucide-react';
+import { redirect } from 'next/navigation';
 import { requireProject } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/permissions';
+import { landingPath } from '@/lib/navigation';
 import { formatMoney, formatNumber, formatPercent } from '@/lib/format';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Card, ErrorState, PageHeader, ProgressBar, SectionTitle } from '@/components/ui';
@@ -24,6 +26,13 @@ export default async function DashboardPage({
 }) {
   const { project: projectCode } = await params;
   const { project } = await requireProject(projectCode);
+
+  // Un proyecto puede trabajar sin Dashboard (ATILA opera solo con
+  // Negocios). Si el modulo esta apagado, este panel no aplica: se lleva
+  // al usuario a su primera pantalla real en lugar de mostrar tarjetas
+  // vacias de una operacion que no existe en esa unidad de negocio.
+  if (!project.modules.includes('dashboard')) redirect(landingPath(project));
+
   const supabase = await createClient();
   const base = `/${project.code}`;
 

@@ -19,6 +19,32 @@ export interface NavGroup {
   items: NavItem[];
 }
 
+/**
+ * Primera pantalla util del proyecto.
+ *
+ * No se puede dar por hecho que todo proyecto tenga Dashboard: ATILA, por
+ * ejemplo, trabaja solo con Negocios. Se devuelve la primera entrada del
+ * menu que el usuario puede ver de verdad, de modo que entrar a la
+ * aplicacion nunca aterrice en una pantalla apagada.
+ */
+export function landingPath(project: {
+  code: string;
+  modules: string[];
+  permissions: string[];
+}): string {
+  for (const group of NAVIGATION) {
+    for (const item of group.items) {
+      if (
+        project.modules.includes(item.module) &&
+        project.permissions.includes(`${item.module}.view`)
+      ) {
+        return `/${project.code}${item.href}`;
+      }
+    }
+  }
+  return `/${project.code}/configuracion`;
+}
+
 export const NAVIGATION: NavGroup[] = [
   {
     label: null,
@@ -37,6 +63,7 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: 'Comercial',
     items: [
+      { label: 'Negocios', href: '/negocios', module: 'deals', icon: 'Handshake' },
       { label: 'Clientes', href: '/comercial/clientes', module: 'clients', icon: 'Building2' },
       { label: 'Oportunidades', href: '/comercial/oportunidades', module: 'opportunities', icon: 'Target' },
       { label: 'Reuniones', href: '/comercial/reuniones', module: 'meetings', icon: 'CalendarCheck' },
