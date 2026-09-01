@@ -104,9 +104,85 @@ Para cada tabla:
 
 ## Estado de esta fase
 
-Bloqueada: requiere `mcp__Supabase__execute_sql` y `mcp__Neon__run_sql`
-(o `create_project`/`create_branch` si el proyecto Neon aún no existe), que
-al momento de escribir este plan no estaban disponibles. En cuanto vuelvan,
-el primer paso es `mcp__Neon__list_projects` para confirmar si ya existe un
-proyecto o hay que crearlo, y `mcp__Supabase__restore_project` sobre el
-proyecto de LicitIA si sigue pausado.
+**Esquema aplicado y verificado.** Proyecto Neon `licitia`
+(`polished-firefly-39510970`, org `org-broad-leaf-70071888`, Postgres 17,
+us-east-1), base de datos `licitia`. Verificado contra el mismo esquema de
+referencia: 35 tablas, 65 policies, 10 triggers, 96 índices, 70 FK, 5
+extensiones (incluida `pgvector`). `auth.uid()` probado de verdad: resuelve
+dentro de la transacción y devuelve `null` en una llamada nueva — la
+identidad no se filtra entre peticiones.
+
+`mcp__Neon__run_sql` no admite varias sentencias en una sola llamada
+("cannot insert multiple commands into a prepared statement"); se usó
+`mcp__Neon__run_sql_transaction` con un array de sentencias, ejecutado en
+9 tandas (compat + tipos, funciones con `check_function_bodies = false`,
+tablas, PK/UNIQUE, índices, triggers, FK, dos tandas de policies).
+
+## Copia de datos: COMPLETADA Y VERIFICADA
+
+Se descartó el plan original (leer con `execute_sql`, insertar con
+`run_sql`, tabla por tabla a través de mi contexto) en cuanto se vio el
+tamaño real de `document_chunks`: 2066 filas con `vector(1536)` cada una.
+Traer eso a mi contexto habría sido carísimo e innecesario.
+
+**Se usó `postgres_fdw` en Supabase apuntando directo a Neon** (host directo,
+sin el pooler — el FDW necesita una conexión persistente, y pgbouncer en modo
+transacción rompe el protocolo que usa internamente):
+
+1. `create extension postgres_fdw` (+ `citext`, que Neon usa en `auth.users.email`
+   y no estaba instalada en Supabase — sin ella, `IMPORT FOREIGN SCHEMA` fallaba).
+2. `create server` + `create user mapping` con el rol `licitia_owner` de Neon.
+3. `import foreign schema public` (35 tablas) e `import foreign schema auth
+   limit to (users)`.
+4. `insert into <foránea> (columnas...) select columnas... from <local>` por
+   tabla, **siempre con lista de columnas explícita en ambos lados** — un primer
+   intento con `select *` falló porque el orden físico de columnas no coincidía
+   entre el Supabase real y el esquema aplicado en Neon (mismo set de columnas,
+   orden distinto), y eso hace que `select *` posicional mande valores a la
+   columna equivocada. Con nombres explícitos el orden deja de importar.
+
+Dos obstáculos reales, ya resueltos:
+
+- **`audit_logs.id` es `GENERATED ALWAYS AS IDENTITY`**: postgres_fdw no puede
+  empujarle un valor explícito a una identity ALWAYS. Se resolvió con una
+  tabla foránea auxiliar que expone solo las columnas no-identity; Neon generó
+  sus propios ids (no hay ninguna FK que dependa de `audit_logs.id`).
+- **Límite de 60s por llamada**: `document_chunks` (2066 filas) y
+  `document_pages` (1242 filas, texto OCR) no entraban en una sola llamada.
+  Se dividieron en lotes de 400-500 por `id`. Importante: la herramienta
+  reportó "timed out" varias veces, pero la consulta seguía corriendo y
+  confirmando datos en Neon del lado del servidor — cada vez se verificó el
+  conteo real en Neon antes de decidir si reintentar o seguir.
+
+**Resultado, tabla por tabla, Neon == Supabase en las 36:**
+
+| Tabla | Filas | | Tabla | Filas |
+|---|---|---|---|---|
+| auth.users | 1 | | document_versions | 34 |
+| organizations | 1 | | document_chunks | 2066 |
+| clients | 21 | | document_metadata | 0 |
+| profiles | 1 | | document_pages | 1242 |
+| projects | 7 | | document_permissions | 0 |
+| documents | 22 | | document_summaries | 29 |
+| ai_usage_log | 362 | | tags | 3 |
+| app_settings | 1 | | document_tags | 0 |
+| audit_logs | 188 | | files | 34 |
+| checklist_comparisons | 2 | | messages | 40 |
+| claims | 1 | | timelines | 13 |
+| claim_responses | 1 | | milestones | 102 |
+| comparison_folders | 0 | | notes | 0 |
+| comparisons | 19 | | note_attachments | 0 |
+| requirements | 474 | | systems | 96 |
+| comparison_items | 36 | | system_features | 628 |
+| conversations | 11 | | technical_variables | 179 |
+| conversation_tags | 0 | | | |
+| delivered_items | 15 | | | |
+
+Total: **5.629 filas** en 35 tablas + 1 identidad.
+
+El puente `postgres_fdw` (extensión, server, user mapping, tablas foráneas) se
+desmontó de Supabase al terminar — no queda credencial de Neon almacenada ahí.
+
+**No se pausó ni se tocó el proyecto Supabase de LicitIA.** Sigue activo como
+respaldo y punto de comparación hasta que las fases 3 (auth) y 4 (storage)
+estén hechas y verificadas en producción.
