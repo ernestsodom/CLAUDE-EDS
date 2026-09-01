@@ -62,3 +62,34 @@ $$;
 
 grant usage on schema auth to anon, authenticated, service_role;
 grant select on auth.users to authenticated, service_role;
+
+-- ---------------------------------------------------------------------
+-- Rol de aplicacion
+--
+-- PostgreSQL EXIME al dueño de una tabla de sus propias politicas RLS. Si
+-- la aplicacion se conectara con el rol dueño (el que Neon crea por
+-- defecto), los 65 candados quedarian desactivados en silencio y nadie se
+-- enteraria hasta que un usuario viera datos de otra organizacion.
+--
+-- Por eso la aplicacion se conecta con este rol, que no es dueño de nada.
+-- La contrasena se fija al crear el proyecto en Neon y viaja en
+-- DATABASE_URL; aqui no se escribe ninguna.
+-- ---------------------------------------------------------------------
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'app_user') then
+    create role app_user login;
+  end if;
+end;
+$$;
+
+grant usage on schema public, auth to app_user;
+grant select, insert, update, delete on all tables in schema public to app_user;
+grant usage, select on all sequences in schema public to app_user;
+grant execute on all functions in schema public to app_user;
+grant select on auth.users to app_user;
+
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to app_user;
+alter default privileges in schema public
+  grant usage, select on sequences to app_user;
