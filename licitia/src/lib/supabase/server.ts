@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { UnauthorizedError } from "@/lib/errors";
+import { asSupabaseClient, hybridUserClient, useNeon } from "@/lib/db/hybrid";
 
 /**
  * Cliente de Supabase para Server Components / Route Handlers / Server Actions.
@@ -30,13 +31,27 @@ export async function createClient() {
   );
 }
 
-/** Devuelve el usuario autenticado y su perfil, o lanza 401. */
+/**
+ * Devuelve el usuario autenticado y su perfil, o lanza 401.
+ *
+ * El `supabase` que devuelve es, cuando `DATABASE_URL` está configurada, el
+ * cliente de transición: las consultas van a Neon con la identidad del
+ * usuario —así siguen aplicando las 65 políticas RLS— y los archivos siguen
+ * en Supabase hasta la fase 4. Sin esa variable, todo va a Supabase como
+ * hasta ahora, así que desplegar este cambio no altera nada por sí solo.
+ *
+ * La sesión la sigue resolviendo Supabase Auth (fase 3).
+ */
 export async function requireUser() {
-  const supabase = await createClient();
+  const authClient = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await authClient.auth.getUser();
   if (!user) throw new UnauthorizedError();
+
+  const supabase = useNeon()
+    ? asSupabaseClient(hybridUserClient(authClient, user.id))
+    : authClient;
 
   const { data: profile } = await supabase
     .from("profiles")

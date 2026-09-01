@@ -54,7 +54,7 @@ Sobre 113 archivos de `src/`:
 
 | Área | Archivos | Qué implica |
 |---|---|---|
-| **Acceso a datos** | 45 | Usan `supabase.from(...)`, el query builder de supabase-js. Neon es PostgreSQL puro: no existe ese builder. Hay que sustituirlo por SQL con `@neondatabase/serverless`, o por un cliente que hable Postgres directo. |
+| **Acceso a datos** | 45 | ✅ Resuelto sin tocarlos: `src/lib/db/` traduce el mismo API a SQL. |
 | **Autenticación** | 10 | `signInWithPassword`, `auth.getUser()` en middleware, layout y 5 componentes. `profiles.id` referencia `auth.users(id)`. Sustituto: Neon Auth (Better Auth gestionado), que el conector ya expone. |
 | **Almacenamiento** | 7 | Buckets `documents` y `attachments` (los PDF de las licitaciones, hasta 50 MB). Además hay subida directa desde el navegador con URL firmada. Sustituto: Neon Object Storage o Vercel Blob. Los archivos ya subidos hay que copiarlos. |
 
@@ -62,8 +62,12 @@ Sobre 113 archivos de `src/`:
 
 1. **Base de datos** — esquema listo (este directorio). Falta crear el proyecto
    Neon, aplicarlo y copiar los datos existentes.
-2. **Capa de datos** — reescribir los 45 archivos que consultan por
-   `supabase.from()`. Es el grueso del trabajo.
+2. **Capa de datos** — ✅ **hecha**. En vez de reescribir 45 archivos se
+   construyó un cliente compatible en `src/lib/db/`: expone el mismo
+   `.from().select().eq()` y genera SQL. Los 45 archivos no cambian.
+   Verificado con 19 pruebas contra un PostgreSQL real con este mismo
+   esquema aplicado. Se activa con `DATABASE_URL`; sin esa variable todo
+   sigue yendo a Supabase, así que desplegarlo no cambia nada por sí solo.
 3. **Autenticación** — Neon Auth, migrar las identidades y reescribir login,
    middleware y sesión.
 4. **Almacenamiento** — mover los archivos de los dos buckets y reescribir
@@ -88,3 +92,38 @@ almacenamiento de archivos y su capa PostgREST. Neon es PostgreSQL gestionado
 La buena noticia es que la parte más delicada, el modelo de permisos, se
 conserva íntegro: 65 políticas que ya estaban probadas siguen aplicando tal
 cual gracias a la capa de compatibilidad.
+
+
+---
+
+## Fase 2 — cómo funciona el cliente de datos
+
+`src/lib/db/` reproduce la parte del API de supabase-js que la aplicación
+usa, y la traduce a SQL:
+
+| Pieza | Qué hace |
+|---|---|
+| `executor.ts` | Conexión y transacción. Cada consulta declara antes su identidad con `set_config('app.user_id', $1, true)` — de ahí lo lee `auth.uid()`. |
+| `relations.ts` | Resuelve los embeds leyendo las claves foráneas del catálogo, como hace PostgREST. Una relación ambigua falla pidiendo la FK explícita en vez de elegir al azar. |
+| `select-parser.ts` | Lee `"*, clients(name)"` y `"source:documents!fk(title)"`. |
+| `query-builder.ts` | Compila a SQL. Valida los identificadores antes de interpolarlos y se niega a hacer `update`/`delete` sin filtros. |
+| `hybrid.ts` | Cliente de transición: datos en Neon, archivos todavía en Supabase (fase 4). |
+
+### Dos detalles que no son cosméticos
+
+**El rol de conexión.** PostgreSQL exime al dueño de una tabla de sus propias
+políticas RLS. Conectarse con el rol que Neon crea por defecto —que es el
+dueño— desactivaría los 65 candados en silencio, y nadie se enteraría hasta
+que un usuario viera datos de otra organización. Por eso el esquema crea
+`app_user`, que no es dueño de nada, y `DATABASE_URL` debe apuntar a ese rol.
+
+**`local = true` al fijar la identidad.** Con un pool de conexiones, un
+`set_config` de sesión sobreviviría a la petición y la siguiente que
+reutilizara la conexión heredaría la identidad de la anterior.
+
+### Ejecutar las pruebas
+
+```bash
+createdb licitia_test && psql licitia_test -f licitia/neon/01_schema.sql
+TEST_DATABASE_URL=postgres://.../licitia_test npx vitest run tests/db
+```

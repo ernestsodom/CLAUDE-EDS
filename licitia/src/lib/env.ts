@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 const serverSchema = z.object({
+  // Cadena de conexión de Neon, del rol de aplicación (`app_user`), no del
+  // dueño de las tablas: PostgreSQL exime al dueño de sus propias políticas
+  // RLS. Opcional a propósito: su ausencia deja todo el acceso a datos en
+  // Supabase, que es el estado previo a la migración.
+  DATABASE_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(10),
