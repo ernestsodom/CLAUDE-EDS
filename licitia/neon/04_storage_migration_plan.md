@@ -14,17 +14,30 @@ la URL a secas, hace falta pasar por una ruta autenticada de la app.
 **No pude crear el Blob Store yo mismo**: las herramientas de Vercel
 disponibles no incluyen aprovisionar Storage — es un paso de un clic en el
 dashboard del proyecto (`Storage` → `Create Database` → `Blob`) o
-`vercel blob store add` con la CLI. Una vez creado, Vercel inyecta
-`BLOB_READ_WRITE_TOKEN` solo si el store queda conectado al proyecto; en
-local, `vercel env pull` la trae al `.env`.
+`vercel blob store add` con la CLI. Ya se creó y se conectó al proyecto de
+LicitIA (25/set/2026).
 
 ## Interruptor
 
-Igual patrón que las fases 2 y 3: `BLOB_READ_WRITE_TOKEN` decide. Sin ella,
-cero cambio de comportamiento — todo sigue en Supabase Storage exactamente
-como hasta ahora. No depende de `DATABASE_URL`/Neon: se puede activar el
-almacenamiento en Blob sin haber activado todavía la base o la autenticación
-(aunque en la práctica las tres se activarán juntas).
+Igual patrón que las fases 2 y 3, pero la variable resultó otra de lo
+previsto originalmente. Al conectar el Blob Store al proyecto, Vercel no
+reparte un `BLOB_READ_WRITE_TOKEN` estático — solo agrega `BLOB_STORE_ID` y
+`BLOB_WEBHOOK_PUBLIC_KEY` (esta última no la usa este código). La app se
+autentica con el token OIDC de cada ejecución, que Vercel inyecta solo en
+runtime (`VERCEL_OIDC_TOKEN`, automático si el proyecto tiene activado el
+acceso a las System Environment Variables — lo estaba). Por eso
+`useBlobStorage()` (`lib/storage.ts`) mira `BLOB_STORE_ID`, no
+`BLOB_READ_WRITE_TOKEN` (aunque este último, si algún día existe, también
+sirve). Sin `BLOB_STORE_ID`, cero cambio de comportamiento — todo sigue en
+Supabase Storage exactamente como hasta ahora. No depende de
+`DATABASE_URL`/Neon: se puede activar el almacenamiento en Blob sin haber
+activado todavía la base o la autenticación (aunque en la práctica las tres
+se activarán juntas).
+
+Para local: sin `VERCEL_OIDC_TOKEN` no hay autenticación automática, así que
+probar esto fuera de un deployment de Vercel requiere `vercel dev` (proxya
+el OIDC real) o un `BLOB_READ_WRITE_TOKEN` propio generado desde el
+dashboard del store.
 
 ## Qué cambió
 
@@ -65,13 +78,11 @@ almacenamiento en Blob sin haber activado todavía la base o la autenticación
 
 ## Pendiente para activar en producción
 
-1. Crear el Blob Store en el proyecto de Vercel (un clic) y confirmar que
-   `BLOB_READ_WRITE_TOKEN` quedó disponible en el entorno de producción.
+1. ~~Crear el Blob Store y conectarlo al proyecto.~~ Hecho.
 2. Migrar los 34 archivos existentes de los buckets `documents` y
    `attachments` de Supabase a Blob (descargarlos con `supabase.storage
    .download()` y subirlos con `put()`, conservando el mismo `storage_path`
-   para no tener que tocar las filas de `files`/`note_attachments`) — no se
-   hizo en esta pasada porque requiere el store ya creado.
+   para no tener que tocar las filas de `files`/`note_attachments`).
 3. Probar de punta a punta en un preview: subir un documento grande (>4.5
    MB), abrirlo, adjuntar un archivo a un comentario, abrirlo, eliminar un
    documento y confirmar que el blob se borra.

@@ -3,19 +3,28 @@ import { put, del, get } from "@vercel/blob";
 /**
  * Fase 4 de la migración: almacenamiento de archivos.
  *
- * Igual patrón que las fases 2 y 3: un interruptor (`BLOB_READ_WRITE_TOKEN`)
- * decide si los archivos van a Supabase Storage (como siempre) o a Vercel
- * Blob. Sin la variable, cero cambio de comportamiento.
+ * Igual patrón que las fases 2 y 3: un interruptor decide si los archivos
+ * van a Supabase Storage (como siempre) o a Vercel Blob. Sin la variable,
+ * cero cambio de comportamiento.
+ *
+ * El interruptor es `BLOB_STORE_ID`, no `BLOB_READ_WRITE_TOKEN`: al conectar
+ * un Blob Store a un proyecto de Vercel, Vercel ya no reparte un token
+ * estático — el SDK se autentica solo con el token OIDC de la ejecución
+ * (`VERCEL_OIDC_TOKEN`, inyectado en runtime si el proyecto tiene activado
+ * el acceso a las System Environment Variables) más `BLOB_STORE_ID` para
+ * saber a qué store apunta. Un `BLOB_READ_WRITE_TOKEN` explícito sigue
+ * funcionando si algún día hace falta (por ejemplo, para correr esto fuera
+ * de Vercel), pero no es lo que hay en este proyecto.
  *
  * Los blobs se crean con `access: "private"`: no son accesibles por URL
  * pública. Para servir un archivo hay que descargarlo aquí, del lado del
- * servidor, con el token de la app — la misma garantía que daba una
- * política de Storage de Supabase, pero verificada en cada petición en vez
- * de con una URL firmada que vive una hora.
+ * servidor, autenticado — la misma garantía que daba una política de
+ * Storage de Supabase, pero verificada en cada petición en vez de con una
+ * URL firmada que vive una hora.
  */
 
 export function useBlobStorage(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
 }
 
 /** Sube un buffer (adjuntos de comentarios, reprocesamiento) y devuelve su pathname. */
