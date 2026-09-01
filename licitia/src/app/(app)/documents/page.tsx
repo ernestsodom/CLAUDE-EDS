@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Folder, FolderPlus } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { listDocuments } from "@/core/repositories/documents.repo";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +29,7 @@ export default async function DocumentsPage({
   searchParams: Promise<{ q?: string; tipo?: string; estado?: string; page?: string }>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const { supabase } = await requireUser();
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
   const [{ documents, total }, { data: projects }] = await Promise.all([

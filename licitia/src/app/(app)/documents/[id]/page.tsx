@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { getDocumentDetail, getVersionSummary } from "@/core/repositories/documents.repo";
 import { checklistProgress } from "@/core/repositories/checklist.repo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,7 +33,7 @@ export default async function DocumentDetailPage({
 }) {
   const { id } = await params;
   const { v: viewVersionId, c: requestedConversationId } = await searchParams;
-  const supabase = await createClient();
+  const { supabase } = await requireUser();
   const detail = await getDocumentDetail(supabase, id);
   const {
     document: doc,

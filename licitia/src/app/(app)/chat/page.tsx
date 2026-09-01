@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { ChatPanel } from "@/components/chat-panel";
 import { ConversationList } from "@/components/conversation-list";
 import type { AgentKind } from "@/core/domain/types";
@@ -23,7 +23,7 @@ export default async function ChatPage({
   searchParams: Promise<{ c?: string; agente?: string }>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const { supabase } = await requireUser();
   const agent = (params.agente as AgentKind) ?? "analista";
 
   const { data: conversations } = await supabase

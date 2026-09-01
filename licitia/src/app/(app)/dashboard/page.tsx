@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { formatCLP, formatDate } from "@/lib/utils";
@@ -21,7 +21,7 @@ type CriticalKey = keyof typeof CRITICAL_TYPE_LABELS;
  * por procesar) con enlaces directos, en vez de dejar un número suelto.
  */
 export default async function DashboardPage() {
-  const supabase = await createClient();
+  const { supabase } = await requireUser();
 
   const [
     { data: documents },

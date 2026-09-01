@@ -2,7 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, useNeonClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,9 +29,12 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
+
+    const failed = useNeonClient()
+      ? (await authClient.signIn.email({ email, password })).error
+      : (await createClient().auth.signInWithPassword({ email, password })).error;
+
+    if (failed) {
       setError("Credenciales inválidas. Verifica tu correo y contraseña.");
       setLoading(false);
       return;

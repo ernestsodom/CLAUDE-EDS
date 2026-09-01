@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChecklistComparator } from "@/components/checklist-comparator";
 import { CompareForm } from "@/components/compare-form";
@@ -28,7 +28,7 @@ export default async function ComparePage({
   searchParams: Promise<{ r?: string; tab?: string }>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const { supabase } = await requireUser();
 
   let result = null;
   if (params.r) {

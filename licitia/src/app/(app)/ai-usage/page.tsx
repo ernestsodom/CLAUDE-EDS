@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { getUsageSummary, type ProviderTotals } from "@/core/repositories/ai-usage.repo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,7 +61,7 @@ function PeriodCard({ title, totals }: { title: string; totals: ProviderTotals[]
  *  Claude Haiku 4.5) y en qué — medido por LicitIA a partir de los tokens
  *  reales que cada proveedor reportó en cada respuesta. */
 export default async function AiUsagePage() {
-  const supabase = await createClient();
+  const { supabase } = await requireUser();
   const summary = await getUsageSummary(supabase);
 
   return (

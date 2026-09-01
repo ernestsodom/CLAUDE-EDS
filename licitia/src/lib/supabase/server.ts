@@ -1,7 +1,8 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { UnauthorizedError } from "@/lib/errors";
 import { asSupabaseClient, hybridUserClient, useNeon } from "@/lib/db/hybrid";
+import { auth } from "@/lib/auth";
 
 /**
  * Cliente de Supabase para Server Components / Route Handlers / Server Actions.
@@ -34,31 +35,44 @@ export async function createClient() {
 /**
  * Devuelve el usuario autenticado y su perfil, o lanza 401.
  *
- * El `supabase` que devuelve es, cuando `DATABASE_URL` está configurada, el
- * cliente de transición: las consultas van a Neon con la identidad del
- * usuario —así siguen aplicando las 65 políticas RLS— y los archivos siguen
- * en Supabase hasta la fase 4. Sin esa variable, todo va a Supabase como
- * hasta ahora, así que desplegar este cambio no altera nada por sí solo.
+ * Con `DATABASE_URL` configurada (Neon), la sesión la resuelve better-auth
+ * (fase 3) y las consultas van a Neon con la identidad del usuario —así
+ * siguen aplicando las 65 políticas RLS, que no cambiaron ni una línea:
+ * siguen leyendo `app.user_id`, solo cambió quién decide ese id. Sin esa
+ * variable, todo sigue en Supabase (Auth + datos) como hasta ahora, así que
+ * desplegar este cambio no altera nada por sí solo.
  *
- * La sesión la sigue resolviendo Supabase Auth (fase 3).
+ * Los archivos siguen en Supabase Storage hasta la fase 4 en ambos casos.
  */
 export async function requireUser() {
+  if (useNeon()) {
+    const session = await auth().api.getSession({ headers: await headers() });
+    if (!session) throw new UnauthorizedError();
+    const user = { id: session.user.id, email: session.user.email as string | null };
+
+    const supabase = asSupabaseClient(hybridUserClient(await createClient(), user.id));
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    if (!profile || !profile.is_active) throw new UnauthorizedError("Perfil inactivo o inexistente");
+
+    return { supabase, user, profile };
+  }
+
   const authClient = await createClient();
   const {
     data: { user },
   } = await authClient.auth.getUser();
   if (!user) throw new UnauthorizedError();
 
-  const supabase = useNeon()
-    ? asSupabaseClient(hybridUserClient(authClient, user.id))
-    : authClient;
-
-  const { data: profile } = await supabase
+  const { data: profile } = await authClient
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
   if (!profile || !profile.is_active) throw new UnauthorizedError("Perfil inactivo o inexistente");
 
-  return { supabase, user, profile };
+  return { supabase: authClient, user, profile };
 }

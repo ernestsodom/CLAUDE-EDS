@@ -186,3 +186,46 @@ desmontó de Supabase al terminar — no queda credencial de Neon almacenada ah�
 **No se pausó ni se tocó el proyecto Supabase de LicitIA.** Sigue activo como
 respaldo y punto de comparación hasta que las fases 3 (auth) y 4 (storage)
 estén hechas y verificadas en producción.
+
+## Fase 3 — Autenticación (better-auth): estado
+
+**Hecho:**
+- Proveedor elegido: **better-auth**, self-hosted sobre las mismas tablas de
+  Neon (`ba_user`, `ba_session`, `ba_account`, `ba_verification` —
+  `03_better_auth_schema.sql`, ya aplicado). Sin cambiar ni un policy: RLS
+  sigue leyendo `app.user_id` (`auth.uid()` en `00_compat_auth.sql`); lo
+  único que cambió es quién decide ese id.
+- `lib/auth.ts` (servidor) / `lib/auth-client.ts` (navegador) / ruta
+  `app/api/auth/[...all]`.
+- Contraseñas verificadas con **bcrypt** (no el scrypt por defecto de
+  better-auth), para que el usuario migrado siga entrando con la misma
+  contraseña que tenía en GoTrue — se copió su hash tal cual.
+- `databaseHooks.user.create.after` reimplementa `handle_new_user()`
+  (primer usuario de la organización → admin, resto → usuario).
+- Interruptor doble, coherente con la fase 2: `DATABASE_URL` (servidor,
+  `useNeon()`) y `NEXT_PUBLIC_USE_NEON` (navegador, `useNeonClient()`) —
+  deben activarse juntas. Sin ellas, cero cambio de comportamiento.
+- Reescritos con el interruptor: `middleware.ts` (con Neon, chequeo
+  optimista de cookie vía `getSessionCookie()`, sin tocar la base de datos
+  en el runtime de middleware), `lib/supabase/server.ts` (`requireUser()`),
+  `app/(app)/layout.tsx`, las 8 páginas que leían `createClient()`
+  directo (ahora pasan por `requireUser()`), `app/login/page.tsx` y el
+  cierre de sesión en `components/app-sidebar.tsx`.
+- Usuario real migrado (`ernestodom@gmail.com`) con su mismo id de
+  `profiles`/`auth.users`, para no reescribir las FKs que ya apuntaban a
+  ese valor.
+- `npx tsc --noEmit` limpio y los 138 tests existentes (123 pasan, 15
+  se saltan por falta de Postgres local) siguen en verde.
+
+**Pendiente, fuera de esta pasada (alcance nuevo, no autorizado aún):**
+Diez componentes de cliente llaman a Supabase directo desde el navegador
+para leer/escribir datos —no solo para sesión— usando la anon key + RLS
+(`comments-panel`, `conversation-list`, `document-picker`,
+`project-picker`, `systems-checklist`, `rename-document-button`,
+`claim-responses`, `move-comparison-button`, `move-to-folder-button`,
+`comparison-folder-picker`). Neon no tiene un equivalente "seguro para el
+navegador" a PostgREST — la capa de compatibilidad (`lib/db/query-builder.ts`)
+solo corre en el servidor, con la cadena de conexión de `app_user`. Esos diez
+componentes necesitan convertirse a Server Actions antes de poder activar
+`NEXT_PUBLIC_USE_NEON=1` en producción; es un trabajo separado y de tamaño
+comparable al de esta fase, por eso no se tocó aquí.

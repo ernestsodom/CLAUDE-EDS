@@ -8,7 +8,8 @@ import {
   Search, Gauge, ChevronLeft, ChevronRight, LogOut, Moon, Sun, FileSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, useNeonClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
 // «Documentos» incluye las carpetas por cliente: son la misma cosa vista de
@@ -34,7 +35,11 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
   }
 
   async function signOut() {
-    await createClient().auth.signOut();
+    if (useNeonClient()) {
+      await authClient.signOut();
+    } else {
+      await createClient().auth.signOut();
+    }
     router.push("/login");
     router.refresh();
   }

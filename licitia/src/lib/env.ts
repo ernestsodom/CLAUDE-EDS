@@ -6,6 +6,10 @@ const serverSchema = z.object({
   // RLS. Opcional a propósito: su ausencia deja todo el acceso a datos en
   // Supabase, que es el estado previo a la migración.
   DATABASE_URL: z.string().url().optional(),
+  // Firma las sesiones de better-auth (Fase 3, autenticación sobre Neon).
+  // Solo hace falta junto con DATABASE_URL: sin Neon, la autenticación
+  // sigue siendo Supabase Auth y esta variable no se usa.
+  BETTER_AUTH_SECRET: z.string().min(16).optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(10),

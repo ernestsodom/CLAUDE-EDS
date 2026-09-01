@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { ClaimAnalysisView, type ClaimAnalysis } from "@/components/claim-analysis-view";
@@ -17,7 +17,7 @@ export default async function ClaimDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
+  const { supabase } = await requireUser();
 
   const [{ data: claim }, { data: responses }] = await Promise.all([
     supabase
