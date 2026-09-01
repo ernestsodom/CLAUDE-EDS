@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Star, Copy, Plus, Search } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { toggleConversationFavorite } from "@/actions/conversations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn, formatDate } from "@/lib/utils";
@@ -33,8 +33,7 @@ export function ConversationList({
   const filtered = items.filter((c) => c.title.toLowerCase().includes(query.toLowerCase()));
 
   async function toggleFavorite(c: Conversation) {
-    const supabase = createClient();
-    await supabase.from("conversations").update({ is_favorite: !c.is_favorite }).eq("id", c.id);
+    await toggleConversationFavorite(c.id, !c.is_favorite);
     setItems((prev) =>
       prev.map((i) => (i.id === c.id ? { ...i, is_favorite: !i.is_favorite } : i))
     );

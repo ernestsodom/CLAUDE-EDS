@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Loader2, PenLine, Save } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { saveClaimResponse, toggleClaimResponseApproval } from "@/actions/claim-responses";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,11 +44,8 @@ export function ClaimResponses({
     setBusy(response.id);
     setError(null);
     const content = contentOf(response);
-    const { error: dbError } = await createClient()
-      .from("claim_responses")
-      .update({ content })
-      .eq("id", response.id);
-    if (dbError) setError(`No se pudo guardar: ${dbError.message}`);
+    const { error: dbError } = await saveClaimResponse(response.id, content);
+    if (dbError) setError(`No se pudo guardar: ${dbError}`);
     else {
       setResponses((prev) => prev.map((r) => (r.id === response.id ? { ...r, content } : r)));
       setDrafts((prev) => {
@@ -63,16 +60,9 @@ export function ClaimResponses({
   async function approve(response: ClaimResponse) {
     setBusy(response.id);
     setError(null);
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
     const approved = !response.approved;
-    const { error: dbError } = await supabase
-      .from("claim_responses")
-      .update({ approved, approved_by: approved ? user?.id ?? null : null })
-      .eq("id", response.id);
-    if (dbError) setError(`No se pudo aprobar: ${dbError.message}`);
+    const { error: dbError } = await toggleClaimResponseApproval(response.id, approved);
+    if (dbError) setError(`No se pudo aprobar: ${dbError}`);
     else setResponses((prev) => prev.map((r) => (r.id === response.id ? { ...r, approved } : r)));
     setBusy(null);
   }

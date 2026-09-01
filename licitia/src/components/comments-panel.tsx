@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Paperclip, Loader2, X, Download } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { addComment as addCommentAction, toggleNoteResolved } from "@/actions/notes";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -59,25 +59,15 @@ export function CommentsPanel({
     if (!content.trim()) return;
     setBusy(true);
     setError(null);
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
-    const { data, error: dbError } = await supabase
-      .from("notes")
-      .insert({
-        document_id: documentId,
-        user_id: user!.id,
-        kind,
-        content: content.trim(),
-        due_date: dueDate || null,
-      })
-      .select("*")
-      .single();
+    const { data, error: dbError } = await addCommentAction(documentId, {
+      kind,
+      content,
+      dueDate: dueDate || null,
+    });
 
     if (dbError || !data) {
-      setError(dbError?.message ?? "No se pudo guardar el comentario");
+      setError(dbError ?? "No se pudo guardar el comentario");
       setBusy(false);
       return;
     }
@@ -107,8 +97,7 @@ export function CommentsPanel({
   }
 
   async function toggleResolved(comment: Comment) {
-    const supabase = createClient();
-    await supabase.from("notes").update({ resolved: !comment.resolved }).eq("id", comment.id);
+    await toggleNoteResolved(comment.id, !comment.resolved);
     setComments((prev) =>
       prev.map((c) => (c.id === comment.id ? { ...c, resolved: !c.resolved } : c))
     );

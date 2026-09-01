@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FolderPlus } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { listComparisonFolders, createComparisonFolder } from "@/actions/comparison-folders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProjectPicker } from "@/components/project-picker";
@@ -41,14 +41,9 @@ export function ComparisonFolderPicker({
       return;
     }
     let cancelled = false;
-    createClient()
-      .from("comparison_folders")
-      .select("id, name")
-      .eq("project_id", projectId)
-      .order("name")
-      .then(({ data }) => {
-        if (!cancelled) setFolders((data ?? []) as Folder[]);
-      });
+    listComparisonFolders(projectId).then((data) => {
+      if (!cancelled) setFolders(data);
+    });
     return () => {
       cancelled = true;
     };
@@ -63,43 +58,16 @@ export function ComparisonFolderPicker({
     if (!projectId || !newName.trim()) return;
     setBusy(true);
     setError(null);
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("organization_id")
-      .eq("id", user!.id)
-      .single();
-    if (!profile) {
-      setError("Perfil no encontrado");
+
+    const { data: folder, error: folderError } = await createComparisonFolder(projectId, newName);
+    if (folderError || !folder) {
+      setError(folderError ?? "Error creando subcarpeta");
       setBusy(false);
       return;
     }
 
-    const { data: folder, error: folderError } = await supabase
-      .from("comparison_folders")
-      .insert({
-        organization_id: profile.organization_id,
-        project_id: projectId,
-        name: newName.trim(),
-        created_by: user!.id,
-      })
-      .select("id, name")
-      .single();
-    if (folderError) {
-      setError(
-        folderError.message.includes("duplicate")
-          ? "Ya existe una subcarpeta con ese nombre en esta carpeta."
-          : `Error creando subcarpeta: ${folderError.message}`
-      );
-      setBusy(false);
-      return;
-    }
-
-    setFolders((prev) => [...prev, folder!].sort((a, b) => a.name.localeCompare(b.name)));
-    onFolderChange(folder!.id);
+    setFolders((prev) => [...prev, folder].sort((a, b) => a.name.localeCompare(b.name)));
+    onFolderChange(folder.id);
     setCreating(false);
     setNewName("");
     setBusy(false);

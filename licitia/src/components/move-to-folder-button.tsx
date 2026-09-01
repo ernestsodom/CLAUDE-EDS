@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FolderInput, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { moveDocumentToFolder } from "@/actions/documents";
 import { Button } from "@/components/ui/button";
 import { ProjectPicker } from "@/components/project-picker";
 
@@ -30,10 +30,7 @@ export function MoveToFolderButton({
   async function save() {
     setBusy(true);
     setError(null);
-    const { error: dbError } = await createClient()
-      .from("documents")
-      .update({ project_id: projectId })
-      .eq("id", documentId);
+    const { error: dbError } = await moveDocumentToFolder(documentId, projectId);
     setBusy(false);
     if (dbError) {
       setError("No se pudo mover el documento");

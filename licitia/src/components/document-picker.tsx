@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Search, UploadCloud, Loader2, FileText, X, Play } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { searchDocuments } from "@/actions/documents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge, statusVariant } from "@/components/ui/badge";
@@ -46,17 +46,8 @@ export function DocumentPicker({
   // Buscar entre los documentos ya subidos (RLS limita a los autorizados)
   useEffect(() => {
     if (!searching) return;
-    const supabase = createClient();
     const t = setTimeout(async () => {
-      let q = supabase
-        .from("documents")
-        .select("id, title, doc_type, status")
-        .is("parent_document_id", null)
-        .order("created_at", { ascending: false })
-        .limit(8);
-      if (query.trim()) q = q.ilike("title", `%${query.trim()}%`);
-      const { data } = await q;
-      setResults((data ?? []) as PickedDocument[]);
+      setResults(await searchDocuments(query));
     }, 250);
     return () => clearTimeout(t);
   }, [query, searching]);

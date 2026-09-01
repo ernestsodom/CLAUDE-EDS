@@ -1,9 +1,18 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
-import { useNeon } from "@/lib/db/hybrid";
 
 const PUBLIC_PATHS = ["/login", "/auth", "/api/internal", "/api/auth"];
+
+/**
+ * Igual que `useNeon()` (`lib/db/hybrid.ts`), pero sin importar de ahí: esa
+ * cadena arrastra `pg`, que usa APIs de Node (`process.domain`, streams)
+ * que el Edge Runtime de Next.js —donde corre el middleware— no soporta.
+ * Aquí solo hace falta mirar la variable, no conectar a nada.
+ */
+function useNeon(): boolean {
+  return Boolean(process.env.DATABASE_URL);
+}
 
 /**
  * Middleware de autenticación: protege todas las rutas de la aplicación

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, CalendarClock, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { toggleSystemFeature, setSystemFeatureDeadline } from "@/actions/system-features";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDate } from "@/lib/utils";
 import type { SystemRow } from "@/core/repositories/checklist.repo";
@@ -13,9 +13,8 @@ import type { SystemRow } from "@/core/repositories/checklist.repo";
  * admite un plazo propio; el porcentaje de cumplimiento se recalcula al vuelo,
  * por sistema y para el documento completo.
  *
- * Las marcas se guardan en el acto contra Supabase con la sesión del usuario
- * (política features_update), sin pasar por una ruta de API: es una escritura
- * de una sola columna sobre una fila que el usuario ya puede leer.
+ * Las marcas se guardan en el acto vía Server Action (política
+ * features_update sigue aplicando igual, ahora del lado del servidor).
  */
 export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] }) {
   const [systems, setSystems] = useState(initial);
@@ -41,10 +40,9 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
     });
   }
 
-  /** Aplica el cambio en pantalla y lo persiste; si falla, lo revierte. */
-  async function patchFeature(
+  /** Aplica el cambio en pantalla de inmediato; si el guardado falla, lo revierte. */
+  function applyOptimistic(
     featureId: string,
-    patch: Record<string, unknown>,
     optimistic: (f: SystemRow["features"][number]) => SystemRow["features"][number]
   ) {
     const before = systems;
@@ -54,13 +52,19 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
         features: s.features.map((f) => (f.id === featureId ? optimistic(f) : f)),
       }))
     );
+    return before;
+  }
+
+  async function toggleFeature(featureId: string, completed: boolean) {
+    const before = applyOptimistic(featureId, (f) => ({
+      ...f,
+      is_completed: completed,
+      completed_at: completed ? new Date().toISOString() : null,
+    }));
     setSaving((prev) => new Set(prev).add(featureId));
     setError(null);
 
-    const { error: dbError } = await createClient()
-      .from("system_features")
-      .update(patch)
-      .eq("id", featureId);
+    const { error: dbError } = await toggleSystemFeature(featureId, completed);
 
     setSaving((prev) => {
       const next = new Set(prev);
@@ -69,31 +73,27 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
     });
     if (dbError) {
       setSystems(before);
-      setError(`No se pudo guardar el cambio: ${dbError.message}`);
+      setError(`No se pudo guardar el cambio: ${dbError}`);
     }
-  }
-
-  async function toggleFeature(featureId: string, completed: boolean) {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const completedAt = completed ? new Date().toISOString() : null;
-
-    await patchFeature(
-      featureId,
-      {
-        is_completed: completed,
-        completed_at: completedAt,
-        completed_by: completed ? user?.id ?? null : null,
-      },
-      (f) => ({ ...f, is_completed: completed, completed_at: completedAt })
-    );
   }
 
   async function setDeadline(featureId: string, value: string) {
     const date = value || null;
-    await patchFeature(featureId, { deadline_date: date }, (f) => ({ ...f, deadline_date: date }));
+    const before = applyOptimistic(featureId, (f) => ({ ...f, deadline_date: date }));
+    setSaving((prev) => new Set(prev).add(featureId));
+    setError(null);
+
+    const { error: dbError } = await setSystemFeatureDeadline(featureId, date);
+
+    setSaving((prev) => {
+      const next = new Set(prev);
+      next.delete(featureId);
+      return next;
+    });
+    if (dbError) {
+      setSystems(before);
+      setError(`No se pudo guardar el cambio: ${dbError}`);
+    }
   }
 
   if (systems.length === 0) {

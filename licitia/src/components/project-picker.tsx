@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { FolderPlus } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { listActiveProjects, createProjectFolder, type ProjectRow } from "@/actions/projects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface Project {
-  id: string;
-  name: string;
-  clients: { name: string } | null;
-}
+type Project = ProjectRow;
 
 /**
  * Selector de carpeta de proyecto: elegir una existente o crear una nueva
@@ -31,13 +27,7 @@ export function ProjectPicker({
   const [error, setError] = useState<string | null>(null);
 
   async function loadProjects() {
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("projects")
-      .select("id, name, clients(name)")
-      .eq("status", "activo")
-      .order("name");
-    setProjects((data ?? []) as never);
+    setProjects(await listActiveProjects());
   }
 
   useEffect(() => {
@@ -48,68 +38,19 @@ export function ProjectPicker({
     if (!newName.trim()) return;
     setBusy(true);
     setError(null);
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("organization_id")
-      .eq("id", user!.id)
-      .single();
-    if (!profile) {
-      setError("Perfil no encontrado");
-      setBusy(false);
-      return;
-    }
 
-    // Cliente: reutilizar si existe, crear si no
-    let clientId: string | null = null;
-    if (newClient.trim()) {
-      const { data: existing } = await supabase
-        .from("clients")
-        .select("id")
-        .ilike("name", newClient.trim())
-        .limit(1)
-        .maybeSingle();
-      if (existing) clientId = existing.id;
-      else {
-        const { data: created, error: clientError } = await supabase
-          .from("clients")
-          .insert({ organization_id: profile.organization_id, name: newClient.trim() })
-          .select("id")
-          .single();
-        if (clientError) {
-          setError(`Error creando cliente: ${clientError.message}`);
-          setBusy(false);
-          return;
-        }
-        clientId = created!.id;
-      }
-    }
-
-    const { data: project, error: projectError } = await supabase
-      .from("projects")
-      .insert({
-        organization_id: profile.organization_id,
-        client_id: clientId,
-        name: newName.trim(),
-        created_by: user!.id,
-      })
-      .select("id")
-      .single();
-    if (projectError) {
-      setError(
-        projectError.message.includes("duplicate")
-          ? "Ya existe una carpeta con ese nombre."
-          : `Error creando carpeta: ${projectError.message}`
-      );
+    const { data: project, error: projectError } = await createProjectFolder({
+      name: newName,
+      clientName: newClient,
+    });
+    if (projectError || !project) {
+      setError(projectError ?? "Error creando carpeta");
       setBusy(false);
       return;
     }
 
     await loadProjects();
-    onChange(project!.id);
+    onChange(project.id);
     setCreating(false);
     setNewName("");
     setNewClient("");

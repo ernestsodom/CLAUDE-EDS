@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FolderInput, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { moveComparisonToFolder } from "@/actions/comparisons";
 import { Button } from "@/components/ui/button";
 import { ComparisonFolderPicker } from "@/components/comparison-folder-picker";
 
@@ -31,10 +31,7 @@ export function MoveComparisonButton({
   async function save() {
     setBusy(true);
     setError(null);
-    const { error: dbError } = await createClient()
-      .from("comparisons")
-      .update({ project_id: projectId, folder_id: folderId })
-      .eq("id", comparisonId);
+    const { error: dbError } = await moveComparisonToFolder(comparisonId, projectId, folderId);
     setBusy(false);
     if (dbError) {
       setError("No se pudo mover la comparación");

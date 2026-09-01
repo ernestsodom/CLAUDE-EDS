@@ -3,14 +3,14 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Check, X, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { renameDocument } from "@/actions/documents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 /**
  * Renombra un documento en el sitio: un lápiz que despliega un campo de
- * texto con el título actual. Escritura directa contra Supabase (la misma
- * política que ya protege documents_update), sin ruta de API de por medio.
+ * texto con el título actual, vía Server Action (misma política
+ * documents_update que antes, ahora aplicada del lado del servidor).
  */
 export function RenameDocumentButton({
   documentId,
@@ -45,10 +45,7 @@ export function RenameDocumentButton({
     }
     setBusy(true);
     setError(null);
-    const { error: dbError } = await createClient()
-      .from("documents")
-      .update({ title: trimmed })
-      .eq("id", documentId);
+    const { error: dbError } = await renameDocument(documentId, trimmed);
     setBusy(false);
     if (dbError) {
       setError("No se pudo guardar el nombre");
