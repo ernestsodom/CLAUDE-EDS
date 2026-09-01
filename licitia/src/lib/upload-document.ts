@@ -9,10 +9,13 @@ export interface UploadedDocument {
  * Sube un documento en dos pasos:
  *  1. POST liviano (JSON) a /api/documents/upload-init: crea el documento,
  *     la versión y el registro de archivo, y devuelve dónde debe ir.
- *  2. El binario se sube DIRECTO desde el navegador a Supabase Storage — sin
+ *  2. El binario se sube DIRECTO desde el navegador al almacenamiento — sin
  *     pasar por ninguna función serverless de Vercel, que rechaza cualquier
  *     request de más de ~4.5 MB (límite fijo de la plataforma, no
- *     configurable) muy por debajo de los 50 MB que la app permite.
+ *     configurable) muy por debajo de los 50 MB que la app permite. Con
+ *     Supabase Storage, sube con supabase-js y la sesión del navegador; con
+ *     Vercel Blob (fase 4), con `@vercel/blob/client` y un token de subida
+ *     de corta duración que emite `/api/documents/blob-upload-token`.
  *
  * Antes el binario viajaba dentro del POST a la API y cualquier documento
  * grande (bases técnicas escaneadas, licitaciones con anexos) moría con un
@@ -39,24 +42,37 @@ export async function uploadDocument(
     throw new Error(message ?? "Error al iniciar la subida");
   }
 
-  const { documentId, versionId, storagePath, bucket } = initJson as {
+  const { documentId, versionId, storagePath, bucket, useBlobStorage } = initJson as {
     documentId: string;
     versionId: string;
     storagePath: string;
     bucket: string;
+    useBlobStorage: boolean;
   };
 
-  const supabase = createClient();
-  const { error: uploadError } = await supabase.storage
-    .from(bucket)
-    .upload(storagePath, file, { contentType: file.type || undefined, upsert: true });
-
-  if (uploadError) {
+  try {
+    if (useBlobStorage) {
+      const { upload } = await import("@vercel/blob/client");
+      await upload(storagePath, file, {
+        access: "private",
+        handleUploadUrl: "/api/documents/blob-upload-token",
+        contentType: file.type || undefined,
+      });
+    } else {
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(storagePath, file, { contentType: file.type || undefined, upsert: true });
+      if (uploadError) throw new Error(uploadError.message);
+    }
+  } catch (uploadError) {
     // Sin archivo en Storage el documento no sirve de nada: se borra el
     // registro para no dejar una fila huérfana (mismo criterio que antes,
     // cuando la subida fallaba dentro de la función del servidor).
     await fetch(`/api/documents/${documentId}`, { method: "DELETE" }).catch(() => {});
-    throw new Error(`Error subiendo a Storage: ${uploadError.message}`);
+    throw new Error(
+      `Error subiendo a Storage: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`
+    );
   }
 
   return { documentId, versionId };

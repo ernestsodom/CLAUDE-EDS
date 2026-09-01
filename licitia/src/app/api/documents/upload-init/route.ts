@@ -6,6 +6,7 @@ import { env } from "@/lib/env";
 import { createDocumentWithFile } from "@/core/repositories/documents.repo";
 import { audit } from "@/core/services/audit.service";
 import { sanitizeStorageFileName } from "@/lib/utils";
+import { useBlobStorage } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -28,9 +29,10 @@ const BodySchema = z.object({
  * y cualquier PDF grande moría con un 413 que ni siquiera es JSON.
  *
  * Ahora esta ruta solo crea documento + versión + registro de archivo y
- * devuelve la ruta de Storage; el navegador sube el binario DIRECTO a
- * Supabase Storage con su propia sesión (createClient del cliente), sin
- * pasar por ninguna función de Vercel.
+ * devuelve la ruta de Storage; el navegador sube el binario DIRECTO al
+ * almacenamiento (Supabase Storage con su propia sesión, o Vercel Blob con
+ * un token de subida — ver `useBlobStorage` en la respuesta y
+ * `lib/upload-document.ts`), sin pasar por ninguna función de Vercel.
  */
 export const POST = withErrorHandling(async (request: Request) => {
   const { supabase, user, profile } = await requireUser();
@@ -71,7 +73,7 @@ export const POST = withErrorHandling(async (request: Request) => {
   });
 
   return NextResponse.json(
-    { documentId, versionId, storagePath, bucket: "documents" },
+    { documentId, versionId, storagePath, bucket: "documents", useBlobStorage: useBlobStorage() },
     { status: 201 }
   );
 });

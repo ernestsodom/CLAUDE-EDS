@@ -24,6 +24,7 @@ import { audit } from "./audit.service";
 import { usageLogger } from "./ai-usage.service";
 import { resolveTimelineDates } from "./timeline-resolver";
 import { sanitizeStorageFileName } from "@/lib/utils";
+import { useBlobStorage, uploadBuffer, downloadBlob } from "@/lib/storage";
 import type { PageText } from "@/core/domain/types";
 import {
   ENGINE_LABELS,
@@ -380,9 +381,14 @@ async function stageExtract(
     .single();
   if (!file) throw new Error("Archivo no encontrado para la versión");
 
-  const { data: blob, error } = await db.storage.from("documents").download(file.storage_path);
-  if (error || !blob) throw new Error(`Error descargando el archivo: ${error?.message}`);
-  const buffer = Buffer.from(await blob.arrayBuffer());
+  let buffer: Buffer;
+  if (useBlobStorage()) {
+    buffer = await downloadBlob(file.storage_path);
+  } else {
+    const { data: blob, error } = await db.storage.from("documents").download(file.storage_path);
+    if (error || !blob) throw new Error(`Error descargando el archivo: ${error?.message}`);
+    buffer = Buffer.from(await blob.arrayBuffer());
+  }
 
   if (file.mime_type.includes("zip") || file.file_name.toLowerCase().endsWith(".zip")) {
     await expandZip(db, params, buffer);
@@ -851,14 +857,24 @@ async function expandZip(db: DB, params: StageParams, buffer: Buffer) {
     if (!version) continue;
 
     const path = `${params.organizationId}/${child.id}/1/${sanitizeStorageFileName(entry.fileName)}`;
-    const { error: uploadError } = await db.storage
-      .from("documents")
-      .upload(path, entry.buffer, { contentType: entry.mimeType });
-    if (uploadError) {
+    try {
+      if (useBlobStorage()) {
+        await uploadBuffer(path, entry.buffer, entry.mimeType);
+      } else {
+        const { error: uploadError } = await db.storage
+          .from("documents")
+          .upload(path, entry.buffer, { contentType: entry.mimeType });
+        if (uploadError) throw new Error(uploadError.message);
+      }
+    } catch (uploadError) {
       // Mismo criterio que la subida directa: sin archivo, sin documento
       // huérfano. Un ZIP con una entrada problemática no debe frenar al resto.
       await db.from("documents").delete().eq("id", child.id);
-      logger.warn("zip_entry_upload_failed", { documentId: child.id, entry: entry.fileName, error: uploadError.message });
+      logger.warn("zip_entry_upload_failed", {
+        documentId: child.id,
+        entry: entry.fileName,
+        error: uploadError instanceof Error ? uploadError.message : String(uploadError),
+      });
       continue;
     }
     await db.from("files").insert({

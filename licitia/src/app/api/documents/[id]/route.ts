@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/supabase/server";
 import { withErrorHandling, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { audit } from "@/core/services/audit.service";
 import { logger } from "@/lib/logger";
+import { useBlobStorage, removeBlobs } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -55,9 +56,19 @@ export const DELETE = withErrorHandling(
     }
 
     if (paths.length > 0) {
-      const { error } = await supabase.storage.from("documents").remove(paths);
-      // Un archivo ya inexistente no debe impedir borrar el documento.
-      if (error) logger.warn("storage_delete_failed", { documentId: id, error: error.message });
+      try {
+        if (useBlobStorage()) await removeBlobs(paths);
+        else {
+          const { error } = await supabase.storage.from("documents").remove(paths);
+          if (error) throw new Error(error.message);
+        }
+      } catch (error) {
+        // Un archivo ya inexistente no debe impedir borrar el documento.
+        logger.warn("storage_delete_failed", {
+          documentId: id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     const { error: deleteError, count } = await supabase

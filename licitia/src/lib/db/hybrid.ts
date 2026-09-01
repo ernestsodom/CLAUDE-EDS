@@ -2,23 +2,30 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminDbClient, createDbClient, type DbClient } from "./index";
 
 /**
- * Cliente de transición: datos en Neon, archivos todavía en Supabase.
+ * Cliente de transición: datos en Neon, con `.storage`/`.auth` de Supabase
+ * disponibles como respaldo.
  *
  * Migrar un sistema vivo por partes exige que las partes convivan. Aquí las
- * consultas (`.from`, `.rpc`) ya van a Neon, mientras `.storage` sigue
- * apuntando a Supabase hasta que se complete la fase 4 (los cinco archivos
- * que suben y descargan documentos y adjuntos).
+ * consultas (`.from`, `.rpc`) ya van a Neon. `.storage` sigue siendo el de
+ * Supabase, pero desde la fase 4 los cinco puntos que suben/descargan
+ * documentos y adjuntos (`lib/storage.ts`, `lib/upload-document.ts`) miran
+ * primero `useBlobStorage()`: si `BLOB_READ_WRITE_TOKEN` está puesta, van a
+ * Vercel Blob y ni tocan este `.storage`; si no, caen aquí, a Supabase,
+ * exactamente como antes. `.auth` no lo usa nadie ya (fase 3): sigue
+ * expuesto solo porque `SupabaseClient["storage"]`/`["auth"]` completan el
+ * tipo que finge `asSupabaseClient()`.
  *
- * Cambiar las dos cosas a la vez habría significado una única entrega
- * enorme, imposible de verificar por partes y de revertir si algo falla.
+ * Cambiar datos, archivos y autenticación a la vez habría significado una
+ * única entrega enorme, imposible de verificar por partes y de revertir si
+ * algo falla.
  *
- * El interruptor es `DATABASE_URL`: si no está, todo sigue yendo a Supabase
- * exactamente como hasta ahora. Nada cambia de comportamiento hasta que esa
- * variable existe.
+ * El interruptor de esta capa es `DATABASE_URL`: si no está, todo sigue
+ * yendo a Supabase exactamente como hasta ahora. Nada cambia de
+ * comportamiento hasta que esa variable existe.
  */
 
 export interface HybridClient extends DbClient {
-  /** Todavía en Supabase: se reemplaza en la fase 4. */
+  /** Respaldo de Supabase: activo cuando `useBlobStorage()` es falso. */
   storage: SupabaseClient["storage"];
   auth: SupabaseClient["auth"];
 }

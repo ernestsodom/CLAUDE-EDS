@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/supabase/server";
 import { withErrorHandling, NotFoundError, ValidationError } from "@/lib/errors";
 import { env } from "@/lib/env";
 import { sanitizeStorageFileName } from "@/lib/utils";
+import { useBlobStorage, uploadBuffer, removeBlobs } from "@/lib/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -39,13 +40,16 @@ export const POST = withErrorHandling(
     const storagePath = `${profile.organization_id}/comentarios/${id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { error: uploadError } = await supabase.storage
-      .from("attachments")
-      .upload(storagePath, buffer, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-    if (uploadError) throw new Error(`Error subiendo el adjunto: ${uploadError.message}`);
+    const contentType = file.type || "application/octet-stream";
+
+    if (useBlobStorage()) {
+      await uploadBuffer(storagePath, buffer, contentType);
+    } else {
+      const { error: uploadError } = await supabase.storage
+        .from("attachments")
+        .upload(storagePath, buffer, { contentType, upsert: false });
+      if (uploadError) throw new Error(`Error subiendo el adjunto: ${uploadError.message}`);
+    }
 
     const { data: attachment, error } = await supabase
       .from("note_attachments")
@@ -60,7 +64,8 @@ export const POST = withErrorHandling(
       .single();
     if (error) {
       // No dejar el binario huérfano si la fila no se pudo crear.
-      await supabase.storage.from("attachments").remove([storagePath]);
+      if (useBlobStorage()) await removeBlobs([storagePath]);
+      else await supabase.storage.from("attachments").remove([storagePath]);
       throw new Error(`Error registrando el adjunto: ${error.message}`);
     }
 
