@@ -1,4 +1,4 @@
-import { put, del, get, list } from "@vercel/blob";
+import { put, del, get } from "@vercel/blob";
 
 /**
  * Fase 4 de la migración: almacenamiento de archivos.
@@ -68,24 +68,7 @@ export async function uploadBuffer(
  */
 export async function downloadBlob(pathname: string): Promise<Buffer> {
   const result = await get(pathname, { access: "private", token: blobToken() });
-  if (!result) {
-    // Log temporal: diagnosticando por qué get() no encuentra un pathname
-    // que la subida (con el mismo token) debería haber creado. Lista lo que
-    // el store realmente tiene bajo ese prefijo, para ver si es un problema
-    // de nombre/encoding o si el store está genuinamente vacío ahí.
-    const prefix = pathname.split("/").slice(0, -1).join("/");
-    try {
-      const listing = await list({ prefix, token: blobToken() });
-      console.error("blob_not_found_debug", {
-        pathname,
-        prefix,
-        found: listing.blobs.map((b) => b.pathname),
-      });
-    } catch (listError) {
-      console.error("blob_not_found_debug_list_failed", { pathname, listError });
-    }
-    throw new Error(`Archivo no encontrado en Blob Storage: ${pathname}`);
-  }
+  if (!result) throw new Error(`Archivo no encontrado en Blob Storage: ${pathname}`);
   const chunks: Uint8Array[] = [];
   for await (const chunk of result.stream as unknown as AsyncIterable<Uint8Array>) {
     chunks.push(chunk);
