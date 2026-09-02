@@ -39,6 +39,16 @@ create table if not exists public.ba_account (
   id text primary key,
   "accountId" text not null,
   "providerId" text not null,
+  -- Columna agregada por better-auth 1.7 (no existía cuando se escribió este
+  -- archivo originalmente): identifica al emisor de la cuenta —
+  -- `local:<providerId>` para credenciales locales, `local:oauth:<providerId>`
+  -- para OAuth sin issuer propio. El sign-in de email/password (dist/api/
+  -- routes/sign-in.mjs) filtra la cuenta por `providerId`, `issuer` Y
+  -- `accountId` a la vez; sin esta columna, la búsqueda nunca encuentra la
+  -- cuenta y devuelve "Credenciales inválidas" aunque la contraseña sea
+  -- correcta. Detectado en producción: el hash bcrypt migrado verificaba bien
+  -- a mano pero el login fallaba igual.
+  issuer text not null,
   "userId" text not null references public.ba_user(id) on delete cascade,
   "accessToken" text,
   "refreshToken" text,
@@ -84,8 +94,8 @@ values ('f3b44a36-8f58-4322-98ff-af9bb078ec91', 'ernestodom', 'ernestodom@gmail.
         '2026-08-06 15:47:43.895757+00', now())
 on conflict (id) do nothing;
 
-insert into public.ba_account (id, "accountId", "providerId", "userId", password, "createdAt", "updatedAt")
-values (gen_random_uuid()::text, 'f3b44a36-8f58-4322-98ff-af9bb078ec91', 'credential',
+insert into public.ba_account (id, "accountId", "providerId", issuer, "userId", password, "createdAt", "updatedAt")
+values (gen_random_uuid()::text, 'f3b44a36-8f58-4322-98ff-af9bb078ec91', 'credential', 'local:credential',
         'f3b44a36-8f58-4322-98ff-af9bb078ec91',
         '$2a$10$F0Ai9aDw67x.vNNN7Igpue/YUAmQDuXIFLpp17xTTwBXDYOWsr9su', now(), now())
 on conflict (id) do nothing;
