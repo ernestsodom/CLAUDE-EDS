@@ -2,7 +2,22 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth", "/api/internal", "/api/auth"];
+// api/documents/blob-upload-token es pública por una razón distinta a las
+// demás: Vercel Blob la llama server-a-server (sin cookie de sesión) para
+// avisar que una subida terminó, firmando el aviso con x-vercel-signature
+// en vez de autenticar con una sesión — handleUpload() ya verifica esa
+// firma. Bloquearla aquí no rompía la subida en sí, pero el blob privado
+// nunca quedaba registrado como listo para leerse por pathname, y la
+// ingesta fallaba con "Archivo no encontrado en Blob Storage". El primer
+// aviso (pedir el token) sigue protegido: requireUser() se llama dentro
+// de la propia ruta, en onBeforeGenerateToken.
+const PUBLIC_PATHS = [
+  "/login",
+  "/auth",
+  "/api/internal",
+  "/api/auth",
+  "/api/documents/blob-upload-token",
+];
 
 /**
  * Igual que `useNeon()` (`lib/db/hybrid.ts`), pero sin importar de ahí: esa
