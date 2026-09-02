@@ -40,7 +40,13 @@ export async function listDocuments(supabase: SupabaseClient, filters: DocumentF
 
 export async function getDocument(supabase: SupabaseClient, id: string): Promise<DocumentRow> {
   const { data, error } = await supabase.from("documents").select("*").eq("id", id).single();
-  if (error || !data) throw new NotFoundError("Documento no encontrado");
+  if (error || !data) {
+    // Log temporal: diagnosticando un "Documento no encontrado" en Neon con
+    // datos que sí existen y pasan RLS al comprobarlos a mano. Quitar una vez
+    // resuelto.
+    console.error("get_document_not_found", { id, error });
+    throw new NotFoundError("Documento no encontrado");
+  }
   return data as DocumentRow;
 }
 
