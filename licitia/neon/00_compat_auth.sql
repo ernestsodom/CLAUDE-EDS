@@ -64,6 +64,30 @@ grant usage on schema auth to anon, authenticated, service_role;
 grant select on auth.users to authenticated, service_role;
 
 -- ---------------------------------------------------------------------
+-- `service_role` como lo usa el pipeline de ingesta (fase 2)
+--
+-- `createAdminDbClient()` (lib/db/index.ts) ejecuta "sin identidad" para
+-- tareas de fondo — el equivalente a `service_role` en Supabase, que
+-- BYPASSA RLS por completo. Al principio esa capa solo dejaba
+-- `app.user_id` vacío en vez de cambiar de rol: con eso, `auth.uid()` es
+-- null y expresiones como `organization_id = current_org_id()` son NULL
+-- (falsas) — el resultado es CERO filas visibles, lo opuesto de "verlo
+-- todo". Detectado en producción: la ingesta fallaba con "Documento no
+-- encontrado" sobre un documento que sí existía y sí pasaba RLS para el
+-- usuario que lo subió.
+--
+-- La corrección: `service_role` ya tiene `bypassrls` (arriba) pero le
+-- faltaban permisos sobre las tablas de negocio (solo tenía acceso a
+-- `auth.users`), y `app_user` no podía asumirlo. El ejecutor
+-- (`lib/db/executor.ts`) hace `set local role service_role` cuando
+-- `userId` es null — dura solo la transacción, igual que `app.user_id`.
+-- ---------------------------------------------------------------------
+grant usage on schema public to service_role;
+grant select, insert, update, delete on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
+grant service_role to app_user;
+
+-- ---------------------------------------------------------------------
 -- Rol de aplicacion
 --
 -- PostgreSQL EXIME al dueño de una tabla de sus propias politicas RLS. Si

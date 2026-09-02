@@ -63,8 +63,22 @@ export function createExecutor(connectionString: string): Executor {
     const client = await p.connect();
     try {
       await client.query("begin");
-      // `local = true`: el valor solo vive dentro de esta transacción.
-      await client.query("select set_config('app.user_id', $1, true)", [userId ?? ""]);
+      if (userId === null) {
+        // Cliente admin (ingesta y tareas de fondo): `app.user_id` vacío NO
+        // basta para "ver todo" — las 65 políticas RLS comparan contra
+        // `auth.uid()` (que sería null) y eso hace que condiciones como
+        // `organization_id = current_org_id()` sean NULL, es decir falsas:
+        // CERO filas visibles, no todas. `service_role` (`00_compat_auth.sql`,
+        // ya existía para la compatibilidad con Supabase) tiene `bypassrls`;
+        // `app_user` puede pasar a él porque se le otorgó membresía
+        // (`grant service_role to app_user`). `set local role`: el cambio,
+        // como `app.user_id`, muere con la transacción — la siguiente que
+        // reutilice esta conexión del pool vuelve a `app_user` sola.
+        await client.query("set local role service_role");
+      } else {
+        // `local = true`: el valor solo vive dentro de esta transacción.
+        await client.query("select set_config('app.user_id', $1, true)", [userId]);
+      }
       const result = await fn(client);
       await client.query("commit");
       return result;
@@ -104,7 +118,13 @@ export function createIsolatedExecutor(connectionString: string): Executor {
     const client = await p.connect();
     try {
       await client.query("begin");
-      await client.query("select set_config('app.user_id', $1, true)", [userId ?? ""]);
+      if (userId === null) {
+        // Ver el comentario equivalente en createExecutor: sin esto, el
+        // cliente admin de las pruebas vería CERO filas bajo RLS, no todas.
+        await client.query("set local role service_role");
+      } else {
+        await client.query("select set_config('app.user_id', $1, true)", [userId]);
+      }
       const result = await fn(client);
       await client.query("commit");
       return result;
