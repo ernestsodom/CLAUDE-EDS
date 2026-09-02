@@ -86,18 +86,12 @@ comment on column public.document_summaries.data_migration is
 -- Estado intermedio que antes no existía porque no había nada entre "subido"
 -- y "procesado". Los documentos anteriores conservan 'procesado' y se siguen
 -- viendo igual.
+--
+-- En Neon, `documents.status` es un enum nativo (document_status), no un
+-- check constraint — hay que sumarle el valor en vez de reescribir una regla.
+-- Si en Supabase es un check constraint en texto plano, usar en su lugar:
+--   alter table public.documents drop constraint if exists documents_status_check;
+--   alter table public.documents add constraint documents_status_check
+--     check (status in ('subido','procesando','cargado','procesado','error'));
 -- ---------------------------------------------------------------------
-do $$
-begin
-  if exists (
-    select 1 from pg_constraint
-    where conname = 'documents_status_check' and conrelid = 'public.documents'::regclass
-  ) then
-    alter table public.documents drop constraint documents_status_check;
-  end if;
-end;
-$$;
-
-alter table public.documents
-  add constraint documents_status_check
-  check (status in ('subido','procesando','cargado','procesado','error'));
+alter type document_status add value if not exists 'cargado';
