@@ -15,6 +15,7 @@ export type UsageFeature =
   | "clasificacion"
   | "resumen"
   | "sistemas"
+  | "evaluacion"
   | "requerimientos"
   | "timeline"
   | "chat"
@@ -25,8 +26,9 @@ export type UsageFeature =
 
 export const FEATURE_LABELS: Record<UsageFeature, string> = {
   clasificacion: "Clasificación",
-  resumen: "Resumen ejecutivo",
-  sistemas: "Sistemas y funcionalidades",
+  resumen: "Resumen",
+  sistemas: "Sistemas solicitados",
+  evaluacion: "Evaluación y anexos",
   requerimientos: "Puntos críticos",
   timeline: "Línea de tiempo",
   chat: "Chat IA",

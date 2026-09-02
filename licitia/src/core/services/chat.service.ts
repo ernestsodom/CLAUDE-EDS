@@ -133,14 +133,30 @@ async function buildProcessedContext(
           (s.budget_detail ? ` — ${s.budget_detail}` : "")
       );
     }
-    const criticalPoints = formatItemList(s.critical_points);
-    if (criticalPoints) lines.push(`\nASPECTOS CRÍTICOS:\n${criticalPoints}`);
     const obligations = formatItemList(s.obligations);
     if (obligations) lines.push(`\nOBLIGACIONES:\n${obligations}`);
     const restrictions = formatItemList(s.restrictions);
     if (restrictions) lines.push(`\nRESTRICCIONES:\n${restrictions}`);
-    const deliverables = formatItemList(s.deliverables);
-    if (deliverables) lines.push(`\nENTREGABLES:\n${deliverables}`);
+    const iso9001 = s.iso_9001 as { exigida: boolean | null; detalle: string | null } | null;
+    const iso27001 = s.iso_27001 as { exigida: boolean | null; detalle: string | null } | null;
+    if (iso9001?.exigida != null || iso27001?.exigida != null) {
+      lines.push(
+        `\nCERTIFICACIONES: ISO 9001: ${iso9001?.exigida ? "exigida" : iso9001?.exigida === false ? "no exigida" : "no mencionada"}` +
+          `${iso9001?.detalle ? ` (${iso9001.detalle})` : ""}. ` +
+          `ISO 27001: ${iso27001?.exigida ? "exigida" : iso27001?.exigida === false ? "no exigida" : "no mencionada"}` +
+          `${iso27001?.detalle ? ` (${iso27001.detalle})` : ""}.`
+      );
+    }
+    const migration = s.data_migration as
+      | { exigida: boolean | null; plazo: string | null; volumen: string | null; detalle: string | null }
+      | null;
+    if (migration?.exigida) {
+      lines.push(
+        `\nMIGRACIÓN DE DATOS: exigida${migration.plazo ? `, plazo: ${migration.plazo}` : ""}` +
+          `${migration.volumen ? `, volumen: ${migration.volumen}` : ""}` +
+          `${migration.detalle ? ` — ${migration.detalle}` : ""}.`
+      );
+    }
     parts.push(lines.join("\n"));
   }
 
@@ -238,10 +254,8 @@ function localProcessedMatches(
   const s = detail.summary as Record<string, unknown> | null;
   if (s) {
     push("Resumen", String(s.summary ?? ""), null, 0.1);
-    pushList(s.critical_points, "Aspecto crítico");
     pushList(s.obligations, "Obligación");
     pushList(s.restrictions, "Restricción");
-    pushList(s.deliverables, "Entregable");
   }
 
   for (const r of detail.requirements as Array<Record<string, unknown>>) {

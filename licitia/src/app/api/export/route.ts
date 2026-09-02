@@ -31,30 +31,50 @@ export const POST = withErrorHandling(async (request: Request) => {
     if (!s) throw new NotFoundError("Resumen no encontrado");
     const list = (items: Array<{ titulo: string; detalle: string }> | null) =>
       (items ?? []).map((i) => `${i.titulo}: ${i.detalle}`);
+    const iso = (norma: string, c: { exigida: boolean | null; detalle: string | null } | null) =>
+      `${norma}: ${c?.exigida ? "exigida" : c?.exigida === false ? "no exigida" : "no mencionada en el documento"}` +
+      `${c?.detalle ? ` — ${c.detalle}` : ""}`;
+    const migracion = s.data_migration as
+      | { exigida: boolean | null; plazo: string | null; volumen: string | null; detalle: string | null }
+      | null;
     payload = {
-      title: `Informe Ejecutivo — ${s.documents?.title ?? ""}`,
+      title: `Resumen — ${s.documents?.title ?? ""}`,
       sections: [
         { title: "Resumen general", paragraphs: [s.summary ?? ""] },
         { title: "Objetivo", paragraphs: [s.objective ?? ""] },
         { title: "Alcance", paragraphs: [s.scope ?? ""] },
-        { title: "Requerimientos", paragraphs: list(s.requirements) },
+        {
+          title: "Plazo y presupuesto",
+          paragraphs: [
+            `Plazo de implementación: ${s.implementation_deadline ?? "no especificado en el documento"}`,
+            s.budget_amount != null
+              ? `Presupuesto: ${s.budget_amount} ${s.budget_currency ?? ""} (${s.budget_period ?? "sin periodicidad indicada"})${s.budget_detail ? ` — ${s.budget_detail}` : ""}`
+              : "Presupuesto: no especificado en el documento",
+          ],
+        },
         { title: "Obligaciones", paragraphs: list(s.obligations) },
         { title: "Restricciones", paragraphs: list(s.restrictions) },
         {
-          title: "Riesgos",
-          paragraphs: ((s.risks ?? []) as Array<{ riesgo: string; nivel: string; mitigacion: string }>).map(
-            (r) => `[${r.nivel.toUpperCase()}] ${r.riesgo} — Mitigación: ${r.mitigacion}`
-          ),
+          title: "Certificaciones",
+          paragraphs: [iso("ISO 9001", s.iso_9001), iso("ISO 27001", s.iso_27001)],
         },
-        { title: "Aspectos críticos", paragraphs: list(s.critical_points) },
-        { title: "Entregables", paragraphs: list(s.deliverables) },
         {
-          title: "Cronograma",
-          paragraphs: ((s.schedule ?? []) as Array<{ hito: string; plazo: string }>).map(
-            (h) => `${h.hito}: ${h.plazo}`
-          ),
+          title: "Migración de datos",
+          paragraphs: [
+            migracion?.exigida
+              ? [
+                  "Exigida",
+                  migracion.plazo ? `Plazo: ${migracion.plazo}` : null,
+                  migracion.volumen ? `Volumen: ${migracion.volumen}` : null,
+                  migracion.detalle,
+                ]
+                  .filter(Boolean)
+                  .join(" — ")
+              : migracion?.exigida === false
+                ? "No exigida"
+                : "No mencionada en el documento",
+          ],
         },
-        { title: "Recomendaciones", paragraphs: (s.recommendations ?? []) as string[] },
       ],
     };
   } else if (kind === "comparacion") {

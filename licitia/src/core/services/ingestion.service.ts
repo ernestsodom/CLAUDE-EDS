@@ -7,6 +7,7 @@ import { chunkPages } from "./chunking.service";
 import {
   classifyDocument,
   extractDeliveredItems,
+  extractEvaluation,
   extractRequirements,
   extractSystems,
   extractTimeline,
@@ -15,6 +16,7 @@ import {
 import {
   classifyDocumentLocal,
   extractDeliveredItemsLocal,
+  extractEvaluationLocal,
   extractRequirementsLocal,
   extractSystemsLocal,
   extractTimelineLocal,
@@ -140,25 +142,33 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 const STAGE_TIMEOUT_MS = 52_000;
 
 // ============================================================================
-// Pipeline de ingesta POR ETAPAS.
+// CARGA (automática) y ANÁLISIS (a pedido).
 //
-// Cada llamada a runNextStage() ejecuta un único tramo acotado de trabajo y
-// devuelve el estado. El cliente vuelve a llamar hasta recibir done=true.
+// La carga deja el documento listo para consultar: extrae el texto, lo trocea
+// y lo clasifica (título real, tipo, cliente, monto, región). Ahí termina.
+// Ningún análisis de IA se ejecuta solo: cada uno —resumen, sistemas, línea
+// de tiempo, evaluación y anexos, puntos críticos, vectores del chat— se pide
+// por separado desde la ficha del documento.
 //
-// Motivo del diseño: las funciones serverless tienen un límite de duración
-// (60 s en el plan Hobby de Vercel) y no garantizan que el trabajo lanzado
-// "en segundo plano" tras responder llegue a ejecutarse. Troceando el
-// pipeline, cada etapa cabe holgadamente en el límite, el progreso es
-// visible y el proceso es reanudable: si una etapa falla, se reintenta sin
-// repetir las anteriores.
+// El porqué del cambio: antes la subida encadenaba las ocho etapas de una
+// sola vez. Eso significaba esperar varios minutos por análisis que quizá
+// nadie iba a mirar, agotar la cuota de los proveedores de IA en documentos
+// que solo se querían archivar, y —lo peor— que el fallo de una etapa dejara
+// al documento entero en "error" aunque las anteriores hubieran salido bien.
+// Pidiendo cada parte por separado, se paga (en tiempo y cuota) solo lo que
+// se usa, y el fallo de una parte no arrastra a las demás.
 //
-// Etapas (documents.processing_step marca la siguiente pendiente):
-//   extraccion_texto → chunking → embeddings* → clasificacion → resumen
-//   → sistemas → requerimientos → timeline → completado
-//   (*) embeddings se repite en lotes mientras queden chunks sin vectorizar.
-//   ("variables" — variables técnicas — se retiró: era redundante con
-//   sistemas/funcionalidades y puntos críticos, que ya cubren esa información
-//   de forma más específica y accionable.)
+// Se conserva el troceado dentro de la carga —una llamada por etapa, el
+// cliente repite hasta done=true— porque el motivo original sigue vigente:
+// las funciones serverless tienen un límite de duración (60 s en el plan
+// Hobby de Vercel) y no garantizan el trabajo lanzado "en segundo plano".
+//
+// Etapas de la carga (documents.processing_step marca la siguiente pendiente):
+//   extraccion_texto → chunking → cargado
+// Partes a pedido (una llamada cada una, ver runAnalysisPart):
+//   clasificacion*, resumen, sistemas, timeline, evaluacion, criticos, chat
+//   (*) la clasificación se ejecuta al final de la carga, no a pedido: sin
+//   ella el documento aparecería en la lista con el nombre del archivo.
 // ============================================================================
 
 const EMBED_BATCH = 120;
@@ -181,28 +191,69 @@ export interface StageResult {
 
 const NEXT: Record<string, string> = {
   extraccion_texto: "chunking",
-  chunking: "embeddings",
-  embeddings: "clasificacion",
-  clasificacion: "resumen",
-  resumen: "sistemas",
-  sistemas: "requerimientos",
-  requerimientos: "timeline",
-  timeline: "completado",
+  chunking: "clasificacion",
+  clasificacion: "cargado",
 };
 
 /** Etiquetas legibles para la interfaz. */
 export const STEP_LABELS: Record<string, string> = {
   extraccion_texto: "extrayendo texto",
   chunking: "dividiendo el documento",
-  embeddings: "generando vectores de búsqueda",
   clasificacion: "clasificando",
-  resumen: "redactando el resumen ejecutivo",
-  sistemas: "identificando sistemas y funcionalidades",
+  cargado: "cargado",
+  // Se conservan las etiquetas de los pasos que ahora son partes a pedido:
+  // documentos procesados con la versión anterior pueden tener cualquiera de
+  // estos valores guardados en processing_step.
+  embeddings: "generando vectores de búsqueda",
+  resumen: "redactando el resumen",
+  sistemas: "identificando los sistemas",
   requerimientos: "extrayendo puntos críticos",
   timeline: "construyendo la línea de tiempo",
   completado: "completado",
 };
 
+// ─── Partes que se analizan a pedido ────────────────────────────────────────
+
+export const ANALYSIS_PARTS = [
+  "resumen",
+  "sistemas",
+  "timeline",
+  "evaluacion",
+  "criticos",
+  "chat",
+] as const;
+export type AnalysisPart = (typeof ANALYSIS_PARTS)[number];
+
+export function isAnalysisPart(value: string): value is AnalysisPart {
+  return (ANALYSIS_PARTS as readonly string[]).includes(value);
+}
+
+/** Título de cada parte en la ficha del documento. */
+export const PART_LABELS: Record<AnalysisPart, string> = {
+  resumen: "Resumen",
+  sistemas: "Sistemas solicitados",
+  timeline: "Línea de tiempo",
+  evaluacion: "Evaluación y anexos",
+  criticos: "Puntos críticos",
+  chat: "Chat IA",
+};
+
+/** Qué produce cada parte, para que se entienda antes de gastar cuota en ella. */
+export const PART_DESCRIPTIONS: Record<AnalysisPart, string> = {
+  resumen:
+    "Objetivo y alcance, plazo y presupuesto, obligaciones y restricciones, exigencia de ISO 9001/27001 y migración de datos.",
+  sistemas: "El listado de los sistemas que la licitación solicita.",
+  timeline: "Los hitos y plazos del proceso, con sus fechas.",
+  evaluacion: "Criterios de evaluación con su ponderación y los anexos que hay que presentar.",
+  criticos: "Garantías, SLA, multas, plazos, servidores, certificados y experiencia exigida.",
+  chat: "Prepara la búsqueda por significado para poder preguntarle al documento en el Chat IA.",
+};
+
+/**
+ * Avanza UNA etapa de la carga (extraer texto → trocear → clasificar). No
+ * ejecuta ningún análisis: al terminar, el documento queda en "cargado" y es
+ * el usuario quien pide cada parte por separado.
+ */
 export async function runNextStage(params: StageParams): Promise<StageResult> {
   const db = createAdminClient();
   const { documentId } = params;
@@ -216,7 +267,10 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
 
   const mode: AnalysisMode = params.mode ?? "auto";
   const step = doc.processing_step ?? "extraccion_texto";
-  if (step === "completado") return { step: "completado", done: true };
+  // "completado" es el terminal de los documentos procesados con la versión
+  // anterior del pipeline; "cargado", el de esta. Ambos significan que la
+  // carga ya está hecha y no hay nada más que avanzar aquí.
+  if (step === "cargado" || step === "completado") return { step, done: true };
 
   const { data: version } = await db
     .from("document_versions")
@@ -228,12 +282,12 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
   const versionId = version.id as string;
 
   const advance = async (to: string) => {
-    const finished = to === "completado";
+    const finished = to === "cargado";
     await db
       .from("documents")
       .update({
         processing_step: to,
-        status: finished ? "procesado" : "procesando",
+        status: finished ? "cargado" : "procesando",
         processing_error: null,
       })
       .eq("id", documentId);
@@ -244,8 +298,8 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
       case "extraccion_texto": {
         const detail = await stageExtract(db, params, versionId, mode);
         if (detail === "zip") {
-          await advance("completado");
-          return { step: "completado", done: true, detail: "ZIP expandido" };
+          await advance("cargado");
+          return { step: "cargado", done: true, detail: "ZIP expandido" };
         }
         await advance(NEXT[step]);
         return { step: NEXT[step], done: false, detail };
@@ -257,78 +311,22 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
         return { step: NEXT[step], done: false, detail };
       }
 
-      case "embeddings": {
-        // Solo Gemini genera embeddings hoy. Con cualquier motor que no los
-        // ofrezca se omiten sin más: la búsqueda sigue funcionando por texto
-        // completo en español. Se decide por capacidad declarada del
-        // proveedor, no por su nombre, para que sumar uno nuevo no obligue a
-        // tocar esta condición.
-        const providerInfo = isProviderId(mode) ? getProviderInfo(mode) : null;
-        if (mode === "local" || (isProviderId(mode) && !providerInfo?.supportsEmbeddings)) {
-          await advance(NEXT[step]);
-          return {
-            step: NEXT[step],
-            done: false,
-            detail: `vectores omitidos (${ENGINE_LABELS[mode]} no genera embeddings; la búsqueda seguirá funcionando por texto)`,
-          };
-        }
-        if (!isProviderConfigured(EMBEDDING_PROVIDER)) {
-          await advance(NEXT[step]);
-          return { step: NEXT[step], done: false, detail: "vectores omitidos (Gemini no configurado)" };
-        }
-        try {
-          const remaining = await stageEmbedBatch(db, versionId);
-          if (remaining > 0) {
-            return { step: "embeddings", done: false, detail: `${remaining} fragmentos pendientes` };
-          }
-        } catch (err) {
-          // Los vectores son una mejora (búsqueda semántica), no un requisito
-          // para poder analizar el documento: ante falta de cuota se omiten
-          // en cualquier modo, incluido 'gemini' explícito.
-          if (!isQuotaError(err)) throw err;
-          logger.warn("embeddings_skipped_quota", { documentId });
-          await advance(NEXT[step]);
-          return { step: NEXT[step], done: false, detail: "vectores omitidos por falta de cuota" };
-        }
-        await advance(NEXT[step]);
-        return { step: NEXT[step], done: false };
-      }
-
       case "clasificacion": {
         const r = await stageClassify(db, params, versionId, mode);
-        await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
+        await advance("cargado");
+        await audit(params.organizationId, params.userId, "document.loaded", "document", documentId);
+        logger.info("document_loaded", { documentId, mode });
+        return { step: "cargado", done: true, detail: r.detail, engine: r.engine };
       }
 
-      case "resumen": {
-        const r = await stageSummary(db, documentId, versionId, mode, params.organizationId, params.userId);
-        await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, engine: r.engine };
+      default: {
+        // Cualquier paso de la versión anterior (embeddings, resumen,
+        // sistemas…) que quedara guardado a medias: la carga en sí ya estaba
+        // hecha, así que se cierra sin repetirla. Lo que falte se pide ahora
+        // como parte.
+        await advance("cargado");
+        return { step: "cargado", done: true };
       }
-
-      case "sistemas": {
-        const r = await stageSystems(db, documentId, versionId, doc.doc_type, mode, params.organizationId, params.userId);
-        await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
-      }
-
-      case "requerimientos": {
-        const r = await stageRequirements(db, documentId, versionId, doc.doc_type, mode, params.organizationId, params.userId);
-        await advance(NEXT[step]);
-        return { step: NEXT[step], done: false, detail: r.detail, engine: r.engine };
-      }
-
-      case "timeline": {
-        const r = await stageTimeline(db, documentId, versionId, doc.doc_date, mode, params.organizationId, params.userId);
-        await advance("completado");
-        await audit(params.organizationId, params.userId, "document.processed", "document", documentId);
-        logger.info("document_processed", { documentId, mode });
-        return { step: "completado", done: true, detail: r.detail, engine: r.engine };
-      }
-
-      default:
-        await advance("completado");
-        return { step: "completado", done: true };
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -341,13 +339,173 @@ export async function runNextStage(params: StageParams): Promise<StageResult> {
   }
 }
 
-/** Ejecuta todas las etapas seguidas (para entornos sin límite estricto de duración). */
+/** Ejecuta la carga completa de una vez (entornos sin límite de duración). */
 export async function processDocumentFully(params: StageParams): Promise<void> {
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 10; i++) {
     const r = await runNextStage(params);
     if (r.done) return;
   }
-  throw new Error("El procesamiento superó el número máximo de etapas");
+  throw new Error("La carga superó el número máximo de etapas");
+}
+
+// ─── Análisis a pedido ──────────────────────────────────────────────────────
+
+export interface PartResult {
+  part: AnalysisPart;
+  done: boolean;
+  detail?: string;
+  engine?: AnalysisMode;
+}
+
+/**
+ * Ejecuta UNA parte del análisis, a pedido. Cada parte es independiente: si
+ * falla, solo se marca esa como fallida — las demás conservan su resultado.
+ *
+ * `chat` (los vectores) es la única que puede necesitar varias llamadas: se
+ * vectoriza por lotes y devuelve done=false mientras queden fragmentos.
+ */
+export async function runAnalysisPart(
+  params: StageParams & { part: AnalysisPart }
+): Promise<PartResult> {
+  const db = createAdminClient();
+  const { documentId, part } = params;
+  const mode: AnalysisMode = params.mode ?? "auto";
+
+  const { data: doc } = await db
+    .from("documents")
+    .select("id, doc_type, processing_step, doc_date")
+    .eq("id", documentId)
+    .single();
+  if (!doc) throw new Error("Documento no encontrado");
+
+  const { data: version } = await db
+    .from("document_versions")
+    .select("id")
+    .eq("document_id", documentId)
+    .eq("is_current", true)
+    .single();
+  if (!version) throw new Error("El documento no tiene una versión activa");
+  const versionId = version.id as string;
+
+  // Sin texto extraído no hay nada que analizar: es la carga la que lo
+  // produce, y se pudo haber interrumpido a mitad.
+  const { count: pageCount } = await db
+    .from("document_pages")
+    .select("id", { count: "exact", head: true })
+    .eq("version_id", versionId);
+  if (!pageCount) {
+    throw new Error(
+      "El documento todavía no tiene texto extraído. Vuelve a cargarlo antes de analizarlo."
+    );
+  }
+
+  await setPartStatus(db, documentId, versionId, part, { status: "procesando", error: null });
+
+  try {
+    const result = await runPart(db, params, versionId, doc, mode);
+    await setPartStatus(db, documentId, versionId, part, {
+      status: result.done ? "listo" : "procesando",
+      error: null,
+      engine: result.engine ?? mode,
+    });
+    if (result.done) {
+      await audit(params.organizationId, params.userId, `document.analyzed.${part}`, "document", documentId);
+      logger.info("document_part_analyzed", { documentId, part, mode });
+      if (COMPARISON_PARTS.has(part)) {
+        await maybeMarkProcesado(db, documentId, versionId);
+      }
+    }
+    return result;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error("part_failed", { documentId, part, error: message });
+    await setPartStatus(db, documentId, versionId, part, { status: "error", error: message });
+    throw err;
+  }
+}
+
+/** El trabajo de cada parte, sin el registro de estado que lo envuelve. */
+async function runPart(
+  db: DB,
+  params: StageParams & { part: AnalysisPart },
+  versionId: string,
+  doc: { doc_type: string; doc_date: string | null },
+  mode: AnalysisMode
+): Promise<PartResult> {
+  const { documentId, part, organizationId, userId } = params;
+
+  switch (part) {
+    case "resumen": {
+      const r = await stageSummary(db, documentId, versionId, mode, organizationId, userId);
+      return { part, done: true, engine: r.engine };
+    }
+    case "sistemas": {
+      const r = await stageSystems(db, documentId, versionId, doc.doc_type, mode, organizationId, userId);
+      return { part, done: true, detail: r.detail, engine: r.engine };
+    }
+    case "timeline": {
+      const r = await stageTimeline(db, documentId, versionId, doc.doc_date, mode, organizationId, userId);
+      return { part, done: true, detail: r.detail, engine: r.engine };
+    }
+    case "evaluacion": {
+      const r = await stageEvaluation(db, documentId, versionId, mode, organizationId, userId);
+      return { part, done: true, detail: r.detail, engine: r.engine };
+    }
+    case "criticos": {
+      const r = await stageRequirements(db, documentId, versionId, doc.doc_type, mode, organizationId, userId);
+      return { part, done: true, detail: r.detail, engine: r.engine };
+    }
+    case "chat": {
+      const r = await stageEmbeddings(db, documentId, versionId, mode);
+      return { part, done: r.done, detail: r.detail };
+    }
+  }
+}
+
+/** Estado de cada parte, por versión: lo que la ficha muestra en cada tarjeta. */
+async function setPartStatus(
+  db: DB,
+  documentId: string,
+  versionId: string,
+  part: AnalysisPart,
+  fields: { status: string; error: string | null; engine?: AnalysisMode }
+) {
+  await db.from("document_analysis_parts").upsert(
+    {
+      document_id: documentId,
+      version_id: versionId,
+      part,
+      status: fields.status,
+      error: fields.error,
+      ...(fields.engine ? { engine: fields.engine } : {}),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "version_id,part" }
+  );
+}
+
+/**
+ * Partes de las que dependen el comparador y el cuadro comparativo:
+ * sistemas (tabla `systems`) y críticos (tabla `requirements`, de donde salen
+ * certificados/migración). Cuando ambas quedan "listo", el documento pasa a
+ * `procesado` — el estado que esas pantallas siguen usando para habilitar la
+ * comparación — sin que la carga sola (ni el resumen, timeline o evaluación
+ * por separado) lo dispare.
+ */
+const COMPARISON_PARTS = new Set<AnalysisPart>(["sistemas", "criticos"]);
+
+async function maybeMarkProcesado(db: DB, documentId: string, versionId: string) {
+  const { data: rows } = await db
+    .from("document_analysis_parts")
+    .select("part, status")
+    .eq("version_id", versionId)
+    .in("part", Array.from(COMPARISON_PARTS));
+  const ready = Array.from(COMPARISON_PARTS).every(
+    (p) => rows?.some((r) => r.part === p && r.status === "listo")
+  );
+  if (ready) {
+    await db.from("documents").update({ status: "procesado" }).eq("id", documentId);
+  }
 }
 
 // ─── Etapas ─────────────────────────────────────────────────────────────────
@@ -441,6 +599,49 @@ async function stageChunk(db: DB, documentId: string, versionId: string): Promis
     if (error) throw new Error(`Error guardando fragmentos: ${error.message}`);
   }
   return `${chunks.length} fragmentos`;
+}
+
+/**
+ * Vectores de búsqueda para el Chat IA. Se pide como una parte más porque
+ * consume cuota de Gemini y solo hace falta si se va a conversar con ese
+ * documento en concreto.
+ *
+ * Devuelve done=false mientras queden fragmentos por vectorizar: se procesa
+ * por lotes para caber en el límite de duración de la función.
+ */
+async function stageEmbeddings(
+  db: DB,
+  documentId: string,
+  versionId: string,
+  mode: AnalysisMode
+): Promise<{ done: boolean; detail?: string }> {
+  // Solo Gemini genera embeddings hoy. Con cualquier motor que no los ofrezca
+  // se omiten sin más: la búsqueda sigue funcionando por texto completo en
+  // español. Se decide por capacidad declarada del proveedor, no por su
+  // nombre, para que sumar uno nuevo no obligue a tocar esta condición.
+  const providerInfo = isProviderId(mode) ? getProviderInfo(mode) : null;
+  if (mode === "local" || (isProviderId(mode) && !providerInfo?.supportsEmbeddings)) {
+    return {
+      done: true,
+      detail: `vectores omitidos (${ENGINE_LABELS[mode]} no genera embeddings; el chat buscará por texto)`,
+    };
+  }
+  if (!isProviderConfigured(EMBEDDING_PROVIDER)) {
+    return { done: true, detail: "vectores omitidos (Gemini no configurado)" };
+  }
+
+  try {
+    const remaining = await stageEmbedBatch(db, versionId);
+    if (remaining > 0) return { done: false, detail: `${remaining} fragmentos pendientes` };
+  } catch (err) {
+    // Los vectores son una mejora (búsqueda semántica), no un requisito para
+    // poder consultar el documento: ante falta de cuota se omiten en
+    // cualquier modo, incluido 'gemini' explícito.
+    if (!isQuotaError(err)) throw err;
+    logger.warn("embeddings_skipped_quota", { documentId });
+    return { done: true, detail: "vectores omitidos por falta de cuota" };
+  }
+  return { done: true, detail: "chat listo para consultar este documento" };
 }
 
 /** Vectoriza un lote (siempre con Gemini) y devuelve cuántos quedan pendientes. */
@@ -546,6 +747,8 @@ async function stageSummary(
     STAGE_TIMEOUT_MS,
     "El resumen ejecutivo"
   );
+  // Solo los campos del resumen: la evaluación y los anexos son su propia
+  // parte (stageEvaluation) y escriben en esta misma fila sin pisar esto.
   await db.from("document_summaries").upsert(
     {
       document_id: documentId,
@@ -558,18 +761,11 @@ async function stageSummary(
       budget_currency: s.presupuesto?.moneda ?? null,
       budget_period: s.presupuesto?.periodicidad ?? null,
       budget_detail: s.presupuesto?.detalle ?? null,
-      problems: s.problemas_detectados,
-      requirements: s.requerimientos,
       obligations: s.obligaciones,
       restrictions: s.restricciones,
-      risks: s.riesgos,
-      critical_points: s.aspectos_criticos,
-      deliverables: s.entregables,
-      schedule: s.cronograma,
-      recommendations: s.recomendaciones,
-      evaluation_criteria: s.criterios_evaluacion,
-      evaluation_methodology: s.metodologia_evaluacion,
-      requested_annexes: s.anexos_solicitados,
+      iso_9001: s.certificaciones.iso_9001,
+      iso_27001: s.certificaciones.iso_27001,
+      data_migration: s.migracion_datos,
       model: engine === "local" ? "motor-local" : engine === "gemini" ? MODELS.chat : engine,
     },
     { onConflict: "version_id" }
@@ -578,9 +774,52 @@ async function stageSummary(
 }
 
 /**
- * Sistemas exigidos por el documento y sus funcionalidades → el checklist.
- * Los documentos de control/avance no describen lo exigido sino lo entregado,
- * así que se saltan esta etapa.
+ * Criterios de evaluación y anexos exigidos. Comparte fila con el resumen
+ * (una por versión) pero se pide aparte: son las dos cosas que se consultan
+ * al armar la oferta, y juntarlas en una sola llamada era lo que hacía que
+ * el resumen se pasara del límite de tiempo.
+ */
+async function stageEvaluation(
+  db: DB,
+  documentId: string,
+  versionId: string,
+  mode: AnalysisMode,
+  organizationId: string,
+  userId: string | null
+): Promise<{ detail: string; engine: AnalysisMode }> {
+  const pages = await loadPages(db, versionId);
+  const onUsage = usageLogger({ organizationId, documentId, userId, feature: "evaluacion" });
+  const { data: e, engine } = await withTimeout(
+    analyze(
+      mode,
+      (provider) => extractEvaluation(pages, provider, onUsage),
+      () => extractEvaluationLocal(pages)
+    ),
+    STAGE_TIMEOUT_MS,
+    "La extracción de criterios de evaluación y anexos"
+  );
+
+  await db.from("document_summaries").upsert(
+    {
+      document_id: documentId,
+      version_id: versionId,
+      evaluation_criteria: e.criterios_evaluacion,
+      evaluation_methodology: e.metodologia_evaluacion,
+      requested_annexes: e.anexos_solicitados,
+    },
+    { onConflict: "version_id" }
+  );
+
+  return {
+    detail: `${e.criterios_evaluacion.length} criterios, ${e.anexos_solicitados.length} anexos${engineSuffix(engine)}`,
+    engine,
+  };
+}
+
+/**
+ * El listado de sistemas que el documento exige — sin sus funcionalidades
+ * (ver SystemsSchema para el porqué). Los documentos de control/avance no
+ * describen lo exigido sino lo entregado, así que se saltan esta parte.
  */
 async function stageSystems(
   db: DB,
@@ -607,29 +846,15 @@ async function stageSystems(
     "La extracción de sistemas"
   );
 
-  // Borrar y reinsertar: el borrado en cascada se lleva las funcionalidades.
-  // Se conserva el estado de las que el usuario ya marcó como completadas,
-  // emparejándolas por nombre normalizado — reprocesar un documento no puede
-  // hacerle perder al usuario el avance que ya registró a mano.
-  const { data: previous } = await db
-    .from("system_features")
-    .select("name, is_completed, completed_at, completed_by")
-    .eq("document_id", documentId)
-    .eq("is_completed", true);
-  const doneBefore = new Map(
-    (previous ?? []).map((f) => [
-      f.name.trim().toLowerCase(),
-      { completed_at: f.completed_at, completed_by: f.completed_by },
-    ])
-  );
-
+  // Borrar y reinsertar. El borrado en cascada se lleva las funcionalidades
+  // que hubieran quedado de un análisis anterior: esta parte ya no las
+  // extrae, y dejarlas colgando de sistemas que ya no existen sería peor que
+  // no tenerlas.
   await db.from("systems").delete().eq("document_id", documentId);
 
-  let features = 0;
-  for (const [i, sys] of s.sistemas.entries()) {
-    const { data: created } = await db
-      .from("systems")
-      .insert({
+  if (s.sistemas.length > 0) {
+    const { error } = await db.from("systems").insert(
+      s.sistemas.map((sys, i) => ({
         document_id: documentId,
         name: sys.nombre,
         description: sys.descripcion,
@@ -637,36 +862,13 @@ async function stageSystems(
         page: sys.pagina,
         quote: sys.cita,
         sort_order: i,
-      })
-      .select("id")
-      .single();
-    if (!created || sys.funcionalidades.length === 0) continue;
-
-    const { error } = await db.from("system_features").insert(
-      sys.funcionalidades.map((f, j) => {
-        const kept = doneBefore.get(f.nombre.trim().toLowerCase());
-        return {
-          system_id: created.id,
-          document_id: documentId,
-          name: f.nombre,
-          description: f.descripcion,
-          deadline_text: f.plazo ?? sys.plazo,
-          page: f.pagina,
-          quote: f.cita,
-          is_mandatory: f.obligatoria,
-          is_completed: Boolean(kept),
-          completed_at: kept?.completed_at ?? null,
-          completed_by: kept?.completed_by ?? null,
-          sort_order: j,
-        };
-      })
+      }))
     );
-    if (error) throw new Error(`Error guardando funcionalidades: ${error.message}`);
-    features += sys.funcionalidades.length;
+    if (error) throw new Error(`Error guardando sistemas: ${error.message}`);
   }
 
   return {
-    detail: `${s.sistemas.length} sistemas, ${features} funcionalidades${engineSuffix(engine)}`,
+    detail: `${s.sistemas.length} sistemas${engineSuffix(engine)}`,
     engine,
   };
 }

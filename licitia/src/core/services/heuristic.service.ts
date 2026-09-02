@@ -4,6 +4,7 @@ import type {
   Classification,
   DeliveredItems,
   Diff,
+  Evaluation,
   Requirements,
   Summary,
   Systems,
@@ -391,6 +392,12 @@ export function extractSystemsLocal(pages: PageText[]): Systems {
   const byName = new Map<string, Systems["sistemas"][number]>();
   let current: Systems["sistemas"][number] | null = null;
 
+  // Cuántas capacidades ("el sistema debe permitir…") aparecen bajo cada
+  // sistema. Ya no se extrae ninguna —el listado no incluye funcionalidades—,
+  // pero contarlas sigue sirviendo de señal de que el nombre detectado es de
+  // verdad un sistema que el documento exige, y no una mención de paso.
+  const capacidades = new Map<string, number>();
+
   for (const s of sents) {
     const nombre = detectSystemName(s.text);
     if (nombre) {
@@ -406,7 +413,6 @@ export function extractSystemsLocal(pages: PageText[]): Systems {
           plazo: s.text.match(PLAZO_RE)?.[1] ?? null,
           pagina: s.page,
           cita: s.text.slice(0, 300),
-          funcionalidades: [],
         };
         byName.set(key, current);
         sistemas.push(current);
@@ -415,27 +421,20 @@ export function extractSystemsLocal(pages: PageText[]): Systems {
     }
 
     if (!current || !CAPACIDAD.test(s.text)) continue;
-    if (current.funcionalidades.length >= 40) continue;
     // Lo que es un punto crítico (garantías, multas, SLA, plazos,
-    // certificados) no es una funcionalidad del software: va en la otra lista.
+    // certificados) no describe al sistema: va en la otra lista.
     const lower = norm(s.text);
     if (CRITICOS.some(([, re]) => re.test(lower))) continue;
 
-    const clean = s.text.replace(NUMERACION, "").trim();
-    if (current.funcionalidades.some((f) => norm(f.nombre) === norm(clean.slice(0, 140)))) continue;
-
-    current.funcionalidades.push({
-      nombre: clean.slice(0, 140),
-      descripcion: clean.length > 140 ? clean.slice(0, 500) : null,
-      plazo: clean.match(PLAZO_RE)?.[1] ?? null,
-      obligatoria: !/(deseable|opcional|podr[aá])/i.test(clean),
-      pagina: s.page,
-      cita: clean.slice(0, 300),
-    });
+    const key = norm(current.nombre);
+    capacidades.set(key, (capacidades.get(key) ?? 0) + 1);
+    // La primera capacidad que aparece hace de descripción del sistema.
+    if (!current.descripcion) {
+      current.descripcion = s.text.replace(NUMERACION, "").trim().slice(0, 300);
+    }
   }
 
-  // Un sistema sin funcionalidades detectadas no aporta al checklist.
-  return { sistemas: sistemas.filter((s) => s.funcionalidades.length > 0) };
+  return { sistemas: sistemas.filter((s) => (capacidades.get(norm(s.nombre)) ?? 0) > 0) };
 }
 
 // ─── Entregas (documentos de control) ───────────────────────────────────────
@@ -543,11 +542,26 @@ export function extractTimelineLocal(pages: PageText[]): Timeline {
 
 // ─── Resumen ejecutivo (extractivo) ─────────────────────────────────────────
 
+/**
+ * Busca la exigencia de una norma ISO concreta. `exigida: null` cuando la
+ * norma no se menciona — distinto de `false`, que solo se afirma si el
+ * documento dice expresamente que no hace falta.
+ */
+function isoLocal(sents: Located[], norma: "9001" | "27001"): Summary["certificaciones"]["iso_9001"] {
+  const re = new RegExp(`ISO[\\s/-]*${norma}`, "i");
+  const hit = sents.find((s) => re.test(s.text));
+  if (!hit) return { exigida: null, detalle: null, pagina: null, cita: null };
+  const niega = /(no (?:se )?(?:ser[aá]|es) (?:exigid|requerid|obligatori)|no se exige|sin exigencia)/i.test(hit.text);
+  return {
+    exigida: !niega,
+    detalle: hit.text.replace(NUMERACION, "").trim().slice(0, 300),
+    pagina: hit.page,
+    cita: hit.text.slice(0, 300),
+  };
+}
+
 export function summarizeLocal(pages: PageText[]): Summary {
   const c = classifyDocumentLocal(pages);
-  const reqs = extractRequirementsLocal(pages).requerimientos;
-  const vars = extractTechnicalVariablesLocal(pages).variables;
-  const tl = extractTimelineLocal(pages).hitos;
   const sents = sentences(pages);
 
   const pick = (re: RegExp, limit = 6) =>
@@ -585,13 +599,51 @@ export function summarizeLocal(pages: PageText[]): Summary {
       ? "total"
       : null;
 
-  const catCount = new Map<string, number>();
-  for (const v of vars) catCount.set(v.categoria, (catCount.get(v.categoria) ?? 0) + 1);
-  const topCats = [...catCount.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([k, v]) => `${k.replace(/_/g, " ")} (${v})`)
-    .join(", ");
+  // Migración de datos: se busca la mención y, en la misma oración, el plazo
+  // y cualquier cifra que cuantifique el volumen (años, registros, GB…).
+  const MIGRA_RE =
+    /(migraci[oó]n|migrar|traspaso) de (?:los )?datos|migraci[oó]n de la informaci[oó]n|(?:datos|informaci[oó]n) a migrar|volumen a migrar/i;
+  const VOLUMEN_RE =
+    /(\d{1,3}(?:[.,]\d{3})*\s*(?:registros|filas|documentos|usuarios|GB|TB|MB)|\d{1,2}\s*a[ñn]os de (?:historia|informaci[oó]n|datos))/i;
+  const migraSentences = sents.filter((s) => MIGRA_RE.test(s.text));
+  const migracionDatos: Summary["migracion_datos"] = migraSentences.length
+    ? {
+        exigida: true,
+        plazo: migraSentences.map((s) => s.text.match(PLAZO_RE)?.[1]).find(Boolean) ?? null,
+        volumen: migraSentences.map((s) => s.text.match(VOLUMEN_RE)?.[1]).find(Boolean) ?? null,
+        detalle: migraSentences[0].text.replace(NUMERACION, "").trim().slice(0, 300),
+      }
+    : { exigida: null, plazo: null, volumen: null, detalle: null };
+
+  return {
+    resumen_general:
+      `Análisis local (sin IA) de un documento de tipo ${c.tipo_documento.replace(/_/g, " ")}` +
+      `${c.cliente ? ` para ${c.cliente}` : ""}` +
+      `${c.numero_licitacion ? `, licitación ${c.numero_licitacion}` : ""}` +
+      `${c.monto ? `, por ${c.monto.toLocaleString("es-CL")} ${c.moneda ?? ""}` : ""}` +
+      `${c.duracion_contrato ? `, con una duración de ${c.duracion_contrato}` : ""}. ` +
+      `Este resumen se generó sin consumir cuota de IA, extrayendo las frases del propio documento; ` +
+      `para un resumen interpretativo, vuelve a analizarlo en modo IA.`,
+    objetivo,
+    alcance,
+    plazo_implementacion: plazoImplementacion,
+    presupuesto: c.monto
+      ? { monto: c.monto, moneda: c.moneda, periodicidad, detalle: null }
+      : null,
+    obligaciones: pick(/(obligaci[oó]n|deber[aá]|responsabilidad del (?:proveedor|contratista))/i),
+    restricciones: pick(/(no podr[aá]|prohibid|restricci[oó]n|limitaci[oó]n|queda vedado)/i),
+    certificaciones: {
+      iso_9001: isoLocal(sents, "9001"),
+      iso_27001: isoLocal(sents, "27001"),
+    },
+    migracion_datos: migracionDatos,
+  };
+}
+
+// ─── Evaluación y anexos (extractivo) ───────────────────────────────────────
+
+export function extractEvaluationLocal(pages: PageText[]): Evaluation {
+  const sents = sentences(pages);
 
   // Criterios de evaluación: oraciones con "criterio(s) de evaluación",
   // "ponderación" o "puntaje máximo", con el porcentaje/puntaje que
@@ -607,6 +659,7 @@ export function summarizeLocal(pages: PageText[]): Summary {
       ponderacion: s.text.match(PORC_RE)?.[1] ?? null,
       pauta: null,
     }));
+
   const metodologiaEvaluacion =
     sents.find((s) =>
       /(metodolog[ií]a de evaluaci[oó]n|puntaje total|f[oó]rmula de evaluaci[oó]n|criterio de desempate)/i.test(
@@ -618,7 +671,7 @@ export function summarizeLocal(pages: PageText[]): Summary {
   // por número de anexo para no repetir el mismo anexo citado varias veces
   // en el documento.
   const ANEXO_RE = /\bANEXO\s*N?[°º]?\s*\d+/i;
-  const anexosSolicitados: Array<{ nombre: string; descripcion: string | null; obligatorio: boolean | null }> = [];
+  const anexosSolicitados: Evaluation["anexos_solicitados"] = [];
   const seenAnexos = new Set<string>();
   for (const s of sents) {
     const match = s.text.match(ANEXO_RE);
@@ -631,46 +684,9 @@ export function summarizeLocal(pages: PageText[]): Summary {
   }
 
   return {
-    resumen_general:
-      `Análisis local (sin IA) de un documento de tipo ${c.tipo_documento.replace(/_/g, " ")}` +
-      `${c.cliente ? ` para ${c.cliente}` : ""}` +
-      `${c.numero_licitacion ? `, licitación ${c.numero_licitacion}` : ""}` +
-      `${c.monto ? `, por ${c.monto.toLocaleString("es-CL")} ${c.moneda ?? ""}` : ""}` +
-      `${c.duracion_contrato ? `, con una duración de ${c.duracion_contrato}` : ""}. ` +
-      `Se detectaron ${reqs.length} puntos críticos para participar, ${vars.length} elementos técnicos ` +
-      `(principalmente ${topCats || "sin categorías predominantes"}) y ${tl.length} hitos de cronograma. ` +
-      `Este resumen se generó sin consumir cuota de IA; para un informe interpretativo completo, vuelve a analizar en modo IA.`,
-    objetivo,
-    alcance,
-    plazo_implementacion: plazoImplementacion,
-    presupuesto: c.monto
-      ? { monto: c.monto, moneda: c.moneda, periodicidad, detalle: null }
-      : null,
-    problemas_detectados: pick(/(problema|dificultad|riesgo|incumplimiento|deficiencia|retraso)/i),
-    requerimientos: reqs.slice(0, 15).map((r) => ({ titulo: r.codigo ?? "RQ", detalle: r.titulo })),
-    obligaciones: pick(/(obligaci[oó]n|deber[aá]|responsabilidad del (?:proveedor|contratista))/i),
-    restricciones: pick(/(no podr[aá]|prohibid|restricci[oó]n|limitaci[oó]n|queda vedado)/i),
-    riesgos: pick(/(multa|sanci[oó]n|penalidad|caducidad|t[eé]rmino anticipado)/i, 8).map((x) => ({
-      riesgo: x.detalle.slice(0, 200),
-      nivel: "medio" as const,
-      mitigacion: "Revisar la cláusula citada y validar su impacto con el equipo legal.",
-    })),
-    aspectos_criticos: pick(/(critic|indispensable|excluyent|causal de rechazo)/i),
-    entregables: pick(/(entregable|producto esperado|informe final|documentaci[oó]n a entregar)/i),
-    cronograma: tl.map((h) => ({
-      hito: h.titulo.slice(0, 120),
-      plazo: h.plazo_texto ?? h.fecha_inicio ?? "sin plazo explícito",
-    })),
     criterios_evaluacion: criteriosEvaluacion,
     metodologia_evaluacion: metodologiaEvaluacion,
     anexos_solicitados: anexosSolicitados,
-    recomendaciones: [
-      "Resumen generado con el motor local: verifica las cláusulas citadas antes de tomar decisiones.",
-      reqs.length > 0
-        ? `Revisa los ${reqs.length} puntos críticos detectados (garantías, plazos, multas, SLA, servidores, certificados y migración de datos).`
-        : "No se detectaron puntos críticos: revisa si el documento es escaneado o tiene poco texto.",
-      "Cuando dispongas de cuota de IA, vuelve a analizar el documento para obtener el informe interpretativo.",
-    ],
   };
 }
 

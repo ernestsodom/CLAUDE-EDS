@@ -37,6 +37,19 @@ export type Classification = z.infer<typeof ClassificationSchema>;
 
 const ItemSchema = z.object({ titulo: z.string(), detalle: z.string() });
 
+/** Exigencia de una certificación concreta: el dato que decide si se puede
+ *  participar. `exigida: null` = el documento no la menciona (distinto de
+ *  `false`, que es "dice explícitamente que no hace falta"). */
+const CertificationSchema = z.object({
+  exigida: z.boolean().nullable(),
+  detalle: z
+    .string()
+    .nullable()
+    .describe("Cómo lo exige el documento: a quién, con qué vigencia, si admite equivalentes o si solo puntúa en la evaluación"),
+  pagina: z.number().int().nullable(),
+  cita: z.string().nullable().describe("Cita textual breve donde lo exige"),
+});
+
 /** Periodicidad del presupuesto: sin esto, un monto es ambiguo — ¿es lo que
  *  se paga una vez, cada mes o cada año? */
 export const BUDGET_PERIODS = ["unico", "mensual", "anual", "total"] as const;
@@ -47,6 +60,14 @@ export const BUDGET_PERIOD_LABELS: Record<(typeof BUDGET_PERIODS)[number], strin
   total: "Total del contrato",
 };
 
+/**
+ * Resumen de la licitación: SOLO las variables fundamentales que el usuario
+ * pidió ver. Deliberadamente NO incluye problemas detectados, riesgos,
+ * aspectos críticos, entregables, cronograma ni recomendaciones: eran ruido
+ * interpretativo que alargaba la generación (y agotaba la cuota de IA) sin
+ * que nadie los usara para decidir. Los criterios de evaluación y los anexos
+ * viven ahora en su propio análisis a pedido (EvaluationSchema), no aquí.
+ */
 export const SummarySchema = z.object({
   resumen_general: z.string(),
   objetivo: z.string(),
@@ -66,21 +87,49 @@ export const SummarySchema = z.object({
       detalle: z.string().nullable().describe("Aclaración breve si el documento distingue varios montos (p.ej. 'implementación única + soporte mensual')"),
     })
     .nullable(),
-  problemas_detectados: z.array(ItemSchema),
-  requerimientos: z.array(ItemSchema),
   obligaciones: z.array(ItemSchema),
   restricciones: z.array(ItemSchema),
-  riesgos: z.array(
-    z.object({
-      riesgo: z.string(),
-      nivel: z.enum(["bajo", "medio", "alto", "critico"]),
-      mitigacion: z.string(),
+  certificaciones: z
+    .object({
+      iso_9001: CertificationSchema.describe("Exigencia de la norma ISO 9001 (gestión de calidad)"),
+      iso_27001: CertificationSchema.describe("Exigencia de la norma ISO 27001 (seguridad de la información)"),
     })
-  ),
-  aspectos_criticos: z.array(ItemSchema),
-  entregables: z.array(ItemSchema),
-  cronograma: z.array(z.object({ hito: z.string(), plazo: z.string() })),
-  recomendaciones: z.array(z.string()),
+    .describe(
+      "Si el documento exige que el oferente esté certificado en estas normas. Es un dato binario " +
+        "que decide si se puede participar, por eso se pregunta por cada norma por separado."
+    ),
+  migracion_datos: z
+    .object({
+      exigida: z
+        .boolean()
+        .nullable()
+        .describe("true si el documento exige migrar datos desde el/los sistema(s) actual(es); false si dice explícitamente que no; null si no lo menciona"),
+      plazo: z
+        .string()
+        .nullable()
+        .describe("Tiempo que se da para completar la migración, con el texto tal cual aparece (p.ej. '30 días corridos antes de la marcha blanca')"),
+      volumen: z
+        .string()
+        .nullable()
+        .describe(
+          "Cuánta información hay que migrar, tal como la cuantifica el documento: años de historia, " +
+            "número de registros, tamaño en GB, cantidad de tablas o sistemas de origen (p.ej. " +
+            "'10 años de historia, ~2 millones de registros'). Null si el documento no lo cuantifica."
+        ),
+      detalle: z.string().nullable().describe("Aclaración breve del alcance de la migración: qué datos, desde qué sistemas, quién valida"),
+    })
+    .describe("Migración de datos: si se exige, en cuánto tiempo y cuánta información."),
+});
+export type Summary = z.infer<typeof SummarySchema>;
+
+/**
+ * Evaluación y anexos: cómo se puntúa la oferta y qué documentos hay que
+ * presentar. Antes venía dentro del resumen; se separó porque son las dos
+ * cosas que se consultan al momento de armar la oferta, no al leer el
+ * documento por primera vez — y porque generarlo todo junto era lo que
+ * hacía que el resumen se pasara del límite de tiempo.
+ */
+export const EvaluationSchema = z.object({
   criterios_evaluacion: z
     .array(
       z.object({
@@ -110,7 +159,7 @@ export const SummarySchema = z.object({
     )
     .describe("Anexos, formularios o documentos adjuntos que el documento exige presentar."),
 });
-export type Summary = z.infer<typeof SummarySchema>;
+export type Evaluation = z.infer<typeof EvaluationSchema>;
 
 export const TechnicalVariablesSchema = z.object({
   variables: z.array(
@@ -178,28 +227,24 @@ export const RequirementsSchema = z.object({
 export type Requirements = z.infer<typeof RequirementsSchema>;
 
 /**
- * Sistemas (software) exigidos por el documento técnico y, colgando de cada
- * uno, sus funcionalidades concretas. Es la estructura sobre la que se
- * construye el checklist de cumplimiento y la comparación contra el Excel.
+ * Sistemas (software) que el documento exige: SOLO el listado, sin sus
+ * funcionalidades.
+ *
+ * Antes cada sistema traía además todas sus funcionalidades una por una.
+ * Eso hacía de esta la etapa más pesada y lenta de todas —una licitación
+ * mediana da cientos de funcionalidades— y era justo la que se pasaba del
+ * límite de tiempo y agotaba la cuota del proveedor. Lo que se necesita al
+ * leer la licitación es saber QUÉ sistemas piden; el detalle funcional de
+ * cada uno se revisa después, en el documento.
  */
 export const SystemsSchema = z.object({
   sistemas: z.array(
     z.object({
       nombre: z.string().describe("Nombre del sistema/software tal como lo llama el documento"),
-      descripcion: z.string().nullable(),
+      descripcion: z.string().nullable().describe("Qué hace el sistema, en una o dos líneas"),
       plazo: z.string().nullable().describe("Plazo de entrega del sistema, si el documento lo indica"),
       pagina: z.number().int().nullable(),
       cita: z.string().nullable(),
-      funcionalidades: z.array(
-        z.object({
-          nombre: z.string().describe("Funcionalidad concreta y específica, en una línea"),
-          descripcion: z.string().nullable(),
-          plazo: z.string().nullable(),
-          obligatoria: z.boolean(),
-          pagina: z.number().int().nullable(),
-          cita: z.string().nullable(),
-        })
-      ),
     })
   ),
 });

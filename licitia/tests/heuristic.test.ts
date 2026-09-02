@@ -3,6 +3,7 @@ import {
   classifyDocumentLocal,
   compareDocumentsLocal,
   extractDeliveredItemsLocal,
+  extractEvaluationLocal,
   extractRequirementsLocal,
   extractSystemsLocal,
   extractTechnicalVariablesLocal,
@@ -142,28 +143,23 @@ describe("motor local — sistemas y funcionalidades", () => {
     expect(nombres).not.toMatch(/sistema deber/);
   });
 
-  it("no mezcla puntos críticos (SLA, multas, garantías) con las funcionalidades", () => {
-    const texto = sistemas
-      .flatMap((s) => s.funcionalidades.map((f) => f.nombre.toLowerCase()))
-      .join(" ");
+  it("no mezcla puntos críticos (SLA, multas, garantías) en la descripción del sistema", () => {
+    const texto = sistemas.map((s) => (s.descripcion ?? "").toLowerCase()).join(" ");
     expect(texto).not.toContain("multa");
     expect(texto).not.toContain("boleta de garantía");
     expect(texto).not.toContain("disponibilidad de 99");
   });
 
-  it("cuelga funcionalidades concretas de cada sistema, con página y cita", () => {
+  it("cada sistema trae página y cita", () => {
     for (const sistema of sistemas) {
-      expect(sistema.funcionalidades.length).toBeGreaterThan(0);
-      for (const f of sistema.funcionalidades) {
-        expect(f.nombre.length).toBeGreaterThan(0);
-        expect(f.pagina).toBeGreaterThan(0);
-        expect(f.cita).toBeTruthy();
-      }
+      expect(sistema.nombre.length).toBeGreaterThan(0);
+      expect(sistema.pagina).toBeGreaterThan(0);
+      expect(sistema.cita).toBeTruthy();
     }
   });
 
-  it("descarta los sistemas sin ninguna funcionalidad detectada", () => {
-    expect(sistemas.every((s) => s.funcionalidades.length > 0)).toBe(true);
+  it("descarta los sistemas sin ninguna capacidad descrita debajo (menciones de paso)", () => {
+    expect(sistemas.every((s) => s.descripcion)).toBe(true);
   });
 });
 
@@ -233,28 +229,59 @@ describe("motor local — entregas y trabajos adicionales", () => {
   });
 });
 
-describe("motor local — resumen ejecutivo", () => {
+describe("motor local — resumen", () => {
   const s = summarizeLocal(LICITACION);
 
-  it("produce todas las secciones del informe", () => {
+  it("produce las variables fundamentales del resumen", () => {
     expect(s.resumen_general).toContain("2397-45-LR26");
     expect(s.objetivo).toBeTruthy();
-    expect(s.requerimientos.length).toBeGreaterThan(0);
-    expect(s.cronograma.length).toBeGreaterThan(0);
-    expect(s.recomendaciones.length).toBeGreaterThan(0);
+    expect(s.obligaciones).toBeTruthy();
+    expect(s.certificaciones).toBeTruthy();
+    expect(s.migracion_datos).toBeTruthy();
   });
 
   it("advierte que fue generado sin IA", () => {
     expect(s.resumen_general.toLowerCase()).toContain("sin ia");
   });
 
-  it("recoge las multas como riesgos", () => {
-    expect(s.riesgos.some((r) => /multa|utm/i.test(r.riesgo))).toBe(true);
+  it("sin mención de una norma ISO, la deja en null (no inventa)", () => {
+    expect(s.certificaciones.iso_9001.exigida).toBeNull();
+    expect(s.certificaciones.iso_27001.exigida).toBeNull();
   });
 
-  it("sin mención de criterios de evaluación o anexos, devuelve listas vacías (no inventa)", () => {
-    expect(s.criterios_evaluacion).toEqual([]);
-    expect(s.anexos_solicitados).toEqual([]);
+  it("sin mención de migración de datos, la deja en null", () => {
+    expect(s.migracion_datos.exigida).toBeNull();
+  });
+});
+
+describe("motor local — ISO y migración de datos", () => {
+  const CON_ISO_Y_MIGRACION: PageText[] = [
+    {
+      pageNumber: 3,
+      ocrUsed: false,
+      content: `4. CERTIFICACIONES EXIGIDAS
+El oferente deberá contar con certificación vigente ISO 9001 de gestión de calidad.
+No se exige certificación ISO 27001 para este proceso.
+
+5. MIGRACIÓN DE DATOS
+El adjudicatario deberá realizar la migración de los datos desde el sistema actual en un plazo de 30 días corridos desde la firma del contrato.
+El volumen a migrar corresponde a 10 años de historia, aproximadamente 500000 registros.`,
+    },
+  ];
+  const s = summarizeLocal(CON_ISO_Y_MIGRACION);
+
+  it("detecta la exigencia de ISO 9001", () => {
+    expect(s.certificaciones.iso_9001.exigida).toBe(true);
+  });
+
+  it("detecta que ISO 27001 se niega explícitamente", () => {
+    expect(s.certificaciones.iso_27001.exigida).toBe(false);
+  });
+
+  it("detecta que se exige migración de datos, con su plazo y volumen", () => {
+    expect(s.migracion_datos.exigida).toBe(true);
+    expect(s.migracion_datos.plazo).toMatch(/30\s*d[ií]as/i);
+    expect(s.migracion_datos.volumen).toMatch(/500000 registros|10\s*a[ñn]os/i);
   });
 });
 
@@ -274,23 +301,29 @@ Deberá adjuntarse el ANEXO N°1 — Identificación del oferente, con los datos
 Deberá adjuntarse también el ANEXO N°2 — Declaración jurada de no inhabilidad para contratar con el Estado.`,
     },
   ];
-  const s = summarizeLocal(CON_EVALUACION);
+  const e = extractEvaluationLocal(CON_EVALUACION);
 
   it("detecta los criterios de evaluación con su ponderación", () => {
-    expect(s.criterios_evaluacion.length).toBeGreaterThan(0);
-    const ponderaciones = s.criterios_evaluacion.map((c) => c.ponderacion).filter(Boolean);
+    expect(e.criterios_evaluacion.length).toBeGreaterThan(0);
+    const ponderaciones = e.criterios_evaluacion.map((c) => c.ponderacion).filter(Boolean);
     expect(ponderaciones.some((p) => p?.includes("40"))).toBe(true);
   });
 
   it("detecta la metodología general de evaluación", () => {
-    expect(s.metodologia_evaluacion).toMatch(/puntaje total|empate/i);
+    expect(e.metodologia_evaluacion).toMatch(/puntaje total|empate/i);
   });
 
   it("detecta los anexos solicitados sin duplicarlos", () => {
-    const nombres = s.anexos_solicitados.map((a) => a.nombre);
+    const nombres = e.anexos_solicitados.map((a) => a.nombre);
     expect(nombres).toContain("ANEXO N°1");
     expect(nombres).toContain("ANEXO N°2");
     expect(new Set(nombres).size).toBe(nombres.length);
+  });
+
+  it("sin mención de criterios de evaluación o anexos, devuelve listas vacías (no inventa)", () => {
+    const vacio = extractEvaluationLocal(LICITACION);
+    expect(vacio.criterios_evaluacion).toEqual([]);
+    expect(vacio.anexos_solicitados).toEqual([]);
   });
 });
 

@@ -2,12 +2,14 @@ import { structuredCompletion } from "@/core/ai/structured";
 import {
   ClassificationSchema,
   DeliveredItemsSchema,
+  EvaluationSchema,
   RequirementsSchema,
   SummarySchema,
   SystemsSchema,
   TimelineSchema,
   type Classification,
   type DeliveredItems,
+  type Evaluation,
   type Requirements,
   type Summary,
   type Systems,
@@ -92,12 +94,10 @@ export async function summarizeDocument(
     onUsage,
     maxTokens: outputCapFor(provider),
     system:
-      "Eres un consultor senior de licitaciones. Genera un informe ejecutivo completo del documento: " +
-      "resumen general, objetivo, alcance, plazo de implementación, presupuesto, problemas detectados, " +
-      "requerimientos, obligaciones, restricciones, riesgos (con nivel y mitigación), aspectos críticos, " +
-      "entregables, cronograma, criterios de evaluación, anexos solicitados y recomendaciones accionables " +
-      "para el equipo comercial y técnico.\n" +
-      "Presta especial atención a estos campos, que el usuario necesita ver siempre claros:\n" +
+      "Eres un consultor senior de licitaciones. Genera el resumen del documento con SOLO estas " +
+      "variables fundamentales — no agregues nada más:\n" +
+      "- resumen_general: de qué se trata la licitación, en un párrafo.\n" +
+      "- objetivo y alcance: qué se busca lograr y qué comprende (y qué deja fuera).\n" +
       "- plazo_implementacion: el plazo para implementar/poner en marcha la solución completa " +
       "(no un hito parcial), tal como lo indica el documento.\n" +
       "- presupuesto: el monto y, sobre todo, su periodicidad — indica explícitamente si es un pago " +
@@ -106,18 +106,58 @@ export async function summarizeDocument(
       "varios montos con distinta periodicidad (p.ej. implementación única + soporte mensual), usa el " +
       "monto más relevante (normalmente el total del contrato) y aclara los demás en 'detalle'. " +
       "Nunca dejes un monto sin periodicidad si el documento la menciona.\n" +
+      "- obligaciones y restricciones: lo que el proveedor queda obligado a hacer y lo que tiene " +
+      "prohibido o limitado.\n" +
+      "- certificaciones: si el documento exige que el oferente esté certificado en ISO 9001 (calidad) " +
+      "y/o ISO 27001 (seguridad de la información). Responde cada norma por separado: exigida=true " +
+      "solo si el documento la pide, false si dice expresamente que no hace falta, y null si " +
+      "sencillamente no la menciona. En 'detalle' aclara a quién se le exige, con qué vigencia, si " +
+      "admite certificaciones equivalentes o si en vez de ser requisito solo suma puntaje en la " +
+      "evaluación. Cita el texto donde lo exige.\n" +
+      "- migracion_datos: si hay que migrar datos desde el/los sistema(s) actual(es). Necesito tres " +
+      "cosas claras: si se exige (exigida), el TIEMPO que dan para hacerla (plazo, con el texto tal " +
+      "cual: '30 días corridos antes de la marcha blanca') y CUÁNTA información hay que migrar " +
+      "(volumen: años de historia, número de registros, GB, cantidad de tablas o sistemas de origen, " +
+      "lo que el documento cuantifique). Si el documento no cuantifica el volumen, deja volumen en " +
+      "null en vez de estimarlo tú.\n" +
+      "Sé específico y fiel al texto. No inventes ni completes con supuestos: lo que el documento no " +
+      "diga va en null.",
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
+  });
+}
+
+/**
+ * Criterios de evaluación y anexos exigidos — el análisis que se consulta al
+ * armar la oferta, separado del resumen para que cada uno quepa holgado en
+ * el límite de tiempo de una etapa.
+ */
+export async function extractEvaluation(
+  pages: PageText[],
+  provider: ProviderId,
+  onUsage?: OnUsage
+): Promise<Evaluation> {
+  return structuredCompletion({
+    schema: EvaluationSchema,
+    schemaName: "evaluacion_y_anexos",
+    provider,
+    speed: "chat",
+    onUsage,
+    maxTokens: outputCapFor(provider),
+    system:
+      "Eres un experto en presentación de ofertas a licitaciones públicas chilenas. Extrae SOLO cómo " +
+      "se evalúa la oferta y qué anexos hay que presentar:\n" +
       "- criterios_evaluacion: cada criterio con el que se evaluará y adjudicará la oferta (p.ej. " +
       "Precio, Experiencia, Presentación técnica, Soporte), con su ponderación exacta (porcentaje o " +
       "puntaje) y, en 'pauta', CÓMO se calcula o asigna el puntaje de ese criterio — fórmula, tabla de " +
       "puntajes por tramo, umbrales mínimos, etc., tal como lo describe el documento. Si el documento " +
-      "trae una tabla de evaluación, cada fila es un criterio separado — no la resumas en un solo ítem. " +
-      "Usa metodologia_evaluacion para reglas generales que no son de un criterio puntual: cómo se " +
-      "suma el puntaje total, desempates, causales de inadmisibilidad u ofertas fuera de bases.\n" +
+      "trae una tabla de evaluación, cada fila es un criterio separado — no la resumas en un solo ítem.\n" +
+      "- metodologia_evaluacion: las reglas generales que no son de un criterio puntual — cómo se suma " +
+      "el puntaje total, desempates, causales de inadmisibilidad u ofertas fuera de bases.\n" +
       "- anexos_solicitados: cada anexo, formulario o documento adjunto que el documento exige presentar " +
       "(identificado por su número o nombre tal como aparece, p.ej. 'Anexo N°3 — Declaración Jurada'), " +
       "con qué debe contener o acreditar y si es obligatorio. Sé exhaustivo: lista TODOS los anexos " +
       "mencionados, no solo los primeros.\n" +
-      "Sé específico y fiel al texto.",
+      "Fiel al texto: lo que el documento no defina va en null o en lista vacía.",
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
@@ -182,20 +222,18 @@ export async function extractSystems(
     onUsage,
     maxTokens: outputCapFor(provider),
     system:
-      "Eres un analista funcional de licitaciones TI. Identifica los SISTEMAS o módulos de software " +
-      "que el documento exige desarrollar, implementar o proveer, y para cada uno lista sus " +
-      "FUNCIONALIDADES concretas y específicas.\n" +
+      "Eres un analista funcional de licitaciones TI. Identifica ÚNICAMENTE los SISTEMAS o módulos de " +
+      "software que el documento exige desarrollar, implementar o proveer. Es un listado: NO detalles " +
+      "las funcionalidades de cada sistema.\n" +
       "Reglas:\n" +
       "- Un sistema es una pieza de software con nombre propio en el documento (p. ej. 'Sistema de " +
       "  Gestión de Permisos de Circulación', 'Portal de Atención Ciudadana', 'Módulo de Tesorería').\n" +
-      "- Una funcionalidad es algo que el sistema debe permitir hacer, redactado en una línea y en " +
-      "  términos verificables ('emitir certificado en PDF con firma electrónica'), nunca una " +
-      "  generalidad ('debe ser moderno' o 'buena usabilidad').\n" +
+      "- La descripción es de una o dos líneas: qué hace ese sistema. No enumeres ahí sus " +
+      "  funcionalidades una por una.\n" +
       "- Indica el plazo de entrega cuando el documento lo señale, con el texto tal cual aparece " +
       "  ('60 días corridos desde la firma del contrato'); si no aparece, null.\n" +
-      "- Si el documento describe un único sistema, devuelve un solo sistema con todas sus " +
-      "  funcionalidades. Si describe requisitos sueltos sin agrupar, agrúpalos tú por sistema/módulo.\n" +
-      "- No inventes: cada funcionalidad debe poder respaldarse con una cita del documento.",
+      "- Si el documento describe requisitos sueltos sin agrupar, agrúpalos tú por sistema/módulo.\n" +
+      "- No inventes: cada sistema debe poder respaldarse con una cita del documento.",
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }

@@ -9,10 +9,11 @@ import { processDocument } from "@/lib/process-document";
 import type { AnalysisMode } from "@/lib/ai-providers";
 
 /**
- * Reanaliza un documento ya cargado con otro motor de IA: crea una versión
- * nueva (el archivo no se vuelve a subir) y deja la anterior intacta,
- * consultable desde la pestaña Versiones — así se puede comparar lo que
- * produjo cada motor.
+ * Vuelve a cargar el documento con otro motor (útil si la extracción o la
+ * clasificación no salieron bien con el motor anterior): crea una versión
+ * nueva (el archivo no se vuelve a subir), la deja recién cargada — sin
+ * ningún análisis todavía, esos se piden aparte — y conserva la versión
+ * anterior intacta en la pestaña Versiones.
  */
 export function ReanalyzeButton({ documentId }: { documentId: string }) {
   const router = useRouter();
@@ -51,22 +52,23 @@ export function ReanalyzeButton({ documentId }: { documentId: string }) {
     return (
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <Sparkles className="h-4 w-4" />
-        Analizar con otra IA
+        Recargar con otro motor
       </Button>
     );
   }
 
   return (
     <div className="space-y-2 rounded-lg border p-3">
-      <p className="text-sm font-medium">Reanalizar con otro motor</p>
+      <p className="text-sm font-medium">Recargar con otro motor</p>
       <p className="text-xs text-muted-foreground">
-        Crea una versión nueva sin perder el análisis actual; podrás ver ambas desde Versiones.
+        Crea una versión nueva sin perder la actual; podrás ver ambas desde Versiones. Los análisis
+        (resumen, sistemas, etc.) de la versión nueva se piden aparte, uno por uno.
       </p>
       <EngineSelector value={mode} onChange={setMode} />
       <div className="flex items-center gap-2">
         <Button size="sm" onClick={run} disabled={progress !== null}>
           {progress ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          Reanalizar
+          Recargar
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={progress !== null}>
           Cancelar

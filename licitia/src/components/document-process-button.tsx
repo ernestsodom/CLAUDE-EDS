@@ -8,8 +8,9 @@ import { EngineSelector } from "@/components/engine-selector";
 import { processDocument } from "@/lib/process-document";
 import type { AnalysisMode } from "@/lib/ai-providers";
 
-/** Lanza (o reintenta) el análisis por etapas del documento con el motor
- *  elegido, y refresca la ficha al terminar. */
+/** Lanza (o reintenta) la carga del documento — extraer texto, trocearlo y
+ *  clasificarlo — con el motor elegido, y refresca la ficha al terminar. Los
+ *  análisis (resumen, sistemas, etc.) se piden aparte, una vez cargado. */
 export function DocumentProcessButton({
   documentId,
   status,
@@ -39,7 +40,7 @@ export function DocumentProcessButton({
       <EngineSelector value={mode} onChange={setMode} />
       <Button onClick={run} disabled={progress !== null}>
         {progress ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-        {status === "error" ? "Reintentar análisis" : "Analizar documento"}
+        {status === "error" ? "Reintentar carga" : "Cargar documento"}
       </Button>
       {progress && (
         <p className="text-xs text-muted-foreground">{progress} — mantén esta pestaña abierta.</p>

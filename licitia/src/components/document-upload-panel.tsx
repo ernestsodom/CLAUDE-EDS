@@ -54,7 +54,7 @@ export function DocumentUploadPanel({
           patch(file.name, {
             status: "procesando",
             documentId,
-            detail: "iniciando análisis…",
+            detail: "iniciando carga…",
           });
 
           const result = await processDocument(
@@ -65,7 +65,7 @@ export function DocumentUploadPanel({
 
           patch(file.name, {
             status: result.ok ? "listo" : "error",
-            detail: result.ok ? "análisis completo" : result.error,
+            detail: result.ok ? "cargado — pedí el análisis que necesites desde la ficha" : result.error,
           });
         } catch (err) {
           patch(file.name, {
@@ -91,9 +91,9 @@ export function DocumentUploadPanel({
         <Card>
           <CardContent className="space-y-4 p-4">
             <p className="text-sm text-muted-foreground">
-              PDF, DOCX, XLSX, TXT, PPT o ZIP. La IA extraerá el texto (con OCR si es escaneado),
-              clasificará el documento y generará el resumen ejecutivo, los puntos críticos, los
-              sistemas y funcionalidades, y la línea de tiempo.
+              PDF, DOCX, XLSX, TXT, PPT o ZIP. La IA extraerá el texto (con OCR si es escaneado) y
+              clasificará el documento — nada más. Cada análisis (resumen, sistemas, línea de
+              tiempo, evaluación y anexos, puntos críticos, chat) se pide aparte, desde la ficha.
             </p>
 
             {!lockProject && (
@@ -104,7 +104,7 @@ export function DocumentUploadPanel({
             )}
 
             <div className="space-y-1">
-              <p className="text-sm font-medium">Motor de análisis</p>
+              <p className="text-sm font-medium">Motor de carga</p>
               <EngineSelector value={mode} onChange={setMode} />
             </div>
 
@@ -158,8 +158,8 @@ export function DocumentUploadPanel({
                   </div>
                 ))}
                 <p className="pt-1 text-xs text-muted-foreground">
-                  Mantén esta pestaña abierta hasta que el análisis termine. Si se interrumpe, puedes
-                  retomarlo desde la ficha del documento.
+                  Mantén esta pestaña abierta hasta que la carga termine. Si se interrumpe, puedes
+                  retomarla desde la ficha del documento.
                 </p>
               </div>
             )}

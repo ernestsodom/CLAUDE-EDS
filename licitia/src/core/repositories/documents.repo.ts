@@ -62,7 +62,10 @@ export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
   // descarta) y el resumen se ve como "no generado" aunque sí exista. Se
   // busca explícitamente el de la versión actual, igual que getVersionSummary.
   const currentVersion = (versions.data ?? []).find((v) => v.is_current);
-  const summary = currentVersion ? await getVersionSummary(supabase, currentVersion.id) : null;
+  const [summary, analysisParts] = await Promise.all([
+    currentVersion ? getVersionSummary(supabase, currentVersion.id) : null,
+    currentVersion ? getAnalysisParts(supabase, currentVersion.id) : Promise.resolve({}),
+  ]);
 
   return {
     document,
@@ -72,7 +75,30 @@ export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
     versions: versions.data ?? [],
     deliveredItems: delivered.data ?? [],
     systems,
+    analysisParts,
   };
+}
+
+export type AnalysisPartStatus = {
+  status: "procesando" | "listo" | "error";
+  error: string | null;
+  engine: string | null;
+};
+
+/** Estado de cada parte a pedido (resumen, sistemas, timeline…) de una versión. */
+export async function getAnalysisParts(
+  supabase: SupabaseClient,
+  versionId: string
+): Promise<Record<string, AnalysisPartStatus>> {
+  const { data } = await supabase
+    .from("document_analysis_parts")
+    .select("part, status, error, engine")
+    .eq("version_id", versionId);
+  const out: Record<string, AnalysisPartStatus> = {};
+  for (const row of data ?? []) {
+    out[row.part] = { status: row.status, error: row.error, engine: row.engine };
+  }
+  return out;
 }
 
 /**

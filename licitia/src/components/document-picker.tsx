@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { EngineSelector } from "@/components/engine-selector";
 import { processDocument } from "@/lib/process-document";
+import { analyzePart } from "@/lib/analyze-part";
 import { uploadDocument } from "@/lib/upload-document";
 import type { AnalysisMode } from "@/lib/ai-providers";
 
@@ -52,19 +53,32 @@ export function DocumentPicker({
     return () => clearTimeout(t);
   }, [query, searching]);
 
-  /** Ejecuta el análisis por etapas (con el motor elegido) y deja el
-   *  documento listo para comparar. */
+  /** Carga el documento (con el motor elegido) y luego pide, en orden, las
+   *  partes de las que depende el comparador: sistemas y puntos críticos.
+   *  Recién con ambas listas el documento queda "procesado" y se puede
+   *  comparar. */
   async function runAnalysis(documentId: string, title: string, restart = false) {
-    setProgress("iniciando análisis…");
+    setProgress("cargando documento…");
     setError(null);
-    const result = await processDocument(documentId, (label) => setProgress(label), { restart, mode });
-    setProgress(null);
-    if (result.ok) {
-      onChange({ id: documentId, title, doc_type: "otro", status: "procesado" });
-    } else {
-      setError(result.error ?? "El análisis no pudo completarse");
+    const loaded = await processDocument(documentId, (label) => setProgress(label), { restart, mode });
+    if (!loaded.ok) {
+      setProgress(null);
+      setError(loaded.error ?? "La carga no pudo completarse");
       onChange({ id: documentId, title, doc_type: "otro", status: "error" });
+      return;
     }
+    for (const part of ["sistemas", "criticos"] as const) {
+      setProgress(part === "sistemas" ? "analizando sistemas…" : "analizando puntos críticos…");
+      const result = await analyzePart(documentId, part, (label) => setProgress(label), { mode });
+      if (!result.ok) {
+        setProgress(null);
+        setError(result.error ?? "El análisis no pudo completarse");
+        onChange({ id: documentId, title, doc_type: "otro", status: "error" });
+        return;
+      }
+    }
+    setProgress(null);
+    onChange({ id: documentId, title, doc_type: "otro", status: "procesado" });
   }
 
   async function uploadFile(file: File) {

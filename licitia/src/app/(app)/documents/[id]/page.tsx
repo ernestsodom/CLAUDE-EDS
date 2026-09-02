@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/supabase/server";
-import { getDocumentDetail, getVersionSummary } from "@/core/repositories/documents.repo";
+import {
+  getDocumentDetail,
+  getVersionSummary,
+  getAnalysisParts,
+  type AnalysisPartStatus as PartStatus,
+} from "@/core/repositories/documents.repo";
 import { checklistProgress } from "@/core/repositories/checklist.repo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,18 +17,26 @@ import { DocumentChatHistory } from "@/components/document-chat-history";
 import { ExportButtons } from "@/components/export-buttons";
 import { SystemsChecklist } from "@/components/systems-checklist";
 import { DocumentProcessButton } from "@/components/document-process-button";
+import { AnalysisPartButton } from "@/components/analysis-part-button";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
 import { ReanalyzeButton } from "@/components/reanalyze-button";
 import { RenameDocumentButton } from "@/components/rename-document-button";
 import { MoveToFolderButton } from "@/components/move-to-folder-button";
 import { BUDGET_PERIOD_LABELS, CRITICAL_TYPE_LABELS } from "@/core/ai/schemas";
+import { ANALYSIS_PARTS, PART_LABELS, PART_DESCRIPTIONS } from "@/core/services/ingestion.service";
 import { ENGINE_LABELS, type AnalysisMode } from "@/lib/ai-providers";
 import { formatCLP, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-/** Ficha de documento: resumen ejecutivo, checklist de sistemas, puntos
- *  críticos, línea de tiempo, chat IA y versiones. */
+// Un documento cargado antes de esta versión del pipeline llegó a "procesado"
+// (el terminal viejo, que ya traía todo analizado); uno cargado después llega
+// a "cargado" (solo el texto listo, cada análisis se pide aparte). Ambos
+// significan "la carga terminó, ya se puede trabajar con este documento".
+const LOADED_STATUSES = new Set(["cargado", "procesado"]);
+
+/** Ficha de documento: resumen, sistemas, línea de tiempo, evaluación y
+ *  anexos, puntos críticos, chat IA y versiones — cada análisis a pedido. */
 export default async function DocumentDetailPage({
   params,
   searchParams,
@@ -48,7 +61,17 @@ export default async function DocumentDetailPage({
   // abrir el de cualquier otra desde la pestaña Versiones sin perder la de
   // hoy — cada reanálisis con otro motor queda guardado aparte.
   const viewingVersion = viewVersionId ? versions.find((v) => v.id === viewVersionId) : null;
-  const summary = viewingVersion ? await getVersionSummary(supabase, viewingVersion.id) : detail.summary;
+  const [summary, analysisParts] = viewingVersion
+    ? await Promise.all([
+        getVersionSummary(supabase, viewingVersion.id),
+        getAnalysisParts(supabase, viewingVersion.id),
+      ])
+    : [detail.summary, detail.analysisParts];
+
+  const partStatus = (part: (typeof ANALYSIS_PARTS)[number]): "pendiente" | "procesando" | "listo" | "error" =>
+    (analysisParts as Record<string, PartStatus>)[part]?.status ?? "pendiente";
+  const partError = (part: (typeof ANALYSIS_PARTS)[number]) =>
+    (analysisParts as Record<string, PartStatus>)[part]?.error ?? null;
 
   const progress = checklistProgress(systems);
 
@@ -95,6 +118,25 @@ export default async function DocumentDetailPage({
       </li>
     ));
 
+  const isoBadge = (c: unknown) => {
+    const cert = c as { exigida: boolean | null; detalle: string | null; pagina: number | null } | null;
+    if (!cert || cert.exigida == null) {
+      return <Badge variant="secondary">no mencionada</Badge>;
+    }
+    return <Badge variant={cert.exigida ? "danger" : "success"}>{cert.exigida ? "exigida" : "no exigida"}</Badge>;
+  };
+
+  const evaluationCriteria = (summary?.evaluation_criteria ?? []) as Array<{
+    criterio: string;
+    ponderacion: string | null;
+    pauta: string | null;
+  }>;
+  const requestedAnnexes = (summary?.requested_annexes ?? []) as Array<{
+    nombre: string;
+    descripcion: string | null;
+    obligatorio: boolean | null;
+  }>;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -123,10 +165,10 @@ export default async function DocumentDetailPage({
         <div className="flex items-center gap-2">
           <Badge variant={statusVariant(doc.status)}>
             {doc.status === "procesando" && doc.processing_step
-              ? `procesando: ${doc.processing_step}`
+              ? `cargando: ${doc.processing_step}`
               : doc.status}
           </Badge>
-          {doc.status === "procesado" && <ReanalyzeButton documentId={doc.id} />}
+          {LOADED_STATUSES.has(doc.status) && <ReanalyzeButton documentId={doc.id} />}
           <MoveToFolderButton documentId={doc.id} currentProjectId={doc.project_id} />
           <DeleteDocumentButton documentId={doc.id} title={doc.title} />
         </div>
@@ -148,18 +190,16 @@ export default async function DocumentDetailPage({
         </Card>
       )}
 
-      {doc.status !== "procesado" && (
+      {!LOADED_STATUSES.has(doc.status) && (
         <Card className={doc.status === "error" ? "border-destructive/50" : undefined}>
           <CardContent className="space-y-2 p-4">
             {doc.status === "error" ? (
-              <p className="text-sm text-destructive">
-                Error de procesamiento: {doc.processing_error}
-              </p>
+              <p className="text-sm text-destructive">Error al cargar: {doc.processing_error}</p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Este documento aún no ha sido analizado por la IA. El análisis avanza por
-                etapas (extracción, clasificación, resumen, sistemas, puntos críticos
-                y cronograma) y puede tardar unos minutos.
+                Este documento todavía no está cargado: falta extraer su texto, dividirlo y
+                clasificarlo. Una vez cargado, se puede pedir cada análisis por separado (resumen,
+                sistemas, línea de tiempo, evaluación y anexos, puntos críticos, chat).
               </p>
             )}
             <DocumentProcessButton documentId={doc.id} status={doc.status} />
@@ -167,337 +207,393 @@ export default async function DocumentDetailPage({
         </Card>
       )}
 
-      <Tabs defaultValue={defaultTab}>
-        <TabsList>
-          <TabsTrigger value="resumen">Resumen</TabsTrigger>
-          <TabsTrigger value="sistemas">
-            Sistemas ({systems.length}){progress.total > 0 && ` · ${progress.pct}%`}
-          </TabsTrigger>
-          {deliveredItems.length > 0 && (
-            <TabsTrigger value="entregas">Entregas ({deliveredItems.length})</TabsTrigger>
-          )}
-          <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
-          <TabsTrigger value="chat">Chat IA</TabsTrigger>
-          <TabsTrigger value="versiones">Versiones ({versions.length})</TabsTrigger>
-        </TabsList>
+      {LOADED_STATUSES.has(doc.status) && (
+        <Tabs defaultValue={defaultTab}>
+          <TabsList>
+            <TabsTrigger value="resumen">Resumen</TabsTrigger>
+            <TabsTrigger value="sistemas">
+              Sistemas ({systems.length}){progress.total > 0 && ` · ${progress.pct}%`}
+            </TabsTrigger>
+            <TabsTrigger value="evaluacion">Evaluación y anexos</TabsTrigger>
+            <TabsTrigger value="criticos">Puntos críticos ({requirements.length})</TabsTrigger>
+            {deliveredItems.length > 0 && (
+              <TabsTrigger value="entregas">Entregas ({deliveredItems.length})</TabsTrigger>
+            )}
+            <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
+            <TabsTrigger value="chat">Chat IA</TabsTrigger>
+            <TabsTrigger value="versiones">Versiones ({versions.length})</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="resumen">
-          {!summary ? (
-            <p className="text-sm text-muted-foreground">
-              El resumen ejecutivo se generará al completarse el procesamiento.
-            </p>
-          ) : (
+          <TabsContent value="resumen">
             <div className="space-y-4">
-              <ExportButtons kind="resumen" entityId={doc.id} />
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Resumen general</CardTitle></CardHeader>
-                  <CardContent className="text-sm">{summary.summary}</CardContent>
-                </Card>
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Objetivo y alcance</CardTitle></CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    <p><span className="font-medium">Objetivo:</span> {summary.objective}</p>
-                    <p><span className="font-medium">Alcance:</span> {summary.scope}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Plazo y presupuesto</CardTitle></CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    <p>
-                      <span className="font-medium">Plazo de implementación:</span>{" "}
-                      {summary.implementation_deadline ?? "No especificado en el documento"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Presupuesto:</span>{" "}
-                      {summary.budget_amount != null ? (
-                        <>
-                          {formatCLP(summary.budget_amount)}
-                          {summary.budget_currency && summary.budget_currency !== "CLP" && ` ${summary.budget_currency}`}
-                          {" "}
-                          <Badge variant="secondary">
-                            {summary.budget_period
-                              ? BUDGET_PERIOD_LABELS[summary.budget_period as keyof typeof BUDGET_PERIOD_LABELS] ??
-                                summary.budget_period
-                              : "periodicidad no especificada"}
-                          </Badge>
-                        </>
+              <AnalysisPartButton
+                documentId={doc.id}
+                part="resumen"
+                label={PART_LABELS.resumen}
+                description={PART_DESCRIPTIONS.resumen}
+                status={partStatus("resumen")}
+                errorMessage={partError("resumen")}
+              />
+
+              {summary && (
+                <>
+                  <ExportButtons kind="resumen" entityId={doc.id} />
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Resumen general</CardTitle></CardHeader>
+                      <CardContent className="text-sm">{summary.summary}</CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Objetivo y alcance</CardTitle></CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <p><span className="font-medium">Objetivo:</span> {summary.objective}</p>
+                        <p><span className="font-medium">Alcance:</span> {summary.scope}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Plazo y presupuesto</CardTitle></CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <p>
+                          <span className="font-medium">Plazo de implementación:</span>{" "}
+                          {summary.implementation_deadline ?? "No especificado en el documento"}
+                        </p>
+                        <p>
+                          <span className="font-medium">Presupuesto:</span>{" "}
+                          {summary.budget_amount != null ? (
+                            <>
+                              {formatCLP(summary.budget_amount)}
+                              {summary.budget_currency && summary.budget_currency !== "CLP" && ` ${summary.budget_currency}`}
+                              {" "}
+                              <Badge variant="secondary">
+                                {summary.budget_period
+                                  ? BUDGET_PERIOD_LABELS[summary.budget_period as keyof typeof BUDGET_PERIOD_LABELS] ??
+                                    summary.budget_period
+                                  : "periodicidad no especificada"}
+                              </Badge>
+                            </>
+                          ) : (
+                            "No especificado en el documento"
+                          )}
+                        </p>
+                        {summary.budget_detail && (
+                          <p className="text-xs text-muted-foreground">{summary.budget_detail}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Obligaciones y restricciones</CardTitle></CardHeader>
+                      <CardContent><ul className="list-disc space-y-1 pl-4 text-sm">{summaryList(summary.obligations)}{summaryList(summary.restrictions)}</ul></CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Certificaciones</CardTitle></CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <p className="flex items-center gap-2">
+                          <span className="font-medium">ISO 9001:</span> {isoBadge(summary.iso_9001)}
+                        </p>
+                        {(summary.iso_9001 as { detalle: string | null } | null)?.detalle && (
+                          <p className="text-xs text-muted-foreground">{(summary.iso_9001 as { detalle: string }).detalle}</p>
+                        )}
+                        <p className="flex items-center gap-2">
+                          <span className="font-medium">ISO 27001:</span> {isoBadge(summary.iso_27001)}
+                        </p>
+                        {(summary.iso_27001 as { detalle: string | null } | null)?.detalle && (
+                          <p className="text-xs text-muted-foreground">{(summary.iso_27001 as { detalle: string }).detalle}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Migración de datos</CardTitle></CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        {(() => {
+                          const m = summary.data_migration as
+                            | { exigida: boolean | null; plazo: string | null; volumen: string | null; detalle: string | null }
+                            | null;
+                          if (!m || m.exigida == null) {
+                            return <p className="text-muted-foreground">No se menciona en el documento.</p>;
+                          }
+                          if (!m.exigida) return <p>No se exige migración de datos.</p>;
+                          return (
+                            <>
+                              <p><span className="font-medium">Plazo:</span> {m.plazo ?? "no especificado"}</p>
+                              <p><span className="font-medium">Volumen a migrar:</span> {m.volumen ?? "no cuantificado en el documento"}</p>
+                              {m.detalle && <p className="text-xs text-muted-foreground">{m.detalle}</p>}
+                            </>
+                          );
+                        })()}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="sistemas">
+            <div className="space-y-3">
+              <AnalysisPartButton
+                documentId={doc.id}
+                part="sistemas"
+                label={PART_LABELS.sistemas}
+                description={PART_DESCRIPTIONS.sistemas}
+                status={partStatus("sistemas")}
+                errorMessage={partError("sistemas")}
+              />
+              {systems.length > 0 && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Sistemas que la licitación solicita. Las funcionalidades de cada uno se revisan
+                    directamente en el documento.
+                  </p>
+                  <SystemsChecklist systems={systems} />
+                </>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="evaluacion">
+            <div className="space-y-4">
+              <AnalysisPartButton
+                documentId={doc.id}
+                part="evaluacion"
+                label={PART_LABELS.evaluacion}
+                description={PART_DESCRIPTIONS.evaluacion}
+                status={partStatus("evaluacion")}
+                errorMessage={partError("evaluacion")}
+              />
+              {partStatus("evaluacion") === "listo" && (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Card className="lg:col-span-2">
+                    <CardHeader><CardTitle className="text-base">Criterios de evaluación</CardTitle></CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                      {evaluationCriteria.length === 0 ? (
+                        <p className="text-muted-foreground">
+                          No se identificaron criterios de evaluación en el documento.
+                        </p>
                       ) : (
-                        "No especificado en el documento"
+                        <ul className="space-y-2">
+                          {evaluationCriteria.map((c, k) => (
+                            <li key={k} className="rounded-md border p-2.5">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{c.criterio}</span>
+                                {c.ponderacion && <Badge variant="secondary">{c.ponderacion}</Badge>}
+                              </div>
+                              {c.pauta && <p className="mt-1 text-xs text-muted-foreground">{c.pauta}</p>}
+                            </li>
+                          ))}
+                        </ul>
                       )}
-                    </p>
-                    {summary.budget_detail && (
-                      <p className="text-xs text-muted-foreground">{summary.budget_detail}</p>
-                    )}
-                  </CardContent>
-                </Card>
+                      {summary?.evaluation_methodology && (
+                        <p className="border-t pt-2 text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">Metodología general: </span>
+                          {summary.evaluation_methodology}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card className="lg:col-span-2">
+                    <CardHeader><CardTitle className="text-base">Anexos solicitados</CardTitle></CardHeader>
+                    <CardContent className="text-sm">
+                      {requestedAnnexes.length === 0 ? (
+                        <p className="text-muted-foreground">
+                          No se identificaron anexos solicitados en el documento.
+                        </p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {requestedAnnexes.map((a, k) => (
+                            <li key={k} className="rounded-md border p-2.5">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{a.nombre}</span>
+                                {a.obligatorio != null && (
+                                  <Badge variant={a.obligatorio ? "danger" : "secondary"}>
+                                    {a.obligatorio ? "obligatorio" : "opcional"}
+                                  </Badge>
+                                )}
+                              </div>
+                              {a.descripcion && <p className="mt-1 text-xs text-muted-foreground">{a.descripcion}</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="criticos">
+            <div className="space-y-3">
+              <AnalysisPartButton
+                documentId={doc.id}
+                part="criticos"
+                label={PART_LABELS.criticos}
+                description={PART_DESCRIPTIONS.criticos}
+                status={partStatus("criticos")}
+                errorMessage={partError("criticos")}
+              />
+              {requirements.length > 0 && (
                 <Card>
-                  <CardHeader><CardTitle className="text-base">Riesgos</CardTitle></CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 text-sm">
-                      {((summary.risks ?? []) as Array<{ riesgo: string; nivel: string; mitigacion: string }>).map((r, k) => (
-                        <li key={k} className="flex items-start gap-2">
-                          <Badge variant={statusVariant(r.nivel)}>{r.nivel}</Badge>
-                          <span><span className="font-medium">{r.riesgo}.</span> Mitigación: {r.mitigacion}</span>
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+                    <CardTitle className="text-base">Puntos críticos ({requirements.length})</CardTitle>
+                    <ExportButtons kind="requerimientos" entityId={doc.id} />
+                  </CardHeader>
+                  <CardContent className="text-sm">
+                    <ul className="space-y-2">
+                      {requirements.map((r) => (
+                        <li key={r.id} className="rounded-md border p-2.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{r.title}</span>
+                            <Badge variant={statusVariant(r.priority)}>{r.priority}</Badge>
+                            {r.mandatory && <Badge variant="secondary">obligatorio</Badge>}
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {r.critical_type &&
+                              (CRITICAL_TYPE_LABELS[r.critical_type as keyof typeof CRITICAL_TYPE_LABELS] ??
+                                r.critical_type)}
+                            {r.deadline_text && ` · plazo: ${r.deadline_text}`}
+                            {r.page != null && ` · pág. ${r.page}`}
+                          </p>
+                          {r.description && <p className="mt-1 text-xs">{r.description}</p>}
+                          {r.quote && (
+                            <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
+                              “{r.quote}”
+                            </p>
+                          )}
                         </li>
                       ))}
                     </ul>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Aspectos críticos</CardTitle></CardHeader>
-                  <CardContent><ul className="list-disc space-y-1 pl-4 text-sm">{summaryList(summary.critical_points)}</ul></CardContent>
-                </Card>
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Obligaciones y restricciones</CardTitle></CardHeader>
-                  <CardContent><ul className="list-disc space-y-1 pl-4 text-sm">{summaryList(summary.obligations)}{summaryList(summary.restrictions)}</ul></CardContent>
-                </Card>
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Entregables</CardTitle></CardHeader>
-                  <CardContent><ul className="list-disc space-y-1 pl-4 text-sm">{summaryList(summary.deliverables)}</ul></CardContent>
-                </Card>
-                <Card className="lg:col-span-2">
-                  <CardHeader><CardTitle className="text-base">Criterios de evaluación</CardTitle></CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    {((summary.evaluation_criteria ?? []) as Array<{
-                      criterio: string;
-                      ponderacion: string | null;
-                      pauta: string | null;
-                    }>).length === 0 ? (
-                      <p className="text-muted-foreground">
-                        No se identificaron criterios de evaluación en el documento.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {(
-                          summary.evaluation_criteria as Array<{
-                            criterio: string;
-                            ponderacion: string | null;
-                            pauta: string | null;
-                          }>
-                        ).map((c, k) => (
-                          <li key={k} className="rounded-md border p-2.5">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-medium">{c.criterio}</span>
-                              {c.ponderacion && <Badge variant="secondary">{c.ponderacion}</Badge>}
-                            </div>
-                            {c.pauta && <p className="mt-1 text-xs text-muted-foreground">{c.pauta}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {summary.evaluation_methodology && (
-                      <p className="border-t pt-2 text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">Metodología general: </span>
-                        {summary.evaluation_methodology}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-                <Card className="lg:col-span-2">
-                  <CardHeader><CardTitle className="text-base">Anexos solicitados</CardTitle></CardHeader>
-                  <CardContent className="text-sm">
-                    {((summary.requested_annexes ?? []) as Array<{
-                      nombre: string;
-                      descripcion: string | null;
-                      obligatorio: boolean | null;
-                    }>).length === 0 ? (
-                      <p className="text-muted-foreground">
-                        No se identificaron anexos solicitados en el documento.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {(
-                          summary.requested_annexes as Array<{
-                            nombre: string;
-                            descripcion: string | null;
-                            obligatorio: boolean | null;
-                          }>
-                        ).map((a, k) => (
-                          <li key={k} className="rounded-md border p-2.5">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-medium">{a.nombre}</span>
-                              {a.obligatorio != null && (
-                                <Badge variant={a.obligatorio ? "danger" : "secondary"}>
-                                  {a.obligatorio ? "obligatorio" : "opcional"}
-                                </Badge>
-                              )}
-                            </div>
-                            {a.descripcion && <p className="mt-1 text-xs text-muted-foreground">{a.descripcion}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </CardContent>
-                </Card>
-                <Card className="lg:col-span-2">
-                  <CardHeader><CardTitle className="text-base">Recomendaciones</CardTitle></CardHeader>
-                  <CardContent>
-                    <ul className="list-disc space-y-1 pl-4 text-sm">
-                      {((summary.recommendations ?? []) as string[]).map((r, k) => <li key={k}>{r}</li>)}
-                    </ul>
-                  </CardContent>
-                </Card>
-                <Card className="lg:col-span-2">
-                  <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-                    <CardTitle className="text-base">Puntos críticos ({requirements.length})</CardTitle>
-                    {requirements.length > 0 && <ExportButtons kind="requerimientos" entityId={doc.id} />}
-                  </CardHeader>
-                  <CardContent className="text-sm">
-                    {requirements.length === 0 ? (
-                      <p className="text-muted-foreground">
-                        No se identificaron puntos críticos en este documento.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {requirements.map((r) => (
-                          <li key={r.id} className="rounded-md border p-2.5">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-medium">{r.title}</span>
-                              <Badge variant={statusVariant(r.priority)}>{r.priority}</Badge>
-                              {r.mandatory && <Badge variant="secondary">obligatorio</Badge>}
-                            </div>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {r.critical_type &&
-                                (CRITICAL_TYPE_LABELS[r.critical_type as keyof typeof CRITICAL_TYPE_LABELS] ??
-                                  r.critical_type)}
-                              {r.deadline_text && ` · plazo: ${r.deadline_text}`}
-                              {r.page != null && ` · pág. ${r.page}`}
-                            </p>
-                            {r.description && <p className="mt-1 text-xs">{r.description}</p>}
-                            {r.quote && (
-                              <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
-                                “{r.quote}”
-                              </p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+              )}
             </div>
-          )}
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="sistemas">
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Sistemas exigidos por el documento y sus funcionalidades. Pulsa un sistema para
-              desplegarlas, marca cada funcionalidad al completarla y fija su plazo. El avance se
-              guarda al instante y se conserva aunque vuelvas a procesar el documento.
-            </p>
-            <SystemsChecklist systems={systems} />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="entregas">
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Entregas registradas en este documento de control. Las adicionales no responden a
-              ningún requerimiento del acuerdo; las “sin costo” se realizaron gratuitamente.
-            </p>
-            <Table>
-              <THead>
-                <TR><TH>Entrega</TH><TH>Estado</TH><TH>Condición</TH><TH>Fecha</TH><TH>Req. asociado</TH><TH>Pág.</TH></TR>
-              </THead>
-              <TBody>
-                {deliveredItems.map((e) => (
-                  <TR key={e.id}>
-                    <TD>
-                      <p className="font-medium">{e.title}</p>
-                      {e.description && <p className="text-xs text-muted-foreground">{e.description}</p>}
-                    </TD>
-                    <TD><Badge variant={statusVariant(e.delivery_state === "entregado" ? "cumplido" : "pendiente")}>{e.delivery_state.replace(/_/g, " ")}</Badge></TD>
-                    <TD>
-                      {e.is_additional ? (
-                        <Badge variant={e.is_free ? "success" : "default"}>
-                          {e.is_free ? "adicional sin costo" : "adicional"}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">contractual</Badge>
-                      )}
-                    </TD>
-                    <TD>{formatDate(e.delivered_on)}</TD>
-                    <TD>{e.requirement_ref ?? "—"}</TD>
-                    <TD>{e.page ?? "—"}</TD>
-                  </TR>
-                ))}
-              </TBody>
-            </Table>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="timeline">
-          <TimelineView milestones={timeline?.milestones ?? []} />
-        </TabsContent>
-
-        <TabsContent value="chat">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
+          <TabsContent value="entregas">
+            <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Las conversaciones quedan guardadas en el documento — se retoma la más reciente al
-                volver.
+                Entregas registradas en este documento de control. Las adicionales no responden a
+                ningún requerimiento del acuerdo; las “sin costo” se realizaron gratuitamente.
               </p>
-              <DocumentChatHistory
+              <Table>
+                <THead>
+                  <TR><TH>Entrega</TH><TH>Estado</TH><TH>Condición</TH><TH>Fecha</TH><TH>Req. asociado</TH><TH>Pág.</TH></TR>
+                </THead>
+                <TBody>
+                  {deliveredItems.map((e) => (
+                    <TR key={e.id}>
+                      <TD>
+                        <p className="font-medium">{e.title}</p>
+                        {e.description && <p className="text-xs text-muted-foreground">{e.description}</p>}
+                      </TD>
+                      <TD><Badge variant={statusVariant(e.delivery_state === "entregado" ? "cumplido" : "pendiente")}>{e.delivery_state.replace(/_/g, " ")}</Badge></TD>
+                      <TD>
+                        {e.is_additional ? (
+                          <Badge variant={e.is_free ? "success" : "default"}>
+                            {e.is_free ? "adicional sin costo" : "adicional"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">contractual</Badge>
+                        )}
+                      </TD>
+                      <TD>{formatDate(e.delivered_on)}</TD>
+                      <TD>{e.requirement_ref ?? "—"}</TD>
+                      <TD>{e.page ?? "—"}</TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="timeline">
+            <div className="space-y-3">
+              <AnalysisPartButton
                 documentId={doc.id}
-                conversations={conversationList}
-                activeId={activeConversationId}
+                part="timeline"
+                label={PART_LABELS.timeline}
+                description={PART_DESCRIPTIONS.timeline}
+                status={partStatus("timeline")}
+                errorMessage={partError("timeline")}
+              />
+              {partStatus("timeline") === "listo" && <TimelineView milestones={timeline?.milestones ?? []} />}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="chat">
+            <div className="space-y-3">
+              <AnalysisPartButton
+                documentId={doc.id}
+                part="chat"
+                label={PART_LABELS.chat}
+                description={PART_DESCRIPTIONS.chat}
+                status={partStatus("chat")}
+                errorMessage={partError("chat")}
+              />
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">
+                  Las conversaciones quedan guardadas en el documento — se retoma la más reciente al
+                  volver. El chat funciona con o sin "Preparar chat": buscará por texto si no se
+                  prepararon los vectores.
+                </p>
+                <DocumentChatHistory
+                  documentId={doc.id}
+                  conversations={conversationList}
+                  activeId={activeConversationId}
+                />
+              </div>
+              <ChatPanel
+                key={activeConversationId ?? "new"}
+                documentId={doc.id}
+                agent="analista"
+                initialConversationId={activeConversationId}
+                initialMessages={chatInitialMessages}
               />
             </div>
-            <ChatPanel
-              key={activeConversationId ?? "new"}
-              documentId={doc.id}
-              agent="analista"
-              initialConversationId={activeConversationId}
-              initialMessages={chatInitialMessages}
-            />
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="versiones">
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Cada reanálisis con otro motor de IA crea una versión nueva sin perder la anterior.
-              Pulsa <span className="font-medium">Ver resumen</span> para revisar lo que produjo
-              cada una.
-            </p>
-            <Table>
-              <THead>
-                <TR><TH>Versión</TH><TH>Motor</TH><TH>Nota de cambio</TH><TH>Fecha</TH><TH>Actual</TH><TH>&nbsp;</TH></TR>
-              </THead>
-              <TBody>
-                {versions.map((v) => (
-                  <TR key={v.id}>
-                    <TD className="font-medium">v{v.version}</TD>
-                    <TD>
-                      {v.analysis_engine ? (
-                        <Badge variant="secondary">
-                          {ENGINE_LABELS[v.analysis_engine as AnalysisMode] ?? v.analysis_engine}
-                        </Badge>
-                      ) : (
-                        "—"
-                      )}
-                    </TD>
-                    <TD>{v.change_note ?? "—"}</TD>
-                    <TD>{formatDate(v.created_at)}</TD>
-                    <TD>{v.is_current ? <Badge variant="success">actual</Badge> : "—"}</TD>
-                    <TD>
-                      <Link
-                        href={v.is_current ? `/documents/${doc.id}` : `/documents/${doc.id}?v=${v.id}`}
-                        className="text-primary underline"
-                      >
-                        Ver resumen
-                      </Link>
-                    </TD>
-                  </TR>
-                ))}
-              </TBody>
-            </Table>
-          </div>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="versiones">
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Cada reanálisis con otro motor de IA crea una versión nueva sin perder la anterior.
+                Pulsa <span className="font-medium">Ver resumen</span> para revisar lo que produjo
+                cada una.
+              </p>
+              <Table>
+                <THead>
+                  <TR><TH>Versión</TH><TH>Motor</TH><TH>Nota de cambio</TH><TH>Fecha</TH><TH>Actual</TH><TH>&nbsp;</TH></TR>
+                </THead>
+                <TBody>
+                  {versions.map((v) => (
+                    <TR key={v.id}>
+                      <TD className="font-medium">v{v.version}</TD>
+                      <TD>
+                        {v.analysis_engine ? (
+                          <Badge variant="secondary">
+                            {ENGINE_LABELS[v.analysis_engine as AnalysisMode] ?? v.analysis_engine}
+                          </Badge>
+                        ) : (
+                          "—"
+                        )}
+                      </TD>
+                      <TD>{v.change_note ?? "—"}</TD>
+                      <TD>{formatDate(v.created_at)}</TD>
+                      <TD>{v.is_current ? <Badge variant="success">actual</Badge> : "—"}</TD>
+                      <TD>
+                        <Link
+                          href={v.is_current ? `/documents/${doc.id}` : `/documents/${doc.id}?v=${v.id}`}
+                          className="text-primary underline"
+                        >
+                          Ver resumen
+                        </Link>
+                      </TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }
