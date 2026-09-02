@@ -39,6 +39,10 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    // Log explícito: el cliente de @vercel/blob solo ve "failed to retrieve
+    // the client token" (genérico) cuando esta ruta responde !ok — el motivo
+    // real solo se ve aquí, en los logs del servidor.
+    console.error("blob_upload_token_failed", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Error generando el token de subida" },
       { status: 400 }
