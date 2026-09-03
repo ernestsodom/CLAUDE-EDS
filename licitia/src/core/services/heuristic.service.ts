@@ -313,6 +313,8 @@ export function extractRequirementsLocal(pages: PageText[]): Requirements {
           ? "alto"
           : "medio";
 
+    const valorMatch = clean.match(/(\d{1,3}(?:[.,]\d{1,3})?\s*%|(?:UF|CLP|\$)\s*[\d.,]+)/i);
+
     requerimientos.push({
       tipo_critico: tipo,
       codigo: codeMatch ? `RQ-${codeMatch[1]}` : null,
@@ -320,6 +322,13 @@ export function extractRequirementsLocal(pages: PageText[]): Requirements {
       descripcion: clean.length > 140 ? clean : null,
       obligatorio: !/(deseable|opcional|podr[aá])/.test(norm(clean)),
       plazo: clean.match(PLAZO_RE)?.[1] ?? null,
+      // El motor local reconoce el ítem por patrón, pero no separa de forma
+      // confiable la condición/tope de un valor cuantitativo dentro de la
+      // misma oración — solo captura el valor cuando aparece explícito
+      // (monto o %); base_calculo/condicion quedan para el motor de IA.
+      valor: valorMatch?.[0] ?? null,
+      base_calculo: null,
+      condicion: null,
       pagina: s.page,
       cita: clean.slice(0, 300),
       prioridad,
@@ -550,10 +559,16 @@ export function extractTimelineLocal(pages: PageText[]): Timeline {
 function isoLocal(sents: Located[], norma: "9001" | "27001"): Summary["certificaciones"]["iso_9001"] {
   const re = new RegExp(`ISO[\\s/-]*${norma}`, "i");
   const hit = sents.find((s) => re.test(s.text));
-  if (!hit) return { exigida: null, detalle: null, pagina: null, cita: null };
+  if (!hit) return { exigida: null, a_quien: null, obligatoria_o_deseable: null, detalle: null, pagina: null, cita: null };
   const niega = /(no (?:se )?(?:ser[aá]|es) (?:exigid|requerid|obligatori)|no se exige|sin exigencia)/i.test(hit.text);
+  const deseable = /(deseable|opcional|puntuar[aá]|puntaje adicional|suma(?:r[aá])? puntos)/i.test(hit.text);
   return {
     exigida: !niega,
+    // El motor local no separa de forma confiable a quién exactamente se le
+    // exige (oferente/fabricante/subcontratista) dentro de la misma oración
+    // — eso queda para el motor de IA.
+    a_quien: null,
+    obligatoria_o_deseable: niega ? null : deseable ? "deseable" : "obligatoria",
     detalle: hit.text.replace(NUMERACION, "").trim().slice(0, 300),
     pagina: hit.page,
     cita: hit.text.slice(0, 300),
@@ -606,14 +621,20 @@ export function summarizeLocal(pages: PageText[]): Summary {
   const VOLUMEN_RE =
     /(\d{1,3}(?:[.,]\d{3})*\s*(?:registros|filas|documentos|usuarios|GB|TB|MB)|\d{1,2}\s*a[ñn]os de (?:historia|informaci[oó]n|datos))/i;
   const migraSentences = sents.filter((s) => MIGRA_RE.test(s.text));
+  const RESPONSABLE_RE = /(a cargo del|ser[aá] responsabilidad de|deber[aá] ejecutar(?:la)?|responsable de la migraci[oó]n)\s+(el proveedor|el oferente|el contratista|el mandante|la instituci[oó]n)/i;
   const migracionDatos: Summary["migracion_datos"] = migraSentences.length
     ? {
         exigida: true,
         plazo: migraSentences.map((s) => s.text.match(PLAZO_RE)?.[1]).find(Boolean) ?? null,
         volumen: migraSentences.map((s) => s.text.match(VOLUMEN_RE)?.[1]).find(Boolean) ?? null,
+        // El motor local detecta QUE se exige migración, pero no distingue de
+        // forma confiable el contenido a migrar (informacion_a_migrar) del
+        // resto de la oración — eso queda para el motor de IA.
+        informacion_a_migrar: null,
+        responsable: migraSentences.map((s) => s.text.match(RESPONSABLE_RE)?.[2]).find(Boolean) ?? null,
         detalle: migraSentences[0].text.replace(NUMERACION, "").trim().slice(0, 300),
       }
-    : { exigida: null, plazo: null, volumen: null, detalle: null };
+    : { exigida: null, plazo: null, volumen: null, informacion_a_migrar: null, responsable: null, detalle: null };
 
   return {
     resumen_general:
@@ -658,6 +679,8 @@ export function extractEvaluationLocal(pages: PageText[]): Evaluation {
       criterio: s.text.slice(0, 150),
       ponderacion: s.text.match(PORC_RE)?.[1] ?? null,
       pauta: null,
+      pagina: s.page,
+      cita: s.text.slice(0, 300),
     }));
 
   const metodologiaEvaluacion =
@@ -679,7 +702,17 @@ export function extractEvaluationLocal(pages: PageText[]): Evaluation {
     const nombre = match[0].toUpperCase().replace(/\s+/g, " ");
     if (seenAnexos.has(nombre)) continue;
     seenAnexos.add(nombre);
-    anexosSolicitados.push({ nombre, descripcion: s.text.slice(0, 200), obligatorio: null });
+    anexosSolicitados.push({
+      nombre,
+      // El motor local no clasifica el tipo de anexo ni qué debe hacer el
+      // oferente con él de forma confiable — eso queda para el motor de IA.
+      tipo: null,
+      descripcion: s.text.slice(0, 200),
+      accion_oferente: null,
+      obligatorio: null,
+      pagina: s.page,
+      cita: s.text.slice(0, 300),
+    });
     if (anexosSolicitados.length >= 20) break;
   }
 

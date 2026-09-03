@@ -137,13 +137,16 @@ export const POST = withErrorHandling(async (request: Request) => {
     payload = {
       title: "Puntos críticos para participar",
       table: {
-        headers: ["Tipo", "Código", "Exigencia", "Descripción", "Obligatorio", "Página", "Prioridad", "Cita"],
+        headers: [
+          "Tipo", "Código", "Exigencia", "Descripción", "Valor", "Cálculo/tope", "Condición",
+          "Obligatorio", "Plazo", "Página", "Prioridad", "Cita",
+        ],
         rows: (reqs ?? []).map((r) => [
           CRITICAL_TYPE_LABELS[r.critical_type as keyof typeof CRITICAL_TYPE_LABELS] ??
             r.critical_type ??
             "Otros",
-          r.code ?? "", r.title, r.description ?? "",
-          r.mandatory ? "Sí" : "No", String(r.page ?? ""), r.priority, r.quote ?? "",
+          r.code ?? "", r.title, r.description ?? "", r.value_text ?? "", r.calc_base ?? "", r.condition_text ?? "",
+          r.mandatory ? "Sí" : "No", r.deadline_text ?? "", String(r.page ?? ""), r.priority, r.quote ?? "",
         ]),
       },
     };

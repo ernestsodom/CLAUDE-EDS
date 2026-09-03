@@ -38,6 +38,27 @@ export function pagesToAnnotatedText(pages: PageText[], maxChars = 300_000): str
   return out.trim();
 }
 
+/**
+ * Instrucción de profundidad compartida por todos los prompts de extracción.
+ *
+ * Dividir el análisis en partes (una llamada por resumen/sistemas/timeline/etc.
+ * en vez de todo junto) bajó el tiempo de respuesta, pero en un momento
+ * también se le pidió a la IA ser breve dentro de cada parte — eso fue el
+ * error: la parte correcta a reducir es el ALCANCE de cada llamada, no la
+ * PROFUNDIDAD del contenido que devuelve. Este bloque se repite en cada
+ * prompt para que ninguno vuelva a quedar corto por su cuenta.
+ */
+const DEPTH_INSTRUCTIONS =
+  "Sé exhaustivo, no resumas de más: si el documento trae 15 ítems de un mismo tipo, devuelve los 15, " +
+  "no una muestra de los más obvios. Prioriza la letra chica sobre la generalidad. Usa contexto más " +
+  "allá de la frase aislada cuando el significado de un requisito dependa de otra cláusula del mismo " +
+  "documento (p.ej. una exigencia técnica condicionada por una regla administrativa). Distingue tres " +
+  "situaciones que NO son lo mismo: (1) el documento dice explícitamente que algo no aplica/no se " +
+  "exige — usa false o indícalo en el texto; (2) el documento simplemente no menciona el tema — usa " +
+  "null; (3) el documento lo menciona pero de forma ambigua o contradictoria entre dos secciones — en " +
+  "ese caso indícalo explícitamente en el campo de texto correspondiente en vez de elegir una lectura " +
+  "por tu cuenta. Nunca completes con supuestos lo que el documento no dice.";
+
 // Groq aplica un límite de tokens POR MINUTO (TPM) al modelo openai/gpt-oss-120b
 // en el tier gratuito ("on_demand") mucho más estricto que su ventana de
 // contexto — confirmado en producción: "413 ... Limit 8000, Requested 39091
@@ -111,17 +132,18 @@ export async function summarizeDocument(
       "- certificaciones: si el documento exige que el oferente esté certificado en ISO 9001 (calidad) " +
       "y/o ISO 27001 (seguridad de la información). Responde cada norma por separado: exigida=true " +
       "solo si el documento la pide, false si dice expresamente que no hace falta, y null si " +
-      "sencillamente no la menciona. En 'detalle' aclara a quién se le exige, con qué vigencia, si " +
-      "admite certificaciones equivalentes o si en vez de ser requisito solo suma puntaje en la " +
-      "evaluación. Cita el texto donde lo exige.\n" +
-      "- migracion_datos: si hay que migrar datos desde el/los sistema(s) actual(es). Necesito tres " +
-      "cosas claras: si se exige (exigida), el TIEMPO que dan para hacerla (plazo, con el texto tal " +
-      "cual: '30 días corridos antes de la marcha blanca') y CUÁNTA información hay que migrar " +
-      "(volumen: años de historia, número de registros, GB, cantidad de tablas o sistemas de origen, " +
-      "lo que el documento cuantifique). Si el documento no cuantifica el volumen, deja volumen en " +
-      "null en vez de estimarlo tú.\n" +
-      "Sé específico y fiel al texto. No inventes ni completes con supuestos: lo que el documento no " +
-      "diga va en null.",
+      "sencillamente no la menciona. Completa a_quien (a quién exactamente: el oferente, el " +
+      "fabricante del software, un subcontratista) y obligatoria_o_deseable (obligatoria = elimina la " +
+      "oferta si falta; deseable = solo suma puntaje). En 'detalle' aclara con qué vigencia, si admite " +
+      "certificaciones equivalentes y cómo se acredita. Cita el texto donde lo exige.\n" +
+      "- migracion_datos: si hay que migrar datos desde el/los sistema(s) actual(es). Necesito cuatro " +
+      "cosas claras: si se exige (exigida), QUÉ hay que migrar (informacion_a_migrar: qué datos, " +
+      "entidades o módulos — no el volumen, el contenido), CUÁNTA información hay que migrar (volumen: " +
+      "años de historia, número de registros, GB, cantidad de tablas o sistemas de origen, lo que el " +
+      "documento cuantifique — null si no lo cuantifica) y el TIEMPO que dan para hacerla (plazo, con " +
+      "el texto tal cual: '30 días corridos antes de la marcha blanca'). Indica también quién es " +
+      "responsable de ejecutarla y de validarla si el documento lo dice (responsable).\n" +
+      DEPTH_INSTRUCTIONS,
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
@@ -149,15 +171,23 @@ export async function extractEvaluation(
       "- criterios_evaluacion: cada criterio con el que se evaluará y adjudicará la oferta (p.ej. " +
       "Precio, Experiencia, Presentación técnica, Soporte), con su ponderación exacta (porcentaje o " +
       "puntaje) y, en 'pauta', CÓMO se calcula o asigna el puntaje de ese criterio — fórmula, tabla de " +
-      "puntajes por tramo, umbrales mínimos, etc., tal como lo describe el documento. Si el documento " +
-      "trae una tabla de evaluación, cada fila es un criterio separado — no la resumas en un solo ítem.\n" +
+      "puntajes por tramo, umbrales mínimos, etc., tal como lo describe el documento, más página y " +
+      "cita. Si el documento trae una tabla de evaluación, cada fila es un criterio separado — no la " +
+      "resumas en un solo ítem. Al final, considera si el documento permite ver la ponderación total " +
+      "consolidada (debería sumar 100% o el puntaje máximo indicado) y, si no cuadra, indícalo en " +
+      "metodologia_evaluacion en vez de ajustar los números tú mismo.\n" +
       "- metodologia_evaluacion: las reglas generales que no son de un criterio puntual — cómo se suma " +
       "el puntaje total, desempates, causales de inadmisibilidad u ofertas fuera de bases.\n" +
       "- anexos_solicitados: cada anexo, formulario o documento adjunto que el documento exige presentar " +
       "(identificado por su número o nombre tal como aparece, p.ej. 'Anexo N°3 — Declaración Jurada'), " +
-      "con qué debe contener o acreditar y si es obligatorio. Sé exhaustivo: lista TODOS los anexos " +
-      "mencionados, no solo los primeros.\n" +
-      "Fiel al texto: lo que el documento no defina va en null o en lista vacía.",
+      "con su tipo (formulario, declaración jurada, certificado, boleta de garantía, antecedente legal, " +
+      "propuesta técnica, otro), qué debe contener o acreditar, qué acción concreta debe hacer el " +
+      "oferente con él (completarlo, firmarlo ante notario, adjuntar un respaldo, etc.), si es " +
+      "obligatorio, página y cita. Sé exhaustivo: lista TODOS los anexos mencionados en el documento, " +
+      "no solo los primeros o los más destacados — revisa también anexos mencionados de pasada dentro " +
+      "de otras cláusulas, no solo los que traen su propia sección.\n" +
+      "Fiel al texto: lo que el documento no defina va en null o en lista vacía. " +
+      DEPTH_INSTRUCTIONS,
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
@@ -187,7 +217,12 @@ export async function extractRequirements(
       "- servidores: condiciones de servidores, hosting, nube, disponibilidad de infraestructura.\n" +
       "- sla: niveles de servicio, tiempos de respuesta y de resolución, disponibilidad comprometida.\n" +
       "- plazos: plazos de entrega, de implementación, de presentación de ofertas y fechas límite.\n" +
-      "- multas: multas, sanciones, descuentos y causales de término anticipado.\n" +
+      "- multas: CADA multa, sanción, descuento o causal de término anticipado como un ítem SEPARADO — " +
+      "si el documento trae una tabla de multas con varias filas, extrae cada fila individualmente, " +
+      "nunca las resumas en un solo ítem genérico de 'multas'. Para cada una: qué incumplimiento la " +
+      "gatilla (condicion), el monto o porcentaje exacto (valor), y sobre qué se calcula y su tope " +
+      "máximo si el documento lo define (base_calculo, p.ej. 'por cada día de atraso, sobre el monto " +
+      "mensual del contrato; tope 20% del contrato').\n" +
       "- certificados: certificados, acreditaciones e inscripciones exigidas (ISO, ChileProveedores, etc.).\n" +
       "- migracion_datos: migración de datos desde el/los sistema(s) actual(es) al nuevo — alcance de " +
       "los datos a migrar, responsable, validación y, sobre todo, su plazo.\n" +
@@ -198,16 +233,19 @@ export async function extractRequirements(
       "NO incluyas funcionalidades del software ni requisitos funcionales: esos se extraen aparte. " +
       "Para cada ítem, extrae también su plazo cuando el documento lo indique (p.ej. 'la migración de " +
       "datos deberá completarse en 30 días corridos previos a la marcha blanca'), con el texto tal cual " +
-      "aparece; si no hay plazo explícito, null. Cada ítem con su cita textual y página. Si un tipo no " +
-      "aparece en el documento, simplemente no lo incluyas. Sé breve y concreto: mejor pocos ítems bien " +
-      "definidos que una lista larga.",
+      "aparece; si no hay plazo explícito, null. Usa valor/base_calculo/condicion en cualquier tipo " +
+      "donde apliquen (p.ej. el % de disponibilidad de un sla, el monto y vigencia de una " +
+      "boleta_garantia), no solo en multas. Cada ítem con su cita textual y página. Si un tipo no " +
+      "aparece en el documento, simplemente no lo incluyas. " +
+      DEPTH_INSTRUCTIONS,
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
 
 /**
- * Extrae los sistemas (software) que el documento exige y las funcionalidades
- * concretas de cada uno. Es la base del checklist de cumplimiento.
+ * Extrae ÚNICAMENTE el listado de sistemas (software) que el documento
+ * exige — sin sus funcionalidades (ver SystemsSchema para el porqué: eso se
+ * pide aparte, por sistema, cuando el usuario lo solicita).
  */
 export async function extractSystems(
   pages: PageText[],
@@ -233,7 +271,9 @@ export async function extractSystems(
       "- Indica el plazo de entrega cuando el documento lo señale, con el texto tal cual aparece " +
       "  ('60 días corridos desde la firma del contrato'); si no aparece, null.\n" +
       "- Si el documento describe requisitos sueltos sin agrupar, agrúpalos tú por sistema/módulo.\n" +
-      "- No inventes: cada sistema debe poder respaldarse con una cita del documento.",
+      "- No inventes: cada sistema debe poder respaldarse con una cita del documento.\n" +
+      "- Sé exhaustivo: lista TODOS los sistemas/módulos exigidos, aunque el documento los mencione " +
+      "  dispersos en distintas secciones (bases técnicas, anexos, alcance) y no en un listado único.",
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
@@ -278,7 +318,11 @@ export async function extractTimeline(
     schema: TimelineSchema,
     schemaName: "linea_de_tiempo",
     provider,
-    speed: "fast",
+    // "chat" (el modelo grande) y no "fast": convertir plazos relativos a
+    // días, elegir el ancla correcta (documento vs hito anterior) y no
+    // perder hitos mencionados fuera del cronograma principal es más
+    // razonamiento del que el modelo rápido resuelve bien.
+    speed: "chat",
     onUsage,
     maxTokens: outputCapFor(provider),
     system:
@@ -291,7 +335,11 @@ export async function extractTimeline(
       "cuenta desde un evento único de referencia (firma del contrato, adjudicación, publicación), o " +
       "'hito_anterior' si se cuenta desde que se completó el hito anterior de esta misma línea de " +
       "tiempo. El cálculo de la fecha real lo hace el sistema, no tú — tu trabajo es extraer el plazo " +
-      "y su punto de partida con precisión. Ordena cronológicamente.",
+      "y su punto de partida con precisión. La descripción de cada hito debe explicar qué implica " +
+      "concretamente (no solo repetir el título) y, cuando el documento lo diga, quién es responsable " +
+      "de cumplirlo. Revisa todo el documento, no solo la sección de cronograma: hitos como la " +
+      "migración de datos, la capacitación o el soporte suelen definirse en otras secciones (bases " +
+      "técnicas, anexos) con su propio plazo, y deben incluirse igual. Ordena cronológicamente.",
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }

@@ -130,11 +130,17 @@ export default async function DocumentDetailPage({
     criterio: string;
     ponderacion: string | null;
     pauta: string | null;
+    pagina: number | null;
+    cita: string | null;
   }>;
   const requestedAnnexes = (summary?.requested_annexes ?? []) as Array<{
     nombre: string;
+    tipo: string | null;
     descripcion: string | null;
+    accion_oferente: string | null;
     obligatorio: boolean | null;
+    pagina: number | null;
+    cita: string | null;
   }>;
 
   return (
@@ -287,18 +293,36 @@ export default async function DocumentDetailPage({
                     <Card>
                       <CardHeader><CardTitle className="text-base">Certificaciones</CardTitle></CardHeader>
                       <CardContent className="space-y-2 text-sm">
-                        <p className="flex items-center gap-2">
-                          <span className="font-medium">ISO 9001:</span> {isoBadge(summary.iso_9001)}
-                        </p>
-                        {(summary.iso_9001 as { detalle: string | null } | null)?.detalle && (
-                          <p className="text-xs text-muted-foreground">{(summary.iso_9001 as { detalle: string }).detalle}</p>
-                        )}
-                        <p className="flex items-center gap-2">
-                          <span className="font-medium">ISO 27001:</span> {isoBadge(summary.iso_27001)}
-                        </p>
-                        {(summary.iso_27001 as { detalle: string | null } | null)?.detalle && (
-                          <p className="text-xs text-muted-foreground">{(summary.iso_27001 as { detalle: string }).detalle}</p>
-                        )}
+                        {(() => {
+                          type Cert = {
+                            detalle: string | null;
+                            a_quien: string | null;
+                            obligatoria_o_deseable: "obligatoria" | "deseable" | null;
+                          };
+                          const renderCert = (label: string, raw: unknown) => {
+                            const c = raw as Cert | null;
+                            return (
+                              <div key={label}>
+                                <p className="flex flex-wrap items-center gap-2">
+                                  <span className="font-medium">{label}:</span> {isoBadge(raw)}
+                                  {c?.obligatoria_o_deseable && (
+                                    <Badge variant="secondary">{c.obligatoria_o_deseable}</Badge>
+                                  )}
+                                </p>
+                                {c?.a_quien && (
+                                  <p className="text-xs text-muted-foreground">A quién: {c.a_quien}</p>
+                                )}
+                                {c?.detalle && <p className="text-xs text-muted-foreground">{c.detalle}</p>}
+                              </div>
+                            );
+                          };
+                          return (
+                            <>
+                              {renderCert("ISO 9001", summary.iso_9001)}
+                              {renderCert("ISO 27001", summary.iso_27001)}
+                            </>
+                          );
+                        })()}
                       </CardContent>
                     </Card>
                     <Card>
@@ -306,7 +330,14 @@ export default async function DocumentDetailPage({
                       <CardContent className="space-y-1 text-sm">
                         {(() => {
                           const m = summary.data_migration as
-                            | { exigida: boolean | null; plazo: string | null; volumen: string | null; detalle: string | null }
+                            | {
+                                exigida: boolean | null;
+                                plazo: string | null;
+                                volumen: string | null;
+                                informacion_a_migrar: string | null;
+                                responsable: string | null;
+                                detalle: string | null;
+                              }
                             | null;
                           if (!m || m.exigida == null) {
                             return <p className="text-muted-foreground">No se menciona en el documento.</p>;
@@ -314,8 +345,10 @@ export default async function DocumentDetailPage({
                           if (!m.exigida) return <p>No se exige migración de datos.</p>;
                           return (
                             <>
+                              <p><span className="font-medium">Qué migrar:</span> {m.informacion_a_migrar ?? "no especificado en el documento"}</p>
+                              <p><span className="font-medium">Volumen:</span> {m.volumen ?? "no cuantificado en el documento"}</p>
                               <p><span className="font-medium">Plazo:</span> {m.plazo ?? "no especificado"}</p>
-                              <p><span className="font-medium">Volumen a migrar:</span> {m.volumen ?? "no cuantificado en el documento"}</p>
+                              {m.responsable && <p><span className="font-medium">Responsable:</span> {m.responsable}</p>}
                               {m.detalle && <p className="text-xs text-muted-foreground">{m.detalle}</p>}
                             </>
                           );
@@ -378,6 +411,11 @@ export default async function DocumentDetailPage({
                                 {c.ponderacion && <Badge variant="secondary">{c.ponderacion}</Badge>}
                               </div>
                               {c.pauta && <p className="mt-1 text-xs text-muted-foreground">{c.pauta}</p>}
+                              {c.cita && (
+                                <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
+                                  “{c.cita}”{c.pagina != null && ` — pág. ${c.pagina}`}
+                                </p>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -403,6 +441,7 @@ export default async function DocumentDetailPage({
                             <li key={k} className="rounded-md border p-2.5">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-medium">{a.nombre}</span>
+                                {a.tipo && <Badge variant="secondary">{a.tipo}</Badge>}
                                 {a.obligatorio != null && (
                                   <Badge variant={a.obligatorio ? "danger" : "secondary"}>
                                     {a.obligatorio ? "obligatorio" : "opcional"}
@@ -410,6 +449,17 @@ export default async function DocumentDetailPage({
                                 )}
                               </div>
                               {a.descripcion && <p className="mt-1 text-xs text-muted-foreground">{a.descripcion}</p>}
+                              {a.accion_oferente && (
+                                <p className="mt-1 text-xs">
+                                  <span className="font-medium">Qué hacer: </span>
+                                  {a.accion_oferente}
+                                </p>
+                              )}
+                              {a.cita && (
+                                <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
+                                  “{a.cita}”{a.pagina != null && ` — pág. ${a.pagina}`}
+                                </p>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -451,9 +501,22 @@ export default async function DocumentDetailPage({
                               (CRITICAL_TYPE_LABELS[r.critical_type as keyof typeof CRITICAL_TYPE_LABELS] ??
                                 r.critical_type)}
                             {r.deadline_text && ` · plazo: ${r.deadline_text}`}
+                            {r.value_text && ` · valor: ${r.value_text}`}
                             {r.page != null && ` · pág. ${r.page}`}
                           </p>
                           {r.description && <p className="mt-1 text-xs">{r.description}</p>}
+                          {r.condition_text && (
+                            <p className="mt-1 text-xs">
+                              <span className="font-medium">Se gatilla si: </span>
+                              {r.condition_text}
+                            </p>
+                          )}
+                          {r.calc_base && (
+                            <p className="mt-1 text-xs">
+                              <span className="font-medium">Cálculo/tope: </span>
+                              {r.calc_base}
+                            </p>
+                          )}
                           {r.quote && (
                             <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
                               “{r.quote}”

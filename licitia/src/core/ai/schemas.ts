@@ -42,10 +42,18 @@ const ItemSchema = z.object({ titulo: z.string(), detalle: z.string() });
  *  `false`, que es "dice explícitamente que no hace falta"). */
 const CertificationSchema = z.object({
   exigida: z.boolean().nullable(),
+  a_quien: z
+    .string()
+    .nullable()
+    .describe("A quién se le exige exactamente: al oferente, al fabricante del software, a un subcontratista, etc."),
+  obligatoria_o_deseable: z
+    .enum(["obligatoria", "deseable"])
+    .nullable()
+    .describe("obligatoria = requisito de admisibilidad; deseable = no elimina la oferta, solo suma puntaje en la evaluación"),
   detalle: z
     .string()
     .nullable()
-    .describe("Cómo lo exige el documento: a quién, con qué vigencia, si admite equivalentes o si solo puntúa en la evaluación"),
+    .describe("Cómo lo exige el documento: con qué vigencia, si admite equivalentes, cómo se acredita"),
   pagina: z.number().int().nullable(),
   cita: z.string().nullable().describe("Cita textual breve donde lo exige"),
 });
@@ -116,7 +124,15 @@ export const SummarySchema = z.object({
             "número de registros, tamaño en GB, cantidad de tablas o sistemas de origen (p.ej. " +
             "'10 años de historia, ~2 millones de registros'). Null si el documento no lo cuantifica."
         ),
-      detalle: z.string().nullable().describe("Aclaración breve del alcance de la migración: qué datos, desde qué sistemas, quién valida"),
+      informacion_a_migrar: z
+        .string()
+        .nullable()
+        .describe("QUÉ hay que migrar (no cuánto): qué datos, entidades o módulos — p.ej. 'padrón de contribuyentes, historial de pagos y expedientes activos'"),
+      responsable: z
+        .string()
+        .nullable()
+        .describe("Quién ejecuta y quién valida la migración según el documento (el proveedor, el mandante, ambos, o si no lo especifica)"),
+      detalle: z.string().nullable().describe("Aclaración adicional del alcance de la migración que no entre en los campos anteriores"),
     })
     .describe("Migración de datos: si se exige, en cuánto tiempo y cuánta información."),
 });
@@ -142,6 +158,8 @@ export const EvaluationSchema = z.object({
           .string()
           .nullable()
           .describe("Cómo se calcula o asigna el puntaje de este criterio — fórmula, tabla de puntajes, umbrales, tramos, etc."),
+        pagina: z.number().int().nullable(),
+        cita: z.string().nullable().describe("Cita textual breve de la tabla o cláusula donde se define este criterio"),
       })
     )
     .describe("Criterios de evaluación de la oferta y su ponderación/pauta de cálculo, si el documento las define."),
@@ -153,8 +171,18 @@ export const EvaluationSchema = z.object({
     .array(
       z.object({
         nombre: z.string().describe("Nombre o número del anexo tal como aparece en el documento (p.ej. 'Anexo N°3 — Declaración Jurada')"),
+        tipo: z
+          .string()
+          .nullable()
+          .describe("Qué clase de documento es: formulario, declaración jurada, certificado, boleta de garantía, antecedente legal, propuesta técnica, otro"),
         descripcion: z.string().nullable().describe("Qué debe contener o acreditar este anexo"),
+        accion_oferente: z
+          .string()
+          .nullable()
+          .describe("Qué debe hacer concretamente el oferente con este anexo: completarlo, firmarlo ante notario, adjuntar respaldo, etc."),
         obligatorio: z.boolean().nullable(),
+        pagina: z.number().int().nullable(),
+        cita: z.string().nullable(),
       })
     )
     .describe("Anexos, formularios o documentos adjuntos que el documento exige presentar."),
@@ -218,6 +246,25 @@ export const RequirementsSchema = z.object({
       descripcion: z.string().nullable(),
       obligatorio: z.boolean(),
       plazo: z.string().nullable().describe("Plazo asociado a este punto crítico, tal como lo indica el documento, si existe"),
+      valor: z
+        .string()
+        .nullable()
+        .describe(
+          "El dato cuantitativo del ítem, tal como lo indica el documento: el monto o porcentaje de " +
+            "una multa, el monto y vigencia de una garantía, el % de disponibilidad de un SLA, los años " +
+            "de experiencia exigidos, etc. Null si el ítem no trae un valor cuantificable."
+        ),
+      base_calculo: z
+        .string()
+        .nullable()
+        .describe(
+          "SOLO para multas/sanciones: sobre qué se calcula la multa (p.ej. 'por cada día de atraso, " +
+            "sobre el monto mensual del contrato') y el tope o límite máximo si el documento lo define."
+        ),
+      condicion: z
+        .string()
+        .nullable()
+        .describe("Bajo qué condición o gatillo aplica este ítem (p.ej. qué incumplimiento específico activa la multa)"),
       pagina: z.number().int().nullable(),
       cita: z.string().nullable(),
       prioridad: z.enum(["bajo", "medio", "alto", "critico"]),
