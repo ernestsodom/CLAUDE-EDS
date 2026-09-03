@@ -30,17 +30,30 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const failed = useNeonClient()
-      ? (await authClient.signIn.email({ email, password })).error
-      : (await createClient().auth.signInWithPassword({ email, password })).error;
+    // Sin try/catch, un fallo de red (baseURL mal puesta, CORS, DNS) tira
+    // una excepción que nunca cae en el "if (failed)" de abajo: el botón se
+    // queda en "Ingresando…" para siempre, sin ningún error visible — nada
+    // que ver con contraseña incorrecta, que sí resuelve {error} normal.
+    try {
+      const failed = useNeonClient()
+        ? (await authClient.signIn.email({ email, password })).error
+        : (await createClient().auth.signInWithPassword({ email, password })).error;
 
-    if (failed) {
-      setError("Credenciales inválidas. Verifica tu correo y contraseña.");
+      if (failed) {
+        setError("Credenciales inválidas. Verifica tu correo y contraseña.");
+        setLoading(false);
+        return;
+      }
+      router.push(searchParams.get("next") ?? "/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? `No se pudo conectar con el servidor de autenticación: ${err.message}`
+          : "No se pudo conectar con el servidor de autenticación."
+      );
       setLoading(false);
-      return;
     }
-    router.push(searchParams.get("next") ?? "/dashboard");
-    router.refresh();
   }
 
   return (
