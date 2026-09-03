@@ -19,6 +19,7 @@ export interface FeatureRow {
   is_completed: boolean;
   completed_at: string | null;
   sort_order: number;
+  evidence_type: "explicito" | "implicito" | "interpretacion" | null;
 }
 
 export interface SystemRow {
@@ -46,7 +47,7 @@ export async function getChecklist(
   const { data: features } = await supabase
     .from("system_features")
     .select(
-      "id, system_id, name, description, deadline_text, deadline_date, page, quote, is_mandatory, is_completed, completed_at, sort_order"
+      "id, system_id, name, description, deadline_text, deadline_date, page, quote, is_mandatory, is_completed, completed_at, sort_order, evidence_type"
     )
     .eq("document_id", documentId)
     .order("sort_order");

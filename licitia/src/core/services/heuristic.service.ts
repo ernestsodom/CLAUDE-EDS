@@ -7,6 +7,7 @@ import type {
   Evaluation,
   Requirements,
   Summary,
+  SystemFeatures,
   Systems,
   TechnicalVariables,
   Timeline,
@@ -444,6 +445,58 @@ export function extractSystemsLocal(pages: PageText[]): Systems {
   }
 
   return { sistemas: sistemas.filter((s) => (capacidades.get(norm(s.nombre)) ?? 0) > 0) };
+}
+
+/**
+ * Funcionalidades de UN sistema concreto: recorre el documento igual que
+ * extractSystemsLocal (agrupando por el encabezado de sistema más cercano),
+ * pero en vez de solo contar las capacidades bajo el sistema buscado, las
+ * conserva todas como funcionalidades individuales.
+ */
+export function extractSystemFeaturesLocal(pages: PageText[], systemName: string): SystemFeatures {
+  const sents = sentences(pages);
+  const target = norm(systemName);
+  const funcionalidades: SystemFeatures["funcionalidades"] = [];
+  let matchesTarget = false;
+  const seen = new Set<string>();
+
+  for (const s of sents) {
+    const nombre = detectSystemName(s.text);
+    if (nombre) {
+      const n = norm(nombre);
+      matchesTarget = n === target || n.includes(target) || target.includes(n);
+      continue;
+    }
+
+    // "Será deseable que ofrezca…" no siempre trae un verbo de la lista de
+    // CAPACIDAD, pero sigue siendo una exigencia (opcional) del sistema — se
+    // reconoce igual por el marcador de opcionalidad.
+    if (!matchesTarget || !(CAPACIDAD.test(s.text) || /\b(deseable|opcional)\b/i.test(s.text))) continue;
+    const lower = norm(s.text);
+    // Lo que es un punto crítico (garantías, multas, SLA...) no es una
+    // funcionalidad del sistema — va aparte, en Puntos críticos.
+    if (CRITICOS.some(([, re]) => re.test(lower))) continue;
+
+    const clean = s.text.replace(NUMERACION, "").trim();
+    const key = norm(clean).slice(0, 80);
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    funcionalidades.push({
+      nombre: clean.slice(0, 140),
+      descripcion: clean.length > 140 ? clean.slice(0, 300) : null,
+      obligatoria: !/(deseable|opcional|podr[aá])/.test(lower),
+      // El motor local no distingue explícito/implícito/interpretación con
+      // confianza — todo lo que detecta por patrón lo marca como explícito.
+      tipo_evidencia: "explicito",
+      plazo: clean.match(PLAZO_RE)?.[1] ?? null,
+      pagina: s.page,
+      cita: clean.slice(0, 300),
+    });
+    if (funcionalidades.length >= 100) break;
+  }
+
+  return { funcionalidades };
 }
 
 // ─── Entregas (documentos de control) ───────────────────────────────────────

@@ -99,6 +99,13 @@ export function ChecklistComparator() {
               setResult(null);
             }}
           />
+          {ready && (
+            <p className="text-xs text-muted-foreground">
+              Antes de comparar, asegúrate de haber pedido las funcionalidades de cada sistema que
+              te interese en la ficha del documento (pestaña Sistemas → Analizar funcionalidades):
+              se piden por sistema, no automáticamente al cargar.
+            </p>
+          )}
 
           <div className="space-y-2 rounded-lg border p-3">
             <div>

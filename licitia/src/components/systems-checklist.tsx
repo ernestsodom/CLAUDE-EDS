@@ -1,22 +1,45 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, CalendarClock, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, ChevronRight, CalendarClock, Loader2, Play, RotateCw } from "lucide-react";
 import { toggleSystemFeature, setSystemFeatureDeadline } from "@/actions/system-features";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EngineSelector } from "@/components/engine-selector";
+import { analyzeSystemFeatures } from "@/lib/analyze-features";
 import { cn, formatDate } from "@/lib/utils";
 import type { SystemRow } from "@/core/repositories/checklist.repo";
+import type { AnalysisMode } from "@/lib/ai-providers";
+
+const EVIDENCE_LABELS: Record<"explicito" | "implicito" | "interpretacion", string> = {
+  explicito: "explícito",
+  implicito: "implícito",
+  interpretacion: "interpretación",
+};
 
 /**
  * Checklist de sistemas: un botón por sistema que al pulsarlo despliega sus
- * funcionalidades. Cada funcionalidad se marca como completada con un check y
- * admite un plazo propio; el porcentaje de cumplimiento se recalcula al vuelo,
- * por sistema y para el documento completo.
+ * funcionalidades — a pedido, sistema por sistema (no todos de una vez: es
+ * la etapa que antes agotaba tiempo y cuota). Es la parte de la que depende
+ * el comparador Checklist vs Excel: sin funcionalidades no hay nada que
+ * enfrentar contra el Excel de control.
+ *
+ * Cada funcionalidad se marca como completada con un check y admite un
+ * plazo propio; el porcentaje de cumplimiento se recalcula al vuelo, por
+ * sistema y para el documento completo.
  *
  * Las marcas se guardan en el acto vía Server Action (política
  * features_update sigue aplicando igual, ahora del lado del servidor).
  */
-export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] }) {
+export function SystemsChecklist({
+  documentId,
+  systems: initial,
+}: {
+  documentId: string;
+  systems: SystemRow[];
+}) {
+  const router = useRouter();
   const [systems, setSystems] = useState(initial);
   const [open, setOpen] = useState<Set<string>>(
     // Con un único sistema no tiene sentido obligar a un clic extra.
@@ -24,6 +47,10 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
   );
   const [saving, setSaving] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState<Set<string>>(new Set());
+  const [progress, setProgress] = useState<Record<string, string>>({});
+  const [engineOpen, setEngineOpen] = useState<string | null>(null);
+  const [mode, setMode] = useState<AnalysisMode>("auto");
 
   const totals = useMemo(() => {
     const all = systems.flatMap((s) => s.features);
@@ -96,6 +123,37 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
     }
   }
 
+  async function runFeatures(systemId: string) {
+    setAnalyzing((prev) => new Set(prev).add(systemId));
+    setProgress((prev) => ({ ...prev, [systemId]: "iniciando…" }));
+    setError(null);
+
+    const result = await analyzeSystemFeatures(
+      documentId,
+      systemId,
+      (label) => setProgress((prev) => ({ ...prev, [systemId]: label })),
+      { mode }
+    );
+
+    setAnalyzing((prev) => {
+      const next = new Set(prev);
+      next.delete(systemId);
+      return next;
+    });
+    setProgress((prev) => {
+      const next = { ...prev };
+      delete next[systemId];
+      return next;
+    });
+
+    if (result.ok) {
+      setEngineOpen(null);
+      router.refresh();
+    } else {
+      setError(result.error ?? "No se pudieron analizar las funcionalidades");
+    }
+  }
+
   if (systems.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -160,7 +218,63 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
               </button>
 
               {isOpen && (
-                <ul className="divide-y border-t">
+                <div className="border-t">
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                    <p className="text-xs text-muted-foreground">
+                      {system.features.length > 0
+                        ? "Vuelve a analizar si crees que faltó cobertura."
+                        : "Todavía no se pidieron las funcionalidades de este sistema."}
+                    </p>
+                    {engineOpen === system.id ? (
+                      <div className="flex items-center gap-2">
+                        <EngineSelector value={mode} onChange={setMode} compact />
+                        <Button
+                          size="sm"
+                          onClick={() => runFeatures(system.id)}
+                          disabled={analyzing.has(system.id)}
+                        >
+                          {analyzing.has(system.id) ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <RotateCw className="h-3.5 w-3.5" />
+                          )}
+                          Analizar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEngineOpen(null)}
+                          disabled={analyzing.has(system.id)}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant={system.features.length > 0 ? "outline" : "default"}
+                        onClick={() =>
+                          system.features.length > 0
+                            ? setEngineOpen(system.id)
+                            : runFeatures(system.id)
+                        }
+                        disabled={analyzing.has(system.id)}
+                      >
+                        {analyzing.has(system.id) ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : system.features.length > 0 ? (
+                          <RotateCw className="h-3.5 w-3.5" />
+                        ) : (
+                          <Play className="h-3.5 w-3.5" />
+                        )}
+                        {system.features.length > 0 ? "Reanalizar" : "Analizar funcionalidades"}
+                      </Button>
+                    )}
+                  </div>
+                  {progress[system.id] && (
+                    <p className="px-4 pb-2 text-xs text-muted-foreground">{progress[system.id]}</p>
+                  )}
+                  <ul className="divide-y border-t">
                   {system.features.map((feature) => (
                     <li
                       key={feature.id}
@@ -184,6 +298,11 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
                           {!feature.is_mandatory && (
                             <Badge variant="secondary" className="ml-2">
                               opcional
+                            </Badge>
+                          )}
+                          {feature.evidence_type && feature.evidence_type !== "explicito" && (
+                            <Badge variant="secondary" className="ml-2">
+                              {EVIDENCE_LABELS[feature.evidence_type]}
                             </Badge>
                           )}
                         </p>
@@ -225,7 +344,8 @@ export function SystemsChecklist({ systems: initial }: { systems: SystemRow[] })
                       Sin funcionalidades detectadas para este sistema.
                     </li>
                   )}
-                </ul>
+                  </ul>
+                </div>
               )}
             </div>
           );

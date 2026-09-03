@@ -374,10 +374,10 @@ export default async function DocumentDetailPage({
               {systems.length > 0 && (
                 <>
                   <p className="text-sm text-muted-foreground">
-                    Sistemas que la licitación solicita. Las funcionalidades de cada uno se revisan
-                    directamente en el documento.
+                    Sistemas que la licitación solicita. Abre cada uno y pide sus funcionalidades por
+                    separado — es lo que usa el comparador Checklist vs Excel.
                   </p>
-                  <SystemsChecklist systems={systems} />
+                  <SystemsChecklist documentId={doc.id} systems={systems} />
                 </>
               )}
             </div>

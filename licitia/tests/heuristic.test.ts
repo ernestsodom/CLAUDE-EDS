@@ -5,6 +5,7 @@ import {
   extractDeliveredItemsLocal,
   extractEvaluationLocal,
   extractRequirementsLocal,
+  extractSystemFeaturesLocal,
   extractSystemsLocal,
   extractTechnicalVariablesLocal,
   extractTimelineLocal,
@@ -160,6 +161,32 @@ describe("motor local — sistemas y funcionalidades", () => {
 
   it("descarta los sistemas sin ninguna capacidad descrita debajo (menciones de paso)", () => {
     expect(sistemas.every((s) => s.descripcion)).toBe(true);
+  });
+});
+
+describe("motor local — funcionalidades de un sistema puntual", () => {
+  const { sistemas } = extractSystemsLocal(LICITACION);
+  const target = sistemas.find((s) => s.nombre.toLowerCase().includes("rentas"))!;
+  const { funcionalidades } = extractSystemFeaturesLocal(LICITACION, target.nombre);
+
+  it("extrae funcionalidades solo del sistema pedido, no de otros", () => {
+    expect(funcionalidades.length).toBeGreaterThan(0);
+    for (const f of funcionalidades) {
+      expect(f.nombre.length).toBeGreaterThan(0);
+      expect(f.pagina).toBeGreaterThan(0);
+      expect(f.cita).toBeTruthy();
+    }
+  });
+
+  it("marca como no obligatoria una funcionalidad explícitamente deseable", () => {
+    const deseable = funcionalidades.find((f) => /power bi|reporteria/i.test(f.nombre));
+    expect(deseable?.obligatoria).toBe(false);
+  });
+
+  it("no incluye puntos críticos (multas, SLA, garantías) como funcionalidad", () => {
+    const texto = funcionalidades.map((f) => f.nombre.toLowerCase()).join(" ");
+    expect(texto).not.toContain("multa");
+    expect(texto).not.toContain("boleta de garantía");
   });
 });
 

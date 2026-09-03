@@ -297,6 +297,33 @@ export const SystemsSchema = z.object({
 });
 export type Systems = z.infer<typeof SystemsSchema>;
 
+/**
+ * Funcionalidades de UN sistema concreto — a pedido, sistema por sistema, no
+ * en lote (ver el comentario de SystemsSchema: procesarlas todas juntas era
+ * lo que agotaba el tiempo y la cuota). El usuario elige el sistema en la
+ * ficha y esto extrae únicamente sus exigencias funcionales.
+ */
+export const SystemFeaturesSchema = z.object({
+  funcionalidades: z.array(
+    z.object({
+      nombre: z.string().describe("Nombre de la funcionalidad, corto y accionable (p.ej. 'Emitir certificado de residencia en PDF')"),
+      descripcion: z.string().nullable().describe("Qué debe hacer exactamente, con el detalle que dé el documento"),
+      obligatoria: z.boolean().describe("false solo si el documento la marca explícitamente como deseable/opcional/adicional"),
+      tipo_evidencia: z
+        .enum(["explicito", "implicito", "interpretacion"])
+        .describe(
+          "explicito = el documento lo pide con estas palabras; implicito = se desprende necesariamente de una " +
+            "exigencia más general del mismo sistema; interpretacion = es una lectura razonable pero no está " +
+            "dicho ni se desprende de forma directa — úsalo con moderación, nunca para inventar."
+        ),
+      plazo: z.string().nullable(),
+      pagina: z.number().int().nullable(),
+      cita: z.string().nullable(),
+    })
+  ),
+});
+export type SystemFeatures = z.infer<typeof SystemFeaturesSchema>;
+
 export const TIMELINE_ANCHORS = ["documento", "hito_anterior"] as const;
 
 export const TimelineSchema = z.object({

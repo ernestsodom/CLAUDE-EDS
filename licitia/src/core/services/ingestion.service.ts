@@ -9,6 +9,7 @@ import {
   extractDeliveredItems,
   extractEvaluation,
   extractRequirements,
+  extractSystemFeatures,
   extractSystems,
   extractTimeline,
   summarizeDocument,
@@ -18,6 +19,7 @@ import {
   extractDeliveredItemsLocal,
   extractEvaluationLocal,
   extractRequirementsLocal,
+  extractSystemFeaturesLocal,
   extractSystemsLocal,
   extractTimelineLocal,
   summarizeLocal,
@@ -869,6 +871,85 @@ async function stageSystems(
 
   return {
     detail: `${s.sistemas.length} sistemas${engineSuffix(engine)}`,
+    engine,
+  };
+}
+
+/**
+ * Funcionalidades de UN sistema, a pedido — no una parte de las 6 de
+ * `document_analysis_parts` (esas son por versión; esto es por sistema, y
+ * puede haber muchos sistemas por versión). El estado que ve la ficha es,
+ * simplemente, si el sistema ya tiene funcionalidades guardadas o no.
+ */
+export async function runSystemFeatures(params: {
+  documentId: string;
+  systemId: string;
+  organizationId: string;
+  userId: string | null;
+  mode?: AnalysisMode;
+}): Promise<{ done: true; detail: string; engine: AnalysisMode }> {
+  const db = createAdminClient();
+  const { documentId, systemId, organizationId, userId } = params;
+  const mode: AnalysisMode = params.mode ?? "auto";
+
+  const { data: system } = await db
+    .from("systems")
+    .select("id, name, document_id")
+    .eq("id", systemId)
+    .single();
+  if (!system || system.document_id !== documentId) {
+    throw new Error("El sistema no existe o no pertenece a este documento.");
+  }
+
+  const { data: version } = await db
+    .from("document_versions")
+    .select("id")
+    .eq("document_id", documentId)
+    .eq("is_current", true)
+    .single();
+  if (!version) throw new Error("El documento no tiene una versión activa");
+
+  const pages = await loadPages(db, version.id as string);
+  if (pages.length === 0) {
+    throw new Error("El documento todavía no tiene texto extraído. Vuelve a cargarlo antes de analizarlo.");
+  }
+
+  const onUsage = usageLogger({ organizationId, documentId, userId, feature: "sistemas" });
+  const { data: f, engine } = await withTimeout(
+    analyze(
+      mode,
+      (provider) => extractSystemFeatures(pages, system.name as string, provider, onUsage),
+      () => extractSystemFeaturesLocal(pages, system.name as string)
+    ),
+    STAGE_TIMEOUT_MS,
+    `Las funcionalidades de "${system.name}"`
+  );
+
+  await db.from("system_features").delete().eq("system_id", systemId);
+  if (f.funcionalidades.length > 0) {
+    const { error } = await db.from("system_features").insert(
+      f.funcionalidades.map((feat, i) => ({
+        document_id: documentId,
+        system_id: systemId,
+        name: feat.nombre,
+        description: feat.descripcion,
+        deadline_text: feat.plazo,
+        page: feat.pagina,
+        quote: feat.cita,
+        is_mandatory: feat.obligatoria,
+        evidence_type: feat.tipo_evidencia,
+        sort_order: i,
+      }))
+    );
+    if (error) throw new Error(`Error guardando funcionalidades: ${error.message}`);
+  }
+
+  await audit(organizationId, userId, "document.analyzed.funcionalidades", "document", documentId);
+  logger.info("system_features_analyzed", { documentId, systemId, mode, count: f.funcionalidades.length });
+
+  return {
+    done: true,
+    detail: `${f.funcionalidades.length} funcionalidades${engineSuffix(engine)}`,
     engine,
   };
 }

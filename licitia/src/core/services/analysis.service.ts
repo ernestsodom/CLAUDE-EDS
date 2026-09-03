@@ -5,6 +5,7 @@ import {
   EvaluationSchema,
   RequirementsSchema,
   SummarySchema,
+  SystemFeaturesSchema,
   SystemsSchema,
   TimelineSchema,
   type Classification,
@@ -12,6 +13,7 @@ import {
   type Evaluation,
   type Requirements,
   type Summary,
+  type SystemFeatures,
   type Systems,
   type Timeline,
 } from "@/core/ai/schemas";
@@ -274,6 +276,49 @@ export async function extractSystems(
       "- No inventes: cada sistema debe poder respaldarse con una cita del documento.\n" +
       "- Sé exhaustivo: lista TODOS los sistemas/módulos exigidos, aunque el documento los mencione " +
       "  dispersos en distintas secciones (bases técnicas, anexos, alcance) y no en un listado único.",
+    user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
+  });
+}
+
+/**
+ * Extrae las funcionalidades de UN sistema concreto (ver SystemFeaturesSchema
+ * para el porqué de pedirlas sistema por sistema y no en lote: es la etapa
+ * que antes agotaba el tiempo y la cuota, precisamente por no acotarse).
+ */
+export async function extractSystemFeatures(
+  pages: PageText[],
+  systemName: string,
+  provider: ProviderId,
+  onUsage?: OnUsage
+): Promise<SystemFeatures> {
+  return structuredCompletion({
+    schema: SystemFeaturesSchema,
+    schemaName: "funcionalidades_del_sistema",
+    provider,
+    speed: "chat",
+    onUsage,
+    maxTokens: outputCapFor(provider),
+    system:
+      `Eres un analista funcional de licitaciones TI. El documento exige un sistema llamado ` +
+      `"${systemName}" (u otro nombre equivalente para el mismo sistema, si el documento lo redactó ` +
+      `distinto en otra sección). Extrae EXCLUSIVAMENTE las funcionalidades exigidas para ESE sistema — ` +
+      `ignora por completo las exigencias de cualquier otro sistema mencionado en el documento.\n` +
+      "Reglas:\n" +
+      "- Cada funcionalidad es una exigencia concreta y verificable (p.ej. 'Emitir certificado de " +
+      "  residencia en formato PDF firmado electrónicamente'), no una categoría genérica ('gestión de " +
+      "  trámites'). Si el documento describe una funcionalidad con varios pasos o condiciones, decide " +
+      "  si es una sola exigencia verificable o si en realidad son varias — sepáralas si lo son.\n" +
+      "- obligatoria=false SOLO si el documento la marca explícitamente como deseable, opcional o " +
+      "  adicional (deseable en la evaluación, no de admisibilidad). Por defecto, obligatoria=true.\n" +
+      "- tipo_evidencia: 'explicito' cuando el documento lo pide con esas palabras; 'implicito' cuando " +
+      "  se desprende necesariamente de una exigencia más general de este mismo sistema (p.ej. si exige " +
+      "  'generar reportes' y en otra parte dice qué reportes, cada reporte es implícito de esa " +
+      "  exigencia general); 'interpretacion' cuando es una lectura razonable pero no está dicho ni se " +
+      "  desprende de forma directa — úsalo con moderación, nunca para rellenar la lista.\n" +
+      "- Indica el plazo si el documento lo asocia a esta funcionalidad en particular (no el plazo " +
+      "  general del sistema, salvo que sea lo único disponible).\n" +
+      "- Cada funcionalidad con su página y cita textual — sin evidencia, no la incluyas.\n" +
+      DEPTH_INSTRUCTIONS,
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });
 }
