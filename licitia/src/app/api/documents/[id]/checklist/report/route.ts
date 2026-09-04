@@ -4,6 +4,7 @@ import { withErrorHandling, NotFoundError, ValidationError } from "@/lib/errors"
 import {
   buildComparisonExcel,
   buildComparisonWordPayload,
+  buildComparisonPdf,
   type ChecklistComparison,
 } from "@/core/services/checklist.service";
 import { exportAs, EXPORT_MIME } from "@/core/services/export.service";
@@ -11,11 +12,13 @@ import { exportAs, EXPORT_MIME } from "@/core/services/export.service";
 export const runtime = "nodejs";
 
 /**
- * GET /api/documents/:id/checklist/report?comparisonId=X&format=docx|xlsx
+ * GET /api/documents/:id/checklist/report?comparisonId=X&format=docx|xlsx|pdf
  *
  * Informe de UNA comparación ya calculada (guardada por /checklist/compare
  * en checklist_comparisons) — no vuelve a leer ningún Excel, solo formatea
- * el resultado guardado como documento o planilla para compartir.
+ * el resultado guardado: Word/Excel para el detalle completo, PDF para el
+ * informe ejecutivo con gráficos (torta de estado global + barras por
+ * sistema).
  */
 export const GET = withErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
@@ -26,8 +29,8 @@ export const GET = withErrorHandling(
     const comparisonId = url.searchParams.get("comparisonId");
     const format = url.searchParams.get("format");
     if (!comparisonId) throw new ValidationError("Falta comparisonId");
-    if (format !== "docx" && format !== "xlsx") {
-      throw new ValidationError("format debe ser 'docx' o 'xlsx'");
+    if (format !== "docx" && format !== "xlsx" && format !== "pdf") {
+      throw new ValidationError("format debe ser 'docx', 'xlsx' o 'pdf'");
     }
 
     const { data: doc } = await supabase
@@ -55,6 +58,16 @@ export const GET = withErrorHandling(
         headers: {
           "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           "Content-Disposition": `attachment; filename="${fileBase}.xlsx"`,
+        },
+      });
+    }
+
+    if (format === "pdf") {
+      const buffer = await buildComparisonPdf(doc.title, result);
+      return new Response(new Uint8Array(buffer), {
+        headers: {
+          "Content-Type": EXPORT_MIME.pdf,
+          "Content-Disposition": `attachment; filename="${fileBase}-ejecutivo.pdf"`,
         },
       });
     }

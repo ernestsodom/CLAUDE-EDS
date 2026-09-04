@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, CalendarClock, Loader2, Play, RotateCw } from "lucide-react";
-import { toggleSystemFeature, setSystemFeatureDeadline } from "@/actions/system-features";
+import { ChevronDown, ChevronRight, CalendarClock, Loader2, Play, RotateCw, Trash2 } from "lucide-react";
+import { toggleSystemFeature, setSystemFeatureDeadline, deleteSystemFeature } from "@/actions/system-features";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EngineSelector } from "@/components/engine-selector";
@@ -46,6 +46,7 @@ export function SystemsChecklist({
     () => new Set(initial.length === 1 ? [initial[0].id] : [])
   );
   const [saving, setSaving] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState<Record<string, string>>({});
@@ -120,6 +121,30 @@ export function SystemsChecklist({
     if (dbError) {
       setSystems(before);
       setError(`No se pudo guardar el cambio: ${dbError}`);
+    }
+  }
+
+  async function removeFeature(systemId: string, featureId: string, name: string) {
+    if (!window.confirm(`¿Eliminar "${name}" del checklist? No se puede deshacer.`)) return;
+    const before = systems;
+    setSystems((prev) =>
+      prev.map((s) =>
+        s.id === systemId ? { ...s, features: s.features.filter((f) => f.id !== featureId) } : s
+      )
+    );
+    setDeleting((prev) => new Set(prev).add(featureId));
+    setError(null);
+
+    const { error: dbError } = await deleteSystemFeature(featureId);
+
+    setDeleting((prev) => {
+      const next = new Set(prev);
+      next.delete(featureId);
+      return next;
+    });
+    if (dbError) {
+      setSystems(before);
+      setError(`No se pudo eliminar: ${dbError}`);
     }
   }
 
@@ -325,7 +350,7 @@ export function SystemsChecklist({
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        {saving.has(feature.id) && (
+                        {(saving.has(feature.id) || deleting.has(feature.id)) && (
                           <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
                         )}
                         <input
@@ -336,6 +361,18 @@ export function SystemsChecklist({
                           aria-label={`Plazo de ${feature.name}`}
                           className="h-8 rounded-md border border-input bg-background px-2 text-xs"
                         />
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          title="Eliminar del checklist"
+                          aria-label={`Eliminar ${feature.name}`}
+                          disabled={deleting.has(feature.id)}
+                          onClick={() => removeFeature(system.id, feature.id, feature.name)}
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </li>
                   ))}

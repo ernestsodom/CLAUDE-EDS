@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as XLSX from "xlsx";
 import {
   buildComparisonExcel,
+  buildComparisonPdf,
   buildComparisonWordPayload,
   buildTemplate,
   compareChecklist,
@@ -183,5 +184,17 @@ describe("informe de resultado", () => {
     const titulos = payload.sections?.map((s) => s.title) ?? [];
     expect(titulos.some((t) => t.startsWith("Portal de Atención Ciudadana"))).toBe(true);
     expect(titulos.some((t) => t.startsWith("Módulo de Tesorería"))).toBe(true);
+  });
+
+  it("genera un PDF ejecutivo válido, con gráficos", async () => {
+    const buffer = await buildComparisonPdf("Bases técnicas de prueba", result);
+    expect(buffer.subarray(0, 5).toString("utf-8")).toBe("%PDF-");
+    expect(buffer.length).toBeGreaterThan(500);
+  });
+
+  it("el PDF ejecutivo no revienta con cero funcionalidades", async () => {
+    const vacio = compareChecklist([{ id: "s0", name: "Sistema vacío", deadlineText: null, features: [] }], []);
+    const buffer = await buildComparisonPdf("Sin funcionalidades", vacio);
+    expect(buffer.subarray(0, 5).toString("utf-8")).toBe("%PDF-");
   });
 });

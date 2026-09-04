@@ -68,6 +68,22 @@ export async function toggleSystemFeature(
   }
 }
 
+/** Saca una funcionalidad del checklist — mal extraída, duplicada, o que
+ *  simplemente no corresponde. No toca el sistema ni el resto del checklist;
+ *  si el comparador ya la había comparado contra el Excel, esa comparación
+ *  ya guardada no se recalcula sola (hay que volver a comparar). */
+export async function deleteSystemFeature(featureId: string): Promise<ActionResult<true>> {
+  try {
+    const { supabase } = await requireUser();
+    const { error } = await supabase.from("system_features").delete().eq("id", featureId);
+    if (error) return { data: null, error: error.message };
+    return { data: true, error: null };
+  } catch (err) {
+    if (err instanceof AppError) return { data: null, error: err.message };
+    throw err;
+  }
+}
+
 export async function setSystemFeatureDeadline(
   featureId: string,
   deadlineDate: string | null

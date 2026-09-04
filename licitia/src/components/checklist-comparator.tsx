@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Download,
   FileSpreadsheet,
+  FileText,
   Loader2,
   Sparkles,
   TriangleAlert,
@@ -131,7 +132,7 @@ export function ChecklistComparator() {
     }
   }
 
-  function downloadReport(format: "docx" | "xlsx") {
+  function downloadReport(format: "docx" | "xlsx" | "pdf") {
     if (!base || !comparisonId) return;
     window.location.href = `/api/documents/${base.id}/checklist/report?comparisonId=${comparisonId}&format=${format}`;
   }
@@ -245,6 +246,9 @@ export function ChecklistComparator() {
           </div>
           {comparisonId && (
             <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => downloadReport("pdf")}>
+                <FileText className="h-3.5 w-3.5" /> Informe ejecutivo (PDF, con gráficos)
+              </Button>
               <Button type="button" variant="outline" size="sm" onClick={() => downloadReport("docx")}>
                 <Download className="h-3.5 w-3.5" /> Informe en Word
               </Button>

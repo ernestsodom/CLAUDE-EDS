@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { ExportPayload } from "./export.service";
 
 // ============================================================================
@@ -524,4 +525,173 @@ export function buildComparisonWordPayload(documentTitle: string, comparison: Ch
   }
 
   return { title: `Comparación de cumplimiento — ${documentTitle}`, sections };
+}
+
+// ─── Informe ejecutivo (PDF con gráficos) ──────────────────────────────────
+//
+// Word y Excel entregan el detalle completo; este informe es para leerse de
+// un vistazo — un gráfico de torta con el estado global y uno de barras con
+// el % de cada sistema — sin abrir una planilla ni contar filas. Se dibuja
+// con pdf-lib (drawSvgPath/drawRectangle), sin depender de ninguna librería
+// de gráficos ni de renderizar nada en el navegador.
+
+const CHART_COLORS = {
+  cumple: rgb(0.086, 0.639, 0.29), // verde
+  parcial: rgb(0.851, 0.467, 0.024), // ámbar
+  pendiente: rgb(0.58, 0.639, 0.722), // gris azulado
+  ausente: rgb(0.863, 0.149, 0.149), // rojo
+  barTrack: rgb(0.9, 0.91, 0.93),
+  barFill: rgb(0.145, 0.388, 0.922), // azul
+};
+
+/** Punto sobre una circunferencia, con 0° arriba y avanzando en sentido
+ *  horario — así se arma cada porción de la torta como un arco SVG. */
+function polar(cx: number, cy: number, r: number, angleDeg: number) {
+  const t = (angleDeg * Math.PI) / 180;
+  return { x: cx + r * Math.sin(t), y: cy - r * Math.cos(t) };
+}
+
+function pieSlicePath(cx: number, cy: number, r: number, startAngle: number, endAngle: number): string {
+  const start = polar(cx, cy, r, startAngle);
+  const end = polar(cx, cy, r, Math.min(endAngle, startAngle + 359.9));
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return `M ${cx},${cy} L ${start.x},${start.y} A ${r},${r} 0 ${largeArc} 1 ${end.x},${end.y} Z`;
+}
+
+function truncate(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+/**
+ * Informe ejecutivo en PDF de una comparación ya calculada — mismos datos
+ * que el Excel y el Word, en un formato de una sola mirada: torta con el
+ * estado global de las funcionalidades exigidas y barras con el % de
+ * cumplimiento de cada sistema.
+ */
+export async function buildComparisonPdf(
+  documentTitle: string,
+  comparison: ChecklistComparison
+): Promise<Buffer> {
+  const pdf = await PDFDocument.create();
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const pageWidth = 595;
+  const pageHeight = 842;
+  const margin = 50;
+  const page = pdf.addPage([pageWidth, pageHeight]);
+  let y = pageHeight - margin;
+
+  page.drawText("Informe ejecutivo — Comparación de cumplimiento", {
+    x: margin, y, size: 17, font: bold, color: rgb(0.1, 0.1, 0.12),
+  });
+  y -= 24;
+  page.drawText(truncate(documentTitle, 85), { x: margin, y, size: 11, font, color: rgb(0.35, 0.35, 0.4) });
+  y -= 16;
+  page.drawText(`Generado el ${new Date().toLocaleDateString("es-CL")}`, {
+    x: margin, y, size: 9, font, color: rgb(0.5, 0.5, 0.55),
+  });
+  y -= 34;
+
+  // ── KPIs ──
+  const kpis: Array<[string, string]> = [
+    ["Cumplimiento global", `${comparison.totals.pctCompleted}%`],
+    ["Entregadas", `${comparison.totals.completed} / ${comparison.totals.totalFeatures}`],
+    ["Ausentes en el Excel", String(comparison.totals.missing)],
+    ["Entregado de más", String(comparison.totals.extra)],
+  ];
+  const kpiWidth = (pageWidth - margin * 2) / kpis.length;
+  kpis.forEach(([label, value], i) => {
+    const x = margin + i * kpiWidth;
+    page.drawText(value, { x, y, size: 20, font: bold, color: rgb(0.1, 0.1, 0.12) });
+    page.drawText(label, { x, y: y - 15, size: 8, font, color: rgb(0.45, 0.45, 0.5) });
+  });
+  y -= 55;
+
+  // ── Gráfico de torta: estado global ──
+  const allFeatures = comparison.systems.flatMap((s) => s.features);
+  const totalCount = allFeatures.length;
+  const counts = {
+    cumple: allFeatures.filter((f) => f.state === "entregado").length,
+    parcial: allFeatures.filter((f) => f.state === "en_desarrollo").length,
+    pendiente: allFeatures.filter((f) => f.state === "pendiente").length,
+    ausente: allFeatures.filter((f) => f.state === "ausente").length,
+  };
+
+  page.drawText("Estado global de las funcionalidades exigidas", { x: margin, y, size: 12, font: bold });
+  y -= 20;
+
+  const pieR = 60;
+  const pieTop = y;
+  const pieCx = margin + pieR;
+  const pieCy = pieTop - pieR;
+  const slices: Array<[keyof typeof counts, string]> = [
+    ["cumple", "Cumple"],
+    ["parcial", "Parcial"],
+    ["pendiente", "No cumple"],
+    ["ausente", "Ausente en el Excel"],
+  ];
+
+  if (totalCount === 0) {
+    page.drawText("Sin funcionalidades exigidas que comparar.", {
+      x: margin, y: pieCy, size: 10, font, color: rgb(0.5, 0.5, 0.55),
+    });
+  } else {
+    let angle = 0;
+    let legendY = pieTop - 8;
+    const legendX = margin + pieR * 2 + 30;
+    for (const [key, label] of slices) {
+      const count = counts[key];
+      if (count > 0) {
+        const sweep = (count / totalCount) * 360;
+        const path = pieSlicePath(pieR, pieR, pieR, angle, angle + sweep);
+        page.drawSvgPath(path, { x: pieCx - pieR, y: pieCy + pieR, color: CHART_COLORS[key] });
+        angle += sweep;
+      }
+      const pct = Math.round((count / totalCount) * 100);
+      page.drawRectangle({ x: legendX, y: legendY - 8, width: 10, height: 10, color: CHART_COLORS[key] });
+      page.drawText(`${label}: ${count} (${pct}%)`, {
+        x: legendX + 16, y: legendY - 7, size: 9, font, color: rgb(0.2, 0.2, 0.25),
+      });
+      legendY -= 18;
+    }
+  }
+  y = pieCy - pieR - 30;
+
+  // ── Gráfico de barras: % de cumplimiento por sistema ──
+  page.drawText("Cumplimiento por sistema", { x: margin, y, size: 12, font: bold });
+  y -= 20;
+
+  const barLabelWidth = 150;
+  const barMaxWidth = pageWidth - margin * 2 - barLabelWidth - 40;
+  const barHeight = 12;
+  for (const system of comparison.systems) {
+    if (y < margin + 30) break; // el detalle completo ya está en Word/Excel
+    page.drawText(truncate(system.name, 28), {
+      x: margin, y: y + 2, size: 9, font, color: rgb(0.2, 0.2, 0.25),
+    });
+    const barX = margin + barLabelWidth;
+    page.drawRectangle({ x: barX, y, width: barMaxWidth, height: barHeight, color: CHART_COLORS.barTrack });
+    const pct = Math.max(0, Math.min(100, system.pct));
+    const fillColor =
+      system.pct === 100 ? CHART_COLORS.cumple : system.pct > 0 ? CHART_COLORS.barFill : CHART_COLORS.ausente;
+    if (pct > 0) {
+      page.drawRectangle({ x: barX, y, width: (barMaxWidth * pct) / 100, height: barHeight, color: fillColor });
+    }
+    page.drawText(`${system.pct}%`, {
+      x: barX + barMaxWidth + 8, y: y + 2, size: 9, font: bold, color: rgb(0.1, 0.1, 0.12),
+    });
+    y -= barHeight + 10;
+  }
+
+  y -= 10;
+  if (comparison.extras.length > 0 && y > margin) {
+    page.drawText(
+      `+ ${comparison.extras.length} funcionalidades entregadas de más` +
+        `${comparison.totals.freeExtras > 0 ? `, ${comparison.totals.freeExtras} sin costo` : ""} — ` +
+        `ver el detalle en el informe Word o Excel.`,
+      { x: margin, y, size: 9, font, color: rgb(0.35, 0.35, 0.4) }
+    );
+  }
+
+  return Buffer.from(await pdf.save());
 }
