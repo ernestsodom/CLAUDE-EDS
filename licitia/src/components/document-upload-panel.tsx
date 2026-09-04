@@ -17,7 +17,17 @@ type UploadState = {
   status: "subiendo" | "procesando" | "listo" | "error";
   documentId?: string;
   detail?: string;
+  sizeLabel: string;
+  uploadedAt: Date;
 };
+
+/** "1.2 MB", "340 KB"… — para que el archivo listado diga cuánto pesa, no
+ *  solo el nombre. */
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 const ACCEPT = ".pdf,.docx,.xlsx,.txt,.ppt,.pptx,.zip";
 
@@ -47,7 +57,15 @@ export function DocumentUploadPanel({
   const uploadFiles = useCallback(
     async (files: FileList | File[]) => {
       for (const file of Array.from(files)) {
-        setUploads((prev) => [...prev, { name: file.name, status: "subiendo" }]);
+        setUploads((prev) => [
+          ...prev,
+          {
+            name: file.name,
+            status: "subiendo",
+            sizeLabel: formatFileSize(file.size),
+            uploadedAt: new Date(),
+          },
+        ]);
         try {
           const { documentId } = await uploadDocument(file, { projectId });
 
@@ -144,6 +162,10 @@ export function DocumentUploadPanel({
                     {u.status === "error" && <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />}
                     <div className="min-w-0 flex-1">
                       <p className="truncate">{u.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {u.sizeLabel} ·{" "}
+                        {u.uploadedAt.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
+                      </p>
                       {u.detail && (
                         <p className={cn("truncate text-xs", u.status === "error" ? "text-destructive" : "text-muted-foreground")}>
                           {u.detail}

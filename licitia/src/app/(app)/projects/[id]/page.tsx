@@ -10,6 +10,7 @@ import { DeleteDocumentButton } from "@/components/delete-document-button";
 import { DocumentUploadPanel } from "@/components/document-upload-panel";
 import { RenameDocumentButton } from "@/components/rename-document-button";
 import { MoveToFolderButton } from "@/components/move-to-folder-button";
+import { BackLink } from "@/components/back-link";
 
 const COMPARISON_TYPE_LABELS: Record<string, string> = {
   cumplimiento: "Control de cumplimiento",
@@ -71,6 +72,7 @@ export default async function ProjectDetailPage({
 
   return (
     <div className="space-y-4">
+      <BackLink href="/documents" label="Volver a Documentos" />
       <div className="flex items-start gap-3">
         <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
           <Folder className="h-6 w-6" />
@@ -85,9 +87,6 @@ export default async function ProjectDetailPage({
           )}
         </div>
         <div className="ml-auto flex items-center gap-3">
-          <Link href="/documents" className="text-sm text-muted-foreground hover:underline">
-            ← Todas las carpetas
-          </Link>
           <DocumentUploadPanel defaultProjectId={project.id} lockProject />
         </div>
       </div>

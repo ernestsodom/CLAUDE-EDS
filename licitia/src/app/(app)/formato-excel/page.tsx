@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { BackLink } from "@/components/back-link";
 
 export const metadata = { title: "Formato del Excel de control" };
 
@@ -27,6 +28,7 @@ const EXAMPLE = [
 export default function ExcelFormatPage() {
   return (
     <div className="space-y-6">
+      <BackLink href="/compare" label="Volver al comparador" />
       <div>
         <h1 className="text-2xl font-semibold">Formato del Excel de control de entregas</h1>
         <p className="text-sm text-muted-foreground">

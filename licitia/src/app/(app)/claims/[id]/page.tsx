@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { ClaimAnalysisView, type ClaimAnalysis } from "@/components/claim-analysis-view";
 import { ClaimResponses, type ClaimResponse } from "@/components/claim-responses";
+import { BackLink } from "@/components/back-link";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -37,11 +37,9 @@ export default async function ClaimDetailPage({
 
   return (
     <div className="space-y-4">
+      <BackLink href="/compare?tab=reclamos" label="Volver a Reclamos" />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/compare?tab=reclamos" className="text-sm text-muted-foreground hover:underline">
-            ← Reclamos
-          </Link>
           <h1 className="text-2xl font-semibold">{claim.subject ?? "Reclamo sin asunto"}</h1>
           <p className="text-sm text-muted-foreground">
             {client ?? "Sin cliente"} · {formatDate(claim.created_at)}

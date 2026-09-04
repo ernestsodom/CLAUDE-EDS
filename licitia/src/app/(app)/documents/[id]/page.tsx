@@ -16,6 +16,7 @@ import { ChatPanel } from "@/components/chat-panel";
 import { DocumentChatHistory } from "@/components/document-chat-history";
 import { ExportButtons } from "@/components/export-buttons";
 import { SystemsChecklist } from "@/components/systems-checklist";
+import { BackLink } from "@/components/back-link";
 import { DocumentProcessButton } from "@/components/document-process-button";
 import { AnalysisPartButton } from "@/components/analysis-part-button";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
@@ -145,6 +146,10 @@ export default async function DocumentDetailPage({
 
   return (
     <div className="space-y-4">
+      <BackLink
+        href={doc.project_id ? `/projects/${doc.project_id}` : "/documents"}
+        label={doc.project_id ? "Volver a la carpeta" : "Volver a Documentos"}
+      />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
