@@ -30,9 +30,9 @@ export function Badge({ className, variant, ...props }: BadgeProps) {
 export function statusVariant(status: string): BadgeProps["variant"] {
   const map: Record<string, BadgeProps["variant"]> = {
     procesado: "success", cumplido: "success", verde: "success", adjudicada: "success", listo: "success",
-    procesando: "warning", parcial: "warning", amarillo: "warning",
-    subido: "secondary", no_aplica: "secondary", pendiente: "secondary",
-    error: "danger", rojo: "danger", fuera_de_alcance: "danger", critico: "danger", alto: "danger",
+    procesando: "warning", parcial: "warning", amarillo: "warning", en_evaluacion: "warning", publicada: "warning",
+    subido: "secondary", no_aplica: "secondary", pendiente: "secondary", en_preparacion: "secondary", cerrada: "secondary",
+    error: "danger", rojo: "danger", fuera_de_alcance: "danger", critico: "danger", alto: "danger", desierta: "danger",
     adicional: "default", medio: "warning", bajo: "secondary",
   };
   return map[status] ?? "secondary";

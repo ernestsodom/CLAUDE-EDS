@@ -45,10 +45,10 @@ export default async function DocumentDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ v?: string; c?: string }>;
+  searchParams: Promise<{ v?: string; c?: string; tab?: string }>;
 }) {
   const { id } = await params;
-  const { v: viewVersionId, c: requestedConversationId } = await searchParams;
+  const { v: viewVersionId, c: requestedConversationId, tab: requestedTab } = await searchParams;
   const { supabase } = await requireUser();
   const detail = await getDocumentDetail(supabase, id);
   const {
@@ -116,7 +116,14 @@ export default async function DocumentDetailPage({
     chatInitialMessages = (messages ?? []).filter((m) => m.role !== "system") as never;
   }
 
-  const defaultTab = requestedConversationId ? "chat" : "resumen";
+  const VALID_TABS = new Set([
+    "resumen", "administrativas", "sistemas", "evaluacion", "criticos", "entregas", "timeline", "chat", "versiones",
+  ]);
+  const defaultTab = requestedConversationId
+    ? "chat"
+    : requestedTab && VALID_TABS.has(requestedTab)
+      ? requestedTab
+      : "resumen";
 
   const summaryList = (items: unknown) =>
     ((items ?? []) as Array<{ titulo: string; detalle: string }>).map((i, k) => (

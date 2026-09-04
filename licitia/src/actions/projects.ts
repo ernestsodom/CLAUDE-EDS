@@ -2,8 +2,36 @@
 
 import { requireUser } from "@/lib/supabase/server";
 import { AppError } from "@/lib/errors";
+import type { TenderStatus } from "@/lib/tender-status";
 
 type ActionResult<T> = { data: T; error: null } | { data: null; error: string };
+
+/**
+ * Datos propios de la licitación que agrupa esta carpeta — número, estado y
+ * fecha de cierre. Vacíos, la carpeta sigue funcionando como carpeta simple
+ * (así era antes de esta columna).
+ */
+export async function updateTenderMeta(
+  projectId: string,
+  meta: { tenderNumber: string | null; tenderStatus: TenderStatus | null; closingDate: string | null }
+): Promise<ActionResult<true>> {
+  try {
+    const { supabase } = await requireUser();
+    const { error } = await supabase
+      .from("projects")
+      .update({
+        tender_number: meta.tenderNumber,
+        tender_status: meta.tenderStatus,
+        closing_date: meta.closingDate,
+      })
+      .eq("id", projectId);
+    if (error) return { data: null, error: error.message };
+    return { data: true, error: null };
+  } catch (err) {
+    if (err instanceof AppError) return { data: null, error: err.message };
+    throw err;
+  }
+}
 
 export interface ProjectRow {
   id: string;
