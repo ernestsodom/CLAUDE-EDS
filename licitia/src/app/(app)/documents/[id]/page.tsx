@@ -17,6 +17,7 @@ import { DocumentChatHistory } from "@/components/document-chat-history";
 import { ExportButtons } from "@/components/export-buttons";
 import { SystemsChecklist } from "@/components/systems-checklist";
 import { BackLink } from "@/components/back-link";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { DocumentProcessButton } from "@/components/document-process-button";
 import { AnalysisPartButton } from "@/components/analysis-part-button";
 import { DeleteDocumentButton } from "@/components/delete-document-button";
@@ -51,6 +52,7 @@ export default async function DocumentDetailPage({
   const detail = await getDocumentDetail(supabase, id);
   const {
     document: doc,
+    projectName,
     requirements,
     timeline,
     versions,
@@ -146,10 +148,21 @@ export default async function DocumentDetailPage({
 
   return (
     <div className="space-y-4">
-      <BackLink
-        href={doc.project_id ? `/projects/${doc.project_id}` : "/documents"}
-        label={doc.project_id ? "Volver a la carpeta" : "Volver a Documentos"}
-      />
+      <div className="flex items-center justify-between gap-3">
+        <Breadcrumbs
+          items={[
+            { label: "Documentos", href: "/documents" },
+            ...(doc.project_id && projectName
+              ? [{ label: projectName, href: `/projects/${doc.project_id}` }]
+              : []),
+            { label: doc.title },
+          ]}
+        />
+        <BackLink
+          href={doc.project_id ? `/projects/${doc.project_id}` : "/documents"}
+          label={doc.project_id ? "Volver a la carpeta" : "Volver a Documentos"}
+        />
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">

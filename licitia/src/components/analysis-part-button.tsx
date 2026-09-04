@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Play, RotateCw, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge, statusVariant } from "@/components/ui/badge";
 import { EngineSelector } from "@/components/engine-selector";
 import { analyzePart } from "@/lib/analyze-part";
 import type { AnalysisMode } from "@/lib/ai-providers";
@@ -50,6 +51,13 @@ export function AnalysisPartButton({
   }
 
   const busy = progress !== null;
+  const effectiveStatus = busy ? "procesando" : status;
+  const STATUS_LABELS: Record<typeof effectiveStatus, string> = {
+    pendiente: "Pendiente",
+    procesando: "Procesando",
+    listo: "Listo",
+    error: "Error",
+  };
 
   return (
     <div className="space-y-2 rounded-lg border p-3">
@@ -57,7 +65,11 @@ export function AnalysisPartButton({
         <div>
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium">{label}</p>
-            {status === "listo" && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+            <Badge variant={statusVariant(effectiveStatus)} className="gap-1">
+              {effectiveStatus === "procesando" && <Loader2 className="h-3 w-3 animate-spin" />}
+              {effectiveStatus === "listo" && <CheckCircle2 className="h-3 w-3" />}
+              {STATUS_LABELS[effectiveStatus]}
+            </Badge>
           </div>
           <p className="text-xs text-muted-foreground">{description}</p>
         </div>

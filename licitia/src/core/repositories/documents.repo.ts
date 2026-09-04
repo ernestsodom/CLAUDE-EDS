@@ -46,12 +46,18 @@ export async function getDocument(supabase: SupabaseClient, id: string): Promise
 
 export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
   const document = await getDocument(supabase, id);
-  const [requirements, timeline, versions, delivered, systems] = await Promise.all([
+  const [requirements, timeline, versions, delivered, systems, project] = await Promise.all([
     supabase.from("requirements").select("*").eq("document_id", id).order("created_at"),
     supabase.from("timelines").select("*, milestones(*)").eq("document_id", id).maybeSingle(),
     supabase.from("document_versions").select("*").eq("document_id", id).order("version", { ascending: false }),
     supabase.from("delivered_items").select("*").eq("document_id", id).order("delivered_on", { ascending: false }),
     getChecklist(supabase, id),
+    // Para el "Volver a la carpeta" y el breadcrumb de la ficha — solo el
+    // nombre, no toda la carpeta: eso ya lo trae /projects/[id] si el
+    // usuario entra ahí.
+    document.project_id
+      ? supabase.from("projects").select("name").eq("id", document.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   // document_summaries no tiene un único registro por documento — tiene uno
@@ -69,6 +75,7 @@ export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
 
   return {
     document,
+    projectName: (project.data as { name: string } | null)?.name ?? null,
     summary,
     requirements: requirements.data ?? [],
     timeline: timeline.data,

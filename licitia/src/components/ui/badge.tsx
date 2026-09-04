@@ -29,9 +29,9 @@ export function Badge({ className, variant, ...props }: BadgeProps) {
 /** Semáforo / estado → variante visual coherente en toda la app. */
 export function statusVariant(status: string): BadgeProps["variant"] {
   const map: Record<string, BadgeProps["variant"]> = {
-    procesado: "success", cumplido: "success", verde: "success", adjudicada: "success",
-    procesando: "warning", parcial: "warning", amarillo: "warning", pendiente: "warning",
-    subido: "secondary", no_aplica: "secondary",
+    procesado: "success", cumplido: "success", verde: "success", adjudicada: "success", listo: "success",
+    procesando: "warning", parcial: "warning", amarillo: "warning",
+    subido: "secondary", no_aplica: "secondary", pendiente: "secondary",
     error: "danger", rojo: "danger", fuera_de_alcance: "danger", critico: "danger", alto: "danger",
     adicional: "default", medio: "warning", bajo: "secondary",
   };
