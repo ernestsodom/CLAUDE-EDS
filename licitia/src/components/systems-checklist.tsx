@@ -36,7 +36,11 @@ export function SystemsChecklist({
   documentId,
   systems: initial,
 }: {
-  documentId: string;
+  /** Documento al que pedirle el análisis de funcionalidades. En el
+   *  comparador a nivel de licitación, cada sistema puede venir de un
+   *  documento distinto (system.document_id) — este prop es entonces solo
+   *  el fallback para sistemas sin ese dato. */
+  documentId: string | null;
   systems: SystemRow[];
 }) {
   const router = useRouter();
@@ -149,12 +153,17 @@ export function SystemsChecklist({
   }
 
   async function runFeatures(systemId: string) {
+    const docId = systems.find((s) => s.id === systemId)?.document_id ?? documentId;
+    if (!docId) {
+      setError("No se pudo determinar el documento de este sistema");
+      return;
+    }
     setAnalyzing((prev) => new Set(prev).add(systemId));
     setProgress((prev) => ({ ...prev, [systemId]: "iniciando…" }));
     setError(null);
 
     const result = await analyzeSystemFeatures(
-      documentId,
+      docId,
       systemId,
       (label) => setProgress((prev) => ({ ...prev, [systemId]: label })),
       { mode }
@@ -227,7 +236,12 @@ export function SystemsChecklist({
                   <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{system.name}</p>
+                  <p className="flex flex-wrap items-center gap-1.5">
+                    <span className="truncate font-medium">{system.name}</span>
+                    {system.document_title && (
+                      <Badge variant="secondary" className="shrink-0">{system.document_title}</Badge>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {done}/{system.features.length} funcionalidades
                     {system.deadline_text && ` · plazo: ${system.deadline_text}`}

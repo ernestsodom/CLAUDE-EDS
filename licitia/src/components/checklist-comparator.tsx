@@ -6,6 +6,7 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
+  Folder,
   Loader2,
   Sparkles,
   TriangleAlert,
@@ -20,10 +21,18 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Progress } from "@/components/systems-checklist";
 import { DocumentPicker, type PickedDocument } from "@/components/document-picker";
 import { SystemsChecklist } from "@/components/systems-checklist";
-import { getFullChecklist, getSystemFeatureCounts } from "@/actions/system-features";
+import {
+  getFullChecklist,
+  getSystemFeatureCounts,
+  getFullProjectChecklist,
+  getProjectSystemFeatureCounts,
+} from "@/actions/system-features";
+import { listActiveProjects, type ProjectRow } from "@/actions/projects";
 import { analyzeSystemFeatures } from "@/lib/analyze-features";
 import type { ChecklistComparison } from "@/core/services/checklist.service";
 import type { SystemRow } from "@/core/repositories/checklist.repo";
+
+type Scope = "document" | "project";
 
 const STATE_LABEL: Record<string, string> = {
   entregado: "Entregado",
@@ -49,7 +58,10 @@ const STATE_VARIANT: Record<string, "success" | "warning" | "secondary" | "dange
  * es el trabajo entregado de más, muchas veces sin cobrar.
  */
 export function ChecklistComparator() {
+  const [scope, setScope] = useState<Scope>("document");
   const [base, setBase] = useState<PickedDocument | null>(null);
+  const [projects, setProjects] = useState<ProjectRow[]>([]);
+  const [project, setProject] = useState<ProjectRow | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ChecklistComparison | null>(null);
   const [comparisonId, setComparisonId] = useState<string | null>(null);
@@ -60,22 +72,32 @@ export function ChecklistComparator() {
   const [preparing, setPreparing] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const ready = base?.status === "procesado";
+  // El id de la carpeta o del documento que en cada momento hace de "base" —
+  // según el ámbito elegido — sirve para las rutas API, comunes a ambos.
+  const baseId = scope === "project" ? project?.id ?? null : base?.id ?? null;
+  const ready = scope === "project" ? Boolean(project) : base?.status === "procesado";
 
-  // Al elegir el documento base, se piden solas las funcionalidades de los
-  // sistemas que todavía no las tengan — antes había que ir a la ficha y
-  // pedirlas sistema por sistema antes de poder comparar. Al terminar, se
-  // trae el checklist completo para poder marcarlo como cumplido ahí mismo,
-  // sin salir del comparador.
   useEffect(() => {
-    if (!base || !ready) {
+    if (scope === "project" && projects.length === 0) {
+      listActiveProjects().then(setProjects);
+    }
+  }, [scope, projects.length]);
+
+  // Al elegir el documento (o la licitación) base, se piden solas las
+  // funcionalidades de los sistemas que todavía no las tengan — antes había
+  // que ir a la ficha y pedirlas sistema por sistema antes de poder
+  // comparar. Al terminar, se trae el checklist completo para poder
+  // marcarlo como cumplido ahí mismo, sin salir del comparador.
+  useEffect(() => {
+    if (!baseId || !ready) {
       setChecklist(null);
       return;
     }
     let cancelled = false;
 
     (async () => {
-      const { data: counts, error: countsError } = await getSystemFeatureCounts(base.id);
+      const { data: counts, error: countsError } =
+        scope === "project" ? await getProjectSystemFeatureCounts(baseId) : await getSystemFeatureCounts(baseId);
       if (cancelled || !counts) {
         if (countsError) setError(countsError);
         return;
@@ -83,19 +105,29 @@ export function ChecklistComparator() {
       const missing = counts.filter((s) => s.featureCount === 0);
       for (const system of missing) {
         if (cancelled) return;
+        const docId = scope === "project" ? system.documentId : baseId;
+        if (!docId) continue;
         setPreparing(`Analizando funcionalidades de "${system.name}"…`);
-        await analyzeSystemFeatures(base.id, system.id, undefined, { mode: "auto" });
+        await analyzeSystemFeatures(docId, system.id, undefined, { mode: "auto" });
       }
       if (cancelled) return;
       setPreparing(null);
-      const { data: full } = await getFullChecklist(base.id);
+      const { data: full } = scope === "project" ? await getFullProjectChecklist(baseId) : await getFullChecklist(baseId);
       if (!cancelled && full) setChecklist(full);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [base, ready]);
+  }, [scope, baseId, ready]);
+
+  function switchScope(next: Scope) {
+    setScope(next);
+    setResult(null);
+    setComparisonId(null);
+    setChecklist(null);
+    setError(null);
+  }
 
   function toggle(i: number) {
     setOpen((prev) => {
@@ -106,8 +138,10 @@ export function ChecklistComparator() {
     });
   }
 
+  const apiBase = scope === "project" ? `/api/projects/${baseId}` : `/api/documents/${baseId}`;
+
   async function compare() {
-    if (!base || !file) return;
+    if (!baseId || !file) return;
     setBusy(true);
     setError(null);
     setResult(null);
@@ -115,7 +149,7 @@ export function ChecklistComparator() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(`/api/documents/${base.id}/checklist/compare`, {
+      const res = await fetch(`${apiBase}/checklist/compare`, {
         method: "POST",
         body: formData,
       });
@@ -133,24 +167,74 @@ export function ChecklistComparator() {
   }
 
   function downloadReport(format: "docx" | "xlsx" | "pdf") {
-    if (!base || !comparisonId) return;
-    window.location.href = `/api/documents/${base.id}/checklist/report?comparisonId=${comparisonId}&format=${format}`;
+    if (!baseId || !comparisonId) return;
+    window.location.href = `${apiBase}/checklist/report?comparisonId=${comparisonId}&format=${format}`;
   }
 
   return (
     <div className="space-y-4">
       <Card>
         <CardContent className="space-y-4 p-5">
-          <DocumentPicker
-            label="1 · Documento base (licitación, bases técnicas o contrato)"
-            hint="De aquí sale el checklist de sistemas y funcionalidades comprometidas."
-            value={base}
-            onChange={(doc) => {
-              setBase(doc);
-              setResult(null);
-              setComparisonId(null);
-            }}
-          />
+          <div className="flex gap-1 rounded-lg border bg-muted/30 p-1 text-sm">
+            <button
+              type="button"
+              onClick={() => switchScope("document")}
+              className={`flex-1 rounded-md px-3 py-1.5 font-medium transition-colors ${
+                scope === "document" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <FileText className="mr-1.5 inline h-3.5 w-3.5" /> Un documento
+            </button>
+            <button
+              type="button"
+              onClick={() => switchScope("project")}
+              className={`flex-1 rounded-md px-3 py-1.5 font-medium transition-colors ${
+                scope === "project" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Folder className="mr-1.5 inline h-3.5 w-3.5" /> Toda la licitación (varios documentos)
+            </button>
+          </div>
+
+          {scope === "document" ? (
+            <DocumentPicker
+              label="1 · Documento base (licitación, bases técnicas o contrato)"
+              hint="De aquí sale el checklist de sistemas y funcionalidades comprometidas."
+              value={base}
+              onChange={(doc) => {
+                setBase(doc);
+                setResult(null);
+                setComparisonId(null);
+              }}
+            />
+          ) : (
+            <div className="space-y-2 rounded-lg border p-3">
+              <p className="text-sm font-medium">1 · Carpeta de la licitación</p>
+              <p className="text-xs text-muted-foreground">
+                Une los sistemas y funcionalidades de TODOS los documentos de la carpeta (bases
+                técnicas, administrativas, anexos…) en un solo checklist, sin fusionar nada: si el
+                mismo sistema aparece en dos documentos, se lista una vez por cada uno.
+              </p>
+              <select
+                className="h-9 w-full max-w-md rounded-md border border-input bg-background px-2 text-sm"
+                value={project?.id ?? ""}
+                onChange={(e) => {
+                  const p = projects.find((x) => x.id === e.target.value) ?? null;
+                  setProject(p);
+                  setResult(null);
+                  setComparisonId(null);
+                }}
+                aria-label="Carpeta de la licitación"
+              >
+                <option value="">Elige una carpeta…</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.clients?.name ? `${p.clients.name} / ` : ""}{p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {preparing && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -164,7 +248,7 @@ export function ChecklistComparator() {
               <p className="mb-2 text-sm font-medium">
                 Sistemas y funcionalidades — márcalas como cumplidas aquí mismo
               </p>
-              <SystemsChecklist documentId={base!.id} systems={checklist} />
+              <SystemsChecklist documentId={scope === "project" ? null : baseId} systems={checklist} />
             </div>
           )}
 
@@ -189,7 +273,7 @@ export function ChecklistComparator() {
                 size="sm"
                 disabled={!ready || Boolean(preparing)}
                 onClick={() => {
-                  if (base) window.location.href = `/api/documents/${base.id}/checklist/template`;
+                  if (baseId) window.location.href = `${apiBase}/checklist/template`;
                 }}
               >
                 <Download className="h-4 w-4" /> Descargar plantilla Excel
@@ -217,7 +301,7 @@ export function ChecklistComparator() {
                 <span className="flex items-center text-sm text-muted-foreground">{file.name}</span>
               )}
             </div>
-            {!ready && base && (
+            {!ready && baseId && (
               <p className="text-xs text-muted-foreground">
                 La plantilla estará disponible cuando el documento base termine de analizarse.
               </p>

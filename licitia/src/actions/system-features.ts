@@ -1,7 +1,7 @@
 "use server";
 
 import { requireUser } from "@/lib/supabase/server";
-import { getChecklist, type SystemRow } from "@/core/repositories/checklist.repo";
+import { getChecklist, getProjectChecklist, type SystemRow } from "@/core/repositories/checklist.repo";
 import { AppError } from "@/lib/errors";
 
 type ActionResult<T> = { data: T; error: null } | { data: null; error: string };
@@ -10,6 +10,9 @@ export interface SystemFeatureCount {
   id: string;
   name: string;
   featureCount: number;
+  /** Solo en el conteo a nivel de licitación: a qué documento pedirle el
+   *  análisis (cada sistema puede venir de un documento distinto). */
+  documentId?: string;
 }
 
 /**
@@ -37,6 +40,42 @@ export async function getFullChecklist(documentId: string): Promise<ActionResult
   try {
     const { supabase } = await requireUser();
     const rows = await getChecklist(supabase, documentId);
+    return { data: rows, error: null };
+  } catch (err) {
+    if (err instanceof AppError) return { data: null, error: err.message };
+    throw err;
+  }
+}
+
+/** Igual que getSystemFeatureCounts, pero para el comparador a nivel de
+ *  licitación: los sistemas de TODOS los documentos de la carpeta. */
+export async function getProjectSystemFeatureCounts(
+  projectId: string
+): Promise<ActionResult<SystemFeatureCount[]>> {
+  try {
+    const { supabase } = await requireUser();
+    const rows = await getProjectChecklist(supabase, projectId);
+    return {
+      data: rows.map((s) => ({
+        id: s.id,
+        name: s.name,
+        featureCount: s.features.length,
+        documentId: s.document_id,
+      })),
+      error: null,
+    };
+  } catch (err) {
+    if (err instanceof AppError) return { data: null, error: err.message };
+    throw err;
+  }
+}
+
+/** Igual que getFullChecklist, pero uniendo los sistemas de TODOS los
+ *  documentos de la carpeta — para el comparador a nivel de licitación. */
+export async function getFullProjectChecklist(projectId: string): Promise<ActionResult<SystemRow[]>> {
+  try {
+    const { supabase } = await requireUser();
+    const rows = await getProjectChecklist(supabase, projectId);
     return { data: rows, error: null };
   } catch (err) {
     if (err instanceof AppError) return { data: null, error: err.message };
