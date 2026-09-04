@@ -150,6 +150,44 @@ export default async function DocumentDetailPage({
     cita: string | null;
   }>;
 
+  // Bases administrativas: los mismos puntos críticos ya extraídos, solo
+  // filtrados por tipo — no se vuelve a llamar a la IA, es la misma lista
+  // que aparece completa en "Puntos críticos", vista por submódulo.
+  type RequirementRow = (typeof requirements)[number];
+  const plazosRequirements = requirements.filter((r) => r.critical_type === "plazos");
+  const multasRequirements = requirements.filter((r) => r.critical_type === "multas");
+
+  const renderRequirement = (r: RequirementRow) => (
+    <li key={r.id} className="rounded-md border p-2.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-medium">{r.title}</span>
+        <Badge variant={statusVariant(r.priority)}>{r.priority}</Badge>
+        {r.mandatory && <Badge variant="secondary">obligatorio</Badge>}
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {r.deadline_text && `plazo: ${r.deadline_text}`}
+        {r.value_text && ` · valor: ${r.value_text}`}
+        {r.page != null && ` · pág. ${r.page}`}
+      </p>
+      {r.description && <p className="mt-1 text-xs">{r.description}</p>}
+      {r.condition_text && (
+        <p className="mt-1 text-xs">
+          <span className="font-medium">Se gatilla si: </span>
+          {r.condition_text}
+        </p>
+      )}
+      {r.calc_base && (
+        <p className="mt-1 text-xs">
+          <span className="font-medium">Cálculo/tope: </span>
+          {r.calc_base}
+        </p>
+      )}
+      {r.quote && (
+        <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">“{r.quote}”</p>
+      )}
+    </li>
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -254,10 +292,11 @@ export default async function DocumentDetailPage({
         <Tabs defaultValue={defaultTab}>
           <TabsList>
             <TabsTrigger value="resumen">Resumen</TabsTrigger>
+            <TabsTrigger value="administrativas">Bases administrativas</TabsTrigger>
             <TabsTrigger value="sistemas">
               Sistemas ({systems.length}){progress.total > 0 && ` · ${progress.pct}%`}
             </TabsTrigger>
-            <TabsTrigger value="evaluacion">Evaluación y anexos</TabsTrigger>
+            <TabsTrigger value="evaluacion">Anexos</TabsTrigger>
             <TabsTrigger value="criticos">Puntos críticos ({requirements.length})</TabsTrigger>
             {deliveredItems.length > 0 && (
               <TabsTrigger value="entregas">Entregas ({deliveredItems.length})</TabsTrigger>
@@ -282,51 +321,14 @@ export default async function DocumentDetailPage({
               {summary && (
                 <>
                   <ExportButtons kind="resumen" entityId={doc.id} />
+                  <p className="text-xs text-muted-foreground">
+                    Plazos, presupuesto, alcance y multas se muestran aparte, en{" "}
+                    <span className="font-medium text-foreground">Bases administrativas</span>.
+                  </p>
                   <div className="grid gap-4 lg:grid-cols-2">
                     <Card>
                       <CardHeader><CardTitle className="text-base">Resumen general</CardTitle></CardHeader>
                       <CardContent className="text-sm">{summary.summary}</CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader><CardTitle className="text-base">Objetivo y alcance</CardTitle></CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        <p><span className="font-medium">Objetivo:</span> {summary.objective}</p>
-                        <p><span className="font-medium">Alcance:</span> {summary.scope}</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader><CardTitle className="text-base">Plazo y presupuesto</CardTitle></CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        <p>
-                          <span className="font-medium">Plazo de implementación:</span>{" "}
-                          {summary.implementation_deadline ?? "No especificado en el documento"}
-                        </p>
-                        <p>
-                          <span className="font-medium">Presupuesto:</span>{" "}
-                          {summary.budget_amount != null ? (
-                            <>
-                              {formatCLP(summary.budget_amount)}
-                              {summary.budget_currency && summary.budget_currency !== "CLP" && ` ${summary.budget_currency}`}
-                              {" "}
-                              <Badge variant="secondary">
-                                {summary.budget_period
-                                  ? BUDGET_PERIOD_LABELS[summary.budget_period as keyof typeof BUDGET_PERIOD_LABELS] ??
-                                    summary.budget_period
-                                  : "periodicidad no especificada"}
-                              </Badge>
-                            </>
-                          ) : (
-                            "No especificado en el documento"
-                          )}
-                        </p>
-                        {summary.budget_detail && (
-                          <p className="text-xs text-muted-foreground">{summary.budget_detail}</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader><CardTitle className="text-base">Obligaciones y restricciones</CardTitle></CardHeader>
-                      <CardContent><ul className="list-disc space-y-1 pl-4 text-sm">{summaryList(summary.obligations)}{summaryList(summary.restrictions)}</ul></CardContent>
                     </Card>
                     <Card>
                       <CardHeader><CardTitle className="text-base">Certificaciones</CardTitle></CardHeader>
@@ -399,6 +401,175 @@ export default async function DocumentDetailPage({
             </div>
           </TabsContent>
 
+          <TabsContent value="administrativas">
+            <div className="space-y-6">
+              <p className="text-sm text-muted-foreground">
+                Plazos y presupuesto, alcance, multas y pauta de evaluación — la parte administrativa
+                de las bases, separada de los sistemas y funcionalidades exigidos.
+              </p>
+
+              <section className="space-y-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Plazos y presupuesto
+                </h2>
+                {!summary ? (
+                  <AnalysisPartButton
+                    documentId={doc.id}
+                    part="resumen"
+                    label={PART_LABELS.resumen}
+                    description={PART_DESCRIPTIONS.resumen}
+                    status={partStatus("resumen")}
+                    errorMessage={partError("resumen")}
+                    engine={partEngine("resumen")}
+                  />
+                ) : (
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Plazo y presupuesto</CardTitle></CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <p>
+                          <span className="font-medium">Plazo de implementación:</span>{" "}
+                          {summary.implementation_deadline ?? "No especificado en el documento"}
+                        </p>
+                        <p>
+                          <span className="font-medium">Presupuesto:</span>{" "}
+                          {summary.budget_amount != null ? (
+                            <>
+                              {formatCLP(summary.budget_amount)}
+                              {summary.budget_currency && summary.budget_currency !== "CLP" && ` ${summary.budget_currency}`}
+                              {" "}
+                              <Badge variant="secondary">
+                                {summary.budget_period
+                                  ? BUDGET_PERIOD_LABELS[summary.budget_period as keyof typeof BUDGET_PERIOD_LABELS] ??
+                                    summary.budget_period
+                                  : "periodicidad no especificada"}
+                              </Badge>
+                            </>
+                          ) : (
+                            "No especificado en el documento"
+                          )}
+                        </p>
+                        {summary.budget_detail && (
+                          <p className="text-xs text-muted-foreground">{summary.budget_detail}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader><CardTitle className="text-base">Plazos críticos detectados</CardTitle></CardHeader>
+                      <CardContent className="text-sm">
+                        {plazosRequirements.length === 0 ? (
+                          <p className="text-muted-foreground">
+                            No se identificaron plazos críticos adicionales en el documento.
+                          </p>
+                        ) : (
+                          <ul className="space-y-2">{plazosRequirements.map(renderRequirement)}</ul>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </section>
+
+              <section className="space-y-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Alcance</h2>
+                {!summary ? (
+                  <p className="text-sm text-muted-foreground">
+                    Pide el análisis de "Resumen" para ver el objetivo, alcance, obligaciones y
+                    restricciones.
+                  </p>
+                ) : (
+                  <Card>
+                    <CardContent className="space-y-3 p-4 text-sm">
+                      <p><span className="font-medium">Objetivo:</span> {summary.objective}</p>
+                      <p><span className="font-medium">Alcance:</span> {summary.scope}</p>
+                      {(summary.obligations || summary.restrictions) && (
+                        <ul className="list-disc space-y-1 pl-4">
+                          {summaryList(summary.obligations)}
+                          {summaryList(summary.restrictions)}
+                        </ul>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </section>
+
+              <section className="space-y-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Multas</h2>
+                {partStatus("criticos") !== "listo" ? (
+                  <AnalysisPartButton
+                    documentId={doc.id}
+                    part="criticos"
+                    label={PART_LABELS.criticos}
+                    description={PART_DESCRIPTIONS.criticos}
+                    status={partStatus("criticos")}
+                    errorMessage={partError("criticos")}
+                    engine={partEngine("criticos")}
+                  />
+                ) : (
+                  <Card>
+                    <CardContent className="p-4 text-sm">
+                      {multasRequirements.length === 0 ? (
+                        <p className="text-muted-foreground">No se identificaron multas en el documento.</p>
+                      ) : (
+                        <ul className="space-y-2">{multasRequirements.map(renderRequirement)}</ul>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </section>
+
+              <section className="space-y-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Pauta de evaluación
+                </h2>
+                {partStatus("evaluacion") !== "listo" ? (
+                  <AnalysisPartButton
+                    documentId={doc.id}
+                    part="evaluacion"
+                    label={PART_LABELS.evaluacion}
+                    description={PART_DESCRIPTIONS.evaluacion}
+                    status={partStatus("evaluacion")}
+                    errorMessage={partError("evaluacion")}
+                    engine={partEngine("evaluacion")}
+                  />
+                ) : (
+                  <Card>
+                    <CardContent className="space-y-3 p-4 text-sm">
+                      {evaluationCriteria.length === 0 ? (
+                        <p className="text-muted-foreground">
+                          No se identificaron criterios de evaluación en el documento.
+                        </p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {evaluationCriteria.map((c, k) => (
+                            <li key={k} className="rounded-md border p-2.5">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{c.criterio}</span>
+                                {c.ponderacion && <Badge variant="secondary">{c.ponderacion}</Badge>}
+                              </div>
+                              {c.pauta && <p className="mt-1 text-xs text-muted-foreground">{c.pauta}</p>}
+                              {c.cita && (
+                                <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
+                                  “{c.cita}”{c.pagina != null && ` — pág. ${c.pagina}`}
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {summary?.evaluation_methodology && (
+                        <p className="border-t pt-2 text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">Metodología general: </span>
+                          {summary.evaluation_methodology}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </section>
+            </div>
+          </TabsContent>
+
           <TabsContent value="sistemas">
             <div className="space-y-3">
               <AnalysisPartButton
@@ -435,39 +606,10 @@ export default async function DocumentDetailPage({
               />
               {partStatus("evaluacion") === "listo" && (
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <Card className="lg:col-span-2">
-                    <CardHeader><CardTitle className="text-base">Criterios de evaluación</CardTitle></CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                      {evaluationCriteria.length === 0 ? (
-                        <p className="text-muted-foreground">
-                          No se identificaron criterios de evaluación en el documento.
-                        </p>
-                      ) : (
-                        <ul className="space-y-2">
-                          {evaluationCriteria.map((c, k) => (
-                            <li key={k} className="rounded-md border p-2.5">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-medium">{c.criterio}</span>
-                                {c.ponderacion && <Badge variant="secondary">{c.ponderacion}</Badge>}
-                              </div>
-                              {c.pauta && <p className="mt-1 text-xs text-muted-foreground">{c.pauta}</p>}
-                              {c.cita && (
-                                <p className="mt-1 border-l-2 pl-2 text-xs italic text-muted-foreground">
-                                  “{c.cita}”{c.pagina != null && ` — pág. ${c.pagina}`}
-                                </p>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {summary?.evaluation_methodology && (
-                        <p className="border-t pt-2 text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">Metodología general: </span>
-                          {summary.evaluation_methodology}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <p className="text-xs text-muted-foreground lg:col-span-2">
+                    Los criterios de evaluación se muestran en{" "}
+                    <span className="font-medium text-foreground">Bases administrativas → Pauta de evaluación</span>.
+                  </p>
                   <Card className="lg:col-span-2">
                     <CardHeader><CardTitle className="text-base">Anexos solicitados</CardTitle></CardHeader>
                     <CardContent className="text-sm">
