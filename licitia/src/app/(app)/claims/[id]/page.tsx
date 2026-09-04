@@ -5,6 +5,7 @@ import { Badge, statusVariant } from "@/components/ui/badge";
 import { ClaimAnalysisView, type ClaimAnalysis } from "@/components/claim-analysis-view";
 import { ClaimResponses, type ClaimResponse } from "@/components/claim-responses";
 import { BackLink } from "@/components/back-link";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,16 @@ export default async function ClaimDetailPage({
 
   return (
     <div className="space-y-4">
-      <BackLink href="/compare?tab=reclamos" label="Volver a Reclamos" />
+      <div className="flex items-center justify-between gap-3">
+        <Breadcrumbs
+          items={[
+            { label: "Comparador", href: "/compare" },
+            { label: "Reclamos", href: "/compare?tab=reclamos" },
+            { label: claim.subject ?? "Reclamo sin asunto" },
+          ]}
+        />
+        <BackLink href="/compare?tab=reclamos" label="Volver a Reclamos" />
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{claim.subject ?? "Reclamo sin asunto"}</h1>

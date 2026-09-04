@@ -19,6 +19,19 @@ export function formatDate(date: string | Date | null | undefined): string {
   return new Intl.DateTimeFormat("es-CL", { dateStyle: "medium" }).format(new Date(date));
 }
 
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return "—";
+  return new Intl.DateTimeFormat("es-CL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(date));
+}
+
+/** "1.2 MB", "340 KB"… — tamaño de archivo legible. */
+export function formatFileSize(bytes: number | null | undefined): string {
+  if (bytes == null) return "—";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function truncate(text: string, max = 120): string {
   return text.length > max ? text.slice(0, max - 1) + "…" : text;
 }

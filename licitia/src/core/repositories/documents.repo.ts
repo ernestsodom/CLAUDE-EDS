@@ -68,14 +68,25 @@ export async function getDocumentDetail(supabase: SupabaseClient, id: string) {
   // descarta) y el resumen se ve como "no generado" aunque sí exista. Se
   // busca explícitamente el de la versión actual, igual que getVersionSummary.
   const currentVersion = (versions.data ?? []).find((v) => v.is_current);
-  const [summary, analysisParts] = await Promise.all([
+  const [summary, analysisParts, file] = await Promise.all([
     currentVersion ? getVersionSummary(supabase, currentVersion.id) : null,
     currentVersion ? getAnalysisParts(supabase, currentVersion.id) : Promise.resolve({}),
+    // Nombre, tamaño y tipo del archivo tal como se subió — sección 27:
+    // esto tiene que quedar visible en la ficha, no solo mientras dura la
+    // sesión del panel de subida.
+    currentVersion
+      ? supabase
+          .from("files")
+          .select("file_name, mime_type, size_bytes, created_at")
+          .eq("version_id", currentVersion.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   return {
     document,
     projectName: (project.data as { name: string } | null)?.name ?? null,
+    file: file.data as { file_name: string; mime_type: string; size_bytes: number; created_at: string } | null,
     summary,
     requirements: requirements.data ?? [],
     timeline: timeline.data,

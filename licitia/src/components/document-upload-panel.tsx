@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, FileCheck2, Loader2, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatFileSize } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProjectPicker } from "@/components/project-picker";
@@ -20,14 +20,6 @@ type UploadState = {
   sizeLabel: string;
   uploadedAt: Date;
 };
-
-/** "1.2 MB", "340 KB"… — para que el archivo listado diga cuánto pesa, no
- *  solo el nombre. */
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 const ACCEPT = ".pdf,.docx,.xlsx,.txt,.ppt,.pptx,.zip";
 

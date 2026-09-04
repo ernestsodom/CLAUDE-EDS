@@ -27,7 +27,8 @@ import { MoveToFolderButton } from "@/components/move-to-folder-button";
 import { BUDGET_PERIOD_LABELS, CRITICAL_TYPE_LABELS } from "@/core/ai/schemas";
 import { ANALYSIS_PARTS, PART_LABELS, PART_DESCRIPTIONS, STEP_LABELS } from "@/core/services/ingestion.service";
 import { ENGINE_LABELS, type AnalysisMode } from "@/lib/ai-providers";
-import { formatCLP, formatDate } from "@/lib/utils";
+import { formatCLP, formatDate, formatDateTime, formatFileSize } from "@/lib/utils";
+import { FileText } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default async function DocumentDetailPage({
   const {
     document: doc,
     projectName,
+    file,
     requirements,
     timeline,
     versions,
@@ -199,6 +201,21 @@ export default async function DocumentDetailPage({
           <DeleteDocumentButton documentId={doc.id} title={doc.title} />
         </div>
       </div>
+
+      {file && (
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+          <FileText className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">
+            <span className="font-medium text-foreground">{file.file_name}</span>
+            {" · "}
+            {formatFileSize(file.size_bytes)}
+            {" · "}
+            {file.mime_type}
+            {" · subido "}
+            {formatDateTime(file.created_at)}
+          </span>
+        </div>
+      )}
 
       {viewingVersion && (
         <Card className="border-primary/40 bg-primary/5">
