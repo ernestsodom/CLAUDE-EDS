@@ -9,7 +9,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { Progress } from "@/components/systems-checklist";
-import { STEP_LABELS } from "@/core/services/ingestion.service";
+import { STEP_LABELS } from "@/core/services/step-labels";
 import { cn, formatCLP, formatDate } from "@/lib/utils";
 
 export interface DashboardDrilldown {

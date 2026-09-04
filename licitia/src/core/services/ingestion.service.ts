@@ -197,22 +197,12 @@ const NEXT: Record<string, string> = {
   clasificacion: "cargado",
 };
 
-/** Etiquetas legibles para la interfaz. */
-export const STEP_LABELS: Record<string, string> = {
-  extraccion_texto: "extrayendo texto",
-  chunking: "dividiendo el documento",
-  clasificacion: "clasificando",
-  cargado: "cargado",
-  // Se conservan las etiquetas de los pasos que ahora son partes a pedido:
-  // documentos procesados con la versión anterior pueden tener cualquiera de
-  // estos valores guardados en processing_step.
-  embeddings: "generando vectores de búsqueda",
-  resumen: "redactando el resumen",
-  sistemas: "identificando los sistemas",
-  requerimientos: "extrayendo puntos críticos",
-  timeline: "construyendo la línea de tiempo",
-  completado: "completado",
-};
+// Etiquetas legibles para la interfaz: viven en step-labels.ts (sin
+// dependencias) para que un componente cliente pueda importarlas sin
+// arrastrar este módulo — que sí depende de la capa de datos (`pg`) y no
+// puede entrar al bundle del navegador. Reexportado aquí para no romper a
+// quien ya lo importaba desde ingestion.service.ts.
+export { STEP_LABELS } from "./step-labels";
 
 // ─── Partes que se analizan a pedido ────────────────────────────────────────
 
