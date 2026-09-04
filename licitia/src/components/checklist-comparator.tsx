@@ -18,9 +18,11 @@ import { Badge } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Progress } from "@/components/systems-checklist";
 import { DocumentPicker, type PickedDocument } from "@/components/document-picker";
-import { getSystemFeatureCounts } from "@/actions/system-features";
+import { SystemsChecklist } from "@/components/systems-checklist";
+import { getFullChecklist, getSystemFeatureCounts } from "@/actions/system-features";
 import { analyzeSystemFeatures } from "@/lib/analyze-features";
 import type { ChecklistComparison } from "@/core/services/checklist.service";
+import type { SystemRow } from "@/core/repositories/checklist.repo";
 
 const STATE_LABEL: Record<string, string> = {
   entregado: "Entregado",
@@ -49,6 +51,8 @@ export function ChecklistComparator() {
   const [base, setBase] = useState<PickedDocument | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ChecklistComparison | null>(null);
+  const [comparisonId, setComparisonId] = useState<string | null>(null);
+  const [checklist, setChecklist] = useState<SystemRow[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Set<number>>(new Set());
@@ -59,9 +63,14 @@ export function ChecklistComparator() {
 
   // Al elegir el documento base, se piden solas las funcionalidades de los
   // sistemas que todavía no las tengan — antes había que ir a la ficha y
-  // pedirlas sistema por sistema antes de poder comparar.
+  // pedirlas sistema por sistema antes de poder comparar. Al terminar, se
+  // trae el checklist completo para poder marcarlo como cumplido ahí mismo,
+  // sin salir del comparador.
   useEffect(() => {
-    if (!base || !ready) return;
+    if (!base || !ready) {
+      setChecklist(null);
+      return;
+    }
     let cancelled = false;
 
     (async () => {
@@ -76,7 +85,10 @@ export function ChecklistComparator() {
         setPreparing(`Analizando funcionalidades de "${system.name}"…`);
         await analyzeSystemFeatures(base.id, system.id, undefined, { mode: "auto" });
       }
-      if (!cancelled) setPreparing(null);
+      if (cancelled) return;
+      setPreparing(null);
+      const { data: full } = await getFullChecklist(base.id);
+      if (!cancelled && full) setChecklist(full);
     })();
 
     return () => {
@@ -98,6 +110,7 @@ export function ChecklistComparator() {
     setBusy(true);
     setError(null);
     setResult(null);
+    setComparisonId(null);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -107,13 +120,20 @@ export function ChecklistComparator() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error?.message ?? "Error al comparar");
-      setResult(json as ChecklistComparison);
+      const { comparisonId: id, ...comparison } = json as ChecklistComparison & { comparisonId: string };
+      setResult(comparison);
+      setComparisonId(id);
       setOpen(new Set([0]));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
     } finally {
       setBusy(false);
     }
+  }
+
+  function downloadReport(format: "docx" | "xlsx") {
+    if (!base || !comparisonId) return;
+    window.location.href = `/api/documents/${base.id}/checklist/report?comparisonId=${comparisonId}&format=${format}`;
   }
 
   return (
@@ -127,6 +147,7 @@ export function ChecklistComparator() {
             onChange={(doc) => {
               setBase(doc);
               setResult(null);
+              setComparisonId(null);
             }}
           />
           {preparing && (
@@ -135,6 +156,15 @@ export function ChecklistComparator() {
               {preparing} — los sistemas sin funcionalidades detectadas quedan con un checklist
               genérico mientras tanto.
             </p>
+          )}
+
+          {checklist && checklist.length > 0 && (
+            <div className="rounded-lg border p-3">
+              <p className="mb-2 text-sm font-medium">
+                Sistemas y funcionalidades — márcalas como cumplidas aquí mismo
+              </p>
+              <SystemsChecklist documentId={base!.id} systems={checklist} />
+            </div>
           )}
 
           <div className="space-y-2 rounded-lg border p-3">
@@ -204,13 +234,25 @@ export function ChecklistComparator() {
 
       {result && (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <Kpi label="Cumplimiento" value={`${result.totals.pctCompleted}%`} highlight />
-            <Kpi label="Funcionalidades exigidas" value={String(result.totals.totalFeatures)} />
-            <Kpi label="Entregadas" value={String(result.totals.completed)} />
-            <Kpi label="Ausentes en el Excel" value={String(result.totals.missing)} />
-            <Kpi label="Adicionales detectados" value={String(result.totals.extra)} />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <Kpi label="Cumplimiento" value={`${result.totals.pctCompleted}%`} highlight />
+              <Kpi label="Funcionalidades exigidas" value={String(result.totals.totalFeatures)} />
+              <Kpi label="Entregadas" value={String(result.totals.completed)} />
+              <Kpi label="Ausentes en el Excel" value={String(result.totals.missing)} />
+              <Kpi label="Adicionales detectados" value={String(result.totals.extra)} />
+            </div>
           </div>
+          {comparisonId && (
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => downloadReport("docx")}>
+                <Download className="h-3.5 w-3.5" /> Informe en Word
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => downloadReport("xlsx")}>
+                <Download className="h-3.5 w-3.5" /> Informe en Excel
+              </Button>
+            </div>
+          )}
 
           {result.extras.length > 0 && (
             <Card className="border-amber-500/50 bg-amber-500/5">

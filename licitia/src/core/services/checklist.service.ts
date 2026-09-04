@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import type { ExportPayload } from "./export.service";
 
 // ============================================================================
 // Checklist de sistemas y comparación contra el Excel de control.
@@ -422,4 +423,105 @@ export function buildTemplate(documentTitle: string, systems: ChecklistSystem[])
   XLSX.utils.book_append_sheet(workbook, sheet, SHEET_NAME);
   XLSX.utils.book_append_sheet(workbook, info, "Instrucciones");
   return XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+}
+
+// ─── Informe de resultado (Excel) ──────────────────────────────────────────
+
+const RESULT_STATE_LABEL: Record<ComparedFeature["state"], string> = {
+  entregado: "Cumple",
+  en_desarrollo: "Parcial",
+  pendiente: "No cumple",
+  ausente: "No cumple (ausente en el Excel)",
+};
+
+/**
+ * Informe de la comparación ya calculada — no vuelve a leer el Excel, solo
+ * formatea el resultado. Una hoja resumen por sistema (para pegar en un
+ * correo o una lámina) y una de detalle con cada funcionalidad, más los
+ * extras encontrados en el Excel que el documento base no exigía.
+ */
+export function buildComparisonExcel(documentTitle: string, comparison: ChecklistComparison): Buffer {
+  const summaryRows: (string | number)[][] = [
+    [`Comparación de cumplimiento — ${documentTitle}`],
+    [],
+    ["Sistema", "Funcionalidades exigidas", "Cumple", "Parcial", "No cumple", "% Cumplimiento"],
+  ];
+  for (const s of comparison.systems) {
+    const parcial = s.features.filter((f) => f.state === "en_desarrollo").length;
+    const noCumple = s.features.filter((f) => f.state === "pendiente" || f.state === "ausente").length;
+    summaryRows.push([s.name, s.total, s.completed, parcial, noCumple, `${s.pct}%`]);
+  }
+  summaryRows.push([]);
+  summaryRows.push([
+    "TOTAL", comparison.totals.totalFeatures, comparison.totals.completed, "", "",
+    `${comparison.totals.pctCompleted}%`,
+  ]);
+  const summary = XLSX.utils.aoa_to_sheet(summaryRows);
+  summary["!cols"] = [{ wch: 32 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 16 }];
+
+  const detailRows: (string | number)[][] = [
+    ["Sistema", "Funcionalidad", "Resultado", "Fila del Excel", "Notas"],
+  ];
+  for (const s of comparison.systems) {
+    for (const f of s.features) {
+      detailRows.push([s.name, f.name, RESULT_STATE_LABEL[f.state], f.excelRow ?? "", f.notes ?? ""]);
+    }
+  }
+  const detail = XLSX.utils.aoa_to_sheet(detailRows);
+  detail["!cols"] = [{ wch: 28 }, { wch: 55 }, { wch: 26 }, { wch: 14 }, { wch: 40 }];
+
+  const extrasRows: (string | number)[][] = [["Sistema", "Funcionalidad", "Estado", "Adicional", "Sin costo", "Notas"]];
+  for (const e of comparison.extras) {
+    extrasRows.push([e.system, e.feature, e.state, e.isAdditional ? "Sí" : "No", e.isFree ? "Sí" : "No", e.notes ?? ""]);
+  }
+  const extras = XLSX.utils.aoa_to_sheet(extrasRows);
+  extras["!cols"] = [{ wch: 28 }, { wch: 55 }, { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 40 }];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, summary, "Resumen");
+  XLSX.utils.book_append_sheet(workbook, detail, "Detalle");
+  XLSX.utils.book_append_sheet(workbook, extras, "Entregado de más");
+  return XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+}
+
+// ─── Informe de resultado (Word) ───────────────────────────────────────────
+
+/** Arma el payload genérico de exportAs("docx", …) con el mismo resultado
+ *  que el informe en Excel — mismos datos, para leer en vez de trabajar. */
+export function buildComparisonWordPayload(documentTitle: string, comparison: ChecklistComparison): ExportPayload {
+  const sections: ExportPayload["sections"] = [
+    {
+      title: "Resumen",
+      paragraphs: [
+        `${comparison.totals.pctCompleted}% de cumplimiento global — ` +
+          `${comparison.totals.completed} de ${comparison.totals.totalFeatures} funcionalidades entregadas.`,
+        `${comparison.totals.missing} funcionalidades exigidas sin evidencia en el Excel.`,
+        comparison.totals.extra > 0
+          ? `${comparison.totals.extra} ítems entregados de más (no exigidos por el documento base), ` +
+            `${comparison.totals.freeExtras} de ellos sin costo.`
+          : "No se registraron entregas adicionales fuera de lo exigido.",
+      ],
+    },
+  ];
+
+  for (const s of comparison.systems) {
+    sections.push({
+      title: `${s.name} — ${s.pct}% (${s.completed}/${s.total})`,
+      paragraphs: s.features.map((f) => {
+        const estado = RESULT_STATE_LABEL[f.state];
+        return `${estado} — ${f.name}${f.notes ? ` (${f.notes})` : ""}`;
+      }),
+    });
+  }
+
+  if (comparison.extras.length > 0) {
+    sections.push({
+      title: "Entregado de más (no exigido por el documento base)",
+      paragraphs: comparison.extras.map(
+        (e) => `${e.system} — ${e.feature}${e.isFree ? " (sin costo)" : ""}${e.notes ? ` — ${e.notes}` : ""}`
+      ),
+    });
+  }
+
+  return { title: `Comparación de cumplimiento — ${documentTitle}`, sections };
 }

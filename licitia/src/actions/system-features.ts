@@ -1,7 +1,7 @@
 "use server";
 
 import { requireUser } from "@/lib/supabase/server";
-import { getChecklist } from "@/core/repositories/checklist.repo";
+import { getChecklist, type SystemRow } from "@/core/repositories/checklist.repo";
 import { AppError } from "@/lib/errors";
 
 type ActionResult<T> = { data: T; error: null } | { data: null; error: string };
@@ -25,6 +25,19 @@ export async function getSystemFeatureCounts(documentId: string): Promise<Action
       data: rows.map((s) => ({ id: s.id, name: s.name, featureCount: s.features.length })),
       error: null,
     };
+  } catch (err) {
+    if (err instanceof AppError) return { data: null, error: err.message };
+    throw err;
+  }
+}
+
+/** Sistemas con sus funcionalidades completas — para mostrar el checklist
+ *  marcable directamente en el comparador, sin ir a la ficha. */
+export async function getFullChecklist(documentId: string): Promise<ActionResult<SystemRow[]>> {
+  try {
+    const { supabase } = await requireUser();
+    const rows = await getChecklist(supabase, documentId);
+    return { data: rows, error: null };
   } catch (err) {
     if (err instanceof AppError) return { data: null, error: err.message };
     throw err;

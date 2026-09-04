@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import * as XLSX from "xlsx";
 import {
+  buildComparisonExcel,
+  buildComparisonWordPayload,
   buildTemplate,
   compareChecklist,
   ExcelFormatError,
@@ -158,5 +160,28 @@ describe("plantilla descargable", () => {
     const wb = XLSX.read(buffer, { type: "buffer" });
     expect(wb.SheetNames).toContain(SHEET_NAME);
     expect(wb.SheetNames).toContain("Instrucciones");
+  });
+});
+
+describe("informe de resultado", () => {
+  const rows = parseControlWorkbook(
+    makeWorkbook([
+      ["Portal de Atención Ciudadana", "Emisión de certificados de residencia (PDF)", "Entregado", "", "", "No", "No", ""],
+      ["Módulo de Tesorería", "Conciliación bancaria automática", "Entregado", "", "", "No", "No", ""],
+    ])
+  );
+  const result = compareChecklist(SISTEMAS, rows);
+
+  it("genera un Excel legible, con resumen/detalle/extras", () => {
+    const buffer = buildComparisonExcel("Bases técnicas de prueba", result);
+    const wb = XLSX.read(buffer, { type: "buffer" });
+    expect(wb.SheetNames).toEqual(["Resumen", "Detalle", "Entregado de más"]);
+  });
+
+  it("arma un payload de Word con una sección por sistema", () => {
+    const payload = buildComparisonWordPayload("Bases técnicas de prueba", result);
+    const titulos = payload.sections?.map((s) => s.title) ?? [];
+    expect(titulos.some((t) => t.startsWith("Portal de Atención Ciudadana"))).toBe(true);
+    expect(titulos.some((t) => t.startsWith("Módulo de Tesorería"))).toBe(true);
   });
 });
