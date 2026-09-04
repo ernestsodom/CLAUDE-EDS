@@ -1,9 +1,35 @@
 "use server";
 
 import { requireUser } from "@/lib/supabase/server";
+import { getChecklist } from "@/core/repositories/checklist.repo";
 import { AppError } from "@/lib/errors";
 
 type ActionResult<T> = { data: T; error: null } | { data: null; error: string };
+
+export interface SystemFeatureCount {
+  id: string;
+  name: string;
+  featureCount: number;
+}
+
+/**
+ * Cuántas funcionalidades tiene guardadas cada sistema del documento —
+ * para que el comparador sepa, sin bajar el detalle completo, a cuáles
+ * pedirles funcionalidades antes de comparar.
+ */
+export async function getSystemFeatureCounts(documentId: string): Promise<ActionResult<SystemFeatureCount[]>> {
+  try {
+    const { supabase } = await requireUser();
+    const rows = await getChecklist(supabase, documentId);
+    return {
+      data: rows.map((s) => ({ id: s.id, name: s.name, featureCount: s.features.length })),
+      error: null,
+    };
+  } catch (err) {
+    if (err instanceof AppError) return { data: null, error: err.message };
+    throw err;
+  }
+}
 
 /** Antes: escritura directa desde `systems-checklist.tsx`. */
 export async function toggleSystemFeature(

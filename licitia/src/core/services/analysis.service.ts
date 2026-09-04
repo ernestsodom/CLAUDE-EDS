@@ -288,6 +288,7 @@ export async function extractSystems(
 export async function extractSystemFeatures(
   pages: PageText[],
   systemName: string,
+  systemDescription: string | null,
   provider: ProviderId,
   onUsage?: OnUsage
 ): Promise<SystemFeatures> {
@@ -300,9 +301,12 @@ export async function extractSystemFeatures(
     maxTokens: outputCapFor(provider),
     system:
       `Eres un analista funcional de licitaciones TI. El documento exige un sistema llamado ` +
-      `"${systemName}" (u otro nombre equivalente para el mismo sistema, si el documento lo redactó ` +
-      `distinto en otra sección). Extrae EXCLUSIVAMENTE las funcionalidades exigidas para ESE sistema — ` +
-      `ignora por completo las exigencias de cualquier otro sistema mencionado en el documento.\n` +
+      `"${systemName}"` +
+      (systemDescription ? ` (descrito así en el documento: "${systemDescription}")` : "") +
+      `, u otro nombre equivalente para el mismo sistema si el documento lo redactó distinto en otra ` +
+      `sección — no te limites a buscar ese nombre literal, reconoce el sistema por lo que hace. ` +
+      `Extrae las funcionalidades exigidas para ESE sistema — ignora las exigencias que sean ` +
+      `claramente de otro sistema distinto.\n` +
       "Reglas:\n" +
       "- Cada funcionalidad es una exigencia concreta y verificable (p.ej. 'Emitir certificado de " +
       "  residencia en formato PDF firmado electrónicamente'), no una categoría genérica ('gestión de " +
@@ -314,10 +318,16 @@ export async function extractSystemFeatures(
       "  se desprende necesariamente de una exigencia más general de este mismo sistema (p.ej. si exige " +
       "  'generar reportes' y en otra parte dice qué reportes, cada reporte es implícito de esa " +
       "  exigencia general); 'interpretacion' cuando es una lectura razonable pero no está dicho ni se " +
-      "  desprende de forma directa — úsalo con moderación, nunca para rellenar la lista.\n" +
+      "  desprende de forma directa.\n" +
       "- Indica el plazo si el documento lo asocia a esta funcionalidad en particular (no el plazo " +
       "  general del sistema, salvo que sea lo único disponible).\n" +
-      "- Cada funcionalidad con su página y cita textual — sin evidencia, no la incluyas.\n" +
+      "- Cada funcionalidad con su página y cita textual cuando exista una cita puntual que la respalde.\n" +
+      "IMPORTANTE — nunca devuelvas la lista vacía: si tras revisar TODO el documento no encuentras " +
+      "funcionalidades explícitas o implícitas para este sistema (documento que solo lo nombra sin " +
+      "detallarlo), genera en su lugar entre 3 y 6 funcionalidades genéricas de cumplimiento típicas " +
+      "para un sistema de este tipo, basándote en su nombre y descripción — cada una con " +
+      "tipo_evidencia='interpretacion', pagina y cita en null, y descripcion aclarando que es una " +
+      "funcionalidad esperable para este tipo de sistema, no una exigencia literal del documento.\n" +
       DEPTH_INSTRUCTIONS,
     user: pagesToAnnotatedText(pages, charBudgetFor(provider, 150_000)),
   });

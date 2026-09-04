@@ -453,7 +453,27 @@ export function extractSystemsLocal(pages: PageText[]): Systems {
  * pero en vez de solo contar las capacidades bajo el sistema buscado, las
  * conserva todas como funcionalidades individuales.
  */
-export function extractSystemFeaturesLocal(pages: PageText[], systemName: string): SystemFeatures {
+/**
+ * Checklist genérico de cumplimiento cuando no se detectó ninguna
+ * funcionalidad explícita para el sistema — nunca se deja el sistema sin
+ * nada que comparar en el checklist vs Excel. Son ítems de bajo detalle a
+ * propósito (tipo_evidencia='interpretacion'): sirven de punto de partida,
+ * no reemplazan un análisis con IA si el documento sí tiene detalle.
+ */
+function genericFeatures(systemName: string, systemDescription: string | null): SystemFeatures["funcionalidades"] {
+  const base = systemDescription ? systemDescription.slice(0, 200) : systemName;
+  return [
+    { nombre: `Cumplir con el alcance general de ${systemName}`, descripcion: `Basado en: ${base}`, obligatoria: true, tipo_evidencia: "interpretacion", plazo: null, pagina: null, cita: null },
+    { nombre: "Contar con manual de usuario y documentación técnica", descripcion: "Funcionalidad genérica esperable, no detectada de forma explícita en el documento.", obligatoria: true, tipo_evidencia: "interpretacion", plazo: null, pagina: null, cita: null },
+    { nombre: "Permitir generar reportes o consultas sobre la información gestionada", descripcion: "Funcionalidad genérica esperable, no detectada de forma explícita en el documento.", obligatoria: true, tipo_evidencia: "interpretacion", plazo: null, pagina: null, cita: null },
+  ];
+}
+
+export function extractSystemFeaturesLocal(
+  pages: PageText[],
+  systemName: string,
+  systemDescription: string | null = null
+): SystemFeatures {
   const sents = sentences(pages);
   const target = norm(systemName);
   const funcionalidades: SystemFeatures["funcionalidades"] = [];
@@ -496,7 +516,7 @@ export function extractSystemFeaturesLocal(pages: PageText[], systemName: string
     if (funcionalidades.length >= 100) break;
   }
 
-  return { funcionalidades };
+  return { funcionalidades: funcionalidades.length > 0 ? funcionalidades : genericFeatures(systemName, systemDescription) };
 }
 
 // ─── Entregas (documentos de control) ───────────────────────────────────────

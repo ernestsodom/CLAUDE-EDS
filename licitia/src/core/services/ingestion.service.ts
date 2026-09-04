@@ -884,7 +884,7 @@ export async function runSystemFeatures(params: {
 
   const { data: system } = await db
     .from("systems")
-    .select("id, name, document_id")
+    .select("id, name, description, document_id")
     .eq("id", systemId)
     .single();
   if (!system || system.document_id !== documentId) {
@@ -908,8 +908,9 @@ export async function runSystemFeatures(params: {
   const { data: f, engine } = await withTimeout(
     analyze(
       mode,
-      (provider) => extractSystemFeatures(pages, system.name as string, provider, onUsage),
-      () => extractSystemFeaturesLocal(pages, system.name as string)
+      (provider) =>
+        extractSystemFeatures(pages, system.name as string, system.description as string | null, provider, onUsage),
+      () => extractSystemFeaturesLocal(pages, system.name as string, system.description as string | null)
     ),
     STAGE_TIMEOUT_MS,
     `Las funcionalidades de "${system.name}"`

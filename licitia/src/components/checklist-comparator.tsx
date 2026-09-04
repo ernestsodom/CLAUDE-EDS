@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Download,
@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Progress } from "@/components/systems-checklist";
 import { DocumentPicker, type PickedDocument } from "@/components/document-picker";
+import { getSystemFeatureCounts } from "@/actions/system-features";
+import { analyzeSystemFeatures } from "@/lib/analyze-features";
 import type { ChecklistComparison } from "@/core/services/checklist.service";
 
 const STATE_LABEL: Record<string, string> = {
@@ -50,9 +52,37 @@ export function ChecklistComparator() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Set<number>>(new Set());
+  const [preparing, setPreparing] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const ready = base?.status === "procesado";
+
+  // Al elegir el documento base, se piden solas las funcionalidades de los
+  // sistemas que todavía no las tengan — antes había que ir a la ficha y
+  // pedirlas sistema por sistema antes de poder comparar.
+  useEffect(() => {
+    if (!base || !ready) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data: counts, error: countsError } = await getSystemFeatureCounts(base.id);
+      if (cancelled || !counts) {
+        if (countsError) setError(countsError);
+        return;
+      }
+      const missing = counts.filter((s) => s.featureCount === 0);
+      for (const system of missing) {
+        if (cancelled) return;
+        setPreparing(`Analizando funcionalidades de "${system.name}"…`);
+        await analyzeSystemFeatures(base.id, system.id, undefined, { mode: "auto" });
+      }
+      if (!cancelled) setPreparing(null);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [base, ready]);
 
   function toggle(i: number) {
     setOpen((prev) => {
@@ -99,11 +129,11 @@ export function ChecklistComparator() {
               setResult(null);
             }}
           />
-          {ready && (
-            <p className="text-xs text-muted-foreground">
-              Antes de comparar, asegúrate de haber pedido las funcionalidades de cada sistema que
-              te interese en la ficha del documento (pestaña Sistemas → Analizar funcionalidades):
-              se piden por sistema, no automáticamente al cargar.
+          {preparing && (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {preparing} — los sistemas sin funcionalidades detectadas quedan con un checklist
+              genérico mientras tanto.
             </p>
           )}
 
@@ -126,7 +156,7 @@ export function ChecklistComparator() {
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={!ready}
+                disabled={!ready || Boolean(preparing)}
                 onClick={() => {
                   if (base) window.location.href = `/api/documents/${base.id}/checklist/template`;
                 }}
@@ -165,7 +195,7 @@ export function ChecklistComparator() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button onClick={compare} disabled={busy || !ready || !file}>
+          <Button onClick={compare} disabled={busy || !ready || !file || Boolean(preparing)}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Comparar
           </Button>

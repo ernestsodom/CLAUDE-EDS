@@ -188,6 +188,16 @@ describe("motor local — funcionalidades de un sistema puntual", () => {
     expect(texto).not.toContain("multa");
     expect(texto).not.toContain("boleta de garantía");
   });
+
+  it("nunca deja un sistema sin nada que comparar: genera un checklist genérico si no detecta nada", () => {
+    const { funcionalidades: genericas } = extractSystemFeaturesLocal(
+      LICITACION,
+      "Sistema Inexistente De Prueba",
+      "Un sistema que no aparece en el documento de prueba"
+    );
+    expect(genericas.length).toBeGreaterThan(0);
+    expect(genericas.every((f) => f.tipo_evidencia === "interpretacion")).toBe(true);
+  });
 });
 
 describe("motor local — variables técnicas", () => {
