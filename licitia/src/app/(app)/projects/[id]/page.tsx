@@ -11,6 +11,7 @@ import { DocumentUploadPanel } from "@/components/document-upload-panel";
 import { RenameDocumentButton } from "@/components/rename-document-button";
 import { MoveToFolderButton } from "@/components/move-to-folder-button";
 import { BackLink } from "@/components/back-link";
+import { STEP_LABELS } from "@/core/services/ingestion.service";
 
 const COMPARISON_TYPE_LABELS: Record<string, string> = {
   cumplimiento: "Control de cumplimiento",
@@ -114,7 +115,7 @@ export default async function ProjectDetailPage({
               <TD>
                 <Badge variant={statusVariant(d.status)}>
                   {d.status === "procesando" && d.processing_step
-                    ? `procesando: ${d.processing_step}`
+                    ? `procesando: ${STEP_LABELS[d.processing_step] ?? d.processing_step}`
                     : d.status}
                 </Badge>
               </TD>

@@ -25,7 +25,7 @@ import { ReanalyzeButton } from "@/components/reanalyze-button";
 import { RenameDocumentButton } from "@/components/rename-document-button";
 import { MoveToFolderButton } from "@/components/move-to-folder-button";
 import { BUDGET_PERIOD_LABELS, CRITICAL_TYPE_LABELS } from "@/core/ai/schemas";
-import { ANALYSIS_PARTS, PART_LABELS, PART_DESCRIPTIONS } from "@/core/services/ingestion.service";
+import { ANALYSIS_PARTS, PART_LABELS, PART_DESCRIPTIONS, STEP_LABELS } from "@/core/services/ingestion.service";
 import { ENGINE_LABELS, type AnalysisMode } from "@/lib/ai-providers";
 import { formatCLP, formatDate } from "@/lib/utils";
 
@@ -75,6 +75,8 @@ export default async function DocumentDetailPage({
     (analysisParts as Record<string, PartStatus>)[part]?.status ?? "pendiente";
   const partError = (part: (typeof ANALYSIS_PARTS)[number]) =>
     (analysisParts as Record<string, PartStatus>)[part]?.error ?? null;
+  const partEngine = (part: (typeof ANALYSIS_PARTS)[number]) =>
+    (analysisParts as Record<string, PartStatus>)[part]?.engine ?? null;
 
   const progress = checklistProgress(systems);
 
@@ -189,7 +191,7 @@ export default async function DocumentDetailPage({
         <div className="flex items-center gap-2">
           <Badge variant={statusVariant(doc.status)}>
             {doc.status === "procesando" && doc.processing_step
-              ? `cargando: ${doc.processing_step}`
+              ? `cargando: ${STEP_LABELS[doc.processing_step] ?? doc.processing_step}`
               : doc.status}
           </Badge>
           {LOADED_STATUSES.has(doc.status) && <ReanalyzeButton documentId={doc.id} />}
@@ -257,6 +259,7 @@ export default async function DocumentDetailPage({
                 description={PART_DESCRIPTIONS.resumen}
                 status={partStatus("resumen")}
                 errorMessage={partError("resumen")}
+                engine={partEngine("resumen")}
               />
 
               {summary && (
@@ -388,6 +391,7 @@ export default async function DocumentDetailPage({
                 description={PART_DESCRIPTIONS.sistemas}
                 status={partStatus("sistemas")}
                 errorMessage={partError("sistemas")}
+                engine={partEngine("sistemas")}
               />
               {systems.length > 0 && (
                 <>
@@ -410,6 +414,7 @@ export default async function DocumentDetailPage({
                 description={PART_DESCRIPTIONS.evaluacion}
                 status={partStatus("evaluacion")}
                 errorMessage={partError("evaluacion")}
+                engine={partEngine("evaluacion")}
               />
               {partStatus("evaluacion") === "listo" && (
                 <div className="grid gap-4 lg:grid-cols-2">
@@ -498,6 +503,7 @@ export default async function DocumentDetailPage({
                 description={PART_DESCRIPTIONS.criticos}
                 status={partStatus("criticos")}
                 errorMessage={partError("criticos")}
+                engine={partEngine("criticos")}
               />
               {requirements.length > 0 && (
                 <Card>
@@ -595,6 +601,7 @@ export default async function DocumentDetailPage({
                 description={PART_DESCRIPTIONS.timeline}
                 status={partStatus("timeline")}
                 errorMessage={partError("timeline")}
+                engine={partEngine("timeline")}
               />
               {partStatus("timeline") === "listo" && <TimelineView milestones={timeline?.milestones ?? []} />}
             </div>

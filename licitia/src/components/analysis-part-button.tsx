@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Play, RotateCw, Loader2, CheckCircle2 } from "lucide-react";
+import { Play, RotateCw, Loader2, CheckCircle2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { EngineSelector } from "@/components/engine-selector";
@@ -23,6 +23,7 @@ export function AnalysisPartButton({
   description,
   status,
   errorMessage,
+  engine,
 }: {
   documentId: string;
   part: AnalysisPart;
@@ -30,6 +31,11 @@ export function AnalysisPartButton({
   description: string;
   status: "pendiente" | "procesando" | "listo" | "error";
   errorMessage?: string | null;
+  /** Motor con el que se generó el resultado actual, si ya hay uno. "local"
+   *  es el motor sin IA (por patrones) — más rápido y sin costo, pero más
+   *  superficial: cuando es el que quedó guardado, se avisa para que se
+   *  revise o se reanalice con IA si hace falta. */
+  engine?: string | null;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<AnalysisMode>("auto");
@@ -52,10 +58,14 @@ export function AnalysisPartButton({
 
   const busy = progress !== null;
   const effectiveStatus = busy ? "procesando" : status;
+  // "listo" con motor local es un resultado más superficial (sin IA, por
+  // patrones): se marca como que necesita revisión en vez de darlo por
+  // bueno igual que un resultado de IA.
+  const needsReview = effectiveStatus === "listo" && engine === "local";
   const STATUS_LABELS: Record<typeof effectiveStatus, string> = {
     pendiente: "Pendiente",
     procesando: "Procesando",
-    listo: "Listo",
+    listo: needsReview ? "Requiere revisión" : "Listo",
     error: "Error",
   };
 
@@ -65,13 +75,20 @@ export function AnalysisPartButton({
         <div>
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium">{label}</p>
-            <Badge variant={statusVariant(effectiveStatus)} className="gap-1">
+            <Badge variant={needsReview ? "warning" : statusVariant(effectiveStatus)} className="gap-1">
               {effectiveStatus === "procesando" && <Loader2 className="h-3 w-3 animate-spin" />}
-              {effectiveStatus === "listo" && <CheckCircle2 className="h-3 w-3" />}
+              {effectiveStatus === "listo" && !needsReview && <CheckCircle2 className="h-3 w-3" />}
+              {needsReview && <TriangleAlert className="h-3 w-3" />}
               {STATUS_LABELS[effectiveStatus]}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">{description}</p>
+          {needsReview && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Generado con el motor local (sin IA): más superficial. Reanaliza con IA si necesitas
+              profundidad.
+            </p>
+          )}
         </div>
         {!open && (
           <Button

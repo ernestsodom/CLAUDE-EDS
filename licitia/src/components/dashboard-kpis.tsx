@@ -9,6 +9,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { Progress } from "@/components/systems-checklist";
+import { STEP_LABELS } from "@/core/services/ingestion.service";
 import { cn, formatCLP, formatDate } from "@/lib/utils";
 
 export interface DashboardDrilldown {
@@ -206,7 +207,7 @@ function Panel({ id, data }: { id: PanelId; data: DashboardDrilldown }) {
               <div className="min-w-0">
                 <p className="truncate font-medium">{d.title}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {d.error ?? (d.step ? `etapa: ${d.step}` : "sin analizar")}
+                  {d.error ?? (d.step ? `etapa: ${STEP_LABELS[d.step] ?? d.step}` : "sin analizar")}
                 </p>
               </div>
               <Badge variant={statusVariant(d.status)}>{d.status}</Badge>

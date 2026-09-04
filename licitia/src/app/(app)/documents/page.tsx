@@ -13,6 +13,7 @@ import { DocumentUploadPanel } from "@/components/document-upload-panel";
 import { RenameDocumentButton } from "@/components/rename-document-button";
 import { MoveToFolderButton } from "@/components/move-to-folder-button";
 import type { DocumentType } from "@/core/domain/types";
+import { STEP_LABELS } from "@/core/services/ingestion.service";
 
 export const metadata = { title: "Documentos" };
 export const dynamic = "force-dynamic";
@@ -156,7 +157,7 @@ export default async function DocumentsPage({
                 <TD>
                   <Badge variant={statusVariant(d.status)}>
                     {d.status === "procesando" && d.processing_step
-                      ? `${d.status}: ${d.processing_step}`
+                      ? `${d.status}: ${STEP_LABELS[d.processing_step] ?? d.processing_step}`
                       : d.status}
                   </Badge>
                 </TD>
