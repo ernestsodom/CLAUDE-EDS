@@ -1,0 +1,27 @@
+-- Corrige un bug real de producción: TODO documento que terminaba de
+-- clasificarse (fin de la carga) fallaba al intentar marcarse como
+-- 'cargado', porque ese valor nunca se agregó al enum processing_step —
+-- solo se había agregado a documents.status en 05_analisis_a_pedido.sql.
+--
+-- Efecto en producción: el documento quedaba con toda la clasificación ya
+-- escrita (título, N° de licitación, monto, tipo…) pero status/
+-- processing_step congelados en 'procesando'/'clasificacion' para siempre,
+-- sin ningún error visible — porque el error de Postgres nunca llegaba a
+-- registrarse (ver el commit de código que acompaña esta migración: el
+-- paso de vincular cliente, ANTES de este punto, podía cortar la función
+-- serverless a mitad de camino, y aunque no lo hiciera, la propia
+-- actualización a 'cargado' habría fallado igual con el enum tal cual
+-- estaba). Se confirmó contra los datos reales: 6 de 6 documentos que
+-- habían llegado a "clasificacion" con este pipeline estaban atascados así,
+-- ninguno pudo completarse desde que existe el estado 'cargado'.
+--
+-- En Neon, processing_step es un enum nativo — hay que sumarle el valor.
+-- Si en Supabase es texto con check constraint, usar en su lugar:
+--   alter table public.documents drop constraint if exists documents_processing_step_check;
+--   alter table public.documents add constraint documents_processing_step_check
+--     check (processing_step in (
+--       'extraccion_texto','ocr','chunking','embeddings','clasificacion',
+--       'resumen','variables','timeline','completado','requerimientos',
+--       'sistemas','cargado'
+--     ));
+alter type processing_step add value if not exists 'cargado';

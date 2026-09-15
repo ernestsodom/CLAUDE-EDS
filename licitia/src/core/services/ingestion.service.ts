@@ -716,7 +716,25 @@ async function stageClassify(
     })
     .eq("id", params.documentId);
 
-  await linkClient(db, params.organizationId, params.documentId, c.cliente, c.tipo_cliente);
+  // Vincular el cliente es un efecto secundario, no el resultado que importa
+  // de esta etapa: los datos de clasificación (arriba) ya quedaron
+  // guardados. Si esto se cuelga o falla, no puede dejar al documento
+  // entero varado sin avanzar a "cargado" — con límite propio y sin
+  // relanzar el error, solo se registra. (Bug real visto en producción:
+  // un documento quedó con toda la clasificación ya escrita pero
+  // status/processing_step congelados en "clasificacion" para siempre.)
+  try {
+    await withTimeout(
+      linkClient(db, params.organizationId, params.documentId, c.cliente, c.tipo_cliente),
+      8_000,
+      "Vincular cliente"
+    );
+  } catch (err) {
+    logger.error("link_client_failed", {
+      documentId: params.documentId,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
   return { detail: `${c.tipo_documento.replace(/_/g, " ")}${engineSuffix(engine)}`, engine };
 }
 
