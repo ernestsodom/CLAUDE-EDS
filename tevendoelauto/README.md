@@ -1,15 +1,33 @@
-# TeVendoElAuto.cl — maqueta web
+# TeVendoElAuto.cl
 
-Maqueta navegable (HTML + CSS + JS, sin dependencias) para el sitio de compra y consignación de vehículos **Te Vendo El Auto**.
+Sitio de compra y consignación de vehículos, con back office y monitoreo.
 
-Abrir `index.html` en el navegador, o usar `tevendoelauto-maqueta.html`: un solo archivo con las imágenes incluidas, que se puede enviar y abrir en cualquier equipo. Secciones (navegación por `#hash`):
+- **Sitio público:** `public/index.html`. Carga vehículos, textos, logo y menú desde la base de datos.
+- **Back office:** `public/admin.html` → `/admin`, protegido por contraseña.
+- **API (funciones de Vercel):** `api/`
+  - `site`: datos públicos
+  - `lead`: formularios
+  - `track`: visitas y clics
+  - `media`: imágenes subidas
+  - `admin`: acciones del back office
+- **Base de datos:** Neon (Postgres). El esquema está en `db/schema.sql`.
 
-- `#inicio` — hero, cómo funciona, búsqueda rápida, vehículos destacados, formulario de venta.
-- `#vehiculos` — catálogo con filtros: búsqueda, marca, tipo, año, precio, kilometraje, transmisión, combustible, tracción y orden.
-- `#auto-<id>` — ficha del vehículo: cotizar, WhatsApp, agendar visita, parte de pago y simulador de crédito.
-- `#vende` — proceso de consignación, formulario completo con fotos y preguntas frecuentes.
-- `#nosotros`, `#contacto`.
+## Back office
 
-El botón de WhatsApp (+56 9 9736 0901) está fijo en todas las páginas y los mensajes llevan texto prellenado según el vehículo.
+| Sección | Qué permite |
+|---|---|
+| Resumen | Personas que entraron, páginas vistas, clics en WhatsApp, vehículos más vistos y clickeados, origen de las visitas, dispositivos |
+| Contactos | Todas las solicitudes clasificadas por tipo: cotización, visita, crédito, parte de pago, venta y contacto. Tiene estados, notas, botón de WhatsApp y exportación a Excel (CSV) |
+| Vehículos | Agregar, editar, eliminar, subir fotos, destacar en portada y cambiar el estado. **Vendido** = foto en blanco y negro; **Reservado** = franja diagonal |
+| Textos de la página | Editar cualquier texto de todas las páginas y agregar bloques de texto nuevos |
+| Logo, menú y botones | Logo, imagen de portada, botones del menú (texto, orden, visibilidad), botón de WhatsApp y redes sociales |
 
-Notas de maqueta: los formularios no envían datos; los vehículos 1–5 son los del boceto y los 6–10 son de ejemplo (reutilizan fotos) para probar los filtros. Las fotos en `img/` fueron recortadas del boceto; conviene reemplazarlas por originales en alta resolución.
+## Variables de entorno (Vercel)
+
+Ver `.env.example`: `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`.
+
+## Dominio definitivo
+
+En Vercel, abre el proyecto `tevendoelauto` → Settings → Domains → agrega `tevendoelauto.cl` y configura el DNS según indique Vercel.
+
+`maqueta/tevendoelauto-maqueta.html` es la maqueta estática original, en un solo archivo.

@@ -34,7 +34,7 @@ h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance}
 
 /* Layout */
 .app{display:grid;grid-template-columns:240px 1fr;min-height:100%}
-.side{background:var(--ink);color:#E6E9EE;padding:18px 14px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
+.side{background:var(--ink);color:#E6E9EE;padding:18px 14px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;align-self:start}
 .side .lg{padding:6px 8px 4px}
 .side .lg svg{width:170px;height:auto;display:block}
 .side .lg small{display:block;color:#8B93A1;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:8px 0 0 2px}
@@ -85,6 +85,7 @@ h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance}
 .fld{width:100%;border:1px solid var(--line2);background:#fff;border-radius:10px;padding:.62em .8em;font-size:.95rem}
 .fld:focus{outline:2px solid var(--y);border-color:var(--y2)}
 textarea.fld{resize:vertical;min-height:70px;line-height:1.45}
+textarea[data-k]{min-height:44px}
 select.fld{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right .8em center;padding-right:2.2em}
 .lbl{display:block;font-size:.8rem;font-weight:700;margin-bottom:5px;color:#3A404A}
 .hint{font-size:.8rem;color:var(--muted);margin-top:4px}

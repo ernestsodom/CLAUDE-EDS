@@ -1078,7 +1078,7 @@ window.addEventListener("hashchange", route);
 
 async function boot(){
   try {
-    const r = await fetch("/api/site"); if (!r.ok) throw new Error();
+    const r = await fetch("/api/site", { cache: "no-cache" }); if (!r.ok) throw new Error();
     const d = await r.json();
     SETTINGS = d.settings || {}; CARS = (d.vehicles || []).map(v => ({ ...v, precio: +v.precio }));
     applySettings();

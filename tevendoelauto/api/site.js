@@ -10,7 +10,7 @@ export default async function handler(req, res) {
                    descripcion, equipamiento, fotos, estado, destacado, orden
             FROM vehicles ORDER BY orden, id`
     ]);
-    res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
+    res.setHeader('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');
     send(res, 200, { settings, vehicles });
   } catch (e) {
     console.error(e);
