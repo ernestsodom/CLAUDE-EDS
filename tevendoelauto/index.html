@@ -1,0 +1,953 @@
+<!doctype html>
+<title>Te Vendo El Auto</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;1,800;1,900&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --yellow:#FFD21F; --yellow-2:#F5C400; --yellow-ink:#1A1400;
+  --ink:#0D1015; --ink-2:#14181F; --card:#1B2029; --card-2:#222834; --line:#2B3240;
+  --paper:#F4F5F6; --white:#FFFFFF; --text:#14171C; --muted:#6B7280; --muted-d:#A3ABB8;
+  --wa:#25D366; --ok:#1F9D55; --err:#D93838;
+  --display:"Montserrat", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --r:12px; --r-pill:999px; --wrap:1180px; --gut:clamp(16px,4vw,32px);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--white);font:16px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-radius:6px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-inline:var(--gut)}
+.ico{width:1.25em;height:1.25em;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ico.fill{fill:currentColor;stroke:none}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
+.hl{color:var(--yellow)}
+.eyebrow{font:700 .75rem/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--yellow)}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.6em;border:2px solid transparent;border-radius:var(--r-pill);padding:.8em 1.5em;font:700 .95rem/1 var(--body);transition:transform .15s,background .15s,border-color .15s,color .15s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
+.btn-y{background:var(--yellow);color:var(--yellow-ink)}
+.btn-y:hover{background:var(--yellow-2)}
+.btn-o{border-color:rgba(255,255,255,.85);color:var(--white);background:rgba(0,0,0,.2)}
+.btn-o:hover{background:var(--white);color:var(--ink)}
+.btn-dk{background:var(--ink);color:var(--white)}
+.btn-wa{background:var(--wa);color:#05290F}
+.btn-sm{padding:.6em 1.1em;font-size:.85rem}
+.btn-block{width:100%}
+
+/* ---------- Header ---------- */
+.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(13,16,21,.94);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}
+.hdr .wrap{display:flex;align-items:center;gap:24px;min-height:74px}
+.logo{display:block;width:176px;flex:none}
+.logo svg{width:100%;height:auto;display:block}
+.nav{display:flex;gap:6px;margin-left:auto}
+.nav a{position:relative;padding:10px 14px;font:600 .9rem/1 var(--body);color:#E6E9EE;border-radius:8px}
+.nav a:hover{color:var(--yellow)}
+.nav a.on{color:var(--yellow)}
+.nav a.on::after{content:"";position:absolute;left:14px;right:14px;bottom:-2px;height:3px;border-radius:2px;background:var(--yellow)}
+.hdr .btn-y{margin-left:12px}
+.burger{display:none;margin-left:auto;background:none;border:0;color:var(--white);padding:8px}
+.burger .ico{width:28px;height:28px}
+@media (max-width:960px){
+  .burger{display:block}
+  .nav{position:absolute;top:100%;left:0;right:0;flex-direction:column;background:var(--ink);padding:8px var(--gut) 18px;border-bottom:1px solid var(--line);display:none;margin:0}
+  .nav.open{display:flex}
+  .nav a{padding:14px 4px;font-size:1rem}
+  .nav a.on::after{left:4px;right:auto;width:28px}
+  .hdr .btn-y{display:none}
+}
+
+/* ---------- Floating WhatsApp ---------- */
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;align-items:center;gap:10px;background:var(--wa);color:#fff;border-radius:var(--r-pill);padding:12px 20px 12px 14px;font:700 .95rem/1 var(--body);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.fab .ico{width:30px;height:30px}
+.fab::before{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 0 0 rgba(37,211,102,.6);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.55)}70%{box-shadow:0 0 0 16px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}
+@media (max-width:560px){.fab span{display:none}.fab{padding:14px}}
+@media (prefers-reduced-motion:reduce){.fab::before{animation:none}html{scroll-behavior:auto}.btn:hover{transform:none}}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden;background:
+  radial-gradient(120% 90% at 78% 8%, rgba(255,160,70,.55), rgba(255,160,70,0) 55%),
+  linear-gradient(180deg,#2B2A33 0%,#5B4336 38%,#2A2420 64%,#111317 100%)}
+.hero-img{position:absolute;right:0;top:0;bottom:0;width:62%;background:url(img/hero-truck.jpg) center/cover no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 30%);mask-image:linear-gradient(90deg,transparent 0,#000 30%)}
+.hero .wrap{position:relative;padding-block:clamp(48px,8vw,96px)}
+.hero h1{font-weight:900;font-style:italic;font-size:clamp(2.1rem,5.2vw,3.6rem);text-transform:uppercase;letter-spacing:-.01em;max-width:17ch;text-shadow:0 2px 20px rgba(0,0,0,.35)}
+.hero p{max-width:44ch;font-size:1.1rem;margin:18px 0 28px;color:#EDEFF2;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.hero .ctas{display:flex;gap:14px;flex-wrap:wrap}
+.hero-trust{display:flex;gap:22px;flex-wrap:wrap;margin-top:34px;font-size:.88rem;color:#D8DCE3}
+.hero-trust span{display:flex;align-items:center;gap:8px}
+.hero-trust .ico{color:var(--yellow)}
+@media (max-width:760px){
+  .hero-img{width:100%;opacity:.45;-webkit-mask-image:linear-gradient(180deg,#000 40%,transparent);mask-image:linear-gradient(180deg,#000 40%,transparent)}
+}
+
+/* ---------- How it works (light band) ---------- */
+.light{background:var(--paper);color:var(--text)}
+.how .wrap{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:32px;align-items:center;padding-block:40px}
+.how h2{font-size:1.6rem;font-weight:800}
+.how p.lead{margin:6px 0 0;color:#3A404A}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.step{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;font-size:.88rem;line-height:1.3;color:#262A31}
+.step .top{display:flex;align-items:center;gap:10px}
+.num{width:26px;height:26px;border-radius:50%;background:var(--yellow);color:var(--yellow-ink);font:800 .8rem/26px var(--display);text-align:center;flex:none}
+.step .ico{width:34px;height:34px;stroke-width:1.5}
+.step:not(:last-child)::after{content:"";position:absolute;right:-8px;top:14px;width:9px;height:9px;border-right:2px solid #B9BEC6;border-top:2px solid #B9BEC6;transform:rotate(45deg)}
+@media (max-width:900px){.how .wrap{grid-template-columns:1fr}.steps{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));row-gap:22px}.step::after{display:none}}
+
+/* ---------- Section heads ---------- */
+.sec{padding-block:clamp(40px,6vw,64px)}
+.sec-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px}
+.sec-hd h2{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:800}
+.sec-hd p{margin:6px 0 0;color:var(--muted-d)}
+
+/* ---------- Vehicle cards ---------- */
+.grid-cars{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.home-cars{grid-template-columns:repeat(5,1fr)}
+@media (max-width:1100px){.home-cars{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:720px){.home-cars{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:440px){.home-cars,.grid-cars{grid-template-columns:1fr}}
+.car{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .2s,transform .2s}
+.car:hover{border-color:rgba(255,210,31,.55);transform:translateY(-3px)}
+.car-ph{position:relative;aspect-ratio:16/10;max-width:100%;background:#2A2F38;overflow:hidden}
+.car-ph img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.car:hover .car-ph img{transform:scale(1.04)}
+.tag{position:absolute;left:10px;top:10px;background:var(--yellow);color:var(--yellow-ink);font:800 .66rem/1 var(--display);letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;border-radius:5px}
+.tag.dk{background:rgba(13,16,21,.82);color:#fff}
+.car-bd{display:flex;flex-direction:column;gap:10px;padding:14px 14px 16px;flex:1}
+.car-t{font:700 1rem/1.2 var(--body)}
+.car-t small{display:block;font-weight:500;font-size:.88rem;color:var(--muted-d);margin-top:3px}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;font-size:.78rem;color:#C9CED7}
+.specs span{display:flex;align-items:center;gap:5px;min-width:0;overflow-wrap:anywhere}
+.specs .ico{width:15px;height:15px;color:var(--muted-d)}
+.price{font:800 1.2rem/1 var(--display);font-variant-numeric:tabular-nums;margin-top:auto;padding-top:4px}
+.car .acts{display:grid;grid-template-columns:1fr auto;gap:8px}
+.car .acts .btn{padding:.65em .9em;font-size:.85rem}
+.icon-btn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card-2);color:#fff}
+.icon-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+
+/* ---------- Quick search ---------- */
+.qs{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:26px}
+.qs label{display:flex;flex-direction:column;gap:4px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-d);font-weight:700}
+@media (max-width:860px){.qs{grid-template-columns:1fr 1fr}.qs .btn{grid-column:1/-1}}
+
+/* ---------- Forms ---------- */
+.fld{width:100%;border:1px solid #D5D9DF;background:#fff;color:var(--text);border-radius:8px;padding:.72em .85em;font-size:.95rem}
+.fld:focus{outline:2px solid var(--yellow);border-color:var(--yellow-2)}
+.dark .fld,.qs .fld,.filters .fld{background:var(--card-2);border-color:var(--line);color:#fff}
+select.fld{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B93A1' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .85em center;padding-right:2.2em}
+textarea.fld{min-height:84px;resize:vertical}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fgrid .full{grid-column:1/-1}
+@media (max-width:480px){.fgrid{grid-template-columns:1fr}}
+.lbl{display:block;font-size:.8rem;font-weight:600;margin-bottom:4px;color:#3A404A}
+.note{font-size:.78rem;color:var(--muted)}
+
+/* ---------- Sell band (home) ---------- */
+.sell{display:grid;grid-template-columns:1.35fr 1fr;background:var(--paper)}
+.sell-l{position:relative;overflow:hidden;background:
+  radial-gradient(70% 90% at 20% 110%, rgba(255,210,31,.16), transparent 60%),
+  linear-gradient(135deg,#1A1E25,#0D1015);padding-block:clamp(36px,5vw,56px);padding-inline:var(--gut);display:grid;grid-template-columns:1fr 1.1fr;gap:28px;align-items:center}
+.sell-l h2{font-size:clamp(1.5rem,2.6vw,2rem);font-weight:800}
+.sell-l p{color:#D5D9E0;margin:14px 0 22px}
+.sell-l .keys{position:absolute;left:-40px;bottom:-50px;width:230px;height:230px;color:rgba(255,255,255,.05)}
+.sell-l > *{position:relative}
+.why{color:var(--text);padding-block:clamp(36px,5vw,56px);padding-inline:var(--gut)}
+.why h3{font-size:1.25rem;font-weight:800;margin-bottom:18px}
+.why ul{list-style:none;margin:0;padding:0;display:grid;gap:16px}
+.why li{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;font-size:.9rem;color:#3A404A}
+.why b{display:block;color:var(--text);font-size:.95rem}
+.why .bub{width:44px;height:44px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;color:var(--yellow-ink)}
+@media (max-width:1000px){.sell{grid-template-columns:1fr}.sell-l{grid-template-columns:1fr}}
+
+/* ---------- Footer ---------- */
+.ftr{background:#07090C;border-top:1px solid #1C2129}
+.ftr .wrap{display:grid;grid-template-columns:1.2fr repeat(3,1fr) auto;gap:24px;align-items:center;padding-block:30px}
+.ftr .it{display:flex;gap:12px;align-items:center;font-size:.9rem}
+.ftr .it .ico{width:30px;height:30px;stroke-width:1.5}
+.ftr .it small{display:block;color:var(--muted-d);font-size:.78rem}
+.soc{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.78rem;color:var(--muted-d)}
+.soc div{display:flex;gap:10px}
+.soc a{color:#fff}.soc a:hover{color:var(--yellow)}
+.soc .ico{width:26px;height:26px}
+.ftr-b{border-top:1px solid #151920;text-align:center;font-size:.8rem;color:#9AA2AE;padding-block:12px calc(12px + env(safe-area-inset-bottom,0px))}
+.ftr-b span{margin-inline:12px;color:#3A404A}
+@media (max-width:980px){.ftr .wrap{grid-template-columns:1fr 1fr}.ftr .logo{grid-column:1/-1}}
+@media (max-width:520px){.ftr .wrap{grid-template-columns:1fr}}
+
+/* ---------- Page header (subpages) ---------- */
+.ph{background:linear-gradient(180deg,#171B22,#0D1015);border-bottom:1px solid var(--line)}
+.ph .wrap{padding-block:34px 30px}
+.crumbs{font-size:.82rem;color:var(--muted-d);margin-bottom:10px}
+.crumbs a:hover{color:var(--yellow)}
+.ph h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800}
+.ph p{color:#C9CED7;margin:8px 0 0;max-width:60ch}
+
+/* ---------- Catalog ---------- */
+.cat{display:grid;grid-template-columns:280px 1fr;gap:28px;align-items:start}
+.filters{position:sticky;top:calc(90px + env(safe-area-inset-top,0px));background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:18px;max-height:calc(100vh - 110px);overflow:auto}
+.filters h3{font:800 1rem/1 var(--display);display:flex;justify-content:space-between;align-items:center}
+.filters h3 button{background:none;border:0;color:var(--yellow);font:600 .82rem var(--body)}
+.fg{display:grid;gap:8px}
+.fg > span{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-d);font-weight:700}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.checks{display:grid;gap:6px}
+.checks label{display:flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer}
+.checks input{accent-color:var(--yellow);width:17px;height:17px}
+.checks em{margin-left:auto;font-style:normal;color:var(--muted-d);font-size:.8rem}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{border:1px solid var(--line);background:var(--card-2);color:#DDE1E7;border-radius:var(--r-pill);padding:.45em .9em;font-size:.82rem;font-weight:600}
+.pill[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--yellow-ink)}
+input[type=range]{width:100%;accent-color:var(--yellow)}
+.rv{display:flex;justify-content:space-between;font-size:.82rem;color:#C9CED7;font-variant-numeric:tabular-nums}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.bar .count{font-weight:600}
+.bar .count b{color:var(--yellow)}
+.bar .sort{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted-d)}
+.bar .sort .fld{width:auto}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,210,31,.12);border:1px solid rgba(255,210,31,.4);color:var(--yellow);padding:.35em .7em;border-radius:var(--r-pill);font-size:.8rem;font-weight:600}
+.chip button{background:none;border:0;color:inherit;padding:0;display:grid}
+.chip .ico{width:14px;height:14px}
+.empty{padding:48px 20px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted-d)}
+.empty h3{color:#fff;margin-bottom:6px}
+.ftoggle{display:none}
+.filters .close-f{display:none}
+@media (max-width:900px){
+  .cat{grid-template-columns:1fr}
+  .ftoggle{display:inline-flex}
+  .filters{position:fixed;inset:0 auto 0 0;width:min(340px,88vw);max-height:none;height:100%;border-radius:0;z-index:70;transform:translateX(-105%);transition:transform .25s;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+  .filters.open{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.55)}
+  .filters .close-f{display:inline-flex}
+}
+
+/* ---------- Detail ---------- */
+.det{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;align-items:start}
+.gal-main{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/10;max-width:100%;background:#222}
+.gal-main img{width:100%;height:100%;object-fit:cover}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.thumbs button{padding:0;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#222;aspect-ratio:16/10;max-width:100%}
+.thumbs button.on{border-color:var(--yellow)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.thumbs .more{display:grid;place-items:center;color:#fff;font-size:.78rem;font-weight:600;background:var(--card-2);border:1px dashed var(--line)}
+.box{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:22px}
+.det-side{display:grid;gap:16px;position:sticky;top:calc(90px + env(safe-area-inset-top,0px))}
+.det-side h1{font-size:1.7rem;font-weight:800}
+.det-side .sub{color:var(--muted-d);margin-top:4px}
+.big-price{font:900 2.1rem/1 var(--display);color:var(--yellow);margin:16px 0 4px;font-variant-numeric:tabular-nums}
+.stack{display:grid;gap:10px;margin-top:18px}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:22px}
+.kv div{background:var(--ink-2);padding:14px}
+.kv small{display:flex;align-items:center;gap:6px;color:var(--muted-d);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.kv small .ico{width:14px;height:14px}
+.kv b{display:block;margin-top:4px;font-variant-numeric:tabular-nums}
+@media (max-width:560px){.kv{grid-template-columns:repeat(2,1fr)}}
+.desc{margin-top:22px;color:#D5D9E0}
+.desc h2{font-size:1.2rem;margin-bottom:8px;font-weight:800;color:#fff}
+.desc ul{padding-left:1.1em;margin:8px 0 0;columns:2;column-gap:28px}
+@media (max-width:560px){.desc ul{columns:1}}
+.sim h3{font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.sim .row{display:grid;gap:6px;margin-top:14px}
+.sim .out{margin-top:16px;padding:14px;border-radius:10px;background:rgba(255,210,31,.08);border:1px solid rgba(255,210,31,.3);display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sim .out b{font:800 1.4rem/1 var(--display);color:var(--yellow);font-variant-numeric:tabular-nums}
+.seller{display:flex;align-items:center;gap:12px;font-size:.88rem;color:#C9CED7}
+.seller .av{width:44px;height:44px;border-radius:50%;background:var(--yellow);color:var(--yellow-ink);display:grid;place-items:center;font:800 1rem var(--display)}
+@media (max-width:900px){.det{grid-template-columns:1fr}.det-side{position:static}}
+
+/* ---------- Sell page ---------- */
+.sell-page{display:grid;grid-template-columns:1fr 1.1fr;gap:32px;align-items:start}
+.form-card{background:#fff;color:var(--text);border-radius:16px;padding:clamp(20px,3vw,30px)}
+.form-card h2{font-size:1.4rem;font-weight:800;margin-bottom:4px}
+.form-card .fgrid{margin-top:16px}
+.upload{border:2px dashed #CDD2D9;border-radius:10px;padding:16px;display:flex;gap:12px;align-items:center;font-size:.88rem;color:#3A404A;cursor:pointer}
+.upload:hover{border-color:var(--yellow-2)}
+.upload input{position:absolute;width:1px;height:1px;opacity:0}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.tl li{display:grid;grid-template-columns:44px 1fr;gap:14px;padding-bottom:22px;position:relative}
+.tl li:not(:last-child)::before{content:"";position:absolute;left:21px;top:44px;bottom:0;width:2px;background:var(--line)}
+.tl .num{width:44px;height:44px;line-height:44px;font-size:1rem}
+.tl b{display:block;font-size:1.02rem;margin-top:10px}
+.tl p{margin:4px 0 0;color:#C9CED7;font-size:.92rem}
+.faq{margin-top:10px;display:grid;gap:8px}
+.faq details{background:var(--ink-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.faq summary::after{content:"+";color:var(--yellow);font-weight:800}
+.faq details[open] summary::after{content:"–"}
+.faq p{margin:10px 0 0;color:#C9CED7;font-size:.92rem}
+@media (max-width:900px){.sell-page{grid-template-columns:1fr}}
+
+/* ---------- About / Contact ---------- */
+.about{display:grid;grid-template-columns:1.1fr 1fr;gap:36px;align-items:center}
+.about p{color:#D5D9E0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}
+.stats div{border-left:3px solid var(--yellow);padding:4px 0 4px 12px}
+.stats b{display:block;font:900 1.7rem/1 var(--display)}
+.stats small{color:var(--muted-d)}
+.about-img{border-radius:16px;overflow:hidden;aspect-ratio:4/3;max-width:100%}
+.about-img img{width:100%;height:100%;object-fit:cover}
+.vals{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.val{background:#fff;border-radius:14px;padding:20px;color:var(--text)}
+.val .bub{width:48px;height:48px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;margin-bottom:12px;color:var(--yellow-ink)}
+.val b{display:block;margin-bottom:4px}
+.val p{margin:0;font-size:.9rem;color:#4A505A}
+@media (max-width:900px){.about{grid-template-columns:1fr}.vals{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.vals{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr 1fr}}
+.contact{display:grid;grid-template-columns:1fr 1.2fr;gap:28px;align-items:start}
+.cc{display:grid;gap:12px}
+.cc a,.cc div.c{display:flex;gap:14px;align-items:center;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.cc a:hover{border-color:var(--yellow)}
+.cc .bub{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--yellow);color:var(--yellow-ink);flex:none}
+.cc .bub.wa{background:var(--wa);color:#fff}
+.cc small{display:block;color:var(--muted-d);font-size:.82rem}
+.cc b{user-select:all}
+@media (max-width:900px){.contact{grid-template-columns:1fr}}
+
+/* ---------- Modal & toast ---------- */
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(5,7,10,.72);backdrop-filter:blur(4px)}
+.modal-c{position:relative;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;color:var(--text);border-radius:16px;padding:26px}
+.modal-c .x{position:absolute;right:12px;top:12px;background:#EEF0F3;border:0;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;color:var(--text)}
+.modal-c h2{font-size:1.35rem;font-weight:800;padding-right:36px}
+.mcar{display:flex;gap:12px;align-items:center;background:var(--paper);border-radius:10px;padding:10px;margin:14px 0 4px}
+.mcar img{width:88px;aspect-ratio:16/10;object-fit:cover;border-radius:6px}
+.mcar b{display:block}
+.mcar span{font:800 1rem var(--display)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0}
+.seg span{display:inline-block;border:1px solid #D5D9DF;border-radius:var(--r-pill);padding:.45em .95em;font-size:.85rem;font-weight:600;cursor:pointer}
+.seg input:checked + span{background:var(--ink);color:#fff;border-color:var(--ink)}
+.seg input:focus-visible + span{outline:3px solid var(--yellow)}
+.ok-state{text-align:center;padding:10px 0}
+.ok-state .bub{width:64px;height:64px;border-radius:50%;background:#E6F6EC;color:var(--ok);display:grid;place-items:center;margin:0 auto 12px}
+.ok-state .bub .ico{width:32px;height:32px}
+.ok-state p{color:#4A505A}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;z-index:90;background:#fff;color:var(--text);border-radius:12px;padding:12px 18px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;gap:10px;align-items:center;transition:.25s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .ico{color:var(--ok)}
+.page{animation:fade .3s ease}
+@keyframes fade{from{opacity:.4}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.page{animation:none}}
+.mock-note{background:rgba(255,210,31,.1);border:1px solid rgba(255,210,31,.3);color:#F2E3A0;font-size:.8rem;border-radius:8px;padding:8px 12px;margin-top:14px}
+</style>
+
+<!-- ============ ICON SPRITE ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 17h14M3 13l2-5.5A2 2 0 0 1 6.9 6h10.2a2 2 0 0 1 1.9 1.5L21 13v4a1 1 0 0 1-1 1h-1.5M3 13v4a1 1 0 0 0 1 1h1.5M3 13h18"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/><path d="M11 13h3M12.5 11.5v3"/></symbol>
+  <symbol id="i-mega" viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1ZM7 14l1.5 5h2L10 15.5M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.4A6.5 6.5 0 0 1 21.5 20"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="m11 17 2 2a1.4 1.4 0 0 0 2-2M14 16l2.5 2.5a1.4 1.4 0 0 0 2-2l-3-3M9.5 8.5 12 6a2.8 2.8 0 0 1 4 0l5 5M3 11l5-5 3 2M3 11l2 2M21 11l-2 2-4.5-4.5-3 3a1.4 1.4 0 0 1-2-2L12 7M8 13l3 3a1.4 1.4 0 0 1-2 2l-3-3"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M12.04 2a9.9 9.9 0 0 0-8.5 14.98L2 22l5.17-1.5A9.9 9.9 0 1 0 12.04 2Zm0 18.1a8.2 8.2 0 0 1-4.2-1.15l-.3-.18-3.07.9.92-2.98-.2-.31a8.2 8.2 0 1 1 6.85 3.72Zm4.5-6.14c-.25-.12-1.46-.72-1.69-.8-.23-.08-.39-.12-.55.12-.17.25-.64.8-.78.97-.14.16-.29.19-.53.06a6.7 6.7 0 0 1-3.34-2.92c-.25-.43.25-.4.72-1.34.08-.16.04-.3-.02-.43l-.76-1.82c-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3 2.7 2.7 0 0 0-.85 2.02c0 1.19.87 2.34.99 2.5.12.16 1.7 2.6 4.13 3.65 1.54.66 2.14.72 2.9.6.47-.07 1.46-.6 1.66-1.17.2-.58.2-1.07.14-1.17-.06-.1-.22-.16-.47-.28Z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4.9 18a9 9 0 1 1 14.2 0"/><path d="m12 13 4-5"/><circle cx="12" cy="13" r="1.3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="5.5" cy="5.5" r="2"/><circle cx="12" cy="5.5" r="2"/><circle cx="18.5" cy="5.5" r="2"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="12" cy="18.5" r="2"/><path d="M5.5 7.5v9M12 7.5v9M18.5 7.5V12H5.5"/></symbol>
+  <symbol id="i-fuel" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M4 10h10M14 13h2a2 2 0 0 1 2 2v2a1.5 1.5 0 0 0 3 0V8.5L18 5.5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6Z"/><path d="m8.8 12 2.2 2.2 4.3-4.4"/></symbol>
+  <symbol id="i-relax" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11h6M9 15h4"/></symbol>
+  <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></symbol>
+  <symbol id="i-fb" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M15.5 8H14a2 2 0 0 0-2 2v11M9.5 13h5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+  <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15v3M8 18h.01M12 18h.01"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4.5"/><path d="m11.3 11.7 8.2-8.2M16.5 6.5l2.5 2.5M14 9l2 2"/></symbol>
+  <symbol id="i-4x4" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6h7M8.5 18h7M12 6v12"/></symbol>
+  <symbol id="i-form" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M7 9h10M7 13h6"/><circle cx="16.5" cy="15.5" r="2"/></symbol>
+</svg>
+
+<!-- Logo: redibujado en SVG a partir del boceto -->
+<template id="logo-tpl">
+  <svg viewBox="0 0 300 74" role="img" aria-label="TeVendoElAuto.cl — Consignación y venta de vehículos">
+    <path d="M40 30c28-15 70-24 118-24 30 0 55 6 78 16 12 5 26 8 38 9-15 1-28-1-40-5-22-8-45-13-76-13-44 0-82 8-118 17Z" fill="#FFD21F"/>
+    <path d="M200 16c22 3 42 9 58 16 10 4 20 7 28 9-9 1-19-1-28-5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <text x="8" y="56" font-family="Montserrat, Arial Black, sans-serif" font-weight="900" font-size="29" letter-spacing="-0.5"><tspan fill="#fff">TEVENDOEL</tspan><tspan fill="#FFD21F">AUTO</tspan><tspan fill="#fff" font-size="17" font-weight="800">.cl</tspan></text>
+    <text x="36" y="70" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="7.2" letter-spacing="2.6" fill="#E8EAEE">CONSIGNACIÓN Y VENTA DE VEHÍCULOS</text>
+  </svg>
+</template>
+
+<!-- ============ HEADER ============ -->
+<header class="hdr">
+  <div class="wrap">
+    <a href="#inicio" class="logo" data-logo aria-label="Ir al inicio"></a>
+    <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false"><svg class="ico"><use href="#i-menu"/></svg></button>
+    <nav class="nav" id="nav" aria-label="Principal">
+      <a href="#inicio" data-nav="inicio">Inicio</a>
+      <a href="#vehiculos" data-nav="vehiculos">Vehículos en venta</a>
+      <a href="#vende" data-nav="vende">Vende tu auto</a>
+      <a href="#nosotros" data-nav="nosotros">Nosotros</a>
+      <a href="#contacto" data-nav="contacto">Contacto</a>
+    </nav>
+    <a class="btn btn-y btn-sm" data-wa href="#"><svg class="ico fill"><use href="#i-wa"/></svg>WhatsApp</a>
+  </div>
+</header>
+
+<main id="app">
+
+<!-- ================= INICIO ================= -->
+<section class="page" data-page="inicio">
+  <div class="hero">
+    <div class="hero-img" role="img" aria-label="Camioneta Chevrolet Silverado negra al atardecer"></div>
+    <div class="wrap">
+      <h1>Vende tu auto.<br><span class="hl">Nosotros lo hacemos por ti.</span></h1>
+      <p>Nos encargamos de todo el proceso de venta de tu vehículo, desde la publicación hasta la entrega final.</p>
+      <div class="ctas">
+        <a href="#vende" class="btn btn-y"><svg class="ico"><use href="#i-car"/></svg>Quiero vender mi auto</a>
+        <a href="#vehiculos" class="btn btn-o"><svg class="ico"><use href="#i-car"/></svg>Ver vehículos</a>
+      </div>
+      <div class="hero-trust">
+        <span><svg class="ico"><use href="#i-shield"/></svg>Documentación revisada</span>
+        <span><svg class="ico"><use href="#i-globe"/></svg>Publicado en los principales portales</span>
+        <span><svg class="ico"><use href="#i-hand"/></svg>Trato directo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="light how">
+    <div class="wrap">
+      <div>
+        <h2>¿Cómo funciona?</h2>
+        <p class="lead">Es simple, seguro y sin complicaciones.</p>
+      </div>
+      <ol class="steps">
+        <li class="step"><div class="top"><span class="num">1</span><svg class="ico"><use href="#i-car"/></svg></div>Evaluamos<br>tu vehículo</li>
+        <li class="step"><div class="top"><span class="num">2</span><svg class="ico"><use href="#i-tag"/></svg></div>Definimos<br>el precio</li>
+        <li class="step"><div class="top"><span class="num">3</span><svg class="ico"><use href="#i-mega"/></svg></div>Publicamos en los principales portales</li>
+        <li class="step"><div class="top"><span class="num">4</span><svg class="ico"><use href="#i-users"/></svg></div>Gestionamos consultas y visitas</li>
+        <li class="step"><div class="top"><span class="num">5</span><svg class="ico"><use href="#i-hand"/></svg></div>Coordinamos y cerramos la venta</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="wrap">
+      <div class="sec-hd">
+        <div><h2>Vehículos en <span class="hl">venta</span></h2><p>Revisa algunos de nuestros vehículos disponibles.</p></div>
+        <a href="#vehiculos" class="btn btn-o btn-sm">Ver todos los vehículos<svg class="ico"><use href="#i-arrow"/></svg></a>
+      </div>
+      <form class="qs" id="qs" aria-label="Búsqueda rápida">
+        <label>Marca<select class="fld" id="qs-marca"><option value="">Todas</option></select></label>
+        <label>Tipo<select class="fld" id="qs-tipo"><option value="">Todos</option></select></label>
+        <label>Año desde<select class="fld" id="qs-anio"><option value="">Cualquiera</option></select></label>
+        <label>Precio hasta<select class="fld" id="qs-precio"><option value="">Sin límite</option><option>10000000</option><option>13000000</option><option>16000000</option><option>20000000</option></select></label>
+        <button class="btn btn-y" type="submit"><svg class="ico"><use href="#i-search"/></svg>Buscar</button>
+      </form>
+      <div class="grid-cars home-cars" id="home-cars"></div>
+    </div>
+  </div>
+
+  <div class="sell">
+    <div class="sell-l">
+      <svg class="ico keys" aria-hidden="true"><use href="#i-key"/></svg>
+      <div>
+        <h2>¿Quieres vender tu auto?<br><span class="hl">¡Déjanos tus datos!</span></h2>
+        <p>Cuéntanos sobre tu vehículo y te contactaremos a la brevedad para evaluarlo.</p>
+        <a href="#vende" class="btn btn-y"><svg class="ico"><use href="#i-form"/></svg>Completa el formulario</a>
+      </div>
+      <form class="fgrid dark" data-lead="home" aria-label="Formulario rápido de venta">
+        <select class="fld full" id="h-marca" required><option value="">Marca</option></select>
+        <input class="fld full" id="h-modelo" placeholder="Modelo" required>
+        <input class="fld" id="h-anio" placeholder="Año" inputmode="numeric">
+        <input class="fld" id="h-km" placeholder="Kilometraje (aprox.)" inputmode="numeric">
+        <input class="fld" id="h-nombre" placeholder="Nombre" required>
+        <input class="fld" id="h-tel" placeholder="Teléfono" type="tel" required>
+        <input class="fld full" id="h-ciudad" placeholder="Ciudad">
+        <textarea class="fld full" id="h-com" placeholder="Comentarios adicionales (opcional)"></textarea>
+        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg>Enviar</button>
+      </form>
+    </div>
+    <div class="why">
+      <h3>¿Por qué consignar con nosotros?</h3>
+      <ul>
+        <li><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><div><b>Sin preocupaciones</b>No tienes que responder interesados ni coordinar visitas.</div></li>
+        <li><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><div><b>Mayor exposición</b>Publicamos en Chileautos, Marketplace, Full Motor y más.</div></li>
+        <li><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><div><b>Gestión completa</b>Nos encargamos de todo el proceso de venta.</div></li>
+        <li><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><div><b>Transparencia y confianza</b>Trato directo, claro y seguro.</div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= VEHÍCULOS ================= -->
+<section class="page" data-page="vehiculos" hidden>
+  <div class="ph"><div class="wrap">
+    <div class="crumbs"><a href="#inicio">Inicio</a> / Vehículos en venta</div>
+    <h1>Vehículos en <span class="hl">venta</span></h1>
+    <p>Autos y camionetas en consignación, revisados y con documentación al día. Filtra por marca, año, kilometraje o precio.</p>
+  </div></div>
+  <div class="sec"><div class="wrap cat">
+    <aside class="filters" id="filters" aria-label="Filtros">
+      <h3>Filtros <span style="display:flex;gap:8px"><button type="button" id="f-reset">Limpiar</button><button type="button" class="close-f icon-btn" id="f-close" aria-label="Cerrar filtros"><svg class="ico"><use href="#i-x"/></svg></button></span></h3>
+      <div class="fg"><span>Buscar</span><input class="fld" id="f-q" placeholder="Ej: Hilux, 4x4, Captiva…"></div>
+      <div class="fg"><span>Marca</span><div class="checks" id="f-marca"></div></div>
+      <div class="fg"><span>Tipo de vehículo</span><div class="pills" id="f-tipo"></div></div>
+      <div class="fg"><span>Año</span><div class="two"><select class="fld" id="f-anio-min" aria-label="Año desde"></select><select class="fld" id="f-anio-max" aria-label="Año hasta"></select></div></div>
+      <div class="fg"><span>Precio</span><div class="two"><select class="fld" id="f-p-min" aria-label="Precio desde"></select><select class="fld" id="f-p-max" aria-label="Precio hasta"></select></div></div>
+      <div class="fg"><span>Kilometraje máximo</span><input type="range" id="f-km" min="20000" max="200000" step="10000" value="200000" aria-label="Kilometraje máximo"><div class="rv"><span>0 km</span><b id="f-km-v">Sin límite</b></div></div>
+      <div class="fg"><span>Transmisión</span><div class="pills" id="f-trans"></div></div>
+      <div class="fg"><span>Combustible</span><div class="pills" id="f-comb"></div></div>
+      <div class="fg"><span>Tracción</span><div class="pills" id="f-trac"></div></div>
+      <button class="btn btn-y close-f" type="button" id="f-apply">Ver resultados</button>
+    </aside>
+    <div>
+      <div class="bar">
+        <button class="btn btn-o btn-sm ftoggle" id="f-open" type="button"><svg class="ico"><use href="#i-sliders"/></svg>Filtros</button>
+        <div class="count" id="count"></div>
+        <label class="sort">Ordenar
+          <select class="fld" id="f-sort" style="background-color:var(--card-2);border-color:var(--line);color:#fff">
+            <option value="rec">Recomendados</option><option value="pa">Precio: menor a mayor</option><option value="pd">Precio: mayor a menor</option><option value="an">Año: más nuevo</option><option value="km">Menor kilometraje</option>
+          </select>
+        </label>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="grid-cars" id="results"></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ================= DETALLE ================= -->
+<section class="page" data-page="detalle" hidden>
+  <div class="sec" style="padding-top:26px"><div class="wrap" id="detalle"></div></div>
+</section>
+
+<!-- ================= VENDE ================= -->
+<section class="page" data-page="vende" hidden>
+  <div class="ph"><div class="wrap">
+    <div class="crumbs"><a href="#inicio">Inicio</a> / Vende tu auto</div>
+    <h1>Vende tu auto <span class="hl">sin complicaciones</span></h1>
+    <p>Consigna tu vehículo con nosotros: lo evaluamos, lo publicamos, atendemos a los interesados y cerramos la venta por ti.</p>
+  </div></div>
+  <div class="sec"><div class="wrap sell-page">
+    <div>
+      <span class="eyebrow">Así trabajamos</span>
+      <h2 style="font-size:1.6rem;margin:8px 0 22px;font-weight:800">De la evaluación a la entrega</h2>
+      <ol class="tl">
+        <li><span class="num">1</span><div><b>Evaluamos tu vehículo</b><p>Revisamos estado, historial y documentación. Sin costo y sin compromiso.</p></div></li>
+        <li><span class="num">2</span><div><b>Definimos el precio</b><p>Te proponemos un precio de venta según el mercado actual, acordado contigo.</p></div></li>
+        <li><span class="num">3</span><div><b>Publicamos en los principales portales</b><p>Fotos profesionales y publicación en Chileautos, Marketplace, Full Motor y redes.</p></div></li>
+        <li><span class="num">4</span><div><b>Gestionamos consultas y visitas</b><p>Filtramos interesados, respondemos mensajes y coordinamos las pruebas.</p></div></li>
+        <li><span class="num">5</span><div><b>Coordinamos y cerramos la venta</b><p>Transferencia, pago seguro y entrega final. Tú solo firmas.</p></div></li>
+      </ol>
+      <h2 style="font-size:1.3rem;margin:12px 0 10px;font-weight:800">Preguntas frecuentes</h2>
+      <div class="faq">
+        <details><summary>¿Cuánto cobran por consignar?</summary><p>Trabajamos con una comisión sobre el precio final de venta, que se paga solo si el auto se vende. Te la detallamos en la evaluación.</p></details>
+        <details><summary>¿Tengo que dejar el auto con ustedes?</summary><p>No necesariamente. Puedes seguir usándolo y coordinamos las visitas con cita previa.</p></details>
+        <details><summary>¿Qué documentos necesito?</summary><p>Padrón, permiso de circulación, revisión técnica y SOAP vigentes, y certificado de anotaciones vigentes.</p></details>
+        <details><summary>¿Cuánto demora la venta?</summary><p>Depende del modelo y del precio, pero la mayoría de los vehículos se vende en 2 a 6 semanas.</p></details>
+      </div>
+    </div>
+    <form class="form-card" data-lead="vende" aria-label="Formulario para vender tu auto">
+      <h2>Cotiza la venta de tu auto</h2>
+      <p class="note">Te contactamos a la brevedad para evaluarlo.</p>
+      <div class="fgrid">
+        <div><label class="lbl" for="v-marca">Marca</label><select class="fld" id="v-marca" required><option value="">Selecciona</option></select></div>
+        <div><label class="lbl" for="v-modelo">Modelo</label><input class="fld" id="v-modelo" placeholder="Ej: Hilux DX 2.4" required></div>
+        <div><label class="lbl" for="v-anio">Año</label><input class="fld" id="v-anio" inputmode="numeric" placeholder="2020"></div>
+        <div><label class="lbl" for="v-km">Kilometraje</label><input class="fld" id="v-km" inputmode="numeric" placeholder="80.000"></div>
+        <div><label class="lbl" for="v-trans">Transmisión</label><select class="fld" id="v-trans"><option>Manual</option><option>Automática</option></select></div>
+        <div><label class="lbl" for="v-precio">Precio esperado</label><input class="fld" id="v-precio" inputmode="numeric" placeholder="$ 12.000.000"></div>
+        <div><label class="lbl" for="v-nombre">Nombre</label><input class="fld" id="v-nombre" required></div>
+        <div><label class="lbl" for="v-tel">Teléfono</label><input class="fld" id="v-tel" type="tel" placeholder="+56 9" required></div>
+        <div><label class="lbl" for="v-email">Email</label><input class="fld" id="v-email" type="email"></div>
+        <div><label class="lbl" for="v-ciudad">Ciudad</label><input class="fld" id="v-ciudad" placeholder="Santiago"></div>
+        <label class="upload full" style="position:relative"><svg class="ico" style="width:28px;height:28px"><use href="#i-cam"/></svg><span id="v-files-t"><b>Sube fotos de tu auto</b><br>Opcional · hasta 10 imágenes</span><input type="file" id="v-files" accept="image/*" multiple></label>
+        <div class="full"><label class="lbl" for="v-com">Comentarios adicionales</label><textarea class="fld" id="v-com" placeholder="Mantenciones, detalles, dueños anteriores…"></textarea></div>
+        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg>Enviar mis datos</button>
+        <a class="btn btn-wa full" data-wa="Hola, quiero vender mi auto. ¿Me pueden evaluar?" href="#"><svg class="ico fill"><use href="#i-wa"/></svg>Prefiero hablar por WhatsApp</a>
+      </div>
+    </form>
+  </div></div>
+</section>
+
+<!-- ================= NOSOTROS ================= -->
+<section class="page" data-page="nosotros" hidden>
+  <div class="ph"><div class="wrap">
+    <div class="crumbs"><a href="#inicio">Inicio</a> / Nosotros</div>
+    <h1>Tu auto en <span class="hl">buenas manos</span></h1>
+  </div></div>
+  <div class="sec"><div class="wrap about">
+    <div>
+      <span class="eyebrow">Quiénes somos</span>
+      <h2 style="font-size:1.7rem;margin:10px 0 14px;font-weight:800">Consignación y venta de vehículos en Santiago</h2>
+      <p>En TeVendoElAuto.cl ayudamos a personas que quieren vender su auto sin perder tiempo ni exponerse a desconocidos. Nos hacemos cargo de la publicación, las consultas, las visitas y el cierre, con un trato directo y transparente.</p>
+      <p>A quienes buscan comprar, les ofrecemos vehículos revisados, con documentación al día y la tranquilidad de una transacción segura.</p>
+      <div class="stats"><div><b>+150</b><small>autos vendidos</small></div><div><b>4</b><small>portales de publicación</small></div><div><b>100%</b><small>trato directo</small></div></div>
+      <p class="note" style="color:var(--muted-d)">Cifras de ejemplo para la maqueta.</p>
+    </div>
+    <div class="about-img"><img src="img/hero-truck.jpg" alt="Camioneta Chevrolet negra al atardecer"></div>
+  </div></div>
+  <div class="sec light"><div class="wrap">
+    <div class="sec-hd"><div><h2 style="color:var(--text)">¿Por qué consignar con nosotros?</h2></div></div>
+    <div class="vals">
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><b>Sin preocupaciones</b><p>No tienes que responder interesados ni coordinar visitas.</p></div>
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><b>Mayor exposición</b><p>Publicamos en Chileautos, Marketplace, Full Motor y más.</p></div>
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><b>Gestión completa</b><p>Nos encargamos de todo el proceso de venta.</p></div>
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><b>Transparencia y confianza</b><p>Trato directo, claro y seguro.</p></div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px">
+      <a href="#vende" class="btn btn-dk"><svg class="ico"><use href="#i-car"/></svg>Quiero vender mi auto</a>
+      <a href="#vehiculos" class="btn btn-y">Ver vehículos<svg class="ico"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div></div>
+</section>
+
+<!-- ================= CONTACTO ================= -->
+<section class="page" data-page="contacto" hidden>
+  <div class="ph"><div class="wrap">
+    <div class="crumbs"><a href="#inicio">Inicio</a> / Contacto</div>
+    <h1>Hablemos</h1>
+    <p>Escríbenos por WhatsApp para una respuesta rápida, o déjanos un mensaje y te contactamos.</p>
+  </div></div>
+  <div class="sec"><div class="wrap contact">
+    <div class="cc">
+      <a data-wa href="#"><span class="bub wa"><svg class="ico fill"><use href="#i-wa"/></svg></span><div><b>+56 9 9736 0901</b><small>Escríbenos por WhatsApp</small></div></a>
+      <div class="c"><span class="bub"><svg class="ico"><use href="#i-mail"/></svg></span><div><b>agustin@tevendoelauto.cl</b><small>Envíanos un correo</small></div></div>
+      <div class="c"><span class="bub"><svg class="ico"><use href="#i-pin"/></svg></span><div><b>Santiago, Chile</b><small>Atendemos con cita previa</small></div></div>
+      <div class="c"><span class="bub"><svg class="ico"><use href="#i-cal"/></svg></span><div><b>Lunes a sábado</b><small>10:00 a 19:00 hrs</small></div></div>
+    </div>
+    <form class="form-card" data-lead="contacto" aria-label="Formulario de contacto">
+      <h2>Envíanos un mensaje</h2>
+      <div class="fgrid">
+        <div class="full"><label class="lbl">Quiero…</label>
+          <div class="seg">
+            <label><input type="radio" name="c-mot" id="c-mot-1" checked><span>Comprar un auto</span></label>
+            <label><input type="radio" name="c-mot" id="c-mot-2"><span>Vender mi auto</span></label>
+            <label><input type="radio" name="c-mot" id="c-mot-3"><span>Otra consulta</span></label>
+          </div>
+        </div>
+        <div><label class="lbl" for="c-nombre">Nombre</label><input class="fld" id="c-nombre" required></div>
+        <div><label class="lbl" for="c-tel">Teléfono</label><input class="fld" id="c-tel" type="tel" placeholder="+56 9" required></div>
+        <div class="full"><label class="lbl" for="c-email">Email</label><input class="fld" id="c-email" type="email"></div>
+        <div class="full"><label class="lbl" for="c-msg">Mensaje</label><textarea class="fld" id="c-msg" required></textarea></div>
+        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg>Enviar mensaje</button>
+      </div>
+    </form>
+  </div></div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="ftr">
+  <div class="wrap">
+    <a href="#inicio" class="logo" data-logo aria-label="Ir al inicio"></a>
+    <a class="it" data-wa href="#"><svg class="ico fill"><use href="#i-wa"/></svg><div><b>+56 9 9736 0901</b><small>Escríbenos por WhatsApp</small></div></a>
+    <div class="it"><svg class="ico"><use href="#i-mail"/></svg><div><b>agustin@tevendoelauto.cl</b><small>Envíanos un correo</small></div></div>
+    <div class="it"><svg class="ico"><use href="#i-pin"/></svg><div><b>Santiago, Chile</b><small>Atendemos con cita previa</small></div></div>
+    <div class="soc"><div><a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico"><use href="#i-ig"/></svg></a><a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico"><use href="#i-fb"/></svg></a></div>Síguenos en redes</div>
+  </div>
+  <div class="ftr-b">Tu auto en buenas manos<span>|</span>tevendoelauto.cl</div>
+</footer>
+
+<!-- WhatsApp flotante: siempre visible -->
+<a class="fab" data-wa href="#" aria-label="Escríbenos por WhatsApp"><svg class="ico fill"><use href="#i-wa"/></svg><span>¿Hablamos?</span></a>
+
+<!-- Modal cotizar -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="modal-c" id="modal-c"></div>
+</div>
+<div class="toast" id="toast" role="status"><svg class="ico"><use href="#i-check"/></svg><span id="toast-t"></span></div>
+
+<script>
+(() => {
+const WA = "56997360901";
+const IMG = n => "img/" + n + ".jpg";
+// 1–5: datos del boceto. 6–10: publicaciones de ejemplo para probar los filtros (reutilizan fotos).
+const CARS = [
+  {id:1,marca:"Chevrolet",modelo:"Captiva",version:"1.5 Premier",anio:2023,km:33500,trans:"Automática",comb:"Bencina",precio:13790000,tipo:"SUV",trac:"4x2",img:"captiva",color:"Gris plata",dest:true},
+  {id:2,marca:"Toyota",modelo:"Hilux",version:"DX 2.4 4x4",anio:2022,km:88000,trans:"Manual",comb:"Diésel",precio:17500000,tipo:"Camioneta",trac:"4x4",img:"hilux",color:"Blanco",dest:true},
+  {id:3,marca:"Chevrolet",modelo:"Colorado",version:"Z71 3.7 4x4",anio:2010,km:185000,trans:"Automática",comb:"Bencina",precio:8000000,tipo:"Camioneta",trac:"4x4",img:"colorado",color:"Verde oscuro",dest:true},
+  {id:4,marca:"Mitsubishi",modelo:"L200",version:"Work 2.4 4x2",anio:2023,km:120000,trans:"Manual",comb:"Diésel",precio:15000000,tipo:"Camioneta",trac:"4x2",img:"l200",color:"Gris plata",dest:true},
+  {id:5,marca:"Chevrolet",modelo:"Spin",version:"Premier 1.8",anio:2021,km:75000,trans:"Manual",comb:"Bencina",precio:12500000,tipo:"Minivan",trac:"4x2",img:"spin",color:"Gris",dest:true},
+  {id:6,marca:"Chevrolet",modelo:"Captiva",version:"1.5 LT",anio:2021,km:58000,trans:"Manual",comb:"Bencina",precio:11490000,tipo:"SUV",trac:"4x2",img:"captiva",color:"Gris plata"},
+  {id:7,marca:"Toyota",modelo:"Hilux",version:"SRV 2.8 4x4",anio:2020,km:96000,trans:"Automática",comb:"Diésel",precio:22900000,tipo:"Camioneta",trac:"4x4",img:"hilux",color:"Blanco"},
+  {id:8,marca:"Mitsubishi",modelo:"L200",version:"Katana 2.4 4x4",anio:2019,km:110000,trans:"Manual",comb:"Diésel",precio:14200000,tipo:"Camioneta",trac:"4x4",img:"l200",color:"Gris plata"},
+  {id:9,marca:"Chevrolet",modelo:"Spin",version:"LTZ 1.8",anio:2019,km:92000,trans:"Automática",comb:"Bencina",precio:9890000,tipo:"Minivan",trac:"4x2",img:"spin",color:"Gris"},
+  {id:10,marca:"Chevrolet",modelo:"Colorado",version:"LT 2.8 4x4",anio:2018,km:130000,trans:"Manual",comb:"Diésel",precio:16500000,tipo:"Camioneta",trac:"4x4",img:"colorado",color:"Verde oscuro"}
+];
+const BRANDS_ALL = ["Chevrolet","Toyota","Mitsubishi","Nissan","Hyundai","Kia","Suzuki","Peugeot","Ford","Mazda","Volkswagen","Otra"];
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const clp = n => "$" + n.toLocaleString("es-CL");
+const kmf = n => n.toLocaleString("es-CL") + " km";
+const uniq = a => [...new Set(a)];
+const name = c => `${c.marca} ${c.modelo}`;
+const waUrl = (msg="Hola, vengo desde tevendoelauto.cl y quiero hacer una consulta.") => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
+const carMsg = c => `Hola, me interesa el ${name(c)} ${c.version} ${c.anio} publicado en ${clp(c.precio)}. ¿Sigue disponible?`;
+const ic = (id, fill) => `<svg class="ico${fill?' fill':''}"><use href="#i-${id}"/></svg>`;
+
+// Logos & WhatsApp links
+const logo = $("#logo-tpl").innerHTML;
+$$("[data-logo]").forEach(a => a.innerHTML = logo);
+function wireWa(root=document){ $$("[data-wa]", root).forEach(a => { a.href = waUrl(a.dataset.wa || undefined); a.target = "_blank"; a.rel = "noopener"; }); }
+wireWa();
+
+// Mobile menu
+const nav = $("#nav"), burger = $("#burger");
+burger.onclick = () => { const o = nav.classList.toggle("open"); burger.setAttribute("aria-expanded", o); };
+nav.addEventListener("click", e => { if (e.target.closest("a")) { nav.classList.remove("open"); burger.setAttribute("aria-expanded", false); }});
+
+// Card
+function card(c){
+  return `<article class="car">
+    <a href="#auto-${c.id}" class="car-ph" aria-label="Ver ${name(c)}"><img src="${IMG(c.img)}" alt="${name(c)} ${c.version} ${c.color}" loading="lazy">${c.km<60000?'<span class="tag">Bajo km</span>':''}${c.trac==="4x4"&&c.km>=60000?'<span class="tag dk">4x4</span>':''}</a>
+    <div class="car-bd">
+      <a href="#auto-${c.id}" class="car-t">${name(c)}<small>${c.version}</small></a>
+      <div class="specs">
+        <span>${ic("cal")}${c.anio}</span><span>${ic("gauge")}${kmf(c.km)}</span>
+        <span>${ic("gear")}${c.trans}</span><span>${ic("fuel")}${c.comb}</span>
+      </div>
+      <div class="price">${clp(c.precio)}</div>
+      <div class="acts">
+        <button class="btn btn-y" data-cot="${c.id}">${ic("wa",1)}Contactar</button>
+        <a class="icon-btn" href="#auto-${c.id}" aria-label="Ver detalle">${ic("arrow")}</a>
+      </div>
+    </div>
+  </article>`;
+}
+$("#home-cars").innerHTML = CARS.filter(c=>c.dest).map(card).join("");
+
+// ---------- Options ----------
+const marcas = uniq(CARS.map(c=>c.marca)).sort();
+const tipos = uniq(CARS.map(c=>c.tipo));
+const anios = uniq(CARS.map(c=>c.anio)).sort((a,b)=>b-a);
+const opt = (v,t=v) => `<option value="${v}">${t}</option>`;
+$("#qs-marca").insertAdjacentHTML("beforeend", marcas.map(m=>opt(m)).join(""));
+$("#qs-tipo").insertAdjacentHTML("beforeend", tipos.map(m=>opt(m)).join(""));
+$("#qs-anio").insertAdjacentHTML("beforeend", anios.map(m=>opt(m)).join(""));
+$$("#qs-precio option").slice(1).forEach(o => o.textContent = clp(+o.value));
+["#h-marca","#v-marca"].forEach(s => $(s).insertAdjacentHTML("beforeend", BRANDS_ALL.map(m=>opt(m)).join("")));
+
+const YEARS = []; for (let y=2025; y>=2005; y--) YEARS.push(y);
+$("#f-anio-min").innerHTML = opt("", "Desde") + YEARS.map(y=>opt(y)).join("");
+$("#f-anio-max").innerHTML = opt("", "Hasta") + YEARS.map(y=>opt(y)).join("");
+const PRICES = [5e6,8e6,10e6,12e6,14e6,16e6,18e6,20e6,25e6,30e6];
+$("#f-p-min").innerHTML = opt("", "Mínimo") + PRICES.map(p=>opt(p, clp(p))).join("");
+$("#f-p-max").innerHTML = opt("", "Máximo") + PRICES.map(p=>opt(p, clp(p))).join("");
+
+// ---------- Filter state ----------
+const F = { q:"", marca:new Set(), tipo:new Set(), trans:new Set(), comb:new Set(), trac:new Set(), amin:"", amax:"", pmin:"", pmax:"", km:200000, sort:"rec" };
+const count = (k,v) => CARS.filter(c=>c[k]===v).length;
+$("#f-marca").innerHTML = marcas.map(m=>`<label><input type="checkbox" value="${m}" id="fm-${m}">${m}<em>${count("marca",m)}</em></label>`).join("");
+function pills(el, key, vals){ $(el).innerHTML = vals.map(v=>`<button type="button" class="pill" aria-pressed="false" data-k="${key}" data-v="${v}">${v}</button>`).join(""); }
+pills("#f-tipo","tipo",tipos); pills("#f-trans","trans",["Manual","Automática"]); pills("#f-comb","comb",["Bencina","Diésel"]); pills("#f-trac","trac",["4x2","4x4"]);
+
+$("#filters").addEventListener("click", e => {
+  const p = e.target.closest(".pill"); if (!p) return;
+  const s = F[p.dataset.k]; s.has(p.dataset.v) ? s.delete(p.dataset.v) : s.add(p.dataset.v);
+  syncUI(); run();
+});
+$("#f-marca").addEventListener("change", e => { e.target.checked ? F.marca.add(e.target.value) : F.marca.delete(e.target.value); run(); });
+$("#f-q").addEventListener("input", e => { F.q = e.target.value.trim(); run(); });
+[["#f-anio-min","amin"],["#f-anio-max","amax"],["#f-p-min","pmin"],["#f-p-max","pmax"],["#f-sort","sort"]].forEach(([s,k]) => $(s).addEventListener("change", e => { F[k]=e.target.value; run(); }));
+$("#f-km").addEventListener("input", e => { F.km = +e.target.value; syncUI(); run(); });
+$("#f-reset").onclick = () => { resetF(); syncUI(); run(); };
+function resetF(){ Object.assign(F,{q:"",amin:"",amax:"",pmin:"",pmax:"",km:200000}); ["marca","tipo","trans","comb","trac"].forEach(k=>F[k].clear()); }
+function syncUI(){
+  $("#f-q").value = F.q;
+  $$("#f-marca input").forEach(i => i.checked = F.marca.has(i.value));
+  $$("#filters .pill").forEach(p => p.setAttribute("aria-pressed", F[p.dataset.k].has(p.dataset.v)));
+  $("#f-anio-min").value=F.amin; $("#f-anio-max").value=F.amax; $("#f-p-min").value=F.pmin; $("#f-p-max").value=F.pmax; $("#f-sort").value=F.sort;
+  $("#f-km").value = F.km; $("#f-km-v").textContent = F.km>=200000 ? "Sin límite" : "hasta " + kmf(F.km);
+}
+function run(){
+  const q = F.q.toLowerCase();
+  let r = CARS.filter(c =>
+    (!q || `${c.marca} ${c.modelo} ${c.version} ${c.tipo} ${c.trac}`.toLowerCase().includes(q)) &&
+    (!F.marca.size || F.marca.has(c.marca)) && (!F.tipo.size || F.tipo.has(c.tipo)) &&
+    (!F.trans.size || F.trans.has(c.trans)) && (!F.comb.size || F.comb.has(c.comb)) && (!F.trac.size || F.trac.has(c.trac)) &&
+    (!F.amin || c.anio >= +F.amin) && (!F.amax || c.anio <= +F.amax) &&
+    (!F.pmin || c.precio >= +F.pmin) && (!F.pmax || c.precio <= +F.pmax) &&
+    (F.km >= 200000 || c.km <= F.km));
+  const S = {pa:(a,b)=>a.precio-b.precio, pd:(a,b)=>b.precio-a.precio, an:(a,b)=>b.anio-a.anio, km:(a,b)=>a.km-b.km, rec:(a,b)=>(b.dest?1:0)-(a.dest?1:0)||a.id-b.id};
+  r.sort(S[F.sort]);
+  $("#count").innerHTML = `<b>${r.length}</b> vehículo${r.length===1?"":"s"} encontrado${r.length===1?"":"s"}`;
+  $("#results").innerHTML = r.length ? r.map(card).join("") :
+    `<div class="empty" style="grid-column:1/-1"><h3>No encontramos vehículos con esos filtros</h3><p>Prueba ampliando el rango de precio o kilometraje, o cuéntanos qué buscas y te avisamos cuando llegue.</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"><button class="btn btn-o btn-sm" id="e-reset">Limpiar filtros</button><a class="btn btn-wa btn-sm" href="${waUrl("Hola, estoy buscando un vehículo y no lo encontré en la web. ¿Me pueden ayudar?")}" target="_blank" rel="noopener">${ic("wa",1)}Avísame por WhatsApp</a></div></div>`;
+  const er = $("#e-reset"); if (er) er.onclick = () => { resetF(); syncUI(); run(); };
+  // chips
+  const ch = [];
+  if (F.q) ch.push(["q","",`“${F.q}”`]);
+  ["marca","tipo","trans","comb","trac"].forEach(k => F[k].forEach(v => ch.push([k,v,v])));
+  if (F.amin) ch.push(["amin","",`Desde ${F.amin}`]); if (F.amax) ch.push(["amax","",`Hasta ${F.amax}`]);
+  if (F.pmin) ch.push(["pmin","",`Desde ${clp(+F.pmin)}`]); if (F.pmax) ch.push(["pmax","",`Hasta ${clp(+F.pmax)}`]);
+  if (F.km < 200000) ch.push(["km","",`≤ ${kmf(F.km)}`]);
+  $("#chips").innerHTML = ch.map(([k,v,t]) => `<span class="chip">${t}<button type="button" data-k="${k}" data-v="${v}" aria-label="Quitar filtro ${t}">${ic("x")}</button></span>`).join("");
+}
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const {k,v} = b.dataset;
+  if (F[k] instanceof Set) F[k].delete(v); else if (k==="km") F.km=200000; else F[k]="";
+  syncUI(); run();
+});
+const fl = $("#filters");
+$("#f-open").onclick = () => fl.classList.add("open");
+$("#f-close").onclick = $("#f-apply").onclick = () => fl.classList.remove("open");
+
+// Quick search -> catalog
+$("#qs").addEventListener("submit", e => {
+  e.preventDefault(); resetF();
+  const m=$("#qs-marca").value, t=$("#qs-tipo").value;
+  if (m) F.marca.add(m); if (t) F.tipo.add(t);
+  F.amin = $("#qs-anio").value; F.pmax = $("#qs-precio").value;
+  if (F.pmax && !PRICES.includes(+F.pmax)) { PRICES.push(+F.pmax); }
+  if (F.pmax && !$(`#f-p-max option[value="${F.pmax}"]`)) $("#f-p-max").insertAdjacentHTML("beforeend", opt(F.pmax, clp(+F.pmax)));
+  syncUI(); run(); location.hash = "vehiculos";
+});
+
+// ---------- Detail ----------
+function detail(c){
+  const sim = c.precio;
+  $("#detalle").innerHTML = `
+  <div class="crumbs"><a href="#inicio">Inicio</a> / <a href="#vehiculos">Vehículos en venta</a> / ${name(c)}</div>
+  <a href="#vehiculos" class="btn btn-o btn-sm" style="margin:6px 0 18px">${ic("back")}Volver al listado</a>
+  <div class="det">
+    <div>
+      <div class="gal-main"><img id="g-main" src="${IMG(c.img)}" alt="${name(c)} ${c.version}"></div>
+      <div class="thumbs">
+        <button class="on" aria-label="Foto 1"><img src="${IMG(c.img)}" alt=""></button>
+        <button class="more" data-wa="Hola, ¿me pueden enviar más fotos del ${name(c)} ${c.anio}?">${ic("cam")}&nbsp;Pedir más fotos</button>
+        <button class="more" data-cot="${c.id}" data-mode="visita">${ic("cal")}&nbsp;Agendar visita</button>
+        <button class="more" data-cot="${c.id}" data-mode="parte">${ic("car")}&nbsp;Dejar mi auto en parte de pago</button>
+      </div>
+      <div class="kv">
+        <div><small>${ic("cal")}Año</small><b>${c.anio}</b></div>
+        <div><small>${ic("gauge")}Kilometraje</small><b>${kmf(c.km)}</b></div>
+        <div><small>${ic("gear")}Transmisión</small><b>${c.trans}</b></div>
+        <div><small>${ic("fuel")}Combustible</small><b>${c.comb}</b></div>
+        <div><small>${ic("4x4")}Tracción</small><b>${c.trac}</b></div>
+        <div><small>${ic("car")}Carrocería</small><b>${c.tipo} · ${c.color}</b></div>
+      </div>
+      <div class="desc">
+        <h2>Descripción</h2>
+        <p>${name(c)} ${c.version} año ${c.anio}, ${kmf(c.km)}, transmisión ${c.trans.toLowerCase()}, motor ${c.comb.toLowerCase()}. Vehículo en consignación, revisado por nuestro equipo y con documentación al día. Se puede ver en Santiago con cita previa.</p>
+        <ul><li>Único dueño</li><li>Mantenciones al día</li><li>Revisión técnica vigente</li><li>Permiso de circulación al día</li><li>Sin multas ni prendas</li><li>Transferencia inmediata</li></ul>
+        <p class="note" style="color:var(--muted-d)">Descripción y equipamiento de ejemplo para la maqueta.</p>
+      </div>
+    </div>
+    <div class="det-side">
+      <div class="box">
+        <span class="eyebrow">${c.tipo} · ${c.trac}</span>
+        <h1 style="margin-top:8px">${name(c)}</h1>
+        <div class="sub">${c.version} · ${c.anio} · ${kmf(c.km)}</div>
+        <div class="big-price">${clp(c.precio)}</div>
+        <div class="note" style="color:var(--muted-d)">Precio contado. Consulta por financiamiento.</div>
+        <div class="stack">
+          <button class="btn btn-y btn-block" data-cot="${c.id}">${ic("calc")}Cotizar este vehículo</button>
+          <a class="btn btn-wa btn-block" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}Contactar por WhatsApp</a>
+          <button class="btn btn-o btn-block" data-cot="${c.id}" data-mode="visita">${ic("cal")}Agendar visita</button>
+        </div>
+        <div class="seller" style="margin-top:18px"><span class="av">A</span><div><b style="color:#fff">Agustín</b><br>Asesor · responde en minutos por WhatsApp</div></div>
+      </div>
+      <div class="box sim">
+        <h3>${ic("calc")}Simula tu crédito</h3>
+        <div class="row"><label class="lbl" style="color:#C9CED7" for="s-pie">Pie: <b id="s-pie-v"></b></label><input type="range" id="s-pie" min="20" max="70" step="5" value="30"></div>
+        <div class="row"><label class="lbl" style="color:#C9CED7" for="s-n">Plazo</label>
+          <select class="fld" id="s-n" style="background-color:var(--card-2);border-color:var(--line);color:#fff"><option value="24">24 cuotas</option><option value="36" selected>36 cuotas</option><option value="48">48 cuotas</option></select></div>
+        <div class="out"><span>Cuota mensual estimada</span><b id="s-out"></b></div>
+        <p class="note" style="color:var(--muted-d);margin:10px 0 0">Valor referencial con tasa de ejemplo de 1,9% mensual. Sujeto a evaluación.</p>
+        <button class="btn btn-o btn-block" style="margin-top:12px" data-cot="${c.id}" data-mode="credito">Solicitar evaluación de crédito</button>
+      </div>
+    </div>
+  </div>
+  <div class="sec-hd" style="margin-top:48px"><div><h2>También te puede interesar</h2></div></div>
+  <div class="grid-cars">${CARS.filter(x=>x.id!==c.id && (x.tipo===c.tipo || x.marca===c.marca)).slice(0,4).map(card).join("")}</div>`;
+  wireWa($("#detalle"));
+  const upd = () => {
+    const pie = +$("#s-pie").value, n = +$("#s-n").value, i = .019;
+    const P = sim * (1 - pie/100), cuota = P * i / (1 - Math.pow(1+i, -n));
+    $("#s-pie-v").textContent = `${pie}% (${clp(Math.round(sim*pie/100))})`;
+    $("#s-out").textContent = clp(Math.round(cuota));
+  };
+  $("#s-pie").oninput = upd; $("#s-n").onchange = upd; upd();
+}
+
+// ---------- Modal cotizar ----------
+const modal = $("#modal"), mc = $("#modal-c");
+let lastFocus = null;
+const TITLES = { cot:"Cotizar este vehículo", visita:"Agendar una visita", credito:"Evaluar crédito", parte:"Dejar mi auto en parte de pago" };
+function openCot(id, mode="cot"){
+  const c = CARS.find(x=>x.id===+id); lastFocus = document.activeElement;
+  mc.innerHTML = `
+    <button class="x" id="m-x" aria-label="Cerrar">${ic("x")}</button>
+    <h2 id="m-title">${TITLES[mode]}</h2>
+    <div class="mcar"><img src="${IMG(c.img)}" alt=""><div><b>${name(c)} ${c.version}</b><small class="note">${c.anio} · ${kmf(c.km)}</small><br><span>${clp(c.precio)}</span></div></div>
+    <form class="fgrid" id="m-form">
+      <div class="full"><label class="lbl">¿Cómo quieres pagar?</label>
+        <div class="seg">
+          <label><input type="radio" name="m-pago" id="m-p1" ${mode!=="credito"?"checked":""}><span>Contado</span></label>
+          <label><input type="radio" name="m-pago" id="m-p2" ${mode==="credito"?"checked":""}><span>Con crédito</span></label>
+          <label><input type="radio" name="m-pago" id="m-p3" ${mode==="parte"?"checked":""}><span>Auto en parte de pago</span></label>
+        </div></div>
+      <div><label class="lbl" for="m-nombre">Nombre</label><input class="fld" id="m-nombre" required></div>
+      <div><label class="lbl" for="m-tel">Teléfono</label><input class="fld" id="m-tel" type="tel" placeholder="+56 9" required></div>
+      <div class="full"><label class="lbl" for="m-email">Email</label><input class="fld" id="m-email" type="email"></div>
+      ${mode==="visita" ? `<div class="full"><label class="lbl" for="m-fecha">Fecha preferida</label><input class="fld" id="m-fecha" type="date"></div>` : ""}
+      ${mode==="parte" ? `<div class="full"><label class="lbl" for="m-auto">Tu auto (marca, modelo, año, km)</label><input class="fld" id="m-auto" placeholder="Ej: Kia Rio 5 2018, 70.000 km"></div>` : ""}
+      <div class="full"><label class="lbl" for="m-msg">Comentario</label><textarea class="fld" id="m-msg" placeholder="Opcional"></textarea></div>
+      <button class="btn btn-y full" type="submit">${ic("mail")}Enviar solicitud</button>
+      <a class="btn btn-wa full" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}O escríbenos directo por WhatsApp</a>
+    </form>`;
+  modal.hidden = false; document.body.style.overflow = "hidden";
+  $("#m-x").onclick = closeModal;
+  $("#m-form").onsubmit = e => {
+    e.preventDefault();
+    const n = $("#m-nombre").value.split(" ")[0];
+    mc.innerHTML = `<button class="x" id="m-x" aria-label="Cerrar">${ic("x")}</button>
+      <div class="ok-state"><div class="bub">${ic("check")}</div><h2 id="m-title" style="padding:0">¡Gracias, ${n}!</h2>
+      <p>Recibimos tu solicitud por el <b>${name(c)} ${c.anio}</b>. Un asesor te contactará a la brevedad.</p>
+      <p class="note">Maqueta: el formulario no envía datos todavía.</p>
+      <div class="stack"><a class="btn btn-wa btn-block" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}Acelerar por WhatsApp</a><button class="btn btn-dk btn-block" id="m-ok">Seguir viendo vehículos</button></div></div>`;
+    $("#m-x").onclick = closeModal; $("#m-ok").onclick = closeModal; $("#m-ok").focus();
+  };
+  $("#m-nombre").focus();
+}
+function closeModal(){ modal.hidden = true; document.body.style.overflow = ""; lastFocus && lastFocus.focus && lastFocus.focus(); }
+modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!modal.hidden) closeModal(); fl.classList.remove("open"); }});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-cot]"); if (b) { e.preventDefault(); openCot(b.dataset.cot, b.dataset.mode); }
+});
+
+// ---------- Lead forms ----------
+const toast = msg => { $("#toast-t").textContent = msg; $("#toast").classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(()=>$("#toast").classList.remove("show"), 3800); };
+$$("form[data-lead]").forEach(f => f.addEventListener("submit", e => {
+  e.preventDefault();
+  toast(f.dataset.lead==="contacto" ? "Mensaje recibido. Te respondemos pronto (maqueta: no se envía)." : "¡Datos recibidos! Te contactaremos para evaluar tu auto (maqueta).");
+  f.reset(); const t = $("#v-files-t"); if (t) t.innerHTML = "<b>Sube fotos de tu auto</b><br>Opcional · hasta 10 imágenes";
+}));
+$("#v-files").addEventListener("change", e => { const n = e.target.files.length; $("#v-files-t").innerHTML = n ? `<b>${n} foto${n>1?"s":""} seleccionada${n>1?"s":""}</b><br>Se adjuntarán a tu solicitud` : "<b>Sube fotos de tu auto</b><br>Opcional · hasta 10 imágenes"; });
+
+// ---------- Router ----------
+function route(){
+  const h = (location.hash || "#inicio").slice(1);
+  let page = h, m = h.match(/^auto-(\d+)$/);
+  if (m) { const c = CARS.find(x=>x.id===+m[1]); if (c) { detail(c); page = "detalle"; } else page = "vehiculos"; }
+  if (!$(`[data-page="${page}"]`)) page = "inicio";
+  $$("[data-page]").forEach(s => s.hidden = s.dataset.page !== page);
+  const navKey = page === "detalle" ? "vehiculos" : page;
+  $$("[data-nav]").forEach(a => a.classList.toggle("on", a.dataset.nav === navKey));
+  if (page === "vehiculos") run();
+  fl.classList.remove("open");
+  window.scrollTo({top:0, behavior:"instant"});
+}
+window.addEventListener("hashchange", route);
+syncUI(); route();
+})();
+</script>
