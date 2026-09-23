@@ -2,7 +2,7 @@
 
 Maqueta navegable (HTML + CSS + JS, sin dependencias) para el sitio de compra y consignación de vehículos **Te Vendo El Auto**.
 
-Abrir `index.html` en el navegador. Secciones (navegación por `#hash`):
+Abrir `index.html` en el navegador, o usar `tevendoelauto-maqueta.html`: un solo archivo con las imágenes incluidas, que se puede enviar y abrir en cualquier equipo. Secciones (navegación por `#hash`):
 
 - `#inicio` — hero, cómo funciona, búsqueda rápida, vehículos destacados, formulario de venta.
 - `#vehiculos` — catálogo con filtros: búsqueda, marca, tipo, año, precio, kilometraje, transmisión, combustible, tracción y orden.
