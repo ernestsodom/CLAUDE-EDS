@@ -155,21 +155,21 @@ textarea.fld{min-height:84px;resize:vertical}
 .note{font-size:.78rem;color:var(--muted)}
 
 /* ---------- Sell band (home) ---------- */
-.sell{display:grid;grid-template-columns:1.35fr 1fr;background:var(--paper)}
 .sell-l{position:relative;overflow:hidden;background:
   radial-gradient(70% 90% at 20% 110%, rgba(255,210,31,.16), transparent 60%),
-  linear-gradient(135deg,#1A1E25,#0D1015);padding-block:clamp(36px,5vw,56px);padding-inline:var(--gut);display:grid;grid-template-columns:1fr 1.1fr;gap:28px;align-items:center}
+  linear-gradient(135deg,#1A1E25,#0D1015);padding-block:clamp(40px,6vw,64px)}
+.sell-in{position:relative;display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(24px,4vw,56px);align-items:center}
 .sell-l h2{font-size:clamp(1.5rem,2.6vw,2rem);font-weight:800}
 .sell-l p{color:#D5D9E0;margin:14px 0 22px}
 .sell-l .keys{position:absolute;left:-40px;bottom:-50px;width:230px;height:230px;color:rgba(255,255,255,.05)}
-.sell-l > *{position:relative}
-.why{color:var(--text);padding-block:clamp(36px,5vw,56px);padding-inline:var(--gut)}
-.why h3{font-size:1.25rem;font-weight:800;margin-bottom:18px}
-.why ul{list-style:none;margin:0;padding:0;display:grid;gap:16px}
-.why li{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;font-size:.9rem;color:#3A404A}
-.why b{display:block;color:var(--text);font-size:.95rem}
-.why .bub{width:44px;height:44px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;color:var(--yellow-ink)}
-@media (max-width:1000px){.sell{grid-template-columns:1fr}.sell-l{grid-template-columns:1fr}}
+.why{padding-block:clamp(36px,5vw,52px)}
+.why h3{font-size:clamp(1.3rem,2.4vw,1.6rem);font-weight:800;margin-bottom:24px}
+.why ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+.why li{display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:start;font-size:.9rem;color:#3A404A}
+.why b{display:block;color:var(--text);font-size:.98rem;margin-bottom:2px}
+.why .bub{width:48px;height:48px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;color:var(--yellow-ink)}
+@media (max-width:1000px){.why ul{grid-template-columns:repeat(2,minmax(0,1fr))}.sell-in{grid-template-columns:1fr}}
+@media (max-width:560px){.why ul{grid-template-columns:1fr}}
 
 /* ---------- Footer ---------- */
 .ftr{background:#07090C;border-top:1px solid #1C2129}
@@ -477,9 +477,18 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
     </div>
   </div>
 
-  <div class="sell">
-    <div class="sell-l">
-      <svg class="ico keys" aria-hidden="true"><use href="#i-key"/></svg>
+  <div class="why light"><div class="wrap">
+    <h3 data-t="general.por_que.titulo" data-tl="¿Por qué consignar? — título">¿Por qué consignar con nosotros?</h3>
+    <ul>
+      <li><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><div><b data-t="general.por_que.1t" data-tl="Razón 1 — título">Sin preocupaciones</b><span data-t="general.por_que.1d" data-tl="Razón 1 — texto">No tienes que responder interesados ni coordinar visitas.</span></div></li>
+      <li><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><div><b data-t="general.por_que.2t" data-tl="Razón 2 — título">Mayor exposición</b><span data-t="general.por_que.2d" data-tl="Razón 2 — texto">Publicamos en Chileautos, Marketplace, Full Motor y más.</span></div></li>
+      <li><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><div><b data-t="general.por_que.3t" data-tl="Razón 3 — título">Gestión completa</b><span data-t="general.por_que.3d" data-tl="Razón 3 — texto">Nos encargamos de todo el proceso de venta.</span></div></li>
+      <li><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><div><b data-t="general.por_que.4t" data-tl="Razón 4 — título">Transparencia y confianza</b><span data-t="general.por_que.4d" data-tl="Razón 4 — texto">Trato directo, claro y seguro.</span></div></li>
+    </ul>
+  </div></div>
+  <div class="sell-l">
+    <svg class="ico keys" aria-hidden="true"><use href="#i-key"/></svg>
+    <div class="wrap sell-in">
       <div>
         <h2 data-t="inicio.vende.titulo" data-tl="Vende tu auto — título">¿Quieres vender tu auto?<br><span class="hl">¡Déjanos tus datos!</span></h2>
         <p data-t="inicio.vende.bajada" data-tl="Vende tu auto — bajada">Cuéntanos sobre tu vehículo y te contactaremos a la brevedad para evaluarlo.</p>
@@ -497,15 +506,6 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
         <textarea class="fld full" name="mensaje" id="h-com" placeholder="Comentarios adicionales (opcional)" aria-label="Comentarios"></textarea>
         <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg><span data-t="inicio.vende.enviar" data-tl="Botón enviar formulario">Enviar</span></button>
       </form>
-    </div>
-    <div class="why">
-      <h3 data-t="general.por_que.titulo" data-tl="¿Por qué consignar? — título">¿Por qué consignar con nosotros?</h3>
-      <ul>
-        <li><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><div><b data-t="general.por_que.1t" data-tl="Razón 1 — título">Sin preocupaciones</b><span data-t="general.por_que.1d" data-tl="Razón 1 — texto">No tienes que responder interesados ni coordinar visitas.</span></div></li>
-        <li><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><div><b data-t="general.por_que.2t" data-tl="Razón 2 — título">Mayor exposición</b><span data-t="general.por_que.2d" data-tl="Razón 2 — texto">Publicamos en Chileautos, Marketplace, Full Motor y más.</span></div></li>
-        <li><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><div><b data-t="general.por_que.3t" data-tl="Razón 3 — título">Gestión completa</b><span data-t="general.por_que.3d" data-tl="Razón 3 — texto">Nos encargamos de todo el proceso de venta.</span></div></li>
-        <li><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><div><b data-t="general.por_que.4t" data-tl="Razón 4 — título">Transparencia y confianza</b><span data-t="general.por_que.4d" data-tl="Razón 4 — texto">Trato directo, claro y seguro.</span></div></li>
-      </ul>
     </div>
   </div>
   <div class="sec" data-blocks-wrap="inicio" hidden><div class="wrap blocks" data-blocks="inicio"></div></div>
