@@ -1,5 +1,7 @@
 <!doctype html>
-<title>Te Vendo El Auto</title>
+<html lang="es">
+<title>Te Vendo El Auto · Consignación y venta de vehículos</title>
+<meta name="description" content="Vende tu auto sin complicaciones o encuentra tu próximo vehículo. Consignación y venta de autos en Santiago, Chile.">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -337,6 +339,28 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 @keyframes fade{from{opacity:.4}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.page{animation:none}}
 .mock-note{background:rgba(255,210,31,.1);border:1px solid rgba(255,210,31,.3);color:#F2E3A0;font-size:.8rem;border-radius:8px;padding:8px 12px;margin-top:14px}
+
+/* ---------- Estados de vehículo ---------- */
+.ribbon{position:absolute;left:-20%;right:-20%;top:50%;transform:translateY(-50%) rotate(-16deg);background:rgba(255,210,31,.94);color:var(--yellow-ink);text-align:center;font:900 clamp(.8rem,2.2vw,1.05rem)/1 var(--display);letter-spacing:.28em;text-transform:uppercase;padding:9px 0;box-shadow:0 4px 18px rgba(0,0,0,.35);pointer-events:none;z-index:2}
+.gal-main .ribbon{font-size:clamp(1.1rem,3vw,1.8rem);padding:14px 0}
+.sold img{filter:grayscale(1) contrast(1.05)}
+.tag.sold-t{background:#fff;color:var(--ink)}
+.car.sold .price{color:var(--muted-d);text-decoration:line-through;text-decoration-thickness:2px}
+.state-note{border-radius:10px;padding:12px 14px;font-size:.9rem;font-weight:600}
+.state-note.res{background:rgba(255,210,31,.12);border:1px solid rgba(255,210,31,.4);color:#F2E3A0}
+.state-note.ven{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#DDE1E7}
+.thumbs button img{pointer-events:none}
+.logo img{width:100%;height:auto;max-height:56px;object-fit:contain;object-position:left center}
+.skel{background:linear-gradient(90deg,var(--card) 0,var(--card-2) 50%,var(--card) 100%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:var(--r);min-height:320px;border:1px solid var(--line)}
+@keyframes sk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+.blocks{display:grid;gap:18px}
+.blocks:empty{display:none}
+.cblock{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,28px)}
+.cblock h2{font-size:clamp(1.3rem,2.4vw,1.7rem);font-weight:800;margin-bottom:8px}
+.cblock p{margin:0;color:#D5D9E0;max-width:75ch;white-space:pre-line}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.err-note{color:var(--err);font-size:.85rem;font-weight:600}
 </style>
 
 <!-- ============ ICON SPRITE ============ -->
@@ -395,7 +419,7 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
       <a href="#nosotros" data-nav="nosotros">Nosotros</a>
       <a href="#contacto" data-nav="contacto">Contacto</a>
     </nav>
-    <a class="btn btn-y btn-sm" data-wa href="#"><svg class="ico fill"><use href="#i-wa"/></svg>WhatsApp</a>
+    <a class="btn btn-y btn-sm" id="hdr-cta" data-wa href="#"><svg class="ico fill"><use href="#i-wa"/></svg><span id="hdr-cta-t">WhatsApp</span></a>
   </div>
 </header>
 
@@ -404,18 +428,18 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 <!-- ================= INICIO ================= -->
 <section class="page" data-page="inicio">
   <div class="hero">
-    <div class="hero-img" role="img" aria-label="Camioneta Chevrolet Silverado negra al atardecer"></div>
+    <div class="hero-img" id="hero-img" role="img" aria-label="Vehículo destacado"></div>
     <div class="wrap">
-      <h1>Vende tu auto.<br><span class="hl">Nosotros lo hacemos por ti.</span></h1>
-      <p>Nos encargamos de todo el proceso de venta de tu vehículo, desde la publicación hasta la entrega final.</p>
+      <h1 data-t="inicio.hero.titulo" data-tl="Título principal">Vende tu auto.<br><span class="hl">Nosotros lo hacemos por ti.</span></h1>
+      <p data-t="inicio.hero.bajada" data-tl="Texto bajo el título">Nos encargamos de todo el proceso de venta de tu vehículo, desde la publicación hasta la entrega final.</p>
       <div class="ctas">
-        <a href="#vende" class="btn btn-y"><svg class="ico"><use href="#i-car"/></svg>Quiero vender mi auto</a>
-        <a href="#vehiculos" class="btn btn-o"><svg class="ico"><use href="#i-car"/></svg>Ver vehículos</a>
+        <a href="#vende" class="btn btn-y"><svg class="ico"><use href="#i-car"/></svg><span data-t="inicio.hero.btn1" data-tl="Botón amarillo">Quiero vender mi auto</span></a>
+        <a href="#vehiculos" class="btn btn-o"><svg class="ico"><use href="#i-car"/></svg><span data-t="inicio.hero.btn2" data-tl="Botón blanco">Ver vehículos</span></a>
       </div>
       <div class="hero-trust">
-        <span><svg class="ico"><use href="#i-shield"/></svg>Documentación revisada</span>
-        <span><svg class="ico"><use href="#i-globe"/></svg>Publicado en los principales portales</span>
-        <span><svg class="ico"><use href="#i-hand"/></svg>Trato directo</span>
+        <span><svg class="ico"><use href="#i-shield"/></svg><span data-t="inicio.hero.sello1" data-tl="Sello 1">Documentación revisada</span></span>
+        <span><svg class="ico"><use href="#i-globe"/></svg><span data-t="inicio.hero.sello2" data-tl="Sello 2">Publicado en los principales portales</span></span>
+        <span><svg class="ico"><use href="#i-hand"/></svg><span data-t="inicio.hero.sello3" data-tl="Sello 3">Trato directo</span></span>
       </div>
     </div>
   </div>
@@ -423,15 +447,15 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
   <div class="light how">
     <div class="wrap">
       <div>
-        <h2>¿Cómo funciona?</h2>
-        <p class="lead">Es simple, seguro y sin complicaciones.</p>
+        <h2 data-t="inicio.como.titulo" data-tl="¿Cómo funciona? — título">¿Cómo funciona?</h2>
+        <p class="lead" data-t="inicio.como.bajada" data-tl="¿Cómo funciona? — bajada">Es simple, seguro y sin complicaciones.</p>
       </div>
       <ol class="steps">
-        <li class="step"><div class="top"><span class="num">1</span><svg class="ico"><use href="#i-car"/></svg></div>Evaluamos<br>tu vehículo</li>
-        <li class="step"><div class="top"><span class="num">2</span><svg class="ico"><use href="#i-tag"/></svg></div>Definimos<br>el precio</li>
-        <li class="step"><div class="top"><span class="num">3</span><svg class="ico"><use href="#i-mega"/></svg></div>Publicamos en los principales portales</li>
-        <li class="step"><div class="top"><span class="num">4</span><svg class="ico"><use href="#i-users"/></svg></div>Gestionamos consultas y visitas</li>
-        <li class="step"><div class="top"><span class="num">5</span><svg class="ico"><use href="#i-hand"/></svg></div>Coordinamos y cerramos la venta</li>
+        <li class="step"><div class="top"><span class="num">1</span><svg class="ico"><use href="#i-car"/></svg></div><span data-t="inicio.como.paso1" data-tl="Paso 1">Evaluamos<br>tu vehículo</span></li>
+        <li class="step"><div class="top"><span class="num">2</span><svg class="ico"><use href="#i-tag"/></svg></div><span data-t="inicio.como.paso2" data-tl="Paso 2">Definimos<br>el precio</span></li>
+        <li class="step"><div class="top"><span class="num">3</span><svg class="ico"><use href="#i-mega"/></svg></div><span data-t="inicio.como.paso3" data-tl="Paso 3">Publicamos en los principales portales</span></li>
+        <li class="step"><div class="top"><span class="num">4</span><svg class="ico"><use href="#i-users"/></svg></div><span data-t="inicio.como.paso4" data-tl="Paso 4">Gestionamos consultas y visitas</span></li>
+        <li class="step"><div class="top"><span class="num">5</span><svg class="ico"><use href="#i-hand"/></svg></div><span data-t="inicio.como.paso5" data-tl="Paso 5">Coordinamos y cerramos la venta</span></li>
       </ol>
     </div>
   </div>
@@ -439,17 +463,17 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
   <div class="sec">
     <div class="wrap">
       <div class="sec-hd">
-        <div><h2>Vehículos en <span class="hl">venta</span></h2><p>Revisa algunos de nuestros vehículos disponibles.</p></div>
-        <a href="#vehiculos" class="btn btn-o btn-sm">Ver todos los vehículos<svg class="ico"><use href="#i-arrow"/></svg></a>
+        <div><h2 data-t="inicio.autos.titulo" data-tl="Vehículos — título">Vehículos en <span class="hl">venta</span></h2><p data-t="inicio.autos.bajada" data-tl="Vehículos — bajada">Revisa algunos de nuestros vehículos disponibles.</p></div>
+        <a href="#vehiculos" class="btn btn-o btn-sm"><span data-t="inicio.autos.btn" data-tl="Botón ver todos">Ver todos los vehículos</span><svg class="ico"><use href="#i-arrow"/></svg></a>
       </div>
       <form class="qs" id="qs" aria-label="Búsqueda rápida">
         <label>Marca<select class="fld" id="qs-marca"><option value="">Todas</option></select></label>
         <label>Tipo<select class="fld" id="qs-tipo"><option value="">Todos</option></select></label>
         <label>Año desde<select class="fld" id="qs-anio"><option value="">Cualquiera</option></select></label>
         <label>Precio hasta<select class="fld" id="qs-precio"><option value="">Sin límite</option><option>10000000</option><option>13000000</option><option>16000000</option><option>20000000</option></select></label>
-        <button class="btn btn-y" type="submit"><svg class="ico"><use href="#i-search"/></svg>Buscar</button>
+        <button class="btn btn-y" type="submit"><svg class="ico"><use href="#i-search"/></svg><span data-t="inicio.autos.buscar" data-tl="Botón buscar">Buscar</span></button>
       </form>
-      <div class="grid-cars home-cars" id="home-cars"></div>
+      <div class="grid-cars home-cars" id="home-cars"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
     </div>
   </div>
 
@@ -457,45 +481,48 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
     <div class="sell-l">
       <svg class="ico keys" aria-hidden="true"><use href="#i-key"/></svg>
       <div>
-        <h2>¿Quieres vender tu auto?<br><span class="hl">¡Déjanos tus datos!</span></h2>
-        <p>Cuéntanos sobre tu vehículo y te contactaremos a la brevedad para evaluarlo.</p>
-        <a href="#vende" class="btn btn-y"><svg class="ico"><use href="#i-form"/></svg>Completa el formulario</a>
+        <h2 data-t="inicio.vende.titulo" data-tl="Vende tu auto — título">¿Quieres vender tu auto?<br><span class="hl">¡Déjanos tus datos!</span></h2>
+        <p data-t="inicio.vende.bajada" data-tl="Vende tu auto — bajada">Cuéntanos sobre tu vehículo y te contactaremos a la brevedad para evaluarlo.</p>
+        <a href="#vende" class="btn btn-y"><svg class="ico"><use href="#i-form"/></svg><span data-t="inicio.vende.btn" data-tl="Vende tu auto — botón">Completa el formulario</span></a>
       </div>
-      <form class="fgrid dark" data-lead="home" aria-label="Formulario rápido de venta">
-        <select class="fld full" id="h-marca" required><option value="">Marca</option></select>
-        <input class="fld full" id="h-modelo" placeholder="Modelo" required>
-        <input class="fld" id="h-anio" placeholder="Año" inputmode="numeric">
-        <input class="fld" id="h-km" placeholder="Kilometraje (aprox.)" inputmode="numeric">
-        <input class="fld" id="h-nombre" placeholder="Nombre" required>
-        <input class="fld" id="h-tel" placeholder="Teléfono" type="tel" required>
-        <input class="fld full" id="h-ciudad" placeholder="Ciudad">
-        <textarea class="fld full" id="h-com" placeholder="Comentarios adicionales (opcional)"></textarea>
-        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg>Enviar</button>
+      <form class="fgrid dark" data-lead="venta" aria-label="Formulario rápido de venta">
+        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <select class="fld full" name="marca" id="h-marca" required aria-label="Marca"><option value="">Marca</option></select>
+        <input class="fld full" name="modelo" id="h-modelo" placeholder="Modelo" required aria-label="Modelo">
+        <input class="fld" name="anio" id="h-anio" placeholder="Año" inputmode="numeric" aria-label="Año">
+        <input class="fld" name="km" id="h-km" placeholder="Kilometraje (aprox.)" inputmode="numeric" aria-label="Kilometraje">
+        <input class="fld" name="nombre" id="h-nombre" placeholder="Nombre" required aria-label="Nombre">
+        <input class="fld" name="telefono" id="h-tel" placeholder="Teléfono" type="tel" required aria-label="Teléfono">
+        <input class="fld full" name="ciudad" id="h-ciudad" placeholder="Ciudad" aria-label="Ciudad">
+        <textarea class="fld full" name="mensaje" id="h-com" placeholder="Comentarios adicionales (opcional)" aria-label="Comentarios"></textarea>
+        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg><span data-t="inicio.vende.enviar" data-tl="Botón enviar formulario">Enviar</span></button>
       </form>
     </div>
     <div class="why">
-      <h3>¿Por qué consignar con nosotros?</h3>
+      <h3 data-t="general.por_que.titulo" data-tl="¿Por qué consignar? — título">¿Por qué consignar con nosotros?</h3>
       <ul>
-        <li><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><div><b>Sin preocupaciones</b>No tienes que responder interesados ni coordinar visitas.</div></li>
-        <li><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><div><b>Mayor exposición</b>Publicamos en Chileautos, Marketplace, Full Motor y más.</div></li>
-        <li><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><div><b>Gestión completa</b>Nos encargamos de todo el proceso de venta.</div></li>
-        <li><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><div><b>Transparencia y confianza</b>Trato directo, claro y seguro.</div></li>
+        <li><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><div><b data-t="general.por_que.1t" data-tl="Razón 1 — título">Sin preocupaciones</b><span data-t="general.por_que.1d" data-tl="Razón 1 — texto">No tienes que responder interesados ni coordinar visitas.</span></div></li>
+        <li><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><div><b data-t="general.por_que.2t" data-tl="Razón 2 — título">Mayor exposición</b><span data-t="general.por_que.2d" data-tl="Razón 2 — texto">Publicamos en Chileautos, Marketplace, Full Motor y más.</span></div></li>
+        <li><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><div><b data-t="general.por_que.3t" data-tl="Razón 3 — título">Gestión completa</b><span data-t="general.por_que.3d" data-tl="Razón 3 — texto">Nos encargamos de todo el proceso de venta.</span></div></li>
+        <li><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><div><b data-t="general.por_que.4t" data-tl="Razón 4 — título">Transparencia y confianza</b><span data-t="general.por_que.4d" data-tl="Razón 4 — texto">Trato directo, claro y seguro.</span></div></li>
       </ul>
     </div>
   </div>
+  <div class="sec" data-blocks-wrap="inicio" hidden><div class="wrap blocks" data-blocks="inicio"></div></div>
 </section>
 
 <!-- ================= VEHÍCULOS ================= -->
 <section class="page" data-page="vehiculos" hidden>
   <div class="ph"><div class="wrap">
     <div class="crumbs"><a href="#inicio">Inicio</a> / Vehículos en venta</div>
-    <h1>Vehículos en <span class="hl">venta</span></h1>
-    <p>Autos y camionetas en consignación, revisados y con documentación al día. Filtra por marca, año, kilometraje o precio.</p>
+    <h1 data-t="vehiculos.titulo" data-tl="Título">Vehículos en <span class="hl">venta</span></h1>
+    <p data-t="vehiculos.bajada" data-tl="Bajada">Autos y camionetas en consignación, revisados y con documentación al día. Filtra por marca, año, kilometraje o precio.</p>
   </div></div>
   <div class="sec"><div class="wrap cat">
     <aside class="filters" id="filters" aria-label="Filtros">
       <h3>Filtros <span style="display:flex;gap:8px"><button type="button" id="f-reset">Limpiar</button><button type="button" class="close-f icon-btn" id="f-close" aria-label="Cerrar filtros"><svg class="ico"><use href="#i-x"/></svg></button></span></h3>
       <div class="fg"><span>Buscar</span><input class="fld" id="f-q" placeholder="Ej: Hilux, 4x4, Captiva…"></div>
+      <div class="fg"><span>Disponibilidad</span><div class="pills" id="f-estado"></div></div>
       <div class="fg"><span>Marca</span><div class="checks" id="f-marca"></div></div>
       <div class="fg"><span>Tipo de vehículo</span><div class="pills" id="f-tipo"></div></div>
       <div class="fg"><span>Año</span><div class="two"><select class="fld" id="f-anio-min" aria-label="Año desde"></select><select class="fld" id="f-anio-max" aria-label="Año hasta"></select></div></div>
@@ -520,126 +547,136 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
       <div class="grid-cars" id="results"></div>
     </div>
   </div></div>
+  <div class="sec" data-blocks-wrap="vehiculos" hidden style="padding-top:0"><div class="wrap blocks" data-blocks="vehiculos"></div></div>
 </section>
 
 <!-- ================= DETALLE ================= -->
 <section class="page" data-page="detalle" hidden>
   <div class="sec" style="padding-top:26px"><div class="wrap" id="detalle"></div></div>
+  <div class="sec" data-blocks-wrap="detalle" hidden style="padding-top:0"><div class="wrap blocks" data-blocks="detalle"></div></div>
 </section>
 
 <!-- ================= VENDE ================= -->
 <section class="page" data-page="vende" hidden>
   <div class="ph"><div class="wrap">
     <div class="crumbs"><a href="#inicio">Inicio</a> / Vende tu auto</div>
-    <h1>Vende tu auto <span class="hl">sin complicaciones</span></h1>
-    <p>Consigna tu vehículo con nosotros: lo evaluamos, lo publicamos, atendemos a los interesados y cerramos la venta por ti.</p>
+    <h1 data-t="vende.titulo" data-tl="Título">Vende tu auto <span class="hl">sin complicaciones</span></h1>
+    <p data-t="vende.bajada" data-tl="Bajada">Consigna tu vehículo con nosotros: lo evaluamos, lo publicamos, atendemos a los interesados y cerramos la venta por ti.</p>
   </div></div>
   <div class="sec"><div class="wrap sell-page">
     <div>
-      <span class="eyebrow">Así trabajamos</span>
-      <h2 style="font-size:1.6rem;margin:8px 0 22px;font-weight:800">De la evaluación a la entrega</h2>
+      <span class="eyebrow" data-t="vende.proceso.eyebrow" data-tl="Proceso — etiqueta">Así trabajamos</span>
+      <h2 style="font-size:1.6rem;margin:8px 0 22px;font-weight:800" data-t="vende.proceso.titulo" data-tl="Proceso — título">De la evaluación a la entrega</h2>
       <ol class="tl">
-        <li><span class="num">1</span><div><b>Evaluamos tu vehículo</b><p>Revisamos estado, historial y documentación. Sin costo y sin compromiso.</p></div></li>
-        <li><span class="num">2</span><div><b>Definimos el precio</b><p>Te proponemos un precio de venta según el mercado actual, acordado contigo.</p></div></li>
-        <li><span class="num">3</span><div><b>Publicamos en los principales portales</b><p>Fotos profesionales y publicación en Chileautos, Marketplace, Full Motor y redes.</p></div></li>
-        <li><span class="num">4</span><div><b>Gestionamos consultas y visitas</b><p>Filtramos interesados, respondemos mensajes y coordinamos las pruebas.</p></div></li>
-        <li><span class="num">5</span><div><b>Coordinamos y cerramos la venta</b><p>Transferencia, pago seguro y entrega final. Tú solo firmas.</p></div></li>
+        <li><span class="num">1</span><div><b data-t="vende.p1t" data-tl="Paso 1 — título">Evaluamos tu vehículo</b><p data-t="vende.p1d" data-tl="Paso 1 — texto">Revisamos estado, historial y documentación. Sin costo y sin compromiso.</p></div></li>
+        <li><span class="num">2</span><div><b data-t="vende.p2t" data-tl="Paso 2 — título">Definimos el precio</b><p data-t="vende.p2d" data-tl="Paso 2 — texto">Te proponemos un precio de venta según el mercado actual, acordado contigo.</p></div></li>
+        <li><span class="num">3</span><div><b data-t="vende.p3t" data-tl="Paso 3 — título">Publicamos en los principales portales</b><p data-t="vende.p3d" data-tl="Paso 3 — texto">Fotos profesionales y publicación en Chileautos, Marketplace, Full Motor y redes.</p></div></li>
+        <li><span class="num">4</span><div><b data-t="vende.p4t" data-tl="Paso 4 — título">Gestionamos consultas y visitas</b><p data-t="vende.p4d" data-tl="Paso 4 — texto">Filtramos interesados, respondemos mensajes y coordinamos las pruebas.</p></div></li>
+        <li><span class="num">5</span><div><b data-t="vende.p5t" data-tl="Paso 5 — título">Coordinamos y cerramos la venta</b><p data-t="vende.p5d" data-tl="Paso 5 — texto">Transferencia, pago seguro y entrega final. Tú solo firmas.</p></div></li>
       </ol>
-      <h2 style="font-size:1.3rem;margin:12px 0 10px;font-weight:800">Preguntas frecuentes</h2>
+      <h2 style="font-size:1.3rem;margin:12px 0 10px;font-weight:800" data-t="vende.faq.titulo" data-tl="Preguntas frecuentes — título">Preguntas frecuentes</h2>
       <div class="faq">
-        <details><summary>¿Cuánto cobran por consignar?</summary><p>Trabajamos con una comisión sobre el precio final de venta, que se paga solo si el auto se vende. Te la detallamos en la evaluación.</p></details>
-        <details><summary>¿Tengo que dejar el auto con ustedes?</summary><p>No necesariamente. Puedes seguir usándolo y coordinamos las visitas con cita previa.</p></details>
-        <details><summary>¿Qué documentos necesito?</summary><p>Padrón, permiso de circulación, revisión técnica y SOAP vigentes, y certificado de anotaciones vigentes.</p></details>
-        <details><summary>¿Cuánto demora la venta?</summary><p>Depende del modelo y del precio, pero la mayoría de los vehículos se vende en 2 a 6 semanas.</p></details>
+        <details><summary data-t="vende.faq.1p" data-tl="Pregunta 1">¿Cuánto cobran por consignar?</summary><p data-t="vende.faq.1r" data-tl="Respuesta 1">Trabajamos con una comisión sobre el precio final de venta, que se paga solo si el auto se vende. Te la detallamos en la evaluación.</p></details>
+        <details><summary data-t="vende.faq.2p" data-tl="Pregunta 2">¿Tengo que dejar el auto con ustedes?</summary><p data-t="vende.faq.2r" data-tl="Respuesta 2">No necesariamente. Puedes seguir usándolo y coordinamos las visitas con cita previa.</p></details>
+        <details><summary data-t="vende.faq.3p" data-tl="Pregunta 3">¿Qué documentos necesito?</summary><p data-t="vende.faq.3r" data-tl="Respuesta 3">Padrón, permiso de circulación, revisión técnica y SOAP vigentes, y certificado de anotaciones vigentes.</p></details>
+        <details><summary data-t="vende.faq.4p" data-tl="Pregunta 4">¿Cuánto demora la venta?</summary><p data-t="vende.faq.4r" data-tl="Respuesta 4">Depende del modelo y del precio, pero la mayoría de los vehículos se vende en 2 a 6 semanas.</p></details>
       </div>
     </div>
-    <form class="form-card" data-lead="vende" aria-label="Formulario para vender tu auto">
-      <h2>Cotiza la venta de tu auto</h2>
-      <p class="note">Te contactamos a la brevedad para evaluarlo.</p>
+    <form class="form-card" data-lead="venta" aria-label="Formulario para vender tu auto">
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <h2 data-t="vende.form.titulo" data-tl="Formulario — título">Cotiza la venta de tu auto</h2>
+      <p class="note" data-t="vende.form.bajada" data-tl="Formulario — bajada">Te contactamos a la brevedad para evaluarlo.</p>
       <div class="fgrid">
-        <div><label class="lbl" for="v-marca">Marca</label><select class="fld" id="v-marca" required><option value="">Selecciona</option></select></div>
-        <div><label class="lbl" for="v-modelo">Modelo</label><input class="fld" id="v-modelo" placeholder="Ej: Hilux DX 2.4" required></div>
-        <div><label class="lbl" for="v-anio">Año</label><input class="fld" id="v-anio" inputmode="numeric" placeholder="2020"></div>
-        <div><label class="lbl" for="v-km">Kilometraje</label><input class="fld" id="v-km" inputmode="numeric" placeholder="80.000"></div>
-        <div><label class="lbl" for="v-trans">Transmisión</label><select class="fld" id="v-trans"><option>Manual</option><option>Automática</option></select></div>
-        <div><label class="lbl" for="v-precio">Precio esperado</label><input class="fld" id="v-precio" inputmode="numeric" placeholder="$ 12.000.000"></div>
-        <div><label class="lbl" for="v-nombre">Nombre</label><input class="fld" id="v-nombre" required></div>
-        <div><label class="lbl" for="v-tel">Teléfono</label><input class="fld" id="v-tel" type="tel" placeholder="+56 9" required></div>
-        <div><label class="lbl" for="v-email">Email</label><input class="fld" id="v-email" type="email"></div>
-        <div><label class="lbl" for="v-ciudad">Ciudad</label><input class="fld" id="v-ciudad" placeholder="Santiago"></div>
-        <label class="upload full" style="position:relative"><svg class="ico" style="width:28px;height:28px"><use href="#i-cam"/></svg><span id="v-files-t"><b>Sube fotos de tu auto</b><br>Opcional · hasta 10 imágenes</span><input type="file" id="v-files" accept="image/*" multiple></label>
-        <div class="full"><label class="lbl" for="v-com">Comentarios adicionales</label><textarea class="fld" id="v-com" placeholder="Mantenciones, detalles, dueños anteriores…"></textarea></div>
-        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg>Enviar mis datos</button>
-        <a class="btn btn-wa full" data-wa="Hola, quiero vender mi auto. ¿Me pueden evaluar?" href="#"><svg class="ico fill"><use href="#i-wa"/></svg>Prefiero hablar por WhatsApp</a>
+        <div><label class="lbl" for="v-marca">Marca</label><select class="fld" name="marca" id="v-marca" required><option value="">Selecciona</option></select></div>
+        <div><label class="lbl" for="v-modelo">Modelo</label><input class="fld" name="modelo" id="v-modelo" placeholder="Ej: Hilux DX 2.4" required></div>
+        <div><label class="lbl" for="v-anio">Año</label><input class="fld" name="anio" id="v-anio" inputmode="numeric" placeholder="2020"></div>
+        <div><label class="lbl" for="v-km">Kilometraje</label><input class="fld" name="km" id="v-km" inputmode="numeric" placeholder="80.000"></div>
+        <div><label class="lbl" for="v-trans">Transmisión</label><select class="fld" name="transmision" id="v-trans"><option>Manual</option><option>Automática</option></select></div>
+        <div><label class="lbl" for="v-precio">Precio esperado</label><input class="fld" name="precio_esperado" id="v-precio" inputmode="numeric" placeholder="$ 12.000.000"></div>
+        <div><label class="lbl" for="v-nombre">Nombre</label><input class="fld" name="nombre" id="v-nombre" required></div>
+        <div><label class="lbl" for="v-tel">Teléfono</label><input class="fld" name="telefono" id="v-tel" type="tel" placeholder="+56 9" required></div>
+        <div><label class="lbl" for="v-email">Email</label><input class="fld" name="email" id="v-email" type="email"></div>
+        <div><label class="lbl" for="v-ciudad">Ciudad</label><input class="fld" name="ciudad" id="v-ciudad" placeholder="Santiago"></div>
+        <div class="full"><label class="lbl" for="v-com">Comentarios adicionales</label><textarea class="fld" name="mensaje" id="v-com" placeholder="Mantenciones, detalles, dueños anteriores…"></textarea></div>
+        <p class="note full" style="margin:0" data-t="vende.form.fotos" data-tl="Formulario — nota de fotos">Después te pediremos fotos de tu auto por WhatsApp.</p>
+        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg><span data-t="vende.form.enviar" data-tl="Formulario — botón enviar">Enviar mis datos</span></button>
+        <a class="btn btn-wa full" data-wa="Hola, quiero vender mi auto. ¿Me pueden evaluar?" href="#"><svg class="ico fill"><use href="#i-wa"/></svg><span data-t="vende.form.wa" data-tl="Formulario — botón WhatsApp">Prefiero hablar por WhatsApp</span></a>
       </div>
     </form>
   </div></div>
+  <div class="sec" data-blocks-wrap="vende" hidden style="padding-top:0"><div class="wrap blocks" data-blocks="vende"></div></div>
 </section>
 
 <!-- ================= NOSOTROS ================= -->
 <section class="page" data-page="nosotros" hidden>
   <div class="ph"><div class="wrap">
     <div class="crumbs"><a href="#inicio">Inicio</a> / Nosotros</div>
-    <h1>Tu auto en <span class="hl">buenas manos</span></h1>
+    <h1 data-t="nosotros.titulo" data-tl="Título">Tu auto en <span class="hl">buenas manos</span></h1>
   </div></div>
   <div class="sec"><div class="wrap about">
     <div>
-      <span class="eyebrow">Quiénes somos</span>
-      <h2 style="font-size:1.7rem;margin:10px 0 14px;font-weight:800">Consignación y venta de vehículos en Santiago</h2>
-      <p>En TeVendoElAuto.cl ayudamos a personas que quieren vender su auto sin perder tiempo ni exponerse a desconocidos. Nos hacemos cargo de la publicación, las consultas, las visitas y el cierre, con un trato directo y transparente.</p>
-      <p>A quienes buscan comprar, les ofrecemos vehículos revisados, con documentación al día y la tranquilidad de una transacción segura.</p>
-      <div class="stats"><div><b>+150</b><small>autos vendidos</small></div><div><b>4</b><small>portales de publicación</small></div><div><b>100%</b><small>trato directo</small></div></div>
-      <p class="note" style="color:var(--muted-d)">Cifras de ejemplo para la maqueta.</p>
+      <span class="eyebrow" data-t="nosotros.eyebrow" data-tl="Etiqueta">Quiénes somos</span>
+      <h2 style="font-size:1.7rem;margin:10px 0 14px;font-weight:800" data-t="nosotros.subtitulo" data-tl="Subtítulo">Consignación y venta de vehículos en Santiago</h2>
+      <p data-t="nosotros.p1" data-tl="Párrafo 1">En TeVendoElAuto.cl ayudamos a personas que quieren vender su auto sin perder tiempo ni exponerse a desconocidos. Nos hacemos cargo de la publicación, las consultas, las visitas y el cierre, con un trato directo y transparente.</p>
+      <p data-t="nosotros.p2" data-tl="Párrafo 2">A quienes buscan comprar, les ofrecemos vehículos revisados, con documentación al día y la tranquilidad de una transacción segura.</p>
+      <div class="stats">
+        <div><b data-t="nosotros.cifra1" data-tl="Cifra 1">+150</b><small data-t="nosotros.cifra1d" data-tl="Cifra 1 — texto">autos vendidos</small></div>
+        <div><b data-t="nosotros.cifra2" data-tl="Cifra 2">4</b><small data-t="nosotros.cifra2d" data-tl="Cifra 2 — texto">portales de publicación</small></div>
+        <div><b data-t="nosotros.cifra3" data-tl="Cifra 3">100%</b><small data-t="nosotros.cifra3d" data-tl="Cifra 3 — texto">trato directo</small></div>
+      </div>
     </div>
-    <div class="about-img"><img src="img/hero-truck.jpg" alt="Camioneta Chevrolet negra al atardecer"></div>
+    <div class="about-img"><img id="about-img" src="img/hero-truck.jpg" alt="Vehículo destacado"></div>
   </div></div>
   <div class="sec light"><div class="wrap">
-    <div class="sec-hd"><div><h2 style="color:var(--text)">¿Por qué consignar con nosotros?</h2></div></div>
+    <div class="sec-hd"><div><h2 style="color:var(--text)" data-t="general.por_que.titulo">¿Por qué consignar con nosotros?</h2></div></div>
     <div class="vals">
-      <div class="val"><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><b>Sin preocupaciones</b><p>No tienes que responder interesados ni coordinar visitas.</p></div>
-      <div class="val"><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><b>Mayor exposición</b><p>Publicamos en Chileautos, Marketplace, Full Motor y más.</p></div>
-      <div class="val"><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><b>Gestión completa</b><p>Nos encargamos de todo el proceso de venta.</p></div>
-      <div class="val"><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><b>Transparencia y confianza</b><p>Trato directo, claro y seguro.</p></div>
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-relax"/></svg></span><b data-t="general.por_que.1t">Sin preocupaciones</b><p data-t="general.por_que.1d">No tienes que responder interesados ni coordinar visitas.</p></div>
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-mega"/></svg></span><b data-t="general.por_que.2t">Mayor exposición</b><p data-t="general.por_que.2d">Publicamos en Chileautos, Marketplace, Full Motor y más.</p></div>
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-clip"/></svg></span><b data-t="general.por_que.3t">Gestión completa</b><p data-t="general.por_que.3d">Nos encargamos de todo el proceso de venta.</p></div>
+      <div class="val"><span class="bub"><svg class="ico"><use href="#i-shield"/></svg></span><b data-t="general.por_que.4t">Transparencia y confianza</b><p data-t="general.por_que.4d">Trato directo, claro y seguro.</p></div>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px">
-      <a href="#vende" class="btn btn-dk"><svg class="ico"><use href="#i-car"/></svg>Quiero vender mi auto</a>
-      <a href="#vehiculos" class="btn btn-y">Ver vehículos<svg class="ico"><use href="#i-arrow"/></svg></a>
+      <a href="#vende" class="btn btn-dk"><svg class="ico"><use href="#i-car"/></svg><span data-t="inicio.hero.btn1">Quiero vender mi auto</span></a>
+      <a href="#vehiculos" class="btn btn-y"><span data-t="inicio.hero.btn2">Ver vehículos</span><svg class="ico"><use href="#i-arrow"/></svg></a>
     </div>
   </div></div>
+  <div class="sec" data-blocks-wrap="nosotros" hidden><div class="wrap blocks" data-blocks="nosotros"></div></div>
 </section>
 
 <!-- ================= CONTACTO ================= -->
 <section class="page" data-page="contacto" hidden>
   <div class="ph"><div class="wrap">
     <div class="crumbs"><a href="#inicio">Inicio</a> / Contacto</div>
-    <h1>Hablemos</h1>
-    <p>Escríbenos por WhatsApp para una respuesta rápida, o déjanos un mensaje y te contactamos.</p>
+    <h1 data-t="contacto.titulo" data-tl="Título">Hablemos</h1>
+    <p data-t="contacto.bajada" data-tl="Bajada">Escríbenos por WhatsApp para una respuesta rápida, o déjanos un mensaje y te contactamos.</p>
   </div></div>
   <div class="sec"><div class="wrap contact">
     <div class="cc">
-      <a data-wa href="#"><span class="bub wa"><svg class="ico fill"><use href="#i-wa"/></svg></span><div><b>+56 9 9736 0901</b><small>Escríbenos por WhatsApp</small></div></a>
-      <div class="c"><span class="bub"><svg class="ico"><use href="#i-mail"/></svg></span><div><b>agustin@tevendoelauto.cl</b><small>Envíanos un correo</small></div></div>
-      <div class="c"><span class="bub"><svg class="ico"><use href="#i-pin"/></svg></span><div><b>Santiago, Chile</b><small>Atendemos con cita previa</small></div></div>
-      <div class="c"><span class="bub"><svg class="ico"><use href="#i-cal"/></svg></span><div><b>Lunes a sábado</b><small>10:00 a 19:00 hrs</small></div></div>
+      <a data-wa href="#"><span class="bub wa"><svg class="ico fill"><use href="#i-wa"/></svg></span><div><b data-t="general.contacto.telefono" data-tl="Teléfono visible">+56 9 9736 0901</b><small data-t="general.contacto.telefono_d" data-tl="Teléfono — texto">Escríbenos por WhatsApp</small></div></a>
+      <div class="c"><span class="bub"><svg class="ico"><use href="#i-mail"/></svg></span><div><b data-t="general.contacto.email" data-tl="Email">agustin@tevendoelauto.cl</b><small data-t="general.contacto.email_d" data-tl="Email — texto">Envíanos un correo</small></div></div>
+      <div class="c"><span class="bub"><svg class="ico"><use href="#i-pin"/></svg></span><div><b data-t="general.contacto.lugar" data-tl="Ubicación">Santiago, Chile</b><small data-t="general.contacto.lugar_d" data-tl="Ubicación — texto">Atendemos con cita previa</small></div></div>
+      <div class="c"><span class="bub"><svg class="ico"><use href="#i-cal"/></svg></span><div><b data-t="contacto.horario" data-tl="Horario — días">Lunes a sábado</b><small data-t="contacto.horario_d" data-tl="Horario — horas">10:00 a 19:00 hrs</small></div></div>
     </div>
     <form class="form-card" data-lead="contacto" aria-label="Formulario de contacto">
-      <h2>Envíanos un mensaje</h2>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <h2 data-t="contacto.form.titulo" data-tl="Formulario — título">Envíanos un mensaje</h2>
       <div class="fgrid">
         <div class="full"><label class="lbl">Quiero…</label>
           <div class="seg">
-            <label><input type="radio" name="c-mot" id="c-mot-1" checked><span>Comprar un auto</span></label>
-            <label><input type="radio" name="c-mot" id="c-mot-2"><span>Vender mi auto</span></label>
-            <label><input type="radio" name="c-mot" id="c-mot-3"><span>Otra consulta</span></label>
+            <label><input type="radio" name="motivo" value="Comprar un auto" id="c-mot-1" checked><span>Comprar un auto</span></label>
+            <label><input type="radio" name="motivo" value="Vender mi auto" id="c-mot-2"><span>Vender mi auto</span></label>
+            <label><input type="radio" name="motivo" value="Otra consulta" id="c-mot-3"><span>Otra consulta</span></label>
           </div>
         </div>
-        <div><label class="lbl" for="c-nombre">Nombre</label><input class="fld" id="c-nombre" required></div>
-        <div><label class="lbl" for="c-tel">Teléfono</label><input class="fld" id="c-tel" type="tel" placeholder="+56 9" required></div>
-        <div class="full"><label class="lbl" for="c-email">Email</label><input class="fld" id="c-email" type="email"></div>
-        <div class="full"><label class="lbl" for="c-msg">Mensaje</label><textarea class="fld" id="c-msg" required></textarea></div>
-        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg>Enviar mensaje</button>
+        <div><label class="lbl" for="c-nombre">Nombre</label><input class="fld" name="nombre" id="c-nombre" required></div>
+        <div><label class="lbl" for="c-tel">Teléfono</label><input class="fld" name="telefono" id="c-tel" type="tel" placeholder="+56 9" required></div>
+        <div class="full"><label class="lbl" for="c-email">Email</label><input class="fld" name="email" id="c-email" type="email"></div>
+        <div class="full"><label class="lbl" for="c-msg">Mensaje</label><textarea class="fld" name="mensaje" id="c-msg" required></textarea></div>
+        <button class="btn btn-y full" type="submit"><svg class="ico"><use href="#i-mail"/></svg><span data-t="contacto.form.enviar" data-tl="Formulario — botón enviar">Enviar mensaje</span></button>
       </div>
     </form>
   </div></div>
+  <div class="sec" data-blocks-wrap="contacto" hidden style="padding-top:0"><div class="wrap blocks" data-blocks="contacto"></div></div>
 </section>
 </main>
 
@@ -647,16 +684,36 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 <footer class="ftr">
   <div class="wrap">
     <a href="#inicio" class="logo" data-logo aria-label="Ir al inicio"></a>
-    <a class="it" data-wa href="#"><svg class="ico fill"><use href="#i-wa"/></svg><div><b>+56 9 9736 0901</b><small>Escríbenos por WhatsApp</small></div></a>
-    <div class="it"><svg class="ico"><use href="#i-mail"/></svg><div><b>agustin@tevendoelauto.cl</b><small>Envíanos un correo</small></div></div>
-    <div class="it"><svg class="ico"><use href="#i-pin"/></svg><div><b>Santiago, Chile</b><small>Atendemos con cita previa</small></div></div>
-    <div class="soc"><div><a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico"><use href="#i-ig"/></svg></a><a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico"><use href="#i-fb"/></svg></a></div>Síguenos en redes</div>
+    <a class="it" data-wa href="#"><svg class="ico fill"><use href="#i-wa"/></svg><div><b data-t="general.contacto.telefono">+56 9 9736 0901</b><small data-t="general.contacto.telefono_d">Escríbenos por WhatsApp</small></div></a>
+    <div class="it"><svg class="ico"><use href="#i-mail"/></svg><div><b data-t="general.contacto.email">agustin@tevendoelauto.cl</b><small data-t="general.contacto.email_d">Envíanos un correo</small></div></div>
+    <div class="it"><svg class="ico"><use href="#i-pin"/></svg><div><b data-t="general.contacto.lugar">Santiago, Chile</b><small data-t="general.contacto.lugar_d">Atendemos con cita previa</small></div></div>
+    <div class="soc"><div><a id="s-ig" href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico"><use href="#i-ig"/></svg></a><a id="s-fb" href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico"><use href="#i-fb"/></svg></a></div><span data-t="general.pie.redes" data-tl="Pie — redes sociales">Síguenos en redes</span></div>
   </div>
-  <div class="ftr-b">Tu auto en buenas manos<span>|</span>tevendoelauto.cl</div>
+  <div class="ftr-b"><span style="margin:0;color:inherit" data-t="general.pie.lema" data-tl="Pie — lema">Tu auto en buenas manos</span><span>|</span>tevendoelauto.cl</div>
 </footer>
 
+<!-- Textos usados por la ficha del vehículo y ventanas (editables desde el back office) -->
+<div hidden id="t-defaults">
+  <span data-t="detalle.cotizar" data-tl="Botón cotizar">Cotizar este vehículo</span>
+  <span data-t="detalle.whatsapp" data-tl="Botón WhatsApp">Contactar por WhatsApp</span>
+  <span data-t="detalle.visita" data-tl="Botón agendar visita">Agendar visita</span>
+  <span data-t="detalle.precio_nota" data-tl="Nota bajo el precio">Precio contado. Consulta por financiamiento.</span>
+  <span data-t="detalle.asesor" data-tl="Nombre del asesor">Agustín</span>
+  <span data-t="detalle.asesor_d" data-tl="Descripción del asesor">Asesor · responde en minutos por WhatsApp</span>
+  <span data-t="detalle.sim_titulo" data-tl="Simulador — título">Simula tu crédito</span>
+  <span data-t="detalle.sim_nota" data-tl="Simulador — nota">Valor referencial con tasa de ejemplo de 1,9% mensual. Sujeto a evaluación.</span>
+  <span data-t="detalle.reservado" data-tl="Aviso vehículo reservado">Este vehículo está reservado. Si te interesa, déjanos tus datos y te avisamos si se libera.</span>
+  <span data-t="detalle.vendido" data-tl="Aviso vehículo vendido">Este vehículo ya fue vendido. Te ayudamos a encontrar uno similar.</span>
+  <span data-t="detalle.similar" data-tl="Botón busco similar">Busco uno similar</span>
+  <span data-t="detalle.relacionados" data-tl="Título relacionados">También te puede interesar</span>
+  <span data-t="detalle.gracias" data-tl="Mensaje de gracias">Recibimos tu solicitud. Un asesor te contactará a la brevedad.</span>
+  <span data-t="general.card.contactar" data-tl="Tarjeta — botón contactar">Contactar</span>
+  <span data-t="general.toast.venta" data-tl="Aviso tras enviar formulario de venta">¡Datos recibidos! Te contactaremos para evaluar tu auto.</span>
+  <span data-t="general.toast.contacto" data-tl="Aviso tras enviar mensaje de contacto">Mensaje recibido. Te respondemos pronto.</span>
+</div>
+
 <!-- WhatsApp flotante: siempre visible -->
-<a class="fab" data-wa href="#" aria-label="Escríbenos por WhatsApp"><svg class="ico fill"><use href="#i-wa"/></svg><span>¿Hablamos?</span></a>
+<a class="fab" id="fab" data-wa href="#" aria-label="Escríbenos por WhatsApp"><svg class="ico fill"><use href="#i-wa"/></svg><span id="fab-t">¿Hablamos?</span></a>
 
 <!-- Modal cotizar -->
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title">
@@ -666,36 +723,62 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 
 <script>
 (() => {
-const WA = "56997360901";
-const IMG = n => "img/" + n + ".jpg";
-// 1–5: datos del boceto. 6–10: publicaciones de ejemplo para probar los filtros (reutilizan fotos).
-const CARS = [
-  {id:1,marca:"Chevrolet",modelo:"Captiva",version:"1.5 Premier",anio:2023,km:33500,trans:"Automática",comb:"Bencina",precio:13790000,tipo:"SUV",trac:"4x2",img:"captiva",color:"Gris plata",dest:true},
-  {id:2,marca:"Toyota",modelo:"Hilux",version:"DX 2.4 4x4",anio:2022,km:88000,trans:"Manual",comb:"Diésel",precio:17500000,tipo:"Camioneta",trac:"4x4",img:"hilux",color:"Blanco",dest:true},
-  {id:3,marca:"Chevrolet",modelo:"Colorado",version:"Z71 3.7 4x4",anio:2010,km:185000,trans:"Automática",comb:"Bencina",precio:8000000,tipo:"Camioneta",trac:"4x4",img:"colorado",color:"Verde oscuro",dest:true},
-  {id:4,marca:"Mitsubishi",modelo:"L200",version:"Work 2.4 4x2",anio:2023,km:120000,trans:"Manual",comb:"Diésel",precio:15000000,tipo:"Camioneta",trac:"4x2",img:"l200",color:"Gris plata",dest:true},
-  {id:5,marca:"Chevrolet",modelo:"Spin",version:"Premier 1.8",anio:2021,km:75000,trans:"Manual",comb:"Bencina",precio:12500000,tipo:"Minivan",trac:"4x2",img:"spin",color:"Gris",dest:true},
-  {id:6,marca:"Chevrolet",modelo:"Captiva",version:"1.5 LT",anio:2021,km:58000,trans:"Manual",comb:"Bencina",precio:11490000,tipo:"SUV",trac:"4x2",img:"captiva",color:"Gris plata"},
-  {id:7,marca:"Toyota",modelo:"Hilux",version:"SRV 2.8 4x4",anio:2020,km:96000,trans:"Automática",comb:"Diésel",precio:22900000,tipo:"Camioneta",trac:"4x4",img:"hilux",color:"Blanco"},
-  {id:8,marca:"Mitsubishi",modelo:"L200",version:"Katana 2.4 4x4",anio:2019,km:110000,trans:"Manual",comb:"Diésel",precio:14200000,tipo:"Camioneta",trac:"4x4",img:"l200",color:"Gris plata"},
-  {id:9,marca:"Chevrolet",modelo:"Spin",version:"LTZ 1.8",anio:2019,km:92000,trans:"Automática",comb:"Bencina",precio:9890000,tipo:"Minivan",trac:"4x2",img:"spin",color:"Gris"},
-  {id:10,marca:"Chevrolet",modelo:"Colorado",version:"LT 2.8 4x4",anio:2018,km:130000,trans:"Manual",comb:"Diésel",precio:16500000,tipo:"Camioneta",trac:"4x4",img:"colorado",color:"Verde oscuro"}
-];
+let WA = "56997360901";
+let CARS = [], SETTINGS = {}, TEXTS = {};
 const BRANDS_ALL = ["Chevrolet","Toyota","Mitsubishi","Nissan","Hyundai","Kia","Suzuki","Peugeot","Ford","Mazda","Volkswagen","Otra"];
+const ESTADO_LBL = { disponible:"Disponible", reservado:"Reservado", vendido:"Vendido" };
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-const clp = n => "$" + n.toLocaleString("es-CL");
-const kmf = n => n.toLocaleString("es-CL") + " km";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clp = n => "$" + Math.round(n).toLocaleString("es-CL");
+const kmf = n => Number(n).toLocaleString("es-CL") + " km";
 const uniq = a => [...new Set(a)];
 const name = c => `${c.marca} ${c.modelo}`;
+const photo = c => (c.fotos && c.fotos[0]) || "img/hero-truck.jpg";
 const waUrl = (msg="Hola, vengo desde tevendoelauto.cl y quiero hacer una consulta.") => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
 const carMsg = c => `Hola, me interesa el ${name(c)} ${c.version} ${c.anio} publicado en ${clp(c.precio)}. ¿Sigue disponible?`;
 const ic = (id, fill) => `<svg class="ico${fill?' fill':''}"><use href="#i-${id}"/></svg>`;
+// Formato de textos editables: *resaltado* en amarillo y saltos de línea
+const fmt = s => esc(s).replace(/\*(.+?)\*/g, '<span class="hl">$1</span>').replace(/\n/g, "<br>");
+const DEF = {}; $$("[data-t]").forEach(el => { if (!(el.dataset.t in DEF)) DEF[el.dataset.t] = el.innerHTML; });
+const T = k => TEXTS[k] != null ? fmt(TEXTS[k]) : (DEF[k] ?? "");
 
-// Logos & WhatsApp links
-const logo = $("#logo-tpl").innerHTML;
-$$("[data-logo]").forEach(a => a.innerHTML = logo);
-function wireWa(root=document){ $$("[data-wa]", root).forEach(a => { a.href = waUrl(a.dataset.wa || undefined); a.target = "_blank"; a.rel = "noopener"; }); }
+// ---------- Monitoreo ----------
+const store = (s, k) => { try { let v = s.getItem(k); if (!v) { v = Math.random().toString(36).slice(2) + Date.now().toString(36); s.setItem(k, v); } return v; } catch { return "anon"; } };
+const VID = store(window.localStorage, "tva_vid"), SID = store(window.sessionStorage, "tva_sid");
+function track(type, extra={}){
+  if (navigator.webdriver) return;
+  const body = JSON.stringify({ type, visitor_id: VID, session_id: SID, referrer: document.referrer, path: (location.hash || "#inicio").slice(1), ...extra });
+  try { if (navigator.sendBeacon && navigator.sendBeacon("/api/track", new Blob([body], {type:"application/json"}))) return; } catch {}
+  fetch("/api/track", { method:"POST", headers:{"Content-Type":"application/json"}, body, keepalive:true }).catch(()=>{});
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[href^='https://wa.me']"); if (a) track("whatsapp", a.dataset.vid ? { vehicle_id: +a.dataset.vid } : {});
+  const c = e.target.closest("a[href^='#auto-']"); if (c) track("vehicle_click", { vehicle_id: +c.getAttribute("href").slice(6) });
+}, true);
+
+// ---------- Configuración del sitio ----------
+function logoHTML(){ return SETTINGS.logo_url ? `<img src="${esc(SETTINGS.logo_url)}" alt="TeVendoElAuto.cl">` : $("#logo-tpl").innerHTML; }
+function applySettings(){
+  WA = String(SETTINGS.whatsapp || WA).replace(/\D/g, "");
+  TEXTS = SETTINGS.texts || {};
+  $$("[data-t]").forEach(el => { if (TEXTS[el.dataset.t] != null) el.innerHTML = fmt(TEXTS[el.dataset.t]); });
+  $$("[data-logo]").forEach(a => a.innerHTML = logoHTML());
+  if (SETTINGS.hero_url) { $("#hero-img").style.backgroundImage = `url("${SETTINGS.hero_url.replace(/"/g,"")}")`; $("#about-img").src = SETTINGS.hero_url; }
+  if (Array.isArray(SETTINGS.nav)) $("#nav").innerHTML = SETTINGS.nav.filter(n => n.visible !== false).map(n => `<a href="#${esc(n.page)}" data-nav="${esc(n.page)}">${esc(n.label)}</a>`).join("");
+  const cta = SETTINGS.header_cta || {}; $("#hdr-cta-t").textContent = cta.label || "WhatsApp"; $("#hdr-cta").hidden = cta.visible === false;
+  const fab = SETTINGS.fab || {}; $("#fab-t").textContent = fab.label || "¿Hablamos?";
+  const so = SETTINGS.social || {}; $("#s-ig").href = so.instagram || "https://instagram.com"; $("#s-fb").href = so.facebook || "https://facebook.com";
+  $("#s-ig").hidden = !so.instagram && so.instagram !== undefined; $("#s-fb").hidden = !so.facebook && so.facebook !== undefined;
+  $$("[data-blocks]").forEach(w => {
+    const list = (SETTINGS.blocks || []).filter(b => b.page === w.dataset.blocks && (b.title || b.body));
+    w.innerHTML = list.map(b => `<div class="cblock">${b.title ? `<h2>${fmt(b.title)}</h2>` : ""}${b.body ? `<p>${fmt(b.body)}</p>` : ""}</div>`).join("");
+    w.closest("[data-blocks-wrap]").hidden = !list.length;
+  });
+  wireWa();
+}
+function wireWa(root=document){ $$("[data-wa]", root).forEach(a => { if (a.tagName !== "A") return; a.href = waUrl(a.dataset.wa || undefined); a.target = "_blank"; a.rel = "noopener"; }); }
+$$("[data-logo]").forEach(a => a.innerHTML = logoHTML());
 wireWa();
 
 // Mobile menu
@@ -703,51 +786,57 @@ const nav = $("#nav"), burger = $("#burger");
 burger.onclick = () => { const o = nav.classList.toggle("open"); burger.setAttribute("aria-expanded", o); };
 nav.addEventListener("click", e => { if (e.target.closest("a")) { nav.classList.remove("open"); burger.setAttribute("aria-expanded", false); }});
 
-// Card
+// ---------- Tarjeta ----------
+function stateOverlay(c){
+  if (c.estado === "reservado") return `<span class="ribbon">Reservado</span>`;
+  return "";
+}
 function card(c){
-  return `<article class="car">
-    <a href="#auto-${c.id}" class="car-ph" aria-label="Ver ${name(c)}"><img src="${IMG(c.img)}" alt="${name(c)} ${c.version} ${c.color}" loading="lazy">${c.km<60000?'<span class="tag">Bajo km</span>':''}${c.trac==="4x4"&&c.km>=60000?'<span class="tag dk">4x4</span>':''}</a>
+  const sold = c.estado === "vendido";
+  let tag = "";
+  if (sold) tag = '<span class="tag sold-t">Vendido</span>';
+  else if (c.km < 60000 && c.estado === "disponible") tag = '<span class="tag">Bajo km</span>';
+  else if (c.trac === "4x4" && c.estado === "disponible") tag = '<span class="tag dk">4x4</span>';
+  const btn = sold
+    ? `<a class="btn btn-o" href="${waUrl(`Hola, busco un vehículo similar al ${name(c)} ${c.anio}.`)}" target="_blank" rel="noopener" data-vid="${c.id}">${T("detalle.similar")}</a>`
+    : `<button class="btn btn-y" data-cot="${c.id}">${ic("wa",1)}<span>${T("general.card.contactar")}</span></button>`;
+  return `<article class="car${sold?" sold":""}">
+    <a href="#auto-${c.id}" class="car-ph" aria-label="Ver ${esc(name(c))}"><img src="${esc(photo(c))}" alt="${esc(name(c)+" "+c.version)}" loading="lazy">${tag}${stateOverlay(c)}</a>
     <div class="car-bd">
-      <a href="#auto-${c.id}" class="car-t">${name(c)}<small>${c.version}</small></a>
+      <a href="#auto-${c.id}" class="car-t">${esc(name(c))}<small>${esc(c.version)}</small></a>
       <div class="specs">
         <span>${ic("cal")}${c.anio}</span><span>${ic("gauge")}${kmf(c.km)}</span>
-        <span>${ic("gear")}${c.trans}</span><span>${ic("fuel")}${c.comb}</span>
+        <span>${ic("gear")}${esc(c.trans)}</span><span>${ic("fuel")}${esc(c.comb)}</span>
       </div>
       <div class="price">${clp(c.precio)}</div>
-      <div class="acts">
-        <button class="btn btn-y" data-cot="${c.id}">${ic("wa",1)}Contactar</button>
-        <a class="icon-btn" href="#auto-${c.id}" aria-label="Ver detalle">${ic("arrow")}</a>
-      </div>
+      <div class="acts">${btn}<a class="icon-btn" href="#auto-${c.id}" aria-label="Ver detalle">${ic("arrow")}</a></div>
     </div>
   </article>`;
 }
-$("#home-cars").innerHTML = CARS.filter(c=>c.dest).map(card).join("");
+const RANK = { disponible:0, reservado:1, vendido:2 };
 
-// ---------- Options ----------
-const marcas = uniq(CARS.map(c=>c.marca)).sort();
-const tipos = uniq(CARS.map(c=>c.tipo));
-const anios = uniq(CARS.map(c=>c.anio)).sort((a,b)=>b-a);
-const opt = (v,t=v) => `<option value="${v}">${t}</option>`;
-$("#qs-marca").insertAdjacentHTML("beforeend", marcas.map(m=>opt(m)).join(""));
-$("#qs-tipo").insertAdjacentHTML("beforeend", tipos.map(m=>opt(m)).join(""));
-$("#qs-anio").insertAdjacentHTML("beforeend", anios.map(m=>opt(m)).join(""));
-$$("#qs-precio option").slice(1).forEach(o => o.textContent = clp(+o.value));
-["#h-marca","#v-marca"].forEach(s => $(s).insertAdjacentHTML("beforeend", BRANDS_ALL.map(m=>opt(m)).join("")));
-
-const YEARS = []; for (let y=2025; y>=2005; y--) YEARS.push(y);
-$("#f-anio-min").innerHTML = opt("", "Desde") + YEARS.map(y=>opt(y)).join("");
-$("#f-anio-max").innerHTML = opt("", "Hasta") + YEARS.map(y=>opt(y)).join("");
-const PRICES = [5e6,8e6,10e6,12e6,14e6,16e6,18e6,20e6,25e6,30e6];
-$("#f-p-min").innerHTML = opt("", "Mínimo") + PRICES.map(p=>opt(p, clp(p))).join("");
-$("#f-p-max").innerHTML = opt("", "Máximo") + PRICES.map(p=>opt(p, clp(p))).join("");
-
-// ---------- Filter state ----------
-const F = { q:"", marca:new Set(), tipo:new Set(), trans:new Set(), comb:new Set(), trac:new Set(), amin:"", amax:"", pmin:"", pmax:"", km:200000, sort:"rec" };
-const count = (k,v) => CARS.filter(c=>c[k]===v).length;
-$("#f-marca").innerHTML = marcas.map(m=>`<label><input type="checkbox" value="${m}" id="fm-${m}">${m}<em>${count("marca",m)}</em></label>`).join("");
-function pills(el, key, vals){ $(el).innerHTML = vals.map(v=>`<button type="button" class="pill" aria-pressed="false" data-k="${key}" data-v="${v}">${v}</button>`).join(""); }
-pills("#f-tipo","tipo",tipos); pills("#f-trans","trans",["Manual","Automática"]); pills("#f-comb","comb",["Bencina","Diésel"]); pills("#f-trac","trac",["4x2","4x4"]);
-
+// ---------- Filtros ----------
+const F = { q:"", estado:new Set(), marca:new Set(), tipo:new Set(), trans:new Set(), comb:new Set(), trac:new Set(), amin:"", amax:"", pmin:"", pmax:"", km:200000, sort:"rec" };
+const SETS = ["estado","marca","tipo","trans","comb","trac"];
+const opt = (v,t=v) => `<option value="${esc(v)}">${esc(t)}</option>`;
+const PRICES = [5e6,8e6,10e6,12e6,14e6,16e6,18e6,20e6,25e6,30e6,40e6];
+function pills(el, key, vals, labels={}){ $(el).innerHTML = vals.map(v=>`<button type="button" class="pill" aria-pressed="false" data-k="${key}" data-v="${esc(v)}">${esc(labels[v]||v)}</button>`).join(""); }
+function buildOptions(){
+  const marcas = uniq(CARS.map(c=>c.marca)).sort(), tipos = uniq(CARS.map(c=>c.tipo)).sort(), anios = uniq(CARS.map(c=>c.anio)).sort((a,b)=>b-a);
+  $("#qs-marca").innerHTML = opt("","Todas") + marcas.map(m=>opt(m)).join("");
+  $("#qs-tipo").innerHTML = opt("","Todos") + tipos.map(m=>opt(m)).join("");
+  $("#qs-anio").innerHTML = opt("","Cualquiera") + anios.map(m=>opt(m)).join("");
+  $$("#qs-precio option").slice(1).forEach(o => o.textContent = clp(+o.value));
+  const years = []; for (let y = new Date().getFullYear() + 1; y >= 1995; y--) years.push(y);
+  $("#f-anio-min").innerHTML = opt("", "Desde") + years.map(y=>opt(y)).join("");
+  $("#f-anio-max").innerHTML = opt("", "Hasta") + years.map(y=>opt(y)).join("");
+  $("#f-p-min").innerHTML = opt("", "Mínimo") + PRICES.map(p=>opt(p, clp(p))).join("");
+  $("#f-p-max").innerHTML = opt("", "Máximo") + PRICES.map(p=>opt(p, clp(p))).join("");
+  const count = (k,v) => CARS.filter(c=>c[k]===v).length;
+  $("#f-marca").innerHTML = marcas.map((m,i)=>`<label><input type="checkbox" value="${esc(m)}" id="fm-${i}">${esc(m)}<em>${count("marca",m)}</em></label>`).join("");
+  pills("#f-estado","estado",["disponible","reservado","vendido"],ESTADO_LBL);
+  pills("#f-tipo","tipo",tipos); pills("#f-trans","trans",uniq(["Manual","Automática",...CARS.map(c=>c.trans)])); pills("#f-comb","comb",uniq(["Bencina","Diésel",...CARS.map(c=>c.comb)])); pills("#f-trac","trac",["4x2","4x4"]);
+}
 $("#filters").addEventListener("click", e => {
   const p = e.target.closest(".pill"); if (!p) return;
   const s = F[p.dataset.k]; s.has(p.dataset.v) ? s.delete(p.dataset.v) : s.add(p.dataset.v);
@@ -758,7 +847,7 @@ $("#f-q").addEventListener("input", e => { F.q = e.target.value.trim(); run(); }
 [["#f-anio-min","amin"],["#f-anio-max","amax"],["#f-p-min","pmin"],["#f-p-max","pmax"],["#f-sort","sort"]].forEach(([s,k]) => $(s).addEventListener("change", e => { F[k]=e.target.value; run(); }));
 $("#f-km").addEventListener("input", e => { F.km = +e.target.value; syncUI(); run(); });
 $("#f-reset").onclick = () => { resetF(); syncUI(); run(); };
-function resetF(){ Object.assign(F,{q:"",amin:"",amax:"",pmin:"",pmax:"",km:200000}); ["marca","tipo","trans","comb","trac"].forEach(k=>F[k].clear()); }
+function resetF(){ Object.assign(F,{q:"",amin:"",amax:"",pmin:"",pmax:"",km:200000}); SETS.forEach(k=>F[k].clear()); }
 function syncUI(){
   $("#f-q").value = F.q;
   $$("#f-marca input").forEach(i => i.checked = F.marca.has(i.value));
@@ -769,26 +858,26 @@ function syncUI(){
 function run(){
   const q = F.q.toLowerCase();
   let r = CARS.filter(c =>
-    (!q || `${c.marca} ${c.modelo} ${c.version} ${c.tipo} ${c.trac}`.toLowerCase().includes(q)) &&
+    (!q || `${c.marca} ${c.modelo} ${c.version} ${c.tipo} ${c.trac} ${c.color}`.toLowerCase().includes(q)) &&
+    (!F.estado.size || F.estado.has(c.estado)) &&
     (!F.marca.size || F.marca.has(c.marca)) && (!F.tipo.size || F.tipo.has(c.tipo)) &&
     (!F.trans.size || F.trans.has(c.trans)) && (!F.comb.size || F.comb.has(c.comb)) && (!F.trac.size || F.trac.has(c.trac)) &&
     (!F.amin || c.anio >= +F.amin) && (!F.amax || c.anio <= +F.amax) &&
     (!F.pmin || c.precio >= +F.pmin) && (!F.pmax || c.precio <= +F.pmax) &&
     (F.km >= 200000 || c.km <= F.km));
-  const S = {pa:(a,b)=>a.precio-b.precio, pd:(a,b)=>b.precio-a.precio, an:(a,b)=>b.anio-a.anio, km:(a,b)=>a.km-b.km, rec:(a,b)=>(b.dest?1:0)-(a.dest?1:0)||a.id-b.id};
-  r.sort(S[F.sort]);
+  const S = {pa:(a,b)=>a.precio-b.precio, pd:(a,b)=>b.precio-a.precio, an:(a,b)=>b.anio-a.anio, km:(a,b)=>a.km-b.km, rec:(a,b)=>(b.destacado?1:0)-(a.destacado?1:0)||a.orden-b.orden||a.id-b.id};
+  r.sort((a,b) => RANK[a.estado]-RANK[b.estado] || S[F.sort](a,b));
   $("#count").innerHTML = `<b>${r.length}</b> vehículo${r.length===1?"":"s"} encontrado${r.length===1?"":"s"}`;
   $("#results").innerHTML = r.length ? r.map(card).join("") :
     `<div class="empty" style="grid-column:1/-1"><h3>No encontramos vehículos con esos filtros</h3><p>Prueba ampliando el rango de precio o kilometraje, o cuéntanos qué buscas y te avisamos cuando llegue.</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"><button class="btn btn-o btn-sm" id="e-reset">Limpiar filtros</button><a class="btn btn-wa btn-sm" href="${waUrl("Hola, estoy buscando un vehículo y no lo encontré en la web. ¿Me pueden ayudar?")}" target="_blank" rel="noopener">${ic("wa",1)}Avísame por WhatsApp</a></div></div>`;
   const er = $("#e-reset"); if (er) er.onclick = () => { resetF(); syncUI(); run(); };
-  // chips
   const ch = [];
   if (F.q) ch.push(["q","",`“${F.q}”`]);
-  ["marca","tipo","trans","comb","trac"].forEach(k => F[k].forEach(v => ch.push([k,v,v])));
+  SETS.forEach(k => F[k].forEach(v => ch.push([k,v,ESTADO_LBL[v]&&k==="estado"?ESTADO_LBL[v]:v])));
   if (F.amin) ch.push(["amin","",`Desde ${F.amin}`]); if (F.amax) ch.push(["amax","",`Hasta ${F.amax}`]);
   if (F.pmin) ch.push(["pmin","",`Desde ${clp(+F.pmin)}`]); if (F.pmax) ch.push(["pmax","",`Hasta ${clp(+F.pmax)}`]);
   if (F.km < 200000) ch.push(["km","",`≤ ${kmf(F.km)}`]);
-  $("#chips").innerHTML = ch.map(([k,v,t]) => `<span class="chip">${t}<button type="button" data-k="${k}" data-v="${v}" aria-label="Quitar filtro ${t}">${ic("x")}</button></span>`).join("");
+  $("#chips").innerHTML = ch.map(([k,v,t]) => `<span class="chip">${esc(t)}<button type="button" data-k="${k}" data-v="${esc(v)}" aria-label="Quitar filtro">${ic("x")}</button></span>`).join("");
 }
 $("#chips").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -799,122 +888,153 @@ $("#chips").addEventListener("click", e => {
 const fl = $("#filters");
 $("#f-open").onclick = () => fl.classList.add("open");
 $("#f-close").onclick = $("#f-apply").onclick = () => fl.classList.remove("open");
-
-// Quick search -> catalog
 $("#qs").addEventListener("submit", e => {
   e.preventDefault(); resetF();
   const m=$("#qs-marca").value, t=$("#qs-tipo").value;
   if (m) F.marca.add(m); if (t) F.tipo.add(t);
   F.amin = $("#qs-anio").value; F.pmax = $("#qs-precio").value;
-  if (F.pmax && !PRICES.includes(+F.pmax)) { PRICES.push(+F.pmax); }
   if (F.pmax && !$(`#f-p-max option[value="${F.pmax}"]`)) $("#f-p-max").insertAdjacentHTML("beforeend", opt(F.pmax, clp(+F.pmax)));
   syncUI(); run(); location.hash = "vehiculos";
 });
 
-// ---------- Detail ----------
+// ---------- Ficha ----------
 function detail(c){
-  const sim = c.precio;
+  const sold = c.estado === "vendido", res = c.estado === "reservado";
+  const fotos = (c.fotos && c.fotos.length) ? c.fotos : [photo(c)];
+  const equip = (c.equipamiento || []).filter(Boolean);
+  const actions = sold
+    ? `<div class="state-note ven">${T("detalle.vendido")}</div>
+       <a class="btn btn-y btn-block" data-vid="${c.id}" href="${waUrl(`Hola, busco un vehículo similar al ${name(c)} ${c.anio}.`)}" target="_blank" rel="noopener">${ic("wa",1)}${T("detalle.similar")}</a>
+       <a class="btn btn-o btn-block" href="#vehiculos">Ver vehículos disponibles</a>`
+    : `${res ? `<div class="state-note res">${T("detalle.reservado")}</div>` : ""}
+       <button class="btn btn-y btn-block" data-cot="${c.id}">${ic("calc")}${T("detalle.cotizar")}</button>
+       <a class="btn btn-wa btn-block" data-vid="${c.id}" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}${T("detalle.whatsapp")}</a>
+       ${res ? "" : `<button class="btn btn-o btn-block" data-cot="${c.id}" data-mode="visita">${ic("cal")}${T("detalle.visita")}</button>`}`;
   $("#detalle").innerHTML = `
-  <div class="crumbs"><a href="#inicio">Inicio</a> / <a href="#vehiculos">Vehículos en venta</a> / ${name(c)}</div>
+  <div class="crumbs"><a href="#inicio">Inicio</a> / <a href="#vehiculos">Vehículos en venta</a> / ${esc(name(c))}</div>
   <a href="#vehiculos" class="btn btn-o btn-sm" style="margin:6px 0 18px">${ic("back")}Volver al listado</a>
   <div class="det">
     <div>
-      <div class="gal-main"><img id="g-main" src="${IMG(c.img)}" alt="${name(c)} ${c.version}"></div>
-      <div class="thumbs">
-        <button class="on" aria-label="Foto 1"><img src="${IMG(c.img)}" alt=""></button>
-        <button class="more" data-wa="Hola, ¿me pueden enviar más fotos del ${name(c)} ${c.anio}?">${ic("cam")}&nbsp;Pedir más fotos</button>
-        <button class="more" data-cot="${c.id}" data-mode="visita">${ic("cal")}&nbsp;Agendar visita</button>
-        <button class="more" data-cot="${c.id}" data-mode="parte">${ic("car")}&nbsp;Dejar mi auto en parte de pago</button>
+      <div class="gal-main${sold?" sold":""}"><img id="g-main" src="${esc(fotos[0])}" alt="${esc(name(c)+" "+c.version)}">${res?'<span class="ribbon">Reservado</span>':""}${sold?'<span class="ribbon" style="background:rgba(13,16,21,.88);color:#fff">Vendido</span>':""}</div>
+      <div class="thumbs${sold?" sold":""}">
+        ${fotos.map((f,i)=>`<button class="${i?"":"on"}" data-src="${esc(f)}" aria-label="Foto ${i+1}"><img src="${esc(f)}" alt="" loading="lazy"></button>`).join("")}
+        ${sold ? "" : `<button class="more" data-wa="Hola, ¿me pueden enviar más fotos del ${esc(name(c))} ${c.anio}?" data-open-wa>${ic("cam")}&nbsp;Pedir más fotos</button>`}
       </div>
       <div class="kv">
         <div><small>${ic("cal")}Año</small><b>${c.anio}</b></div>
         <div><small>${ic("gauge")}Kilometraje</small><b>${kmf(c.km)}</b></div>
-        <div><small>${ic("gear")}Transmisión</small><b>${c.trans}</b></div>
-        <div><small>${ic("fuel")}Combustible</small><b>${c.comb}</b></div>
-        <div><small>${ic("4x4")}Tracción</small><b>${c.trac}</b></div>
-        <div><small>${ic("car")}Carrocería</small><b>${c.tipo} · ${c.color}</b></div>
+        <div><small>${ic("gear")}Transmisión</small><b>${esc(c.trans)}</b></div>
+        <div><small>${ic("fuel")}Combustible</small><b>${esc(c.comb)}</b></div>
+        <div><small>${ic("4x4")}Tracción</small><b>${esc(c.trac)}</b></div>
+        <div><small>${ic("car")}Carrocería</small><b>${esc(c.tipo)}${c.color?" · "+esc(c.color):""}</b></div>
       </div>
       <div class="desc">
         <h2>Descripción</h2>
-        <p>${name(c)} ${c.version} año ${c.anio}, ${kmf(c.km)}, transmisión ${c.trans.toLowerCase()}, motor ${c.comb.toLowerCase()}. Vehículo en consignación, revisado por nuestro equipo y con documentación al día. Se puede ver en Santiago con cita previa.</p>
-        <ul><li>Único dueño</li><li>Mantenciones al día</li><li>Revisión técnica vigente</li><li>Permiso de circulación al día</li><li>Sin multas ni prendas</li><li>Transferencia inmediata</li></ul>
-        <p class="note" style="color:var(--muted-d)">Descripción y equipamiento de ejemplo para la maqueta.</p>
+        <p>${c.descripcion ? fmt(c.descripcion) : `${esc(name(c))} ${esc(c.version)} año ${c.anio}, ${kmf(c.km)}, transmisión ${esc(c.trans.toLowerCase())}, motor ${esc(c.comb.toLowerCase())}. Vehículo en consignación, revisado por nuestro equipo y con documentación al día. Se puede ver en Santiago con cita previa.`}</p>
+        ${equip.length ? `<ul>${equip.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>` : ""}
       </div>
     </div>
     <div class="det-side">
       <div class="box">
-        <span class="eyebrow">${c.tipo} · ${c.trac}</span>
-        <h1 style="margin-top:8px">${name(c)}</h1>
-        <div class="sub">${c.version} · ${c.anio} · ${kmf(c.km)}</div>
-        <div class="big-price">${clp(c.precio)}</div>
-        <div class="note" style="color:var(--muted-d)">Precio contado. Consulta por financiamiento.</div>
-        <div class="stack">
-          <button class="btn btn-y btn-block" data-cot="${c.id}">${ic("calc")}Cotizar este vehículo</button>
-          <a class="btn btn-wa btn-block" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}Contactar por WhatsApp</a>
-          <button class="btn btn-o btn-block" data-cot="${c.id}" data-mode="visita">${ic("cal")}Agendar visita</button>
-        </div>
-        <div class="seller" style="margin-top:18px"><span class="av">A</span><div><b style="color:#fff">Agustín</b><br>Asesor · responde en minutos por WhatsApp</div></div>
+        <span class="eyebrow">${esc(c.tipo)} · ${esc(c.trac)} · ${ESTADO_LBL[c.estado]}</span>
+        <h1 style="margin-top:8px">${esc(name(c))}</h1>
+        <div class="sub">${esc(c.version)} · ${c.anio} · ${kmf(c.km)}</div>
+        <div class="big-price" ${sold?'style="color:var(--muted-d);text-decoration:line-through"':""}>${clp(c.precio)}</div>
+        <div class="note" style="color:var(--muted-d)">${T("detalle.precio_nota")}</div>
+        <div class="stack">${actions}</div>
+        <div class="seller" style="margin-top:18px"><span class="av">${esc((TEXTS["detalle.asesor"]||"A").trim()[0]||"A")}</span><div><b style="color:#fff">${T("detalle.asesor")}</b><br>${T("detalle.asesor_d")}</div></div>
       </div>
-      <div class="box sim">
-        <h3>${ic("calc")}Simula tu crédito</h3>
+      ${sold ? "" : `<div class="box sim">
+        <h3>${ic("calc")}${T("detalle.sim_titulo")}</h3>
         <div class="row"><label class="lbl" style="color:#C9CED7" for="s-pie">Pie: <b id="s-pie-v"></b></label><input type="range" id="s-pie" min="20" max="70" step="5" value="30"></div>
         <div class="row"><label class="lbl" style="color:#C9CED7" for="s-n">Plazo</label>
           <select class="fld" id="s-n" style="background-color:var(--card-2);border-color:var(--line);color:#fff"><option value="24">24 cuotas</option><option value="36" selected>36 cuotas</option><option value="48">48 cuotas</option></select></div>
         <div class="out"><span>Cuota mensual estimada</span><b id="s-out"></b></div>
-        <p class="note" style="color:var(--muted-d);margin:10px 0 0">Valor referencial con tasa de ejemplo de 1,9% mensual. Sujeto a evaluación.</p>
+        <p class="note" style="color:var(--muted-d);margin:10px 0 0">${T("detalle.sim_nota")}</p>
         <button class="btn btn-o btn-block" style="margin-top:12px" data-cot="${c.id}" data-mode="credito">Solicitar evaluación de crédito</button>
-      </div>
+      </div>`}
     </div>
   </div>
-  <div class="sec-hd" style="margin-top:48px"><div><h2>También te puede interesar</h2></div></div>
-  <div class="grid-cars">${CARS.filter(x=>x.id!==c.id && (x.tipo===c.tipo || x.marca===c.marca)).slice(0,4).map(card).join("")}</div>`;
-  wireWa($("#detalle"));
-  const upd = () => {
-    const pie = +$("#s-pie").value, n = +$("#s-n").value, i = .019;
-    const P = sim * (1 - pie/100), cuota = P * i / (1 - Math.pow(1+i, -n));
-    $("#s-pie-v").textContent = `${pie}% (${clp(Math.round(sim*pie/100))})`;
-    $("#s-out").textContent = clp(Math.round(cuota));
-  };
-  $("#s-pie").oninput = upd; $("#s-n").onchange = upd; upd();
+  <div class="sec-hd" style="margin-top:48px"><div><h2>${T("detalle.relacionados")}</h2></div></div>
+  <div class="grid-cars">${CARS.filter(x=>x.id!==c.id && x.estado!=="vendido").sort((a,b)=>(b.tipo===c.tipo)-(a.tipo===c.tipo)||(b.marca===c.marca)-(a.marca===c.marca)).slice(0,4).map(card).join("")}</div>`;
+  $$(".thumbs button[data-src]").forEach(b => b.onclick = () => { $("#g-main").src = b.dataset.src; $$(".thumbs button").forEach(x=>x.classList.toggle("on", x===b)); });
+  const mw = $("[data-open-wa]"); if (mw) mw.onclick = () => { track("whatsapp", {vehicle_id:c.id}); window.open(waUrl(mw.dataset.wa), "_blank", "noopener"); };
+  if (!sold) {
+    const upd = () => {
+      const pie = +$("#s-pie").value, n = +$("#s-n").value, i = .019, P = c.precio * (1 - pie/100);
+      $("#s-pie-v").textContent = `${pie}% (${clp(c.precio*pie/100)})`;
+      $("#s-out").textContent = clp(P * i / (1 - Math.pow(1+i, -n)));
+    };
+    $("#s-pie").oninput = upd; $("#s-n").onchange = upd; upd();
+  }
+  track("vehicle_view", { vehicle_id: c.id });
+}
+
+// ---------- Envío de formularios ----------
+async function sendLead(payload){
+  const r = await fetch("/api/lead", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(j.error || "No pudimos enviar tu solicitud. Intenta de nuevo.");
+  return j;
+}
+function formData(f){
+  const o = {}; new FormData(f).forEach((v,k) => { o[k] = String(v); }); return o;
+}
+function splitLead(o, tipo, extra={}){
+  const { nombre="", telefono="", email="", mensaje="", website="", ...datos } = o;
+  Object.keys(datos).forEach(k => { if (!datos[k]) delete datos[k]; });
+  return { tipo, nombre, telefono, email, mensaje, website, datos, ...extra };
 }
 
 // ---------- Modal cotizar ----------
 const modal = $("#modal"), mc = $("#modal-c");
 let lastFocus = null;
 const TITLES = { cot:"Cotizar este vehículo", visita:"Agendar una visita", credito:"Evaluar crédito", parte:"Dejar mi auto en parte de pago" };
+const TIPO = { cot:"cotizacion", visita:"visita", credito:"credito", parte:"parte_pago" };
 function openCot(id, mode="cot"){
-  const c = CARS.find(x=>x.id===+id); lastFocus = document.activeElement;
+  const c = CARS.find(x=>x.id===+id); if (!c) return; lastFocus = document.activeElement;
+  track("cotizar_open", { vehicle_id: c.id });
   mc.innerHTML = `
     <button class="x" id="m-x" aria-label="Cerrar">${ic("x")}</button>
     <h2 id="m-title">${TITLES[mode]}</h2>
-    <div class="mcar"><img src="${IMG(c.img)}" alt=""><div><b>${name(c)} ${c.version}</b><small class="note">${c.anio} · ${kmf(c.km)}</small><br><span>${clp(c.precio)}</span></div></div>
+    <div class="mcar${c.estado==="vendido"?" sold":""}"><img src="${esc(photo(c))}" alt=""><div><b>${esc(name(c)+" "+c.version)}</b><small class="note">${c.anio} · ${kmf(c.km)}</small><br><span>${clp(c.precio)}</span></div></div>
     <form class="fgrid" id="m-form">
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
       <div class="full"><label class="lbl">¿Cómo quieres pagar?</label>
         <div class="seg">
-          <label><input type="radio" name="m-pago" id="m-p1" ${mode!=="credito"?"checked":""}><span>Contado</span></label>
-          <label><input type="radio" name="m-pago" id="m-p2" ${mode==="credito"?"checked":""}><span>Con crédito</span></label>
-          <label><input type="radio" name="m-pago" id="m-p3" ${mode==="parte"?"checked":""}><span>Auto en parte de pago</span></label>
+          <label><input type="radio" name="forma_pago" value="Contado" id="m-p1" ${mode==="cot"||mode==="visita"?"checked":""}><span>Contado</span></label>
+          <label><input type="radio" name="forma_pago" value="Con crédito" id="m-p2" ${mode==="credito"?"checked":""}><span>Con crédito</span></label>
+          <label><input type="radio" name="forma_pago" value="Auto en parte de pago" id="m-p3" ${mode==="parte"?"checked":""}><span>Auto en parte de pago</span></label>
         </div></div>
-      <div><label class="lbl" for="m-nombre">Nombre</label><input class="fld" id="m-nombre" required></div>
-      <div><label class="lbl" for="m-tel">Teléfono</label><input class="fld" id="m-tel" type="tel" placeholder="+56 9" required></div>
-      <div class="full"><label class="lbl" for="m-email">Email</label><input class="fld" id="m-email" type="email"></div>
-      ${mode==="visita" ? `<div class="full"><label class="lbl" for="m-fecha">Fecha preferida</label><input class="fld" id="m-fecha" type="date"></div>` : ""}
-      ${mode==="parte" ? `<div class="full"><label class="lbl" for="m-auto">Tu auto (marca, modelo, año, km)</label><input class="fld" id="m-auto" placeholder="Ej: Kia Rio 5 2018, 70.000 km"></div>` : ""}
-      <div class="full"><label class="lbl" for="m-msg">Comentario</label><textarea class="fld" id="m-msg" placeholder="Opcional"></textarea></div>
-      <button class="btn btn-y full" type="submit">${ic("mail")}Enviar solicitud</button>
-      <a class="btn btn-wa full" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}O escríbenos directo por WhatsApp</a>
+      <div><label class="lbl" for="m-nombre">Nombre</label><input class="fld" name="nombre" id="m-nombre" required></div>
+      <div><label class="lbl" for="m-tel">Teléfono</label><input class="fld" name="telefono" id="m-tel" type="tel" placeholder="+56 9" required></div>
+      <div class="full"><label class="lbl" for="m-email">Email</label><input class="fld" name="email" id="m-email" type="email"></div>
+      ${mode==="visita" ? `<div class="full"><label class="lbl" for="m-fecha">Fecha preferida</label><input class="fld" name="fecha_visita" id="m-fecha" type="date"></div>` : ""}
+      ${mode==="credito" ? `<div class="full"><label class="lbl" for="m-pie">¿Cuánto pie tienes?</label><input class="fld" name="pie" id="m-pie" inputmode="numeric" placeholder="$ 4.000.000"></div>` : ""}
+      <div class="full"><label class="lbl" for="m-auto">¿Dejas un auto en parte de pago? (marca, modelo, año, km)</label><input class="fld" name="auto_parte_pago" id="m-auto" placeholder="Opcional · Ej: Kia Rio 5 2018, 70.000 km"></div>
+      <div class="full"><label class="lbl" for="m-msg">Comentario</label><textarea class="fld" name="mensaje" id="m-msg" placeholder="Opcional"></textarea></div>
+      <p class="err-note full" id="m-err" hidden></p>
+      <button class="btn btn-y full" type="submit" id="m-send">${ic("mail")}Enviar solicitud</button>
+      <a class="btn btn-wa full" data-vid="${c.id}" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}O escríbenos directo por WhatsApp</a>
     </form>`;
   modal.hidden = false; document.body.style.overflow = "hidden";
   $("#m-x").onclick = closeModal;
-  $("#m-form").onsubmit = e => {
+  $("#m-form").onsubmit = async e => {
     e.preventDefault();
-    const n = $("#m-nombre").value.split(" ")[0];
-    mc.innerHTML = `<button class="x" id="m-x" aria-label="Cerrar">${ic("x")}</button>
-      <div class="ok-state"><div class="bub">${ic("check")}</div><h2 id="m-title" style="padding:0">¡Gracias, ${n}!</h2>
-      <p>Recibimos tu solicitud por el <b>${name(c)} ${c.anio}</b>. Un asesor te contactará a la brevedad.</p>
-      <p class="note">Maqueta: el formulario no envía datos todavía.</p>
-      <div class="stack"><a class="btn btn-wa btn-block" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}Acelerar por WhatsApp</a><button class="btn btn-dk btn-block" id="m-ok">Seguir viendo vehículos</button></div></div>`;
-    $("#m-x").onclick = closeModal; $("#m-ok").onclick = closeModal; $("#m-ok").focus();
+    const o = formData(e.target), btn = $("#m-send");
+    let tipo = TIPO[mode]; if (mode === "cot" && o.forma_pago === "Con crédito") tipo = "credito"; if (mode === "cot" && o.auto_parte_pago) tipo = "parte_pago";
+    btn.disabled = true; btn.lastChild.textContent = "Enviando…";
+    try {
+      await sendLead(splitLead(o, tipo, { vehicle_id: c.id }));
+      const n = esc(o.nombre.split(" ")[0]);
+      mc.innerHTML = `<button class="x" id="m-x" aria-label="Cerrar">${ic("x")}</button>
+        <div class="ok-state"><div class="bub">${ic("check")}</div><h2 id="m-title" style="padding:0">¡Gracias, ${n}!</h2>
+        <p><b>${esc(name(c)+" "+c.anio)}</b></p><p>${T("detalle.gracias")}</p>
+        <div class="stack"><a class="btn btn-wa btn-block" data-vid="${c.id}" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}Acelerar por WhatsApp</a><button class="btn btn-dk btn-block" id="m-ok">Seguir viendo vehículos</button></div></div>`;
+      $("#m-x").onclick = closeModal; $("#m-ok").onclick = closeModal; $("#m-ok").focus();
+    } catch (err) {
+      $("#m-err").textContent = err.message; $("#m-err").hidden = false; btn.disabled = false; btn.lastChild.textContent = "Enviar solicitud";
+    }
   };
   $("#m-nombre").focus();
 }
@@ -925,20 +1045,25 @@ document.addEventListener("click", e => {
   const b = e.target.closest("[data-cot]"); if (b) { e.preventDefault(); openCot(b.dataset.cot, b.dataset.mode); }
 });
 
-// ---------- Lead forms ----------
-const toast = msg => { $("#toast-t").textContent = msg; $("#toast").classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(()=>$("#toast").classList.remove("show"), 3800); };
-$$("form[data-lead]").forEach(f => f.addEventListener("submit", e => {
+// ---------- Formularios de venta y contacto ----------
+const toast = msg => { $("#toast-t").innerHTML = msg; $("#toast").classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(()=>$("#toast").classList.remove("show"), 4200); };
+$$("form[data-lead]").forEach(f => f.addEventListener("submit", async e => {
   e.preventDefault();
-  toast(f.dataset.lead==="contacto" ? "Mensaje recibido. Te respondemos pronto (maqueta: no se envía)." : "¡Datos recibidos! Te contactaremos para evaluar tu auto (maqueta).");
-  f.reset(); const t = $("#v-files-t"); if (t) t.innerHTML = "<b>Sube fotos de tu auto</b><br>Opcional · hasta 10 imágenes";
+  const btn = f.querySelector("button[type=submit]"); btn.disabled = true;
+  try {
+    await sendLead(splitLead(formData(f), f.dataset.lead));
+    toast(f.dataset.lead === "contacto" ? T("general.toast.contacto") : T("general.toast.venta"));
+    f.reset();
+  } catch (err) { toast(esc(err.message)); }
+  btn.disabled = false;
 }));
-$("#v-files").addEventListener("change", e => { const n = e.target.files.length; $("#v-files-t").innerHTML = n ? `<b>${n} foto${n>1?"s":""} seleccionada${n>1?"s":""}</b><br>Se adjuntarán a tu solicitud` : "<b>Sube fotos de tu auto</b><br>Opcional · hasta 10 imágenes"; });
 
 // ---------- Router ----------
-function route(){
+let loaded = false;
+function route(doTrack = true){
   const h = (location.hash || "#inicio").slice(1);
   let page = h, m = h.match(/^auto-(\d+)$/);
-  if (m) { const c = CARS.find(x=>x.id===+m[1]); if (c) { detail(c); page = "detalle"; } else page = "vehiculos"; }
+  if (m) { const c = CARS.find(x=>x.id===+m[1]); if (c) { detail(c); page = "detalle"; } else page = loaded ? "vehiculos" : "inicio"; }
   if (!$(`[data-page="${page}"]`)) page = "inicio";
   $$("[data-page]").forEach(s => s.hidden = s.dataset.page !== page);
   const navKey = page === "detalle" ? "vehiculos" : page;
@@ -946,8 +1071,26 @@ function route(){
   if (page === "vehiculos") run();
   fl.classList.remove("open");
   window.scrollTo({top:0, behavior:"instant"});
+  if (page !== "detalle" && doTrack) track("pageview");
 }
 window.addEventListener("hashchange", route);
-syncUI(); route();
+["#h-marca","#v-marca"].forEach(s => $(s).insertAdjacentHTML("beforeend", BRANDS_ALL.map(m=>opt(m)).join("")));
+
+async function boot(){
+  try {
+    const r = await fetch("/api/site"); if (!r.ok) throw new Error();
+    const d = await r.json();
+    SETTINGS = d.settings || {}; CARS = (d.vehicles || []).map(v => ({ ...v, precio: +v.precio }));
+    applySettings();
+  } catch {
+    $("#home-cars").innerHTML = `<div class="empty" style="grid-column:1/-1">No pudimos cargar los vehículos. Recarga la página o escríbenos por WhatsApp.</div>`;
+  }
+  loaded = true;
+  buildOptions(); syncUI();
+  const dest = CARS.filter(c=>c.destacado).sort((a,b)=>RANK[a.estado]-RANK[b.estado]||a.orden-b.orden).slice(0,5);
+  if (CARS.length) $("#home-cars").innerHTML = (dest.length ? dest : CARS.slice(0,5)).map(card).join("");
+  route();
+}
+route(false); boot();
 })();
 </script>
