@@ -24,6 +24,11 @@ export const DEFAULT_SETTINGS = {
   header_cta: { label: 'WhatsApp', visible: true },
   fab: { label: '¿Hablamos?', visible: true },
   social: { instagram: 'https://instagram.com', facebook: 'https://facebook.com' },
+  contacts: {
+    phones: [{ number: '56997360901', label: '' }, { number: '56992180841', label: '' }],
+    emails: ['agustin@tevendoelauto.cl', 'mario@tevendoelauto.cl'],
+    show_hours: false
+  },
   texts: {},
   blocks: []
 };

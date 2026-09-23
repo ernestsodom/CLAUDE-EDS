@@ -291,6 +291,7 @@ const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const ic = id => `<svg class="ico"><use href="#i-${id}"/></svg>`;
 const clp = n => "$" + Math.round(+n || 0).toLocaleString("es-CL");
+const fmtPhone = d => { d = String(d || "").replace(/\D/g, ""); const m = d.match(/^56(9)(\d{4})(\d{4})$/); return m ? `+56 ${m[1]} ${m[2]} ${m[3]}` : (d ? "+" + d : ""); };
 const nf = n => (+n || 0).toLocaleString("es-CL");
 const fdate = d => new Date(d).toLocaleString("es-CL", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
 const TIPOS = { cotizacion:"Cotización", visita:"Agendar visita", credito:"Crédito", parte_pago:"Parte de pago", venta:"Quiere vender su auto", contacto:"Contacto general" };
@@ -662,6 +663,7 @@ function renderTextos(){
 async function viewMarca(){
   await loadSettings();
   const S = JSON.parse(JSON.stringify(SETTINGS));
+  S.contacts = S.contacts || { phones:[{ number:S.whatsapp, label:"" }], emails:[], show_hours:false };
   const PN = { inicio:"Inicio", vehiculos:"Vehículos en venta", vende:"Vende tu auto", nosotros:"Nosotros", contacto:"Contacto" };
   const render = () => {
     $("#view").innerHTML = `
@@ -684,16 +686,32 @@ async function viewMarca(){
         </div>
         <div class="card"><h2>Botones de WhatsApp</h2>
           <div class="grid">
-            <div><label class="lbl" for="wa-n">Número de WhatsApp</label><input class="fld" id="wa-n" value="${esc(S.whatsapp)}" inputmode="tel"><div class="hint">Con código de país, sin + ni espacios. Ej: 56997360901</div></div>
+            <p class="hint" style="margin:0">Estos botones escriben al <b>primer teléfono</b> de la lista “Teléfonos y correos”.</p>
             <div><label class="lbl" for="cta-l">Botón amarillo del menú</label><div class="acts" style="flex-wrap:nowrap"><input class="fld" id="cta-l" value="${esc(S.header_cta.label)}"><label class="switch"><input type="checkbox" id="cta-v" ${S.header_cta.visible!==false?"checked":""}>Visible</label></div></div>
             <div><label class="lbl" for="fab-l">Botón verde flotante (siempre visible)</label><input class="fld" id="fab-l" value="${esc(S.fab.label)}"></div>
           </div>
+        </div>
+        <div class="card"><h2>Teléfonos y correos <span class="muted" style="font:600 .8rem var(--body)">Contacto y pie de página</span></h2>
+          <label class="lbl">Teléfonos de WhatsApp</label>
+          ${S.contacts.phones.map((p,i) => `<div class="navrow" style="grid-template-columns:1fr 1fr auto auto auto">
+            <div><input class="fld" data-pn="${i}" value="${esc(p.number)}" inputmode="tel" placeholder="56912345678" aria-label="Número"><div class="hint">${i ? "Número" : "Número principal (botones de WhatsApp)"}</div></div>
+            <div><input class="fld" data-pl="${i}" value="${esc(p.label)}" placeholder="${esc(fmtPhone(p.number))}" aria-label="Cómo se muestra"><div class="hint">Cómo se muestra (opcional)</div></div>
+            <button class="icon-b" data-pm="-1" data-i="${i}" aria-label="Subir">${ic("up")}</button><button class="icon-b" data-pm="1" data-i="${i}" aria-label="Bajar">${ic("down")}</button><button class="icon-b" data-prm="${i}" aria-label="Quitar">${ic("trash")}</button></div>`).join("")}
+          <button class="btn btn-sm" id="p-add" style="margin:8px 0 18px">${ic("plus")}Agregar teléfono</button>
+          <p class="hint" style="margin:-10px 0 16px">Con código de país, sin + ni espacios. Ej: 56992180841</p>
+          <label class="lbl">Correos</label>
+          ${S.contacts.emails.map((e,i) => `<div class="navrow" style="grid-template-columns:1fr auto">
+            <input class="fld" data-em="${i}" value="${esc(e)}" type="email" placeholder="nombre@tevendoelauto.cl" aria-label="Correo">
+            <button class="icon-b" data-erm="${i}" aria-label="Quitar">${ic("trash")}</button></div>`).join("")}
+          <button class="btn btn-sm" id="e-add" style="margin:8px 0 18px">${ic("plus")}Agregar correo</button>
+          <label class="switch"><input type="checkbox" id="hrs" ${S.contacts.show_hours?"checked":""}>Mostrar horario de atención en Contacto</label>
+          <p class="hint">El texto del horario se edita en “Textos de la página → Contacto”.</p>
         </div>
         <div class="card"><h2>Redes sociales</h2>
           <div class="grid">
             <div><label class="lbl" for="so-ig">Instagram</label><input class="fld" id="so-ig" value="${esc(S.social.instagram||"")}" placeholder="https://instagram.com/tu_cuenta"></div>
             <div><label class="lbl" for="so-fb">Facebook</label><input class="fld" id="so-fb" value="${esc(S.social.facebook||"")}" placeholder="https://facebook.com/tu_pagina"></div>
-            <p class="hint" style="margin:0">Deja vacío para ocultar el ícono. Teléfono, email y dirección visibles se editan en “Textos de la página → General”.</p>
+            <p class="hint" style="margin:0">Deja vacío para ocultar el ícono. La dirección visible se edita en “Textos de la página → General”.</p>
           </div>
         </div>
       </div>
@@ -703,17 +721,29 @@ async function viewMarca(){
     const rl = $("#rm-logo"); if (rl) rl.onclick = () => { collect(); S.logo_url = ""; render(); };
     const rh = $("#rm-hero"); if (rh) rh.onclick = () => { collect(); S.hero_url = "/img/hero-truck.jpg"; render(); };
     $$("[data-nm]").forEach(b => b.onclick = () => { collect(); const i = +b.dataset.i, j = i + +b.dataset.nm; if (j < 0 || j >= S.nav.length) return; [S.nav[i], S.nav[j]] = [S.nav[j], S.nav[i]]; render(); });
+    $$("[data-pm]").forEach(b => b.onclick = () => { collect(); const i = +b.dataset.i, j = i + +b.dataset.pm, a = S.contacts.phones; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; render(); });
+    $$("[data-prm]").forEach(b => b.onclick = () => { collect(); S.contacts.phones.splice(+b.dataset.prm, 1); render(); });
+    $$("[data-erm]").forEach(b => b.onclick = () => { collect(); S.contacts.emails.splice(+b.dataset.erm, 1); render(); });
+    $("#p-add").onclick = () => { collect(); S.contacts.phones.push({ number:"", label:"" }); render(); $(`[data-pn="${S.contacts.phones.length-1}"]`).focus(); };
+    $("#e-add").onclick = () => { collect(); S.contacts.emails.push(""); render(); $(`[data-em="${S.contacts.emails.length-1}"]`).focus(); };
     $("#msave").onclick = async () => {
-      collect(); $("#msave").disabled = true;
-      try { const j = await api("settings_save", { settings: { logo_url:S.logo_url, hero_url:S.hero_url, nav:S.nav, header_cta:S.header_cta, fab:S.fab, whatsapp:S.whatsapp, social:S.social } }); SETTINGS = j.settings; paintLogos(); toast("Cambios publicados en el sitio"); }
+      collect();
+      const phones = S.contacts.phones.filter(p => p.number), bad = S.contacts.emails.find(e => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+      if (!phones.length) return toast("Agrega al menos un teléfono de WhatsApp.", 1);
+      if (bad !== undefined) return toast(`Revisa el correo “${bad}”.`, 1);
+      S.contacts.phones = phones; S.whatsapp = phones[0].number;
+      $("#msave").disabled = true;
+      try { const j = await api("settings_save", { settings: { logo_url:S.logo_url, hero_url:S.hero_url, nav:S.nav, header_cta:S.header_cta, fab:S.fab, whatsapp:S.whatsapp, social:S.social, contacts:S.contacts } }); SETTINGS = j.settings; paintLogos(); toast("Cambios publicados en el sitio"); }
       catch (err) { toast(err.message, 1); }
       $("#msave").disabled = false;
     };
   };
   const collect = () => {
-    if (!$("#wa-n")) return;
+    if (!$("#cta-l")) return;
+    S.contacts.phones = S.contacts.phones.map((p,i) => ({ number: $(`[data-pn="${i}"]`).value.replace(/\D/g, ""), label: $(`[data-pl="${i}"]`).value.trim() }));
+    S.contacts.emails = S.contacts.emails.map((e,i) => $(`[data-em="${i}"]`).value.trim().toLowerCase()).filter(Boolean);
+    S.contacts.show_hours = $("#hrs").checked;
     S.nav.forEach((n,i) => { n.label = $(`[data-nl="${i}"]`).value.trim() || n.label; n.visible = $(`[data-nv="${i}"]`).checked; });
-    S.whatsapp = $("#wa-n").value.replace(/\D/g, "");
     S.header_cta = { label: $("#cta-l").value.trim() || "WhatsApp", visible: $("#cta-v").checked };
     S.fab = { label: $("#fab-l").value.trim(), visible: true };
     S.social = { instagram: $("#so-ig").value.trim(), facebook: $("#so-fb").value.trim() };

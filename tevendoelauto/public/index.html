@@ -313,8 +313,11 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 @media (max-width:480px){.vals{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr 1fr}}
 .contact{display:grid;grid-template-columns:1fr 1.2fr;gap:28px;align-items:start}
 .cc{display:grid;gap:12px}
-.cc a,.cc div.c{display:flex;gap:14px;align-items:center;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.cc a:hover{border-color:var(--yellow)}
+.cc > a,.cc > div.c{display:flex;gap:14px;align-items:center;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.cc > a:hover{border-color:var(--yellow)}
+.clinks{display:grid;gap:2px}
+.clinks a{font-weight:700;color:#fff;text-decoration:none;width:fit-content;overflow-wrap:anywhere;border-radius:4px}
+.clinks a:hover,.clinks a:focus-visible{color:var(--yellow);text-decoration:underline;text-underline-offset:3px}
 .cc .bub{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--yellow);color:var(--yellow-ink);flex:none}
 .cc .bub.wa{background:var(--wa);color:#fff}
 .cc small{display:block;color:var(--muted-d);font-size:.82rem}
@@ -673,10 +676,10 @@ body.has-install .fab{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
   </div></div>
   <div class="sec"><div class="wrap contact">
     <div class="cc">
-      <a data-wa href="#"><span class="bub wa"><svg class="ico fill"><use href="#i-wa"/></svg></span><div><b data-t="general.contacto.telefono" data-tl="Teléfono visible">+56 9 9736 0901</b><small data-t="general.contacto.telefono_d" data-tl="Teléfono — texto">Escríbenos por WhatsApp</small></div></a>
-      <div class="c"><span class="bub"><svg class="ico"><use href="#i-mail"/></svg></span><div><b data-t="general.contacto.email" data-tl="Email">agustin@tevendoelauto.cl</b><small data-t="general.contacto.email_d" data-tl="Email — texto">Envíanos un correo</small></div></div>
+      <div class="c"><span class="bub wa"><svg class="ico fill"><use href="#i-wa"/></svg></span><div><div class="clinks" data-phones><a href="https://wa.me/56997360901" target="_blank" rel="noopener">+56 9 9736 0901</a></div><small data-t="general.contacto.telefono_d" data-tl="Teléfonos — texto">Escríbenos por WhatsApp</small></div></div>
+      <div class="c"><span class="bub"><svg class="ico"><use href="#i-mail"/></svg></span><div><div class="clinks" data-emails><a href="mailto:agustin@tevendoelauto.cl">agustin@tevendoelauto.cl</a></div><small data-t="general.contacto.email_d" data-tl="Correos — texto">Envíanos un correo</small></div></div>
       <div class="c"><span class="bub"><svg class="ico"><use href="#i-pin"/></svg></span><div><b data-t="general.contacto.lugar" data-tl="Ubicación">Santiago, Chile</b><small data-t="general.contacto.lugar_d" data-tl="Ubicación — texto">Atendemos con cita previa</small></div></div>
-      <div class="c"><span class="bub"><svg class="ico"><use href="#i-cal"/></svg></span><div><b data-t="contacto.horario" data-tl="Horario — días">Lunes a sábado</b><small data-t="contacto.horario_d" data-tl="Horario — horas">10:00 a 19:00 hrs</small></div></div>
+      <div class="c" id="hours-card" hidden><span class="bub"><svg class="ico"><use href="#i-cal"/></svg></span><div><b data-t="contacto.horario" data-tl="Horario — días">Lunes a sábado</b><small data-t="contacto.horario_d" data-tl="Horario — horas">10:00 a 19:00 hrs</small></div></div>
     </div>
     <form class="form-card" data-lead="contacto" aria-label="Formulario de contacto">
       <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -705,8 +708,8 @@ body.has-install .fab{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 <footer class="ftr">
   <div class="wrap">
     <a href="#inicio" class="logo" data-logo aria-label="Ir al inicio"></a>
-    <a class="it" data-wa href="#"><svg class="ico fill"><use href="#i-wa"/></svg><div><b data-t="general.contacto.telefono">+56 9 9736 0901</b><small data-t="general.contacto.telefono_d">Escríbenos por WhatsApp</small></div></a>
-    <div class="it"><svg class="ico"><use href="#i-mail"/></svg><div><b data-t="general.contacto.email">agustin@tevendoelauto.cl</b><small data-t="general.contacto.email_d">Envíanos un correo</small></div></div>
+    <div class="it"><svg class="ico fill"><use href="#i-wa"/></svg><div><div class="clinks" data-phones><a href="https://wa.me/56997360901" target="_blank" rel="noopener">+56 9 9736 0901</a></div><small data-t="general.contacto.telefono_d">Escríbenos por WhatsApp</small></div></div>
+    <div class="it"><svg class="ico"><use href="#i-mail"/></svg><div><div class="clinks" data-emails><a href="mailto:agustin@tevendoelauto.cl">agustin@tevendoelauto.cl</a></div><small data-t="general.contacto.email_d">Envíanos un correo</small></div></div>
     <div class="it"><svg class="ico"><use href="#i-pin"/></svg><div><b data-t="general.contacto.lugar">Santiago, Chile</b><small data-t="general.contacto.lugar_d">Atendemos con cita previa</small></div></div>
     <div class="soc"><div><a id="s-ig" href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico"><use href="#i-ig"/></svg></a><a id="s-fb" href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico"><use href="#i-fb"/></svg></a></div><span data-t="general.pie.redes" data-tl="Pie — redes sociales">Síguenos en redes</span></div>
   </div>
@@ -804,7 +807,18 @@ function applySettings(){
     w.innerHTML = list.map(b => `<div class="cblock">${b.title ? `<h2>${fmt(b.title)}</h2>` : ""}${b.body ? `<p>${fmt(b.body)}</p>` : ""}</div>`).join("");
     w.closest("[data-blocks-wrap]").hidden = !list.length;
   });
+  renderContacts();
   wireWa();
+}
+const fmtPhone = d => { d = String(d).replace(/\D/g, ""); const m = d.match(/^56(9)(\d{4})(\d{4})$/); return m ? `+56 ${m[1]} ${m[2]} ${m[3]}` : "+" + d; };
+function renderContacts(){
+  const c = SETTINGS.contacts || {};
+  const phones = (c.phones || []).filter(p => String(p.number || "").replace(/\D/g, ""));
+  const emails = (c.emails || []).filter(Boolean);
+  const msg = encodeURIComponent("Hola, vengo desde tevendoelauto.cl y quiero hacer una consulta.");
+  if (phones.length) $$("[data-phones]").forEach(el => el.innerHTML = phones.map(p => { const n = String(p.number).replace(/\D/g, ""), t = p.label || fmtPhone(n); return `<a href="https://wa.me/${n}?text=${msg}" target="_blank" rel="noopener" title="Escribir por WhatsApp a ${esc(t)}">${esc(t)}</a>`; }).join(""));
+  if (emails.length) $$("[data-emails]").forEach(el => el.innerHTML = emails.map(e => `<a href="mailto:${esc(e)}" title="Escribir a ${esc(e)}">${esc(e)}</a>`).join(""));
+  $("#hours-card").hidden = !c.show_hours;
 }
 function wireWa(root=document){ $$("[data-wa]", root).forEach(a => { if (a.tagName !== "A") return; a.href = waUrl(a.dataset.wa || undefined); a.target = "_blank"; a.rel = "noopener"; }); }
 $$("[data-logo]").forEach(a => a.innerHTML = logoHTML());
