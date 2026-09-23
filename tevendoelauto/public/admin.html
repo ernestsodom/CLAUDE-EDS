@@ -413,6 +413,7 @@ async function viewResumen(){
         <div class="card"><h2>Páginas más visitadas</h2><div class="list">${s.pages.map(p=>`<div class="li"><span>${esc(PG[p.path] || p.path)}</span><b class="num">${nf(p.n)}</b></div>`).join("") || `<p class="muted">Sin datos todavía.</p>`}</div></div>
         <div class="card"><h2>¿Desde dónde llegan?</h2><div class="list">${s.refs.map(p=>`<div class="li"><span>${esc(p.ref)}</span><b class="num">${nf(p.n)}</b></div>`).join("") || `<p class="muted">Sin datos todavía.</p>`}</div></div>
         <div class="card"><h2>Dispositivos</h2><div class="list">${s.devices.map(p=>`<div class="li"><span style="text-transform:capitalize">${esc(p.device||"—")}</span><b class="num">${nf(p.n)}</b></div>`).join("") || `<p class="muted">Sin datos todavía.</p>`}</div></div>
+        <div class="card"><h2>App instalada</h2><div class="list"><div class="li"><span>Instalaciones nuevas</span><b class="num">${nf(t.instalaciones)}</b></div><div class="li"><span>Personas que entraron desde la app</span><b class="num">${nf(t.usuarios_app)}</b></div></div></div>
       </div>
     </div>`;
   $("#range").onclick = e => { const b = e.target.closest("button"); if (b) { DAYS = +b.dataset.d; go("resumen"); } };

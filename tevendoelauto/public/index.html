@@ -4,6 +4,14 @@
 <meta name="description" content="Vende tu auto sin complicaciones o encuentra tu próximo vehículo. Consignación y venta de autos en Santiago, Chile.">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D1015">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TeVendoElAuto">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;1,800;1,900&family=Figtree:wght@400;500;600;700&display=swap">
@@ -361,6 +369,19 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 .cblock p{margin:0;color:#D5D9E0;max-width:75ch;white-space:pre-line}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 .err-note{color:var(--err);font-size:.85rem;font-weight:600}
+
+/* ---------- Instalar como app ---------- */
+.install{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:65;display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;background:#fff;color:var(--text);border-radius:16px;padding:12px 12px 12px 12px;box-shadow:0 14px 40px rgba(0,0,0,.45);max-width:520px;margin:0 auto;animation:up .3s ease}
+.install img{width:52px;height:52px;border-radius:12px}
+.install b{display:block;font:800 .98rem/1.2 var(--display)}
+.install p{margin:3px 0 0;font-size:.84rem;color:#4A505A;line-height:1.35}
+.install .ins-acts{display:flex;align-items:center;gap:6px}
+.install .btn{padding:.6em 1em;font-size:.88rem}
+.install .x{background:none;border:0;color:#6B7280;padding:6px;display:grid}
+.install .ios-share{display:inline-block;vertical-align:-3px;width:16px;height:16px;color:#2563EB}
+body.has-install .fab{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+@keyframes up{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.install{animation:none}}
 </style>
 
 <!-- ============ ICON SPRITE ============ -->
@@ -714,6 +735,14 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 
 <!-- WhatsApp flotante: siempre visible -->
 <a class="fab" id="fab" data-wa href="#" aria-label="Escríbenos por WhatsApp"><svg class="ico fill"><use href="#i-wa"/></svg><span id="fab-t">¿Hablamos?</span></a>
+
+
+<!-- Aviso para instalar la app (teléfonos y tablets) -->
+<div class="install" id="install" hidden role="dialog" aria-labelledby="ins-t">
+  <img src="/icons/icon-192.png" alt="">
+  <div><b id="ins-t">Instala TeVendoElAuto</b><p id="ins-d">Accede más rápido desde el ícono en tu pantalla de inicio.</p></div>
+  <div class="ins-acts"><button class="btn btn-y" id="ins-btn" type="button">Instalar</button><button class="x" id="ins-x" type="button" aria-label="Cerrar"><svg class="ico"><use href="#i-x"/></svg></button></div>
+</div>
 
 <!-- Modal cotizar -->
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title">
@@ -1092,5 +1121,31 @@ async function boot(){
   route();
 }
 route(false); boot();
+
+// ---------- Instalar como app ----------
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+(() => {
+  const box = $("#install"), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (standalone) { try { if (!sessionStorage.getItem("tva_app")) { sessionStorage.setItem("tva_app", "1"); track("app_open"); } } catch {} return; }
+  const ua = navigator.userAgent, ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const mobile = ios || /android|mobile|tablet/i.test(ua) || matchMedia("(pointer:coarse)").matches;
+  if (!mobile) return;
+  const KEY = "tva_install_hide";
+  let hiddenUntil = 0; try { hiddenUntil = +localStorage.getItem(KEY) || 0; } catch {}
+  if (Date.now() < hiddenUntil) return;
+  let deferred = null;
+  const show = () => { if (!box.hidden) return; box.hidden = false; document.body.classList.add("has-install"); };
+  const hide = days => { box.hidden = true; document.body.classList.remove("has-install"); try { localStorage.setItem(KEY, Date.now() + days * 864e5); } catch {} };
+  $("#ins-x").onclick = () => hide(14);
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; setTimeout(show, 6000); });
+  window.addEventListener("appinstalled", () => { track("app_install"); hide(3650); });
+  $("#ins-btn").onclick = async () => {
+    if (deferred) { deferred.prompt(); const r = await deferred.userChoice.catch(() => ({})); deferred = null; hide(r.outcome === "accepted" ? 3650 : 14); return; }
+    if (ios) { $("#ins-d").innerHTML = 'En Safari, toca <svg class="ios-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> <b style="display:inline;font:inherit;font-weight:700">Compartir</b> y luego <b style="display:inline;font:inherit;font-weight:700">“Agregar a inicio”</b>.'; $("#ins-btn").hidden = true; }
+  };
+  // iPhone/iPad no muestran aviso propio: mostramos el nuestro con instrucciones
+  if (ios) setTimeout(show, 6000);
+})();
+
 })();
 </script>

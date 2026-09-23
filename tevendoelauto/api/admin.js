@@ -114,7 +114,9 @@ async function stats(db, days) {
   const [tot, today, daily, vehicles, pages, devices, refs, leadsBy, leadsEstado, leadsDaily] = await Promise.all([
     db`SELECT count(DISTINCT visitor_id)::int AS visitantes, count(DISTINCT session_id)::int AS sesiones,
               count(*) FILTER (WHERE type='pageview')::int AS paginas, count(*) FILTER (WHERE type='whatsapp')::int AS whatsapp,
-              count(*) FILTER (WHERE type='vehicle_view')::int AS fichas
+              count(*) FILTER (WHERE type='vehicle_view')::int AS fichas,
+              count(*) FILTER (WHERE type='app_install')::int AS instalaciones,
+              count(DISTINCT visitor_id) FILTER (WHERE type='app_open')::int AS usuarios_app
        FROM events WHERE created_at >= ${since}`,
     db`SELECT count(DISTINCT visitor_id)::int AS visitantes FROM events
        WHERE (created_at AT TIME ZONE ${TZ})::date = (now() AT TIME ZONE ${TZ})::date`,

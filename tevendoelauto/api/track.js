@@ -1,6 +1,6 @@
 import { sql, send, clip } from '../lib/db.js';
 
-const TYPES = new Set(['pageview', 'vehicle_view', 'vehicle_click', 'whatsapp', 'cotizar_open']);
+const TYPES = new Set(['pageview', 'vehicle_view', 'vehicle_click', 'whatsapp', 'cotizar_open', 'app_install', 'app_open']);
 const BOT = /bot|crawl|spider|slurp|preview|headless|lighthouse/i;
 
 export default async function handler(req, res) {
