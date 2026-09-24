@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const [settings, vehicles] = await Promise.all([
       getSettings(),
       sql()`SELECT id, marca, modelo, version, anio, km, trans, comb, precio::float8 AS precio, tipo, trac, color,
-                   descripcion, equipamiento, fotos, estado, destacado, orden
+                   descripcion, equipamiento, fotos, estado, destacado, orden, tag, discount
             FROM vehicles ORDER BY orden, id`
     ]);
     res.setHeader('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');

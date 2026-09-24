@@ -539,9 +539,16 @@ async function viewVehiculos(){
     } catch (err) { toast(err.message, 1); }
   };
 }
+const PLACEHOLDER_PHOTOS = ["/img/placeholder-proximamente.jpg", "/img/placeholder-pendiente.jpg"];
 function editVehicle(v){
   const isNew = !v;
   v = v ? JSON.parse(JSON.stringify(v)) : { marca:"", modelo:"", version:"", anio:new Date().getFullYear(), km:0, precio:0, trans:"Manual", comb:"Bencina", tipo:"SUV", trac:"4x2", color:"", descripcion:"", equipamiento:[], fotos:[], estado:"disponible", destacado:false, orden: VEHICLES.length + 1 };
+  v.tag = { text:"", visible:true, ...(v.tag||{}) };
+  v.discount = { active:false, original_price:null, message:"Precio rebajado", ...(v.discount||{}) };
+  const originalPrecio = isNew ? null : (v.precio || null);
+  let tagAuto = !v.tag.text, discAuto = !v.discount.active;
+  const km2tagInit = km => (+km > 0 && +km < 50000) ? "Bajo KM" : "";
+  const initTagText = v.tag.text || km2tagInit(v.km);
   const d = document.createElement("div"); d.className = "drawer";
   const sel = (id, opts, val) => `<select class="fld" id="${id}">${opts.map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("")}${opts.includes(val)||!val?"":`<option selected>${esc(val)}</option>`}</select>`;
   d.innerHTML = `<div class="drawer-c" role="dialog" aria-modal="true" aria-labelledby="ve-t">
@@ -564,22 +571,46 @@ function editVehicle(v){
           <div><label class="lbl" for="ve-orden">Orden</label><input class="fld" id="ve-orden" type="number" value="${v.orden}"><div class="hint">Menor = aparece primero</div></div>
           <div style="align-self:center"><label class="switch"><input type="checkbox" id="ve-dest" ${v.destacado?"checked":""}>En portada</label></div>
           <div class="s4"><label class="lbl">Estado</label><div class="seg" id="ve-est">${Object.entries(ESTADOS_V).map(([k,l])=>`<button type="button" data-e="${k}" class="${k} ${v.estado===k?"on":""}">${l}</button>`).join("")}</div></div>
+          <div class="s4">
+            <label class="lbl" for="ve-tag">Atributo principal <span class="muted" style="font-weight:500">(se muestra sobre la foto, ej: Bajo KM, Único dueño)</span></label>
+            <div class="acts" style="flex-wrap:nowrap;gap:12px"><input class="fld" id="ve-tag" value="${esc(initTagText)}" placeholder="Con menos de 50.000 km se sugiere “Bajo KM” automáticamente" style="flex:1"><label class="switch" style="flex:none"><input type="checkbox" id="ve-tag-vis" ${v.tag.visible!==false?"checked":""}>Mostrarlo</label></div>
+          </div>
           <div class="s4"><label class="lbl" for="ve-desc">Descripción</label><textarea class="fld" id="ve-desc" rows="4" placeholder="Si lo dejas vacío se genera una descripción automática.">${esc(v.descripcion)}</textarea></div>
           <div class="s4"><label class="lbl" for="ve-eq">Equipamiento y destacados (uno por línea)</label><textarea class="fld" id="ve-eq" rows="4" placeholder="Único dueño&#10;Mantenciones al día">${esc((v.equipamiento||[]).join("\n"))}</textarea></div>
         </div>
         <datalist id="marcas">${["Chevrolet","Toyota","Mitsubishi","Nissan","Hyundai","Kia","Suzuki","Peugeot","Ford","Mazda","Volkswagen","Subaru","Renault","MG","Chery","Great Wall","JAC","Maxus"].map(m=>`<option value="${m}">`).join("")}</datalist>
       </div>
+      ${isNew ? "" : `<div class="card" id="ve-disc-card"><h2>Precio rebajado</h2>
+        <p class="hint" style="margin-top:-8px">Si bajas el precio respecto al que tenía, se activa solo. Puedes editar el mensaje o desactivarlo.</p>
+        <label class="switch"><input type="checkbox" id="ve-disc-on" ${v.discount.active?"checked":""}>Mostrar aviso de rebaja</label>
+        <div id="ve-disc-fields" ${v.discount.active?"":"hidden"} style="margin-top:14px;display:grid;gap:12px">
+          <div><label class="lbl">Precio anterior (tachado)</label><div class="fld" id="ve-disc-old" style="background:#F3F4F6;color:var(--muted)">${v.discount.original_price?clp(v.discount.original_price):"—"}</div></div>
+          <div><label class="lbl" for="ve-disc-msg">Mensaje</label><input class="fld" id="ve-disc-msg" value="${esc(v.discount.message||"Precio rebajado")}" maxlength="60"></div>
+        </div>
+      </div>`}
     </div>
     <div class="save-bar"><button class="btn" data-close>Cancelar</button><button class="btn btn-y" id="ve-save">${isNew ? "Publicar vehículo" : "Guardar cambios"}</button></div>
   </div>`;
   document.body.appendChild(d); document.body.style.overflow = "hidden";
   const close = () => { d.remove(); document.body.style.overflow = ""; };
   d.addEventListener("click", e => { if (e.target === d || e.target.closest("[data-close]")) close(); });
-  $("#ve-precio", d).oninput = e => $("#ve-pf", d).textContent = e.target.value ? clp(e.target.value) : "";
+  const km2tag = km => (+km > 0 && +km < 50000) ? "Bajo KM" : "";
+  $("#ve-km", d).oninput = e => { if (tagAuto) { $("#ve-tag", d).value = km2tag(e.target.value); } };
+  $("#ve-tag", d).oninput = () => { tagAuto = false; };
+  $("#ve-precio", d).oninput = e => {
+    $("#ve-pf", d).textContent = e.target.value ? clp(e.target.value) : "";
+    if (isNew || !discAuto) return;
+    const now = +e.target.value || 0, showDisc = originalPrecio && now > 0 && now < originalPrecio;
+    $("#ve-disc-on", d).checked = showDisc;
+    $("#ve-disc-fields", d).hidden = !showDisc;
+    if (showDisc) { $("#ve-disc-old", d).textContent = clp(originalPrecio); if (!$("#ve-disc-msg", d).value.trim()) $("#ve-disc-msg", d).value = "Precio rebajado"; }
+  };
+  const discOn = $("#ve-disc-on", d); if (discOn) discOn.onchange = e => { discAuto = false; $("#ve-disc-fields", d).hidden = !e.target.checked; if (e.target.checked && !$("#ve-disc-old", d).textContent.trim().replace("—","")) $("#ve-disc-old", d).textContent = clp(originalPrecio || v.precio); };
   $("#ve-est", d).onclick = e => { const b = e.target.closest("[data-e]"); if (!b) return; v.estado = b.dataset.e; $$("#ve-est button", d).forEach(x => x.classList.toggle("on", x === b)); };
   const paintPh = () => {
     $("#ve-ph", d).innerHTML = v.fotos.map((f,i) => `<div class="ph ${i?"":"first"}"><img src="${esc(f)}" alt="">${i?"":'<span class="main-t">Principal</span>'}<div class="ctl"><button type="button" data-mv="-1" data-i="${i}" aria-label="Mover a la izquierda">${ic("left")}</button><button type="button" data-rm="${i}" aria-label="Quitar foto">${ic("trash")}</button><button type="button" data-mv="1" data-i="${i}" aria-label="Mover a la derecha">${ic("right")}</button></div></div>`).join("")
-      + `<label class="drop" id="ve-drop">${ic("img")}<span>Subir fotos<br><small>o arrástralas aquí</small></span><input type="file" accept="image/*" multiple id="ve-file"></label>`;
+      + `<label class="drop" id="ve-drop">${ic("img")}<span>Subir fotos<br><small>o arrástralas aquí</small></span><input type="file" accept="image/*" multiple id="ve-file"></label>`
+      + (v.fotos.length ? "" : `<button type="button" class="drop" id="ve-soon" style="border-style:solid">${ic("cam")}<span><b>Usar fotos “Próximamente”</b><br><small>Mientras consigues las reales</small></span></button>`);
     const up = async files => {
       const drop = $("#ve-drop", d); drop.querySelector("span").textContent = "Subiendo…";
       for (const f of files) { try { v.fotos.push(await upload(f)); } catch (err) { toast(err.message, 1); } }
@@ -590,6 +621,7 @@ function editVehicle(v){
     drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
     drop.ondragleave = () => drop.classList.remove("over");
     drop.ondrop = e => { e.preventDefault(); up([...e.dataTransfer.files].filter(f => f.type.startsWith("image/"))); };
+    const soon = $("#ve-soon", d); if (soon) soon.onclick = () => { v.fotos.push(...PLACEHOLDER_PHOTOS); paintPh(); };
   };
   $("#ve-ph", d).onclick = e => {
     const m = e.target.closest("[data-mv]"), r = e.target.closest("[data-rm]");
@@ -599,7 +631,9 @@ function editVehicle(v){
   paintPh();
   $("#ve-save", d).onclick = async () => {
     const g = id => $("#" + id, d).value;
-    Object.assign(v, { marca:g("ve-marca"), modelo:g("ve-modelo"), version:g("ve-version"), anio:g("ve-anio"), km:g("ve-km"), precio:g("ve-precio"), trans:g("ve-trans"), comb:g("ve-comb"), tipo:g("ve-tipo"), trac:g("ve-trac"), color:g("ve-color"), orden:g("ve-orden"), destacado:$("#ve-dest", d).checked, descripcion:g("ve-desc"), equipamiento:g("ve-eq").split("\n").map(s=>s.trim()).filter(Boolean) });
+    Object.assign(v, { marca:g("ve-marca"), modelo:g("ve-modelo"), version:g("ve-version"), anio:g("ve-anio"), km:g("ve-km"), precio:g("ve-precio"), trans:g("ve-trans"), comb:g("ve-comb"), tipo:g("ve-tipo"), trac:g("ve-trac"), color:g("ve-color"), orden:g("ve-orden"), destacado:$("#ve-dest", d).checked, descripcion:g("ve-desc"), equipamiento:g("ve-eq").split("\n").map(s=>s.trim()).filter(Boolean),
+      tag: { text: g("ve-tag").trim(), visible: $("#ve-tag-vis", d).checked } });
+    if (!isNew) v.discount = { active: $("#ve-disc-on", d).checked, original_price: originalPrecio, message: g("ve-disc-msg").trim() || "Precio rebajado" };
     const b = $("#ve-save", d); b.disabled = true;
     try { await api("vehicle_save", { vehicle: v }); close(); toast(isNew ? "Vehículo publicado" : "Cambios guardados"); viewVehiculos(); }
     catch (err) { toast(err.message, 1); b.disabled = false; }

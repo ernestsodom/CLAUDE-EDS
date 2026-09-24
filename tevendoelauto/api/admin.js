@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
       case 'vehicles': {
         const rows = await db`SELECT id, marca, modelo, version, anio, km, trans, comb, precio::float8 AS precio, tipo, trac, color,
-                                     descripcion, equipamiento, fotos, estado, destacado, orden, updated_at FROM vehicles ORDER BY orden, id`;
+                                     descripcion, equipamiento, fotos, estado, destacado, orden, tag, discount, updated_at FROM vehicles ORDER BY orden, id`;
         return send(res, 200, { vehicles: rows });
       }
       case 'vehicle_save': {
@@ -51,19 +51,24 @@ export default async function handler(req, res) {
           trac: clip(v.trac, 10) || '4x2', color: clip(v.color, 40), descripcion: clip(v.descripcion, 5000),
           equipamiento: JSON.stringify((v.equipamiento || []).map(x => clip(x, 120)).filter(Boolean).slice(0, 40)),
           fotos: JSON.stringify((v.fotos || []).map(x => clip(x, 300)).filter(Boolean).slice(0, 20)),
-          estado: ESTADOS_V.includes(v.estado) ? v.estado : 'disponible', destacado: !!v.destacado, orden: parseInt(v.orden) || 0
+          estado: ESTADOS_V.includes(v.estado) ? v.estado : 'disponible', destacado: !!v.destacado, orden: parseInt(v.orden) || 0,
+          tag: JSON.stringify({ text: clip(v.tag?.text, 30), visible: v.tag?.visible !== false }),
+          discount: JSON.stringify(v.discount?.active
+            ? { active: true, original_price: parseInt(v.discount.original_price) || null, message: clip(v.discount.message, 60) || 'Precio rebajado' }
+            : { active: false, original_price: parseInt(v.discount?.original_price) || null, message: clip(v.discount?.message, 60) || 'Precio rebajado' })
         };
         if (!f.marca || !f.modelo || !f.precio) return send(res, 400, { error: 'Marca, modelo y precio son obligatorios.' });
         let rows;
         if (v.id) {
           rows = await db`UPDATE vehicles SET marca=${f.marca}, modelo=${f.modelo}, version=${f.version}, anio=${f.anio}, km=${f.km}, precio=${f.precio},
             trans=${f.trans}, comb=${f.comb}, tipo=${f.tipo}, trac=${f.trac}, color=${f.color}, descripcion=${f.descripcion},
-            equipamiento=${f.equipamiento}::jsonb, fotos=${f.fotos}::jsonb, estado=${f.estado}, destacado=${f.destacado}, orden=${f.orden}, updated_at=now()
+            equipamiento=${f.equipamiento}::jsonb, fotos=${f.fotos}::jsonb, estado=${f.estado}, destacado=${f.destacado}, orden=${f.orden},
+            tag=${f.tag}::jsonb, discount=${f.discount}::jsonb, updated_at=now()
             WHERE id=${Number(v.id)} RETURNING id`;
         } else {
-          rows = await db`INSERT INTO vehicles (marca, modelo, version, anio, km, precio, trans, comb, tipo, trac, color, descripcion, equipamiento, fotos, estado, destacado, orden)
+          rows = await db`INSERT INTO vehicles (marca, modelo, version, anio, km, precio, trans, comb, tipo, trac, color, descripcion, equipamiento, fotos, estado, destacado, orden, tag, discount)
             VALUES (${f.marca}, ${f.modelo}, ${f.version}, ${f.anio}, ${f.km}, ${f.precio}, ${f.trans}, ${f.comb}, ${f.tipo}, ${f.trac}, ${f.color}, ${f.descripcion},
-            ${f.equipamiento}::jsonb, ${f.fotos}::jsonb, ${f.estado}, ${f.destacado}, ${f.orden}) RETURNING id`;
+            ${f.equipamiento}::jsonb, ${f.fotos}::jsonb, ${f.estado}, ${f.destacado}, ${f.orden}, ${f.tag}::jsonb, ${f.discount}::jsonb) RETURNING id`;
         }
         return send(res, 200, { id: rows[0]?.id });
       }

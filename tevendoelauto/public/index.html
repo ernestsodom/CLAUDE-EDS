@@ -139,7 +139,11 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
 .specs{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;font-size:.78rem;color:#C9CED7}
 .specs span{display:flex;align-items:center;gap:5px;min-width:0;overflow-wrap:anywhere}
 .specs .ico{width:15px;height:15px;color:var(--muted-d)}
-.price{font:800 1.2rem/1 var(--display);font-variant-numeric:tabular-nums;margin-top:auto;padding-top:4px}
+.price-wrap{margin-top:auto;padding-top:4px;display:flex;flex-direction:column;gap:2px}
+.price{font:800 1.2rem/1 var(--display);font-variant-numeric:tabular-nums}
+.price-old{font:700 .82rem/1 var(--body);color:var(--muted-d);text-decoration:line-through;font-variant-numeric:tabular-nums}
+.price-old.lg{font-size:1.05rem;margin-bottom:2px}
+.sale-msg{display:inline-flex;align-items:center;gap:4px;background:rgba(217,56,56,.16);color:#FF9B9B;border:1px solid rgba(217,56,56,.4);font:800 .64rem/1 var(--display);letter-spacing:.05em;text-transform:uppercase;padding:4px 7px;border-radius:5px;width:fit-content;margin-top:4px}
 .car .acts{display:grid;grid-template-columns:1fr auto;gap:8px}
 .car .acts .btn{padding:.65em .9em;font-size:.85rem}
 .icon-btn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card-2);color:#fff}
@@ -866,15 +870,24 @@ function stateOverlay(c){
   if (c.estado === "reservado") return `<span class="ribbon">Reservado</span>`;
   return "";
 }
+function tagFor(c){
+  const t = c.tag || {};
+  const visible = t.visible !== false;
+  const text = t.text ? t.text : (c.km < 50000 ? "Bajo KM" : "");
+  return { visible, text };
+}
 function card(c){
   const sold = c.estado === "vendido";
   let tag = "";
   if (sold) tag = '<span class="tag sold-t">Vendido</span>';
-  else if (c.km < 60000 && c.estado === "disponible") tag = '<span class="tag">Bajo km</span>';
-  else if (c.trac === "4x4" && c.estado === "disponible") tag = '<span class="tag dk">4x4</span>';
+  else { const t = tagFor(c); if (t.visible && t.text) tag = `<span class="tag">${esc(t.text)}</span>`; }
   const btn = sold
     ? `<a class="btn btn-o" href="${waUrl(`Hola, busco un vehículo similar al ${name(c)} ${c.anio}.`)}" target="_blank" rel="noopener" data-vid="${c.id}">${T("detalle.similar")}</a>`
     : `<button class="btn btn-y" data-cot="${c.id}">${ic("wa",1)}<span>${T("general.card.contactar")}</span></button>`;
+  const disc = !sold && c.discount?.active && c.discount.original_price > c.precio;
+  const priceBlock = disc
+    ? `<div class="price-wrap"><div class="price-old">${clp(c.discount.original_price)}</div><div class="price">${clp(c.precio)}</div><span class="sale-msg">${esc(c.discount.message || "Precio rebajado")}</span></div>`
+    : `<div class="price-wrap"><div class="price">${clp(c.precio)}</div></div>`;
   return `<article class="car${sold?" sold":""}">
     <a href="#auto-${c.id}" class="car-ph" aria-label="Ver ${esc(name(c))}"><img src="${esc(photo(c))}" alt="${esc(name(c)+" "+c.version)}" loading="lazy">${tag}${stateOverlay(c)}</a>
     <div class="car-bd">
@@ -883,7 +896,7 @@ function card(c){
         <span>${ic("cal")}${c.anio}</span><span>${ic("gauge")}${kmf(c.km)}</span>
         <span>${ic("gear")}${esc(c.trans)}</span><span>${ic("fuel")}${esc(c.comb)}</span>
       </div>
-      <div class="price">${clp(c.precio)}</div>
+      ${priceBlock}
       <div class="acts">${btn}<a class="icon-btn" href="#auto-${c.id}" aria-label="Ver detalle">${ic("arrow")}</a></div>
     </div>
   </article>`;
@@ -1013,7 +1026,9 @@ function detail(c){
         <span class="eyebrow">${esc(c.tipo)} · ${esc(c.trac)} · ${ESTADO_LBL[c.estado]}</span>
         <h1 style="margin-top:8px">${esc(name(c))}</h1>
         <div class="sub">${esc(c.version)} · ${c.anio} · ${kmf(c.km)}</div>
+        ${(!sold && c.discount?.active && c.discount.original_price > c.precio) ? `<div class="price-old lg">${clp(c.discount.original_price)}</div>` : ""}
         <div class="big-price" ${sold?'style="color:var(--muted-d);text-decoration:line-through"':""}>${clp(c.precio)}</div>
+        ${(!sold && c.discount?.active && c.discount.original_price > c.precio) ? `<span class="sale-msg">${esc(c.discount.message || "Precio rebajado")}</span>` : ""}
         <div class="note" style="color:var(--muted-d)">${T("detalle.precio_nota")}</div>
         <div class="stack">${actions}</div>
         <div class="seller" style="margin-top:18px"><span class="av">${esc((TEXTS["detalle.asesor"]||"A").trim()[0]||"A")}</span><div><b style="color:#fff">${T("detalle.asesor")}</b><br>${T("detalle.asesor_d")}</div></div>
