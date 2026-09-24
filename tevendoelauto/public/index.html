@@ -385,6 +385,7 @@ body.has-install .fab{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 @keyframes up{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.install{animation:none}}
 </style>
+<style id="theme-vars"></style>
 
 <!-- ============ ICON SPRITE ============ -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -787,9 +788,32 @@ document.addEventListener("click", e => {
   const c = e.target.closest("a[href^='#auto-']"); if (c) track("vehicle_click", { vehicle_id: +c.getAttribute("href").slice(6) });
 }, true);
 
+// ---------- Colores del sitio ----------
+// A partir de 4 colores elegidos en el back office, se calculan los tonos derivados
+// (tarjetas, bordes, textos secundarios) para que el contraste siga siendo legible.
+const DEFAULT_THEME = { accent: "#FFD21F", dark: "#0D1015", light: "#F4F5F6", text: "#14171C" };
+const hex2rgb = h => { h = h.replace("#", ""); if (h.length === 3) h = [...h].map(c => c + c).join(""); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const rgb2hex = (r, g, b) => "#" + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+const mixColor = (a, b, t) => { const A = hex2rgb(a), B = hex2rgb(b); return rgb2hex(A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t); };
+const luminance = h => { const [r, g, b] = hex2rgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+function applyTheme(theme){
+  const t = { ...DEFAULT_THEME, ...(theme || {}) };
+  const vars = {
+    "--yellow": t.accent, "--yellow-2": mixColor(t.accent, "#000000", 0.12),
+    "--yellow-ink": luminance(t.accent) > 0.55 ? "#1A1400" : "#FFFFFF",
+    "--ink": t.dark, "--ink-2": mixColor(t.dark, "#ffffff", 0.05), "--card": mixColor(t.dark, "#ffffff", 0.09),
+    "--card-2": mixColor(t.dark, "#ffffff", 0.13), "--line": mixColor(t.dark, "#ffffff", 0.17),
+    "--muted-d": mixColor(t.dark, "#ffffff", 0.58), "--paper": t.light, "--text": t.text,
+    "--muted": mixColor(t.text, t.light, 0.45)
+  };
+  $("#theme-vars").textContent = ":root{" + Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(";") + "}";
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute("content", t.dark);
+}
+
 // ---------- Configuración del sitio ----------
 function logoHTML(){ return SETTINGS.logo_url ? `<img src="${esc(SETTINGS.logo_url)}" alt="TeVendoElAuto.cl">` : $("#logo-tpl").innerHTML; }
 function applySettings(){
+  applyTheme(SETTINGS.theme);
   WA = String(SETTINGS.whatsapp || WA).replace(/\D/g, "");
   TEXTS = SETTINGS.texts || {};
   $$("[data-t]").forEach(el => { if (TEXTS[el.dataset.t] != null) el.innerHTML = fmt(TEXTS[el.dataset.t]); });

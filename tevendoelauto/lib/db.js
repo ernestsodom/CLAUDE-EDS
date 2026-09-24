@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS = {
     emails: ['agustin@tevendoelauto.cl', 'mario@tevendoelauto.cl'],
     show_hours: false
   },
+  theme: { accent: '#FFD21F', dark: '#0D1015', light: '#F4F5F6', text: '#14171C' },
   texts: {},
   blocks: []
 };

@@ -215,6 +215,12 @@ select.fld{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns=
 .navrow:last-child{border:0}
 .navrow .pg{font-size:.78rem;color:var(--muted);min-width:90px}
 .help{background:#FFFBEA;border:1px solid #F6E3A1;border-radius:12px;padding:12px 14px;font-size:.88rem;color:#5B4A0A;margin-bottom:16px}
+.cfield{display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:center}
+.cfield input[type=color]{width:56px;height:56px;border:0;border-radius:12px;padding:0;background:none;cursor:pointer;flex:none}
+.cfield input[type=color]::-webkit-color-swatch{border:1px solid var(--line2);border-radius:12px}
+.cfield input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.cfield input.hexf{text-transform:uppercase;font-variant-numeric:tabular-nums}
+.tprev{border-radius:14px;overflow:hidden;border:1px solid var(--line)}
 .loading{padding:60px;text-align:center;color:var(--muted)}
 </style>
 
@@ -224,6 +230,7 @@ select.fld{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns=
   <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 17h14M3 13l2-5.5A2 2 0 0 1 6.9 6h10.2a2 2 0 0 1 1.9 1.5L21 13v4a1 1 0 0 1-1 1h-1.5M3 13v4a1 1 0 0 0 1 1h1.5M3 13h18"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></symbol>
   <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6V4h16v2M12 4v16M9 20h6"/></symbol>
   <symbol id="i-brush" viewBox="0 0 24 24"><path d="M9.5 14.5 18 6a2.1 2.1 0 0 1 3 3l-8.5 8.5M9.5 14.5c-2 0-3.5 1.5-3.5 3.5 0 1-1 2-3 2 1 1.5 3 2 5 2 2.5 0 4.5-2 4.5-4.5M9.5 14.5l3 3"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.3 0 1.9-.9 1.9-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-.9.7-1.6 1.6-1.6H16a4 4 0 0 0 4-4c0-4.4-3.6-8-8-8Z"/><circle cx="7.2" cy="10.5" r="1.15"/><circle cx="9.5" cy="7" r="1.15"/><circle cx="14.5" cy="7" r="1.15"/><circle cx="16.8" cy="10.5" r="1.15"/></symbol>
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
   <symbol id="i-out" viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
@@ -273,6 +280,7 @@ select.fld{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns=
       <button data-v="vehiculos"><svg class="ico"><use href="#i-car"/></svg>Vehículos</button>
       <button data-v="textos"><svg class="ico"><use href="#i-text"/></svg>Textos de la página</button>
       <button data-v="marca"><svg class="ico"><use href="#i-brush"/></svg>Logo, menú y botones</button>
+      <button data-v="colores"><svg class="ico"><use href="#i-palette"/></svg>Colores del sitio</button>
     </nav>
     <div class="foot">
       <a href="/" target="_blank" rel="noopener"><svg class="ico"><use href="#i-ext"/></svg>Ver sitio web</a>
@@ -293,6 +301,11 @@ const ic = id => `<svg class="ico"><use href="#i-${id}"/></svg>`;
 const clp = n => "$" + Math.round(+n || 0).toLocaleString("es-CL");
 const fmtPhone = d => { d = String(d || "").replace(/\D/g, ""); const m = d.match(/^56(9)(\d{4})(\d{4})$/); return m ? `+56 ${m[1]} ${m[2]} ${m[3]}` : (d ? "+" + d : ""); };
 const nf = n => (+n || 0).toLocaleString("es-CL");
+const hex2rgb = h => { h = h.replace("#", ""); if (h.length === 3) h = [...h].map(c => c + c).join(""); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const rgb2hex = (r, g, b) => "#" + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+const mixColor = (a, b, t) => { const A = hex2rgb(a), B = hex2rgb(b); return rgb2hex(A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t); };
+const luminance = h => { const [r, g, b] = hex2rgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const HEX_RE = /^#[0-9a-f]{6}$/i;
 const fdate = d => new Date(d).toLocaleString("es-CL", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
 const TIPOS = { cotizacion:"Cotización", visita:"Agendar visita", credito:"Crédito", parte_pago:"Parte de pago", venta:"Quiere vender su auto", contacto:"Contacto general" };
 const ESTADOS_L = { nuevo:"Nuevo", contactado:"Contactado", negociando:"Negociando", cerrado:"Cerrado", descartado:"Descartado" };
@@ -340,7 +353,7 @@ async function compress(file, max=1600, q=.82){
 async function upload(file, max){ const data = await compress(file, max); return (await api("upload", { data })).url; }
 
 // ---------- Navegación ----------
-const VIEWS = { resumen: viewResumen, contactos: viewContactos, vehiculos: viewVehiculos, textos: viewTextos, marca: viewMarca };
+const VIEWS = { resumen: viewResumen, contactos: viewContactos, vehiculos: viewVehiculos, textos: viewTextos, marca: viewMarca, colores: viewColores };
 function go(v){
   if (!VIEWS[v]) v = "resumen"; VIEW = v;
   $$("#menu button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
@@ -657,6 +670,67 @@ function renderTextos(){
     try { const j = await api("settings_save", { settings: { texts, blocks: BDRAFT } }); SETTINGS = j.settings; TDRAFT = { ...SETTINGS.texts }; toast("Textos publicados en el sitio"); renderTextos(); }
     catch (err) { toast(err.message, 1); $("#tsave").disabled = false; }
   };
+}
+
+// ================= COLORES =================
+const DEFAULT_THEME = { accent: "#FFD21F", dark: "#0D1015", light: "#F4F5F6", text: "#14171C" };
+async function viewColores(){
+  await loadSettings();
+  const S = JSON.parse(JSON.stringify(SETTINGS));
+  S.theme = { ...DEFAULT_THEME, ...(S.theme || {}) };
+  const FIELDS = [
+    ["accent", "Color de acento", "Botones destacados, precios y detalles de la marca."],
+    ["dark", "Fondo oscuro", "El menú superior, la portada y las secciones oscuras."],
+    ["light", "Fondo claro", "Las secciones claras, como “¿Por qué consignar?”."],
+    ["text", "Texto en fondo claro", "El texto sobre las secciones de fondo claro."]
+  ];
+  const render = () => {
+    $("#view").innerHTML = `
+      <div class="top"><div><h1>Colores del sitio</h1><p>Cambia los colores principales de la página. Los demás tonos (tarjetas, bordes, textos secundarios) se calculan solos para mantener un buen contraste.</p></div></div>
+      <div class="grid g2">
+        ${FIELDS.map(([k, label, hint]) => `<div class="card"><h2>${label}</h2>
+          <div class="cfield"><input type="color" id="c-${k}-p" value="${S.theme[k]}" aria-label="${label}">
+            <div><input class="fld hexf" id="c-${k}" value="${S.theme[k].toUpperCase()}" maxlength="7" aria-label="${label} en hexadecimal"><p class="hint" style="margin-top:6px">${hint}</p></div></div>
+        </div>`).join("")}
+      </div>
+      <div class="card" style="margin-top:16px"><h2>Vista previa</h2><div class="tprev" id="c-prev"></div></div>
+      <div class="save-bar"><button class="btn" id="c-reset">Restaurar colores originales</button><button class="btn btn-y" id="c-save">Guardar y publicar</button></div>`;
+    FIELDS.forEach(([k]) => {
+      const pick = $(`#c-${k}-p`), text = $(`#c-${k}`);
+      const set = v => { S.theme[k] = v; pick.value = v; text.value = v.toUpperCase(); preview(); };
+      pick.oninput = () => set(pick.value);
+      text.oninput = () => { let v = text.value.trim(); if (v && v[0] !== "#") v = "#" + v; if (HEX_RE.test(v)) set(v); };
+    });
+    $("#c-reset").onclick = () => { S.theme = { ...DEFAULT_THEME }; render(); };
+    $("#c-save").onclick = async () => {
+      $("#c-save").disabled = true;
+      try { const j = await api("settings_save", { settings: { theme: S.theme } }); SETTINGS = j.settings; toast("Colores publicados en el sitio"); }
+      catch (err) { toast(err.message, 1); }
+      $("#c-save").disabled = false;
+    };
+    preview();
+  };
+  const preview = () => {
+    const t = S.theme;
+    const yellowInk = luminance(t.accent) > 0.55 ? "#1A1400" : "#FFFFFF";
+    const card = mixColor(t.dark, "#ffffff", 0.09), line = mixColor(t.dark, "#ffffff", 0.17), muted = mixColor(t.text, t.light, 0.45);
+    $("#c-prev").innerHTML = `
+      <div style="background:${t.dark};padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid ${line}">
+        <div style="width:120px;height:16px;border-radius:4px;background:rgba(255,255,255,.25)"></div>
+        <div style="margin-left:auto;background:${t.accent};color:${yellowInk};font-weight:800;font-size:.8rem;border-radius:999px;padding:7px 16px">WhatsApp</div>
+      </div>
+      <div style="background:${t.dark};padding:20px 18px 26px">
+        <div style="background:${card};border-radius:10px;padding:16px;color:#fff;font-size:.9rem;max-width:280px">
+          Chevrolet Captiva 2023
+          <div style="font-weight:800;font-size:1.25rem;color:${t.accent};margin-top:8px">$13.790.000</div>
+        </div>
+      </div>
+      <div style="background:${t.light};color:${t.text};padding:20px 18px">
+        <b style="font-size:1rem">¿Por qué consignar con nosotros?</b><br>
+        <span style="color:${muted};font-size:.9rem">Texto de ejemplo sobre fondo claro, así se ve la lectura.</span>
+      </div>`;
+  };
+  render();
 }
 
 // ================= MARCA Y MENÚ =================
