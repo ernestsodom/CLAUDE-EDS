@@ -738,6 +738,7 @@ async function viewMarca(){
   await loadSettings();
   const S = JSON.parse(JSON.stringify(SETTINGS));
   S.contacts = S.contacts || { phones:[{ number:S.whatsapp, label:"" }], emails:[], show_hours:false };
+  S.credit_sim = S.credit_sim || { enabled: true };
   const PN = { inicio:"Inicio", vehiculos:"Vehículos en venta", vende:"Vende tu auto", nosotros:"Nosotros", contacto:"Contacto" };
   const render = () => {
     $("#view").innerHTML = `
@@ -788,6 +789,10 @@ async function viewMarca(){
             <p class="hint" style="margin:0">Deja vacío para ocultar el ícono. La dirección visible se edita en “Textos de la página → General”.</p>
           </div>
         </div>
+        <div class="card"><h2>Simulador de crédito</h2>
+          <label class="switch"><input type="checkbox" id="cs-en" ${S.credit_sim.enabled!==false?"checked":""}>Mostrar el simulador de crédito en la ficha de cada vehículo</label>
+          <p class="hint">Se activa o desactiva para todos los vehículos a la vez; no se puede configurar auto por auto.</p>
+        </div>
       </div>
       <div class="save-bar"><button class="btn btn-y" id="msave">Guardar y publicar</button></div>`;
     const bindUp = (id, key, max) => { const el = $(id); if (el) el.onchange = async e => { const f = e.target.files[0]; if (!f) return; toast("Subiendo imagen…"); try { S[key] = await upload(f, max); collect(); render(); toast("Imagen lista. Recuerda guardar."); } catch (err) { toast(err.message, 1); } }; };
@@ -807,7 +812,7 @@ async function viewMarca(){
       if (bad !== undefined) return toast(`Revisa el correo “${bad}”.`, 1);
       S.contacts.phones = phones; S.whatsapp = phones[0].number;
       $("#msave").disabled = true;
-      try { const j = await api("settings_save", { settings: { logo_url:S.logo_url, hero_url:S.hero_url, nav:S.nav, header_cta:S.header_cta, fab:S.fab, whatsapp:S.whatsapp, social:S.social, contacts:S.contacts } }); SETTINGS = j.settings; paintLogos(); toast("Cambios publicados en el sitio"); }
+      try { const j = await api("settings_save", { settings: { logo_url:S.logo_url, hero_url:S.hero_url, nav:S.nav, header_cta:S.header_cta, fab:S.fab, whatsapp:S.whatsapp, social:S.social, contacts:S.contacts, credit_sim:S.credit_sim } }); SETTINGS = j.settings; paintLogos(); toast("Cambios publicados en el sitio"); }
       catch (err) { toast(err.message, 1); }
       $("#msave").disabled = false;
     };
@@ -821,6 +826,7 @@ async function viewMarca(){
     S.header_cta = { label: $("#cta-l").value.trim() || "WhatsApp", visible: $("#cta-v").checked };
     S.fab = { label: $("#fab-l").value.trim(), visible: true };
     S.social = { instagram: $("#so-ig").value.trim(), facebook: $("#so-fb").value.trim() };
+    S.credit_sim = { enabled: $("#cs-en").checked };
   };
   render();
 }

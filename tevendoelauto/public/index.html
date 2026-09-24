@@ -1009,7 +1009,7 @@ function detail(c){
         <div class="stack">${actions}</div>
         <div class="seller" style="margin-top:18px"><span class="av">${esc((TEXTS["detalle.asesor"]||"A").trim()[0]||"A")}</span><div><b style="color:#fff">${T("detalle.asesor")}</b><br>${T("detalle.asesor_d")}</div></div>
       </div>
-      ${sold ? "" : `<div class="box sim">
+      ${(sold || SETTINGS.credit_sim?.enabled === false) ? "" : `<div class="box sim">
         <h3>${ic("calc")}${T("detalle.sim_titulo")}</h3>
         <div class="row"><label class="lbl" style="color:#C9CED7" for="s-pie">Pie: <b id="s-pie-v"></b></label><input type="range" id="s-pie" min="20" max="70" step="5" value="30"></div>
         <div class="row"><label class="lbl" style="color:#C9CED7" for="s-n">Plazo</label>
@@ -1024,7 +1024,7 @@ function detail(c){
   <div class="grid-cars">${CARS.filter(x=>x.id!==c.id && x.estado!=="vendido").sort((a,b)=>(b.tipo===c.tipo)-(a.tipo===c.tipo)||(b.marca===c.marca)-(a.marca===c.marca)).slice(0,4).map(card).join("")}</div>`;
   $$(".thumbs button[data-src]").forEach(b => b.onclick = () => { $("#g-main").src = b.dataset.src; $$(".thumbs button").forEach(x=>x.classList.toggle("on", x===b)); });
   const mw = $("[data-open-wa]"); if (mw) mw.onclick = () => { track("whatsapp", {vehicle_id:c.id}); window.open(waUrl(mw.dataset.wa), "_blank", "noopener"); };
-  if (!sold) {
+  if (!sold && SETTINGS.credit_sim?.enabled !== false) {
     const upd = () => {
       const pie = +$("#s-pie").value, n = +$("#s-n").value, i = .019, P = c.precio * (1 - pie/100);
       $("#s-pie-v").textContent = `${pie}% (${clp(c.precio*pie/100)})`;

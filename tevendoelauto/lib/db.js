@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS = {
     show_hours: false
   },
   theme: { accent: '#FFD21F', dark: '#0D1015', light: '#F4F5F6', text: '#14171C' },
+  credit_sim: { enabled: true },
   texts: {},
   blocks: []
 };
