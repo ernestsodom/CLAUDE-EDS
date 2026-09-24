@@ -252,7 +252,7 @@ input[type=range]{width:100%;accent-color:var(--yellow)}
 .det-side{display:grid;gap:16px;position:sticky;top:calc(90px + env(safe-area-inset-top,0px))}
 .det-side h1{font-size:1.7rem;font-weight:800}
 .det-side .sub{color:var(--muted-d);margin-top:4px}
-.big-price{font:900 2.1rem/1 var(--display);color:var(--yellow);margin:16px 0 4px;font-variant-numeric:tabular-nums}
+.big-price{font:900 2.1rem/1 var(--display);color:var(--white);margin:16px 0 4px;font-variant-numeric:tabular-nums}
 .stack{display:grid;gap:10px;margin-top:18px}
 .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:22px}
 .kv div{background:var(--ink-2);padding:14px}
@@ -718,7 +718,6 @@ body.has-install .fab{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 <!-- Textos usados por la ficha del vehículo y ventanas (editables desde el back office) -->
 <div hidden id="t-defaults">
   <span data-t="detalle.cotizar" data-tl="Botón cotizar">Cotizar este vehículo</span>
-  <span data-t="detalle.whatsapp" data-tl="Botón WhatsApp">Contactar por WhatsApp</span>
   <span data-t="detalle.visita" data-tl="Botón agendar visita">Agendar visita</span>
   <span data-t="detalle.precio_nota" data-tl="Nota bajo el precio">Precio contado. Consulta por financiamiento.</span>
   <span data-t="detalle.asesor" data-tl="Nombre del asesor">Agustín</span>
@@ -982,7 +981,6 @@ function detail(c){
        <a class="btn btn-o btn-block" href="#vehiculos">Ver vehículos disponibles</a>`
     : `${res ? `<div class="state-note res">${T("detalle.reservado")}</div>` : ""}
        <button class="btn btn-y btn-block" data-cot="${c.id}">${ic("calc")}${T("detalle.cotizar")}</button>
-       <a class="btn btn-wa btn-block" data-vid="${c.id}" href="${waUrl(carMsg(c))}" target="_blank" rel="noopener">${ic("wa",1)}${T("detalle.whatsapp")}</a>
        ${res ? "" : `<button class="btn btn-o btn-block" data-cot="${c.id}" data-mode="visita">${ic("cal")}${T("detalle.visita")}</button>`}`;
   $("#detalle").innerHTML = `
   <div class="crumbs"><a href="#inicio">Inicio</a> / <a href="#vehiculos">Vehículos en venta</a> / ${esc(name(c))}</div>
