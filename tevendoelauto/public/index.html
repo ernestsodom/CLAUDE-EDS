@@ -843,8 +843,17 @@ function renderContacts(){
   $("#hours-card").hidden = !c.show_hours;
 }
 function wireWa(root=document){ $$("[data-wa]", root).forEach(a => { if (a.tagName !== "A") return; a.href = waUrl(a.dataset.wa || undefined); a.target = "_blank"; a.rel = "noopener"; }); }
-$$("[data-logo]").forEach(a => a.innerHTML = logoHTML());
-wireWa();
+// Antes de esperar la respuesta del servidor, aplica de inmediato la última configuración
+// que este navegador ya vio (logo, foto de portada, colores…), para que no se vea primero
+// la versión anterior y luego la actual.
+(() => {
+  try {
+    const cached = JSON.parse(localStorage.getItem("tva_settings_cache") || "null");
+    if (cached && typeof cached === "object") { SETTINGS = cached; applySettings(); return; }
+  } catch {}
+  $$("[data-logo]").forEach(a => a.innerHTML = logoHTML());
+  wireWa();
+})();
 
 // Mobile menu
 const nav = $("#nav"), burger = $("#burger");
@@ -1147,6 +1156,7 @@ async function boot(){
     const d = await r.json();
     SETTINGS = d.settings || {}; CARS = (d.vehicles || []).map(v => ({ ...v, precio: +v.precio }));
     applySettings();
+    try { localStorage.setItem("tva_settings_cache", JSON.stringify(SETTINGS)); } catch {}
   } catch {
     $("#home-cars").innerHTML = `<div class="empty" style="grid-column:1/-1">No pudimos cargar los vehículos. Recarga la página o escríbenos por WhatsApp.</div>`;
   }
