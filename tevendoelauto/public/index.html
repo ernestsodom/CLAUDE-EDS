@@ -148,6 +148,7 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
 /* ---------- Quick search ---------- */
 .qs{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:26px}
 .qs label{display:flex;flex-direction:column;gap:4px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-d);font-weight:700}
+.qs .btn{align-self:center}
 @media (max-width:860px){.qs{grid-template-columns:1fr 1fr}.qs .btn{grid-column:1/-1}}
 
 /* ---------- Forms ---------- */
@@ -181,9 +182,10 @@ textarea.fld{min-height:84px;resize:vertical}
 /* ---------- Footer ---------- */
 .ftr{background:#07090C;border-top:1px solid #1C2129}
 .ftr .wrap{display:grid;grid-template-columns:1.2fr repeat(3,1fr) auto;gap:24px;align-items:center;padding-block:30px}
-.ftr .it{display:flex;gap:12px;align-items:center;font-size:.9rem}
-.ftr .it .ico{width:30px;height:30px;stroke-width:1.5}
+.ftr .it{display:flex;gap:12px;align-items:center;font-size:.9rem;min-width:0}
+.ftr .it .ico{width:30px;height:30px;stroke-width:1.5;flex:none}
 .ftr .it small{display:block;color:var(--muted-d);font-size:.78rem}
+.ftr .clinks a{white-space:nowrap;font-size:.82rem}
 .soc{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.78rem;color:var(--muted-d)}
 .soc div{display:flex;gap:10px}
 .soc a{color:#fff}.soc a:hover{color:var(--yellow)}
