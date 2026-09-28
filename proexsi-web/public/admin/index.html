@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Back office · Proexsi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@700;800&family=Red+Hat+Text:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+
+<!-- Ingreso -->
+<div id="login" class="login" hidden>
+  <form id="login-form" class="login-card">
+    <img src="/img/logo-proexsi.png" alt="Proexsi" class="login-logo">
+    <h1>Back office</h1>
+    <p>Ingresa la contraseña de administración.</p>
+    <label for="pw">Contraseña</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button class="btn primary" type="submit">Ingresar</button>
+    <p class="err" id="login-err" hidden></p>
+  </form>
+</div>
+
+<!-- Aplicación -->
+<div id="app" class="app" hidden>
+  <aside class="side">
+    <div class="brand"><img src="/img/logo-proexsi.png" alt="Proexsi"><span>Back office</span></div>
+    <nav id="menu">
+      <p class="grp">Gestión</p>
+      <a href="#/resumen" data-v="resumen">Panel de gestión</a>
+      <a href="#/solicitudes" data-v="solicitudes">Solicitudes de demo</a>
+      <p class="grp">Contenidos</p>
+      <a href="#/textos" data-v="textos">Textos</a>
+      <a href="#/fotos" data-v="fotos">Fotos y logo</a>
+      <a href="#/carrusel" data-v="carrusel">Carrusel</a>
+      <a href="#/productos" data-v="productos">Páginas de productos</a>
+      <a href="#/nosotros" data-v="nosotros">Página Nosotros</a>
+      <p class="grp">Apariencia</p>
+      <a href="#/diseno" data-v="diseno">Colores y tipografía</a>
+      <a href="#/ajustes" data-v="ajustes">SEO y ajustes</a>
+      <a href="#/versiones" data-v="versiones">Versiones</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="bar">
+      <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">☰</button>
+      <h1 id="view-title">Panel de gestión</h1>
+      <span class="dirty" id="dirty" hidden>Cambios sin guardar</span>
+      <div class="bar-actions">
+        <a class="btn ghost" href="/?preview=1" target="_blank" rel="noopener">Vista previa</a>
+        <a class="btn ghost" href="/" target="_blank" rel="noopener">Ver sitio</a>
+        <button class="btn primary" id="save" disabled>Guardar cambios</button>
+        <button class="btn link" id="logout">Salir</button>
+      </div>
+    </header>
+    <div class="notice" id="notice" hidden></div>
+    <main id="view" class="view"></main>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/admin/admin.js"></script>
+</body>
+</html>
