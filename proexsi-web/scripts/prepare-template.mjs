@@ -24,16 +24,19 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
   var PP=SITE.pp||{}, AB=SITE.about||{};
   function render(k){
     var d=P[k], c='var('+d.c+')', imgs=(d.img||[]).filter(function(i){return vis(i[0])});
+    var bgMode=d.layout==='background'&&vis(d.bg);
     var pics=imgs.map(function(i){return '<img src="'+esc(imgUrl(i[0]))+'" alt="'+esc(i[1]||'')+'">'}).join('');
     var feats=(d.f||[]).map(function(f,i){return '<div class="feat" style="--c:'+c+'"><span class="fn">'+(i+1)+'</span><h3>'+esc(f[0])+'</h3><p>'+esc(f[1])+'</p></div>'}).join('');
     var steps=(d.s||[]).map(function(t){return '<div style="--c:'+c+'"><p>'+esc(t)+'</p></div>'}).join('');
     var more=Object.keys(P).filter(function(x){return x!==k}).map(function(x){return '<a href="#p-'+x+'" style="--c:var('+P[x].c+')">'+esc(P[x].n)+'</a>'}).join('');
     pp.innerHTML=
-      '<section class="pp-hero" style="--c:'+c+'"><div class="wrap"><div class="pp-copy">'+
+      (bgMode
+        ? '<section class="pp-hero bg" style="--c:'+c+';--pp-bg:url('+esc(imgUrl(d.bg))+');--pp-pos:'+esc(d.bgPos||'center')+';--pp-o:'+(Math.min(Math.max(Number(d.bgDark)||60,0),90)/100)+'"><div class="wrap"><div class="pp-copy">'
+        : '<section class="pp-hero" style="--c:'+c+'"><div class="wrap"><div class="pp-copy">')+
         '<div class="crumb"><a href="#productos">'+esc(PP.crumb)+'</a> / '+esc(d.n)+'</div>'+
         '<h1>'+esc(d.n)+'</h1><p class="lead">'+esc(d.lead)+'</p>'+
         '<div class="hero-ctas"><a class="btn btn-white" href="#contacto">'+esc(PP.demo)+'</a><a class="btn btn-line" href="#productos">'+esc(PP.all)+'</a></div>'+
-      '</div>'+(imgs.length?'<div class="pp-pics" style="--n:'+imgs.length+'">'+pics+'</div>':'')+'</div></section>'+
+      '</div>'+(!bgMode&&imgs.length?'<div class="pp-pics" style="--n:'+imgs.length+'">'+pics+'</div>':'')+'</div></section>'+
       '<section class="pp-feat"><div class="wrap"><div class="sec-head"><span class="eyebrow">'+esc(d.tag)+'</span><h2>'+esc(PP.feat)+'</h2></div><div class="feat-grid">'+feats+'</div></div></section>'+
       '<section class="pp-steps"><div class="wrap"><div class="sec-head"><h2>'+esc(PP.steps)+'</h2></div><div class="stp">'+steps+'</div></div></section>'+
       '<section class="pp-cta"><div class="wrap"><div class="box" style="--c:'+c+'"><h2>'+esc(PP.cta)+'</h2><a class="btn btn-orange" href="#contacto">'+esc(PP.ctaBtn)+'</a></div></div></section>'+

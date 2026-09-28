@@ -145,7 +145,7 @@
   // Quita una foto subida de todos los lugares donde se usa
   function dropReferences(k) {
     C.carousel = C.carousel.filter(function (s) { return s.img !== k; });
-    Object.keys(C.products).forEach(function (pk) { C.products[pk].img = C.products[pk].img.filter(function (i) { return i[0] !== k; }); });
+    Object.keys(C.products).forEach(function (pk) { var pr = C.products[pk]; pr.img = pr.img.filter(function (i) { return i[0] !== k; }); if (pr.bg === k) { pr.bg = ''; pr.layout = 'floating'; } });
     if (C.about.image === k) C.about.image = '';
   }
   function usages(k) {
@@ -153,7 +153,7 @@
     if (M.imageKeys.indexOf(k) >= 0 && ['logo-proexsi.png', 'beneficios-celular.webp'].indexOf(k) >= 0) u.push(k === 'logo-proexsi.png' ? 'Logo' : 'Franja de Beneficios');
     if (/^(cursos-|infantil-|teatro-|orquesta-|seminarios-|mayores-|ferias-)/.test(k)) u.push('Tarjeta de producto (inicio)');
     C.carousel.forEach(function (s, i) { if (s.img === k) u.push('Carrusel ' + (i + 1)); });
-    Object.keys(C.products).forEach(function (pk) { if (C.products[pk].img.some(function (i) { return i[0] === k; })) u.push('Página ' + C.products[pk].n); });
+    Object.keys(C.products).forEach(function (pk) { var pr = C.products[pk]; if (pr.img.some(function (i) { return i[0] === k; }) || (pr.layout === 'background' && pr.bg === k)) u.push('Página ' + pr.n); });
     if (C.about.image === k) u.push('Nosotros');
     return u;
   }
@@ -497,6 +497,39 @@
       h('div'),
       h('div', { style: { gridColumn: '1/-1' } }, bind(p, 'lead', { label: 'Bajada', rows: 3 })))));
 
+    // Diseño de la portada: fotos flotando o una foto de fondo a todo el ancho
+    var bgMode = p.layout === 'background';
+    function modeBtn(val, title, desc) {
+      var on = (p.layout || 'floating') === val;
+      return h('button', { class: 'mode' + (on ? ' on' : ''), onclick: function () {
+        p.layout = val;
+        if (val === 'background' && !p.bg) p.bg = (p.img[0] || [])[0] || '';
+        markDirty(); route();
+      } }, h('span', { class: 'mode-art ' + val }, val === 'floating' ? [h('i'), h('b'), h('b')] : [h('i')]), h('strong', { text: title }), h('span', { class: 'hint', text: desc }));
+    }
+    var layoutCard = h('div', { class: 'card' }, h('h2', { text: 'Diseño de la portada' }),
+      h('div', { class: 'modes' },
+        modeBtn('floating', 'Fotos flotando', 'Hasta 3 fotos nítidas a la derecha del texto, sin difuminar.'),
+        modeBtn('background', 'Foto de fondo', 'Una sola foto a todo el ancho de la página, con el texto encima.')));
+    if (bgMode) {
+      var pos = h('select', {});
+      POSITIONS.forEach(function (o) { pos.appendChild(h('option', { value: o[0], text: o[1], selected: (p.bgPos || 'center 50%') === o[0] })); });
+      var prev = h('div', { class: 'bg-prev', style: { backgroundImage: 'url("' + imgUrl(p.bg) + '")', backgroundPosition: p.bgPos || 'center 50%' } },
+        h('div', { class: 'bg-shade', style: { opacity: String((Number(p.bgDark) || 60) / 100) } }), h('strong', { text: p.n }));
+      pos.addEventListener('change', function () { p.bgPos = pos.value; prev.style.backgroundPosition = p.bgPos; markDirty(); });
+      var dark = h('input', { type: 'range', min: 0, max: 90, step: 5, value: Number(p.bgDark) || 60 });
+      var darkLbl = h('span', { class: 'hint', text: (Number(p.bgDark) || 60) + '%' });
+      dark.addEventListener('input', function () { p.bgDark = Number(dark.value); darkLbl.textContent = dark.value + '%'; prev.firstChild.style.opacity = String(dark.value / 100); markDirty(); });
+      layoutCard.appendChild(h('div', { class: 'grid2', style: { marginTop: '14px' } }, prev, h('div', { style: { display: 'grid', gap: '12px', alignContent: 'start' } },
+        h('div', { class: 'field' }, h('label', { text: 'Foto de fondo' }), h('div', { class: 'toolbar' },
+          imageSelect(p.bg, function (k) { p.bg = k; markDirty(); route(); }),
+          h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { p.bg = k; route(); } }); } }))),
+        h('div', { class: 'field' }, h('label', { text: 'Encuadre' }), pos),
+        h('div', { class: 'field' }, h('label', { text: 'Oscurecer la foto para que se lea el texto' }), h('div', { class: 'toolbar' }, dark, darkLbl)),
+        isHidden(p.bg) ? h('span', { class: 'badge gray', text: 'Esta foto está oculta: la página mostrará las fotos flotando.' }) : null)));
+    }
+    view.appendChild(layoutCard);
+
     var pics = h('div', { class: 'pics' });
     p.img.forEach(function (im, i) {
       pics.appendChild(h('div', { class: 'imgc' }, h('div', { class: 'th cover' + (isHidden(im[0]) ? ' off' : ''), style: { backgroundImage: 'url("' + imgUrl(im[0]) + '")' } }), h('div', { class: 'b' },
@@ -507,7 +540,7 @@
           h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { im[0] = k; route(); } }); } }),
           h('button', { class: 'btn danger small', text: 'Quitar', disabled: p.img.length < 2, onclick: function () { p.img.splice(i, 1); markDirty(); route(); } })))));
     });
-    view.appendChild(h('div', { class: 'card' }, h('div', { class: 'card-head' }, h('h2', { text: 'Fotos (' + p.img.length + ')' }),
+    view.appendChild(h('div', { class: 'card' + (bgMode ? ' muted' : '') }, h('div', { class: 'card-head' }, h('h2', { text: (bgMode ? 'Fotos flotando (no se muestran con foto de fondo) · ' : 'Fotos flotando · ') + p.img.length }),
       h('button', { class: 'btn ghost small', text: '+ Agregar foto', disabled: p.img.length >= 3, onclick: function () { uploadImage(null).then(function (k) { if (k) { p.img.push([k, '']); route(); } }); } })), pics,
       h('p', { class: 'hint', text: 'Hasta 3 fotos por producto. La foto de la tarjeta en la página de inicio se cambia en Fotos y logo.' })));
 

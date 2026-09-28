@@ -151,3 +151,19 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.88rem}
 
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;z-index:50;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
 .toast.bad{background:var(--bad)}
+
+/* diseño de portada de productos */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:600px){.modes{grid-template-columns:1fr}}
+.mode{display:grid;gap:6px;text-align:left;border:2px solid var(--line);background:#fff;border-radius:14px;padding:14px;cursor:pointer;font:inherit;color:var(--ink)}
+.mode.on{border-color:var(--blue);background:#F5F8FF}
+.mode-art{height:70px;border-radius:10px;background:linear-gradient(135deg,#1F5BD8,#25358B);position:relative;overflow:hidden;display:block}
+.mode-art i{position:absolute;left:10px;top:18px;width:38%;height:8px;border-radius:4px;background:#fff;box-shadow:0 14px 0 -1px rgba(255,255,255,.6)}
+.mode-art.floating b{position:absolute;top:12px;bottom:12px;width:22%;border-radius:6px;background:#9CC0FF}
+.mode-art.floating b:nth-of-type(1){right:34%}.mode-art.floating b:nth-of-type(2){right:8%;background:#FFB27F}
+.mode-art.background{background:linear-gradient(90deg,rgba(8,30,80,.85),rgba(8,30,80,.2)),linear-gradient(135deg,#F26B1D,#E23D8F 60%,#0EA0DC)}
+.bg-prev{position:relative;min-height:190px;border-radius:12px;background:#25358B center/cover no-repeat;display:flex;align-items:center;padding:20px;overflow:hidden}
+.bg-shade{position:absolute;inset:0;background:linear-gradient(90deg,#081E50,rgba(8,30,80,.55))}
+.bg-prev strong{position:relative;color:#fff;font:800 1.5rem var(--display)}
+.card.muted .pics{opacity:.55}
+input[type=range]{width:220px;accent-color:var(--blue)}
