@@ -6,7 +6,7 @@
 <title>Xperticket Cultura</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&display=swap">
 <style>
 /* ===== Tokens Proexsi ===== */
 :root{
@@ -33,9 +33,9 @@
   --p-orquesta:#0EA0DC;
   --p-ferias:#1FA35C;
   --radius:16px;
-  --display:"Sora", "Segoe UI", system-ui, sans-serif;
-  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --display:"Red Hat Display", "Segoe UI", system-ui, sans-serif;
+  --body:"Red Hat Text", "Segoe UI", system-ui, sans-serif;
+  --mono:"Red Hat Text", "Segoe UI", system-ui, sans-serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -46,11 +46,11 @@ a{color:var(--blue)}
 :focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:6px}
 .wrap{max-width:1180px;margin-inline:auto;padding-inline:20px}
 h1,h2,h3{font-family:var(--display);color:var(--navy);text-wrap:balance;margin:0;letter-spacing:-.02em}
-h1{font-size:clamp(2.1rem,4.6vw,3.4rem);line-height:1.08;font-weight:800}
-h2{font-size:clamp(1.7rem,3.2vw,2.4rem);line-height:1.15;font-weight:700}
+h1{font-size:clamp(2.4rem,5.4vw,4rem);line-height:1.02;font-weight:900;letter-spacing:-.03em}
+h2{font-size:clamp(1.8rem,3.4vw,2.6rem);line-height:1.1;font-weight:800}
 h3{font-size:1.15rem;line-height:1.3;font-weight:700}
 p{margin:0}
-.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--orange-2);font-weight:500}
+.eyebrow{font-family:var(--body);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--orange-2);font-weight:700}
 .lead{color:var(--muted);font-size:1.1rem;max-width:60ch}
 section{padding-block:84px}
 .sec-head{display:grid;gap:12px;max-width:740px;margin-bottom:40px}
@@ -83,21 +83,19 @@ section{padding-block:84px}
 @media (max-width:420px){.logo img{height:20px}}
 
 /* ===== Hero ===== */
-.hero{position:relative;overflow:hidden;padding-block:110px 150px;color:#E1E8FA;background:var(--navy-2)}
-.hero::before{content:"";position:absolute;inset:-20px;background:url("img/hero-marionetas.webp") center 40%/cover no-repeat;transform:scale(1.04)}
+.hero{position:relative;overflow:hidden;padding-block:104px 150px;color:#E1E8FA;background:linear-gradient(135deg,var(--navy-2),#1B4FA8)}
+.hero::before{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(62%,820px);aspect-ratio:921/576;background:url("img/hero-marionetas.webp") center/cover no-repeat;
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 55% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 70% 70% at 55% 50%,#000 55%,transparent 100%)}
 .hero::after{content:"";position:absolute;inset:0;background:
-    linear-gradient(90deg,rgba(20,29,87,.94) 0%,rgba(20,29,87,.82) 45%,rgba(37,53,139,.45) 100%),
-    linear-gradient(0deg,rgba(20,29,87,.7),transparent 40%)}
+    linear-gradient(90deg,rgba(20,29,87,.9) 0%,rgba(20,29,87,.6) 35%,rgba(18,120,210,.12) 60%,rgba(18,181,229,.12) 100%)}
+@media (max-width:760px){.hero::before{width:100%;opacity:.6}.hero::after{background:linear-gradient(180deg,rgba(20,29,87,.9),rgba(20,50,130,.8))}}
 .hero .wrap{position:relative;z-index:1}
-.hero-copy{display:grid;gap:22px;max-width:660px}
+.hero-copy{display:grid;gap:22px;max-width:600px}
 .hero h1{color:var(--white);text-shadow:0 2px 24px rgba(0,0,0,.35)}
 .hero h1 em{font-style:normal;color:#FF9A57}
 .hero .eyebrow{color:#FFB27F}
 .hero .lead{color:#D6DEF5}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px}
-.trust{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;color:#C9D3F0}
-.trust span{display:inline-flex;gap:6px;align-items:center}
-.trust span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--orange)}
 .qrcode{width:48px;height:48px;background:conic-gradient(from 90deg at 3px 3px,var(--white) 90deg,var(--navy) 0) 0 0/7px 7px;border:3px solid var(--navy);border-radius:4px}
 section[id],div[id="plataforma"]{scroll-margin-top:72px}
 
@@ -124,7 +122,9 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .prod ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
 .prod li{font-size:.78rem;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 11%,white);border-radius:999px;padding:3px 10px}
 .prod.wide{grid-column:span 2}
-.prod.wide .pic{height:280px}
+.prod.wide .pic{height:210px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:4px;height:100%}
+.duo img{min-height:0;height:100%;width:100%;object-fit:cover}
 .trio{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:4px;height:100%}
 .trio img{min-height:0;height:100%;width:100%;object-fit:cover}
 @media (max-width:620px){.trio{grid-template-columns:1.3fr 1fr}.trio img:last-child{display:none}}
@@ -141,17 +141,17 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 @media (max-width:620px){.prod-grid{grid-template-columns:1fr}.prod.wide{grid-column:auto}}
 
 /* ===== Beneficios ===== */
-.pillars{background:linear-gradient(180deg,var(--sky),#F7F9FE)}
-.pillars .wrap{display:grid;grid-template-columns:1fr 1.15fr;gap:48px;align-items:center}
-.pillars .wrap>*{min-width:0}
-.pill-list{display:grid;gap:18px}
-.pillar{display:grid;grid-template-columns:auto 1fr;gap:18px;background:var(--white);border-radius:var(--radius);padding:24px;border:1px solid var(--line)}
+.pillars{position:relative;overflow:hidden;padding-block:110px;background:#E9EEF8}
+.pillars::before{content:"";position:absolute;inset:-12px;background:url("img/beneficios-compra.webp") 30% 30%/cover no-repeat;opacity:.75}
+.pillars::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(237,242,252,.15) 0%,rgba(237,242,252,.55) 42%,rgba(237,242,252,.93) 62%,rgba(237,242,252,.97) 100%)}
+.pillars .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1.1fr;gap:48px}
+.pillars .wrap>div{grid-column:2;min-width:0}
+.pill-list{display:grid;gap:16px}
+.pillar{display:grid;grid-template-columns:auto 1fr;gap:18px;background:rgba(255,255,255,.96);border-radius:var(--radius);padding:24px;box-shadow:0 18px 40px -26px rgba(20,29,87,.55)}
 .pillar .ic{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;color:var(--white)}
 .pillar .ic svg{width:28px;height:28px}
 .pillar p{color:var(--muted);margin-top:6px}
-.photo-ring{max-width:460px;justify-self:center}
-@media (max-width:860px){.pillars .wrap{grid-template-columns:1fr}.photo-ring{max-width:340px}}
-
+@media (max-width:860px){.pillars::after{background:rgba(237,242,252,.86)}.pillars .wrap{grid-template-columns:1fr}.pillars .wrap>div{grid-column:1}}
 /* ===== Integraciones ===== */
 .integ{background:var(--navy-2);color:#CFD8F3;position:relative;overflow:hidden}
 .integ::before{content:"";position:absolute;right:-160px;top:-160px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(18,181,229,.28),transparent 70%)}
@@ -187,11 +187,11 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .modules{background:var(--sky)}
 .mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
 .mod{background:var(--white);border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
-.mod .shot{min-height:250px;background:linear-gradient(135deg,#F4F7FE,#E6EDFB);border-bottom:1px solid var(--line);padding:18px;display:grid;place-items:center;overflow:hidden}
+.mod .shot{height:270px;background:linear-gradient(135deg,#F4F7FE,#E6EDFB);border-bottom:1px solid var(--line);padding:18px;display:grid;place-items:center;overflow:hidden}
 .mod .txt{padding:20px 24px 24px;display:grid;gap:8px}
 .mod .txt p{color:var(--muted);font-size:.96rem}
 @media (max-width:760px){.mod-grid{grid-template-columns:1fr}}
-.seatmap{width:100%;max-width:340px}
+.seatmap{width:100%;max-width:280px}
 .stage-name{text-align:center;background:linear-gradient(90deg,var(--navy),var(--blue));color:var(--white);font:700 .68rem var(--display);letter-spacing:.2em;border-radius:40px 40px 8px 8px;padding:7px;margin:0 14% 10px}
 .zone{font-family:var(--mono);font-size:.6rem;color:var(--muted);text-align:center;margin:8px 0 5px;letter-spacing:.1em}
 .seats{display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
@@ -224,18 +224,7 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .report svg{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
 .report .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--white);font-size:.72rem;border-radius:8px;padding:5px 8px;transform:translate(-50%,-120%);white-space:nowrap;font-variant-numeric:tabular-nums}
 
-/* ===== Hecho para Chile ===== */
-.chile .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.chile .grid div{border-radius:var(--radius);padding:26px;display:grid;gap:8px;align-content:start;color:var(--white)}
-.chile .grid strong{font-family:var(--display);font-size:1.08rem}
-.chile .grid span{font-size:.94rem;opacity:.92}
-.chile .grid div:nth-child(1){background:var(--navy)}
-.chile .grid div:nth-child(2){background:var(--blue)}
-.chile .grid div:nth-child(3){background:linear-gradient(135deg,#FF8534,var(--orange-2))}
-@media (max-width:760px){.chile .grid{grid-template-columns:1fr}}
-
 /* ===== FAQ ===== */
-.faq{padding-top:0}
 .faq .wrap{display:grid;grid-template-columns:1fr 1.6fr;gap:48px}
 details{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:0 20px}
 details + details{margin-top:10px}
@@ -300,16 +289,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
   <div class="wrap">
     <div class="hero-copy">
       <span class="eyebrow">Ticketera para corporaciones culturales de Chile</span>
-      <h1>Vende tu cartelera <em>sin complicarte</em>. Nosotros ponemos la tecnología.</h1>
-      <p class="lead">Cursos, talleres, teatro, conciertos y ferias en una sola plataforma. Venta online y presencial, check in con QR e informes en tiempo real.</p>
+      <h1>Más público.<br><em>Menos gestión.</em></h1>
+      <p class="lead">Cursos, Talleres, Teatro, Conciertos y Ferias en una sola plataforma. Venta online y presencial, check in con QR e informes en tiempo real.</p>
       <div class="hero-ctas">
         <a class="btn btn-orange" href="#contacto">Agenda una demo gratuita →</a>
         <a class="btn btn-line" href="#productos">Ver productos</a>
-      </div>
-      <div class="trust">
-        <span>Boleta electrónica SII</span>
-        <span>Pagos con Webpay</span>
-        <span>Operación 24/7, 365 días</span>
       </div>
     </div>
 
@@ -380,9 +364,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       </article>
 
       <article class="prod" style="--c:var(--p-seminarios)">
-        <div class="pic"><div class="art" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="24" y="6" width="16" height="26" rx="8"/><path d="M16 26a16 16 0 0 0 32 0M32 42v10M22 56h20"/></svg>
-          <small>IMAGEN POR DEFINIR</small></div><span class="tag">Seminarios</span></div>
+        <div class="pic"><img src="img/seminarios-conferencia.webp" alt="Público asistiendo a una conferencia frente a una pantalla"><span class="tag">Seminarios</span></div>
         <div class="txt">
           <h3>Seminarios y Conferencias</h3>
           <p>Acreditación con QR y certificados de participación.</p>
@@ -400,11 +382,12 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       </article>
 
       <article class="prod wide ferias" style="--c:var(--p-ferias)">
-        <div class="pic"><div class="art" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 26L32 8l26 18M10 26h44M10 26c0 4 3 6 6.5 6S22 30 22 26c0 4 3 6 5 6s5-2 5-6c0 4 3 6 5 6s5-2 5-6c0 4 3 6 5.5 6S54 30 54 26M14 32v24M50 32v24M24 56V42h16v14"/></svg>
-          <small>IMAGEN POR DEFINIR</small></div><span class="tag">Ferias masivas</span></div>
+        <div class="pic"><div class="duo">
+            <img src="img/ferias-festival.webp" alt="Público recorriendo un festival al aire libre con faroles de colores">
+            <img src="img/ferias-feria.webp" alt="Puestos de una feria de antigüedades al aire libre">
+          </div><span class="tag">Ferias y eventos</span></div>
         <div class="txt">
-          <h3>Ferias Masivas</h3>
+          <h3>Ferias y Eventos Masivos</h3>
           <p>Entradas por día y horario, accesos con torniquetes o lectores y venta en puntos de venta.</p>
           <ul><li>Accesos masivos</li><li>Bloques horarios</li><li>Puntos de venta</li></ul>
         </div>
@@ -414,9 +397,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 </section>
 
 <!-- BENEFICIOS -->
-<section class="pillars" id="beneficios">
+<section class="pillars" id="beneficios" aria-label="Beneficios. Fondo: mujer comprando entradas desde su computador con tarjeta en mano">
   <div class="wrap">
-    <img class="photo-ring" src="img/compra-celular.webp" alt="Mujer comprando entradas desde su celular con tarjeta en mano">
     <div>
       <div class="sec-head" style="margin-bottom:26px">
         <span class="eyebrow">Beneficios</span>
@@ -441,11 +423,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 <section class="integ" id="integraciones">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">La Plataforma · Integraciones</span>
+      <span class="eyebrow">La Plataforma</span>
       <h2>Maximiza tus ventas sin compartir tu oferta programática</h2>
     </div>
 
-    <div class="flow" role="img" aria-label="Diagrama: en la preventa, medios de pago y programas de fidelización se conectan a tu plataforma; en la posventa, la plataforma alimenta el control de acceso, el check in digital y los informes en línea">
+    <div class="flow" role="img" aria-label="Diagrama: en la preventa, integraciones de canales de pago y boleta electrónica, y programas de fidelización se conectan a tu plataforma; en la posventa, la plataforma alimenta el control de acceso, el check in digital y los informes en línea">
       <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path d="M22 38 C 34 38, 34 55, 42 55" stroke="#FF9A57"/>
         <path d="M22 74 C 34 74, 34 55, 42 55" stroke="#FF9A57"/>
@@ -457,7 +439,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       <span class="fcol-label" style="left:50%">Tu plataforma</span>
       <span class="fcol-label" style="left:86%">Posventa y acceso</span>
 
-      <div class="fnode" style="left:14%;top:38%"><span class="fi" style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span><div>Medios de pago<small>Webpay, débito, crédito</small></div></div>
+      <div class="fnode" style="left:14%;top:38%"><span class="fi" style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span><div>Integraciones<small>Canales de pago, Boleta electrónica</small></div></div>
       <div class="fnode" style="left:14%;top:74%"><span class="fi" style="background:var(--p-infantil)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg></span><div>Programas de fidelización<small>Descuentos y convenios</small></div></div>
 
       <div class="fcore"><img src="img/logo-proexsi.png" alt="Proexsi"><span>Venta y gestión<br>cultural</span></div>
@@ -480,7 +462,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 <section class="modules" id="modulos">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">La Plataforma · Módulos</span>
       <h2>Todo en una plataforma web, sin instalar nada</h2>
     </div>
     <div class="mod-grid">
@@ -532,21 +513,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 
 </div>
 
-<!-- HECHO PARA CHILE -->
-<section class="chile" id="chile">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Hecho para Chile</span>
-      <h2>Pensado para cómo trabajan las instituciones culturales chilenas</h2>
-    </div>
-    <div class="grid">
-      <div><strong>Boleta electrónica SII</strong><span>Emisión automática por cada venta, online o en boletería.</span></div>
-      <div><strong>Webpay y transferencias</strong><span>Débito, crédito y prepago. El dinero llega a tu cuenta.</span></div>
-      <div><strong>Precios preferentes</strong><span>Valores especiales por RUT para vecinos, estudiantes y personas mayores.</span></div>
-    </div>
-  </div>
-</section>
-
 <!-- FAQ -->
 <section class="faq" id="preguntas">
   <div class="wrap">
@@ -557,7 +523,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
     <div>
       <details open><summary>¿Tengo que compartir mi cartelera con otras instituciones?</summary><p>No. Vendes desde tu propio sitio y con tu marca. Tu oferta programática no aparece en un portal junto a otras.</p></details>
       <details><summary>¿Tengo que cambiar mi sitio web?</summary><p>No. Agregamos un botón o una cartelera embebida en tu sitio actual, con tus colores y tu logo.</p></details>
-      <details><summary>¿Cuánto cuesta?</summary><p>Depende del volumen y los productos que actives. Hay planes con comisión por entrada o con tarifa fija anual.</p></details>
+      <details><summary>¿Mi equipo necesita conocimientos técnicos?</summary><p>No. La plataforma es autoadministrable: tu equipo crea actividades, precios y cupos desde el navegador, y te acompañamos en la puesta en marcha.</p></details>
     </div>
   </div>
 </section>
@@ -568,7 +534,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
     <div>
       <span class="eyebrow">Hablemos</span>
       <h2 style="margin-top:12px">Agenda una demo de 30 minutos</h2>
-      <p class="lead" style="margin-top:14px">Te mostramos la plataforma con un ejemplo de tu propia programación. Sin compromiso.</p>
+      <p class="lead" style="margin-top:14px">Te mostramos la plataforma, sin compromiso.</p>
       <ul>
         <li><strong>Correo:</strong> ventas@proexsi.cl (dato de ejemplo)</li>
         <li><strong>Teléfono:</strong> +56 2 0000 0000 (dato de ejemplo)</li>
@@ -591,7 +557,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
             <option>Actividades para la 3.ª Edad</option>
             <option>Teatro</option>
             <option>Orquesta y Sala de Música</option>
-            <option>Ferias Masivas</option>
+            <option>Ferias y Eventos Masivos</option>
           </select>
         </label>
       </div>
@@ -610,7 +576,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       <a class="brand" href="#inicio"><img src="img/logo-proexsi.png" alt="Proexsi, volver arriba"></a>
       <p style="margin-top:14px;max-width:36ch">Más de 20 años desarrollando sistemas de venta y gestión cultural.</p>
     </div>
-    <div><h4>Productos</h4><a href="#productos">Cursos y Talleres</a><a href="#productos">Teatro</a><a href="#productos">Orquesta y Sala de Música</a><a href="#productos">Ferias Masivas</a></div>
+    <div><h4>Productos</h4><a href="#productos">Cursos y Talleres</a><a href="#productos">Teatro</a><a href="#productos">Orquesta y Sala de Música</a><a href="#productos">Ferias y Eventos Masivos</a></div>
     <div><h4>Contacto</h4><a href="#contacto">Agenda una demo</a><a href="#preguntas">Preguntas frecuentes</a></div>
     <div class="legal">© 2026 Proexsi S.A. · Maqueta de trabajo, contenidos sujetos a revisión.</div>
   </div>
