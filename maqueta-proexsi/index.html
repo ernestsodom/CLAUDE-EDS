@@ -183,6 +183,48 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
   .fcore{width:170px;height:170px;margin-block:10px}
 }
 
+
+/* ===== E-ticket paso a paso ===== */
+.eticket{background:var(--white)}
+.eflow{display:grid;grid-template-columns:minmax(0,1.3fr) 78px minmax(0,1.1fr) 78px minmax(0,.75fr);align-items:center}
+.ecard{--c:var(--navy);background:var(--white);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:var(--radius);padding:20px;box-shadow:0 18px 40px -30px rgba(20,29,87,.5)}
+.ehead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.num{flex:none;width:38px;height:38px;border-radius:50%;background:var(--c);color:var(--white);display:grid;place-items:center;font:900 1.1rem var(--display)}
+.ehead strong{display:block;font:800 1.05rem/1.2 var(--display);color:var(--navy)}
+.ehead div span{font-size:.8rem;color:var(--muted)}
+.egroup{border:1px dashed #C5D0E6;border-radius:12px;padding:12px;display:grid;gap:10px}
+.egroup>small{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ebox{background:var(--sky);border-radius:10px;padding:10px 12px}
+.ebox b{display:block;color:var(--navy);font-size:.88rem;margin-bottom:4px}
+.ebox ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;color:var(--muted)}
+.ebox li::before{content:"■ ";color:var(--c);font-size:.6rem;vertical-align:1px}
+.erow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.egen{background:linear-gradient(90deg,var(--navy),var(--blue));color:var(--white);border-radius:10px;padding:10px 12px;font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:8px}
+.egen svg{width:20px;height:20px;flex:none}
+.estack{display:grid;gap:12px}
+.estack>small{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center}
+.ecard.mini{padding:14px 16px}
+.ecard.mini .ehead{margin:0}
+.ecard .ico{margin-left:auto;width:38px;height:38px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,white);color:var(--c);display:grid;place-items:center;flex:none}
+.ecard .ico svg{width:22px;height:22px}
+.esub{display:grid;gap:6px;margin-top:12px;counter-reset:sub}
+.esub div{display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--c) 10%,white);border-radius:8px;padding:7px 10px;font-size:.82rem;font-weight:600;color:var(--ink)}
+.esub div::before{counter-increment:sub;content:counter(sub);width:20px;height:20px;border-radius:50%;background:var(--c);color:var(--white);display:grid;place-items:center;font-size:.7rem;flex:none}
+.epay{display:inline-block;margin-left:auto;font-size:.66rem;font-weight:800;color:var(--white);background:#D6004A;border-radius:4px;padding:2px 6px}
+.earrow{display:grid;justify-items:center;gap:4px;color:var(--muted);font-size:.66rem;font-weight:700;text-align:center;line-height:1.2}
+.earrow svg{width:44px;height:24px}
+.earrow svg path{fill:none;stroke:var(--orange);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 6;animation:flowdash 1.4s linear infinite}
+.ecard.end{text-align:left}
+.ecard.end p{font-size:.86rem;color:var(--muted);margin-top:10px}
+.eticket-stub{margin-top:14px;display:flex;align-items:center;gap:12px;border:2px dashed var(--line);border-radius:12px;padding:10px}
+.eticket-stub span{font-size:.78rem;color:var(--muted)}
+.eticket-stub b{display:block;color:var(--navy);font-size:.86rem}
+@media (max-width:1000px){
+  .eflow{grid-template-columns:minmax(0,1fr);gap:6px}
+  .earrow svg{transform:rotate(90deg)}
+}
+@media (max-width:480px){.erow{grid-template-columns:1fr}}
+
 /* ===== Módulos ===== */
 .modules{background:var(--sky)}
 .mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
@@ -382,10 +424,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       </article>
 
       <article class="prod wide ferias" style="--c:var(--p-ferias)">
-        <div class="pic"><div class="duo">
-            <img src="img/ferias-festival.webp" alt="Público recorriendo un festival al aire libre con faroles de colores">
-            <img src="img/ferias-feria.webp" alt="Puestos de una feria de antigüedades al aire libre">
-          </div><span class="tag">Ferias y eventos</span></div>
+        <div class="pic"><img src="img/ferias-feria.webp" alt="Puestos de una feria de antigüedades al aire libre" style="object-position:50% 45%"><span class="tag">Ferias y eventos</span></div>
         <div class="txt">
           <h3>Ferias y Eventos Masivos</h3>
           <p>Entradas por día y horario, accesos con torniquetes o lectores y venta en puntos de venta.</p>
@@ -427,13 +466,12 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       <h2>Maximiza tus ventas sin compartir tu oferta programática</h2>
     </div>
 
-    <div class="flow" role="img" aria-label="Diagrama: en la preventa, integraciones de canales de pago y boleta electrónica, y programas de fidelización se conectan a tu plataforma; en la posventa, la plataforma alimenta el control de acceso, el check in digital y los informes en línea">
+    <div class="flow" role="img" aria-label="Diagrama: en la preventa, integraciones de canales de pago y boleta electrónica, y programas de fidelización se conectan a tu plataforma; en la posventa, la plataforma alimenta el control de acceso con check in digital y los informes en línea">
       <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path d="M22 38 C 34 38, 34 55, 42 55" stroke="#FF9A57"/>
         <path d="M22 74 C 34 74, 34 55, 42 55" stroke="#FF9A57"/>
-        <path d="M58 55 C 66 55, 66 28, 78 28" stroke="#5FD0F5"/>
-        <path d="M58 55 C 66 55, 66 55, 78 55" stroke="#5FD0F5"/>
-        <path d="M58 55 C 66 55, 66 82, 78 82" stroke="#5FD0F5"/>
+        <path d="M58 55 C 66 55, 66 38, 78 38" stroke="#5FD0F5"/>
+        <path d="M58 55 C 66 55, 66 74, 78 74" stroke="#5FD0F5"/>
       </svg>
       <span class="fcol-label" style="left:14%">Preventa</span>
       <span class="fcol-label" style="left:50%">Tu plataforma</span>
@@ -444,9 +482,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 
       <div class="fcore"><img src="img/logo-proexsi.png" alt="Proexsi"><span>Venta y gestión<br>cultural</span></div>
 
-      <div class="fnode" style="left:86%;top:28%"><span class="fi" style="background:var(--cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 21V5a2 2 0 0 1 2-2h8l6 6v12M14 3v6h6M9 14h6M12 11v6"/></svg></span><div>Control de acceso<small>Torniquetes y lectores</small></div></div>
-      <div class="fnode" style="left:86%;top:55%"><span class="fi" style="background:var(--p-mayores)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><div>Check in digital<small>QR, sin papel</small></div></div>
-      <div class="fnode" style="left:86%;top:82%"><span class="fi" style="background:var(--p-seminarios)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 20h18M6 16v-5M11 16V7M16 16v-8M21 16V4"/></svg></span><div>Informes en línea<small>Tiempo real, cualquier dispositivo</small></div></div>
+      <div class="fnode" style="left:86%;top:38%"><span class="fi" style="background:var(--cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><div>Control de acceso y check in<small>QR sin papel, torniquetes y lectores</small></div></div>
+      <div class="fnode" style="left:86%;top:74%"><span class="fi" style="background:var(--p-seminarios)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 20h18M6 16v-5M11 16V7M16 16v-8M21 16V4"/></svg></span><div>Informes en línea<small>Tiempo real, cualquier dispositivo</small></div></div>
     </div>
 
     <ul class="checks">
@@ -455,6 +492,59 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       <li>Check in digital, rápido, fácil, simple y sin papel.</li>
       <li>Acceso a tus informes de gestión personalizados en línea y en tiempo real, desde cualquier lugar y dispositivo.</li>
     </ul>
+  </div>
+</section>
+
+<!-- LA PLATAFORMA: E-TICKET PASO A PASO -->
+<section class="eticket" id="paso-a-paso">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">E-ticket paso a paso</span>
+      <h2>Así viaja una entrada, desde la configuración hasta la puerta</h2>
+      <p class="lead">Tu equipo configura todo en el Back Office. Luego vendes por tres canales con el mismo stock, y el acceso se valida al ingresar.</p>
+    </div>
+
+    <div class="eflow" role="img" aria-label="Diagrama en 5 pasos: 1, los usuarios configuran en el Módulo Back Office y se generan las entradas; 2, venta en tótem; 3, caja presencial; 4, público con acceso vía internet: información de disponibilidad, selección de obra, precios y días, carro de compra y pago online; 5, control de acceso.">
+      <div class="ecard" style="--c:var(--navy)">
+        <div class="ehead"><span class="num">1</span><div><strong>Usuarios · Módulo Back Office</strong><span>Configuración y administración</span></div></div>
+        <div class="egroup">
+          <div class="erow">
+            <div class="ebox"><b>Administración</b><ul><li>Usuarios</li><li>Cajas</li></ul></div>
+            <div class="ebox"><b>Reporting</b><ul><li>Consultas</li><li>Informes</li></ul></div>
+          </div>
+          <small>Información general</small>
+          <div class="erow">
+            <div class="ebox"><b>Configuración de parámetros</b><ul><li>Dispositivos</li><li>Bloqueos</li></ul></div>
+            <div class="ebox"><b>Configuración de programación</b><ul><li>Promociones</li><li>Precios</li><li>Infraestructura</li><li>Tipo de espectador</li></ul></div>
+          </div>
+          <div class="egen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>Generación de entradas</div>
+          <div class="ebox"><b>Otras funcionalidades y herramientas</b></div>
+        </div>
+      </div>
+
+      <div class="earrow"><svg viewBox="0 0 44 24" aria-hidden="true"><path d="M2 12h36M30 4l9 8-9 8"/></svg>Entradas<br>disponibles</div>
+
+      <div class="estack">
+        <small>Canales de venta</small>
+        <div class="ecard mini" style="--c:var(--p-mayores)"><div class="ehead"><span class="num">2</span><div><strong>Venta en tótem</strong><span>Autoatención en el recinto</span></div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="15" rx="2"/><path d="M9 6h6M9 10h6M10 21h4M12 17v4"/></svg></span></div></div>
+        <div class="ecard mini" style="--c:var(--blue)"><div class="ehead"><span class="num">3</span><div><strong>Caja presencial</strong><span>Venta asistida en boletería</span></div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1M3 21h18"/></svg></span></div></div>
+        <div class="ecard mini" style="--c:var(--orange)"><div class="ehead"><span class="num">4</span><div><strong>Público · Acceso vía internet</strong><span>Compra online desde cualquier dispositivo</span></div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4M2 13h20"/></svg></span></div>
+          <div class="esub">
+            <div>Información de disponibilidad</div>
+            <div>Selección de obra, precios y días</div>
+            <div>Carro de compra y pago online <span class="epay">webpay</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="earrow"><svg viewBox="0 0 44 24" aria-hidden="true"><path d="M2 12h36M30 4l9 8-9 8"/></svg>Entrada<br>con QR</div>
+
+      <div class="ecard end" style="--c:var(--p-teatro)">
+        <div class="ehead"><span class="num">5</span><div><strong>Control de acceso</strong><span>Check in en la puerta</span></div></div>
+        <div class="eticket-stub"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><div><b>Entrada válida</b><span>Platea · Fila F · 8</span></div></div>
+        <p>El personal escanea la entrada con el celular, un lector o un torniquete, y el ingreso queda registrado en los informes.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -492,7 +582,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
         <div class="shot" aria-hidden="true">
           <div class="qr"><div class="phone"><div class="qrcode" style="width:60px;height:60px"></div><span class="ok">✓ Entrada válida</span></div><div class="scan">INGRESADOS<b>312 / 340</b><div class="gauge"><b></b></div>Sala Principal · Puerta 2</div></div>
         </div>
-        <div class="txt"><h3>Check in digital</h3><p>Tu equipo escanea con el celular o con lectores y torniquetes integrados.</p></div>
+        <div class="txt"><h3>Control de acceso y check in</h3><p>Tu equipo escanea con el celular o con lectores y torniquetes integrados.</p></div>
       </article>
       <article class="mod">
         <div class="shot">
