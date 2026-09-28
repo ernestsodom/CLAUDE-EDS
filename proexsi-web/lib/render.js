@@ -53,6 +53,14 @@ const TRACK = `<script>
 
 export function renderPage(content, { preview = false } = {}) {
   const { document } = parseHTML(TEMPLATE);
+  // Fotos ocultas o eliminadas desde el back office
+  const hidden = new Set([
+    ...Object.keys(content.hiddenImages || {}).filter(k => content.hiddenImages[k]),
+    ...Object.keys(content.deletedImages || {}).filter(k => content.deletedImages[k]),
+  ]);
+  for (const img of document.querySelectorAll('img[src^="img/"]')) {
+    if (hidden.has(img.getAttribute('src').slice(4))) img.remove();
+  }
 
   // Textos
   const texts = content.texts || {};
@@ -63,10 +71,12 @@ export function renderPage(content, { preview = false } = {}) {
 
   // Carrusel
   const hero = document.getElementById('hero');
-  if (hero && Array.isArray(content.carousel) && content.carousel.length) {
+  const slides = (Array.isArray(content.carousel) ? content.carousel : []).filter(s => s && s.img && !s.hidden && !hidden.has(s.img));
+  if (hero) {
     hero.querySelectorAll('.slide').forEach(s => s.remove());
     const wrap = hero.querySelector('.wrap');
-    content.carousel.forEach((s, i) => {
+    if (slides.length < 2) hero.querySelector('.car-ctl')?.setAttribute('style', 'display:none');
+    slides.forEach((s, i) => {
       const d = document.createElement('div');
       d.className = 'slide' + (i === 0 ? ' on' : '');
       d.setAttribute('style', `background-image:url('img/${safeCss(s.img).replace(/'/g, '')}');background-position:${safeCss(s.pos || 'center')}`);
@@ -100,12 +110,13 @@ export function renderPage(content, { preview = false } = {}) {
 
   // Datos para páginas internas (productos, Nosotros)
   const images = content.images || {};
-  const site = { products: content.products, about: content.about, pp: content.pp, images: {}, formOk: content.formOk, carouselSeconds: Math.min(Math.max(Number(content.carouselSeconds) || 6, 2), 30) };
+  const site = { products: content.products, about: content.about, pp: content.pp, images: {}, formOk: content.formOk, hidden: [...hidden], carouselSeconds: Math.min(Math.max(Number(content.carouselSeconds) || 6, 2), 30) };
   const imgUrl = k => images[k] || `/img/${k}`;
   for (const k of Object.keys(images)) site.images[k] = images[k];
   html = html.replace('<!--SITE_DATA-->', `<script>window.SITE=${JSON.stringify(site).replace(/</g, '\\u003c')};</script>`);
 
   // Imágenes: cada referencia img/archivo apunta a la versión subida desde el back office o a la original
+  html = html.replace(/url\((["']?)img\/([\w-]+\.(?:webp|png|jpe?g|svg|gif))\1\)/g, (m, q, k) => (hidden.has(k) ? 'none' : m));
   html = html.replace(/(["'(])img\/([\w-]+\.(?:webp|png|jpe?g|svg|gif))/g, (m, pre, k) => pre + imgUrl(k));
 
   html = html.replace('<!--SITE_TRACK-->', preview ? '' : TRACK);

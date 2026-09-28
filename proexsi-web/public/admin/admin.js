@@ -83,10 +83,10 @@
   }
 
   // ---------- Carga de imágenes (se optimizan en el navegador antes de subir) ----------
-  function pickFile(accept) {
+  function pickFile(accept, multiple) {
     return new Promise(function (res) {
-      var i = h('input', { type: 'file', accept: accept || 'image/*' });
-      i.onchange = function () { res(i.files[0] || null); };
+      var i = h('input', { type: 'file', accept: accept || 'image/*', multiple: !!multiple });
+      i.onchange = function () { res(multiple ? Array.prototype.slice.call(i.files) : (i.files[0] || null)); };
       i.click();
     });
   }
@@ -112,8 +112,13 @@
   // Sube una foto y devuelve la clave con la que queda registrada
   function uploadImage(key, keepPng) {
     return pickFile('image/png,image/jpeg,image/webp,image/svg+xml').then(function (file) {
+      return uploadFile(file, key, keepPng);
+    });
+  }
+  function uploadFile(file, key, keepPng) {
+    return Promise.resolve(file).then(function (file) {
       if (!file) return null;
-      toast('Subiendo imagen…');
+      toast('Subiendo ' + file.name + '…');
       var png = keepPng || (file.type === 'image/png' && /logo/i.test(key || file.name));
       return optimize(file, png).then(function (dataUrl) {
         return api('upload', { method: 'POST', body: { name: file.name, dataUrl: dataUrl } });
@@ -122,19 +127,40 @@
         var k = key || ('subida-' + r.id + '.' + ext);
         C.images = C.images || {};
         C.images[k] = r.url;
+        if (!key) { C.imageLabels = C.imageLabels || {}; C.imageLabels[k] = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '); }
         markDirty(); toast('Imagen cargada. Recuerda guardar los cambios.');
         return k;
       });
     }).catch(function (e) { toast(e.message, true); return null; });
   }
-  function allImageKeys() {
+  function allImageKeys(withDeleted) {
     var ks = M.imageKeys.slice();
     Object.keys(C.images || {}).forEach(function (k) { if (ks.indexOf(k) < 0) ks.push(k); });
-    return ks;
+    return withDeleted ? ks : ks.filter(function (k) { return !isDeleted(k); });
+  }
+  function isDeleted(k) { return !!(C.deletedImages && C.deletedImages[k]); }
+  function isHidden(k) { return !!(C.hiddenImages && C.hiddenImages[k]) || isDeleted(k); }
+  function imgLabel(k) { return (C.imageLabels && C.imageLabels[k]) || M.imageLabels[k] || k; }
+  function isUpload(k) { return M.imageKeys.indexOf(k) < 0; }
+  // Quita una foto subida de todos los lugares donde se usa
+  function dropReferences(k) {
+    C.carousel = C.carousel.filter(function (s) { return s.img !== k; });
+    Object.keys(C.products).forEach(function (pk) { C.products[pk].img = C.products[pk].img.filter(function (i) { return i[0] !== k; }); });
+    if (C.about.image === k) C.about.image = '';
+  }
+  function usages(k) {
+    var u = [];
+    if (M.imageKeys.indexOf(k) >= 0 && ['logo-proexsi.png', 'beneficios-celular.webp'].indexOf(k) >= 0) u.push(k === 'logo-proexsi.png' ? 'Logo' : 'Franja de Beneficios');
+    if (/^(cursos-|infantil-|teatro-|orquesta-|seminarios-|mayores-|ferias-)/.test(k)) u.push('Tarjeta de producto (inicio)');
+    C.carousel.forEach(function (s, i) { if (s.img === k) u.push('Carrusel ' + (i + 1)); });
+    Object.keys(C.products).forEach(function (pk) { if (C.products[pk].img.some(function (i) { return i[0] === k; })) u.push('Página ' + C.products[pk].n); });
+    if (C.about.image === k) u.push('Nosotros');
+    return u;
   }
   function imageSelect(current, onPick) {
     var sel = h('select', {});
-    allImageKeys().forEach(function (k) { sel.appendChild(h('option', { value: k, text: (M.imageLabels[k] || k), selected: k === current })); });
+    allImageKeys().forEach(function (k) { sel.appendChild(h('option', { value: k, text: imgLabel(k) + (isHidden(k) ? ' (oculta)' : ''), selected: k === current })); });
+    if (current && isDeleted(current)) sel.appendChild(h('option', { value: current, text: imgLabel(current) + ' (eliminada)', selected: true }));
     sel.addEventListener('change', function () { onPick(sel.value); });
     return sel;
   }
@@ -343,19 +369,75 @@
 
   // ===== Fotos =====
   function viewImages(view) {
-    view.appendChild(h('p', { class: 'hint', text: 'Las fotos se optimizan automáticamente antes de subir (máximo 2000 px, formato WEBP). El logo conserva su transparencia si subes un PNG o SVG.' }));
+    view.appendChild(h('div', { class: 'toolbar' },
+      h('button', { class: 'btn primary', text: '+ Subir imágenes nuevas', onclick: function () {
+        pickFile('image/png,image/jpeg,image/webp,image/svg+xml', true).then(function (files) {
+          if (!files || !files.length) return;
+          var chain = Promise.resolve();
+          files.forEach(function (f) { chain = chain.then(function () { return uploadFile(f); }); });
+          chain.then(function () { toast(files.length + (files.length > 1 ? ' imágenes cargadas' : ' imagen cargada') + '. Úsalas en Carrusel, Productos o Nosotros y guarda.'); route(); });
+        });
+      } }),
+      h('span', { class: 'hint', text: 'Puedes elegir varias a la vez. Se optimizan antes de subir (máximo 2000 px, formato WEBP). El logo conserva su transparencia.' })));
+
     var grid = h('div', { class: 'imgs' });
-    var keys = allImageKeys().sort(function (a, b) { return (a === 'logo-proexsi.png' ? -1 : 0) - (b === 'logo-proexsi.png' ? -1 : 0); });
+    var keys = allImageKeys().sort(function (a, b) {
+      var ra = a === 'logo-proexsi.png' ? 0 : isUpload(a) ? 2 : 1, rb = b === 'logo-proexsi.png' ? 0 : isUpload(b) ? 2 : 1;
+      return ra - rb;
+    });
     keys.forEach(function (k) {
-      var th = h('div', { class: 'th' + (k.indexOf('logo') < 0 ? ' cover' : ''), style: { backgroundImage: 'url("' + imgUrl(k) + '")' } });
-      var changed = C.images && C.images[k] && M.imageKeys.indexOf(k) >= 0;
-      grid.appendChild(h('div', { class: 'imgc' }, th, h('div', { class: 'b' },
-        h('strong', { text: M.imageLabels[k] || k }), changed ? h('span', { class: 'badge', text: 'Reemplazada' }) : null,
+      var hid = isHidden(k), up = isUpload(k);
+      var replaced = C.images && C.images[k] && !up;
+      var th = h('div', { class: 'th' + (k.indexOf('logo') < 0 ? ' cover' : '') + (hid ? ' off' : ''), style: { backgroundImage: 'url("' + imgUrl(k) + '")' } });
+      var where = usages(k);
+      var name = up ? (function () {
+        var o = { v: imgLabel(k) };
+        var i = bind(o, 'v', { multi: false, onChange: function () { C.imageLabels = C.imageLabels || {}; C.imageLabels[k] = o.v; } });
+        i.title = 'Nombre de la imagen'; return i;
+      })() : h('strong', { text: imgLabel(k) });
+      var del = h('button', { class: 'btn danger small', text: 'Eliminar', onclick: function () {
+        if (del.getAttribute('data-sure') !== '1') { del.setAttribute('data-sure', '1'); del.textContent = '¿Eliminar? Confirmar'; setTimeout(function () { del.removeAttribute('data-sure'); del.textContent = 'Eliminar'; }, 4000); return; }
+        if (up) { delete C.images[k]; if (C.imageLabels) delete C.imageLabels[k]; if (C.hiddenImages) delete C.hiddenImages[k]; dropReferences(k); }
+        else { C.deletedImages = C.deletedImages || {}; C.deletedImages[k] = true; }
+        markDirty(); toast('Imagen eliminada. Guarda para aplicar el cambio en el sitio.'); route();
+      } });
+      grid.appendChild(h('div', { class: 'imgc' + (hid ? ' is-off' : '') }, th, h('div', { class: 'b' },
+        name,
         h('div', { class: 'row' },
-          h('button', { class: 'btn ghost small', text: 'Cambiar foto', onclick: function () { uploadImage(k, k.indexOf('logo') >= 0).then(function (r) { if (r) route(); }); } }),
-          changed ? h('button', { class: 'btn link small', text: 'Volver a la original', onclick: function () { delete C.images[k]; markDirty(); route(); } }) : null))));
+          hid ? h('span', { class: 'badge gray', text: 'Oculta en el sitio' }) : null,
+          replaced ? h('span', { class: 'badge', text: 'Reemplazada' }) : null,
+          up ? h('span', { class: 'badge blue', text: 'Subida' }) : null),
+        h('span', { class: 'hint', text: where.length ? 'Se usa en: ' + where.join(', ') : 'No se usa todavía en el sitio.' }),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn ghost small', text: 'Cambiar foto', onclick: function () {
+            uploadImage(up ? null : k, k.indexOf('logo') >= 0).then(function (nk) {
+              if (!nk) return;
+              if (up && nk !== k) { // una foto subida se reemplaza manteniendo su nombre y sus usos
+                C.images[k] = C.images[nk]; delete C.images[nk]; if (C.imageLabels) delete C.imageLabels[nk];
+              }
+              route();
+            });
+          } }),
+          h('button', { class: 'btn ghost small', text: hid ? 'Mostrar' : 'Ocultar', onclick: function () {
+            C.hiddenImages = C.hiddenImages || {};
+            if (C.hiddenImages[k]) delete C.hiddenImages[k]; else C.hiddenImages[k] = true;
+            markDirty(); route();
+          } }),
+          replaced ? h('button', { class: 'btn link small', text: 'Volver a la original', onclick: function () { delete C.images[k]; markDirty(); route(); } }) : null,
+          del))));
     });
     view.appendChild(grid);
+
+    var gone = allImageKeys(true).filter(isDeleted);
+    if (gone.length) {
+      var list = h('div', { class: 'imgs' });
+      gone.forEach(function (k) {
+        list.appendChild(h('div', { class: 'imgc is-off' }, h('div', { class: 'th cover off', style: { backgroundImage: 'url("' + imgUrl(k) + '")' } }),
+          h('div', { class: 'b' }, h('strong', { text: imgLabel(k) }),
+            h('button', { class: 'btn ghost small', text: 'Recuperar', onclick: function () { delete C.deletedImages[k]; markDirty(); route(); } }))));
+      });
+      view.appendChild(h('details', { class: 'sec' }, h('summary', {}, 'Imágenes eliminadas', h('span', { text: gone.length + ' — se pueden recuperar' })), h('div', { class: 'fields' }, list)));
+    }
   }
 
   // ===== Carrusel =====
@@ -373,13 +455,14 @@
       var pos = h('select', {});
       POSITIONS.forEach(function (p) { pos.appendChild(h('option', { value: p[0], text: p[1], selected: s.pos === p[0] })); });
       if (!POSITIONS.some(function (p) { return p[0] === s.pos; })) pos.appendChild(h('option', { value: s.pos, text: 'Personalizado (' + s.pos + ')', selected: true }));
-      var th = h('div', { class: 'th', style: { backgroundImage: 'url("' + imgUrl(s.img) + '")', backgroundPosition: s.pos } });
+      var th = h('div', { class: 'th' + ((s.hidden || isHidden(s.img)) ? ' off' : ''), style: { backgroundImage: 'url("' + imgUrl(s.img) + '")', backgroundPosition: s.pos } });
       pos.addEventListener('change', function () { s.pos = pos.value; th.style.backgroundPosition = s.pos; markDirty(); });
       card.appendChild(h('div', { class: 'item' },
-        h('div', { class: 'item-head' }, h('strong', { text: 'Imagen ' + (i + 1) }), h('div', { class: 'toolbar' },
+        h('div', { class: 'item-head' }, h('div', { class: 'toolbar' }, h('strong', { text: 'Imagen ' + (i + 1) }), (s.hidden || isHidden(s.img)) ? h('span', { class: 'badge gray', text: s.hidden ? 'Oculta' : 'Foto oculta en Fotos y logo' }) : null), h('div', { class: 'toolbar' },
           h('button', { class: 'btn ghost small', text: '↑', title: 'Subir', disabled: i === 0, onclick: function () { move(C.carousel, i, -1); } }),
           h('button', { class: 'btn ghost small', text: '↓', title: 'Bajar', disabled: i === C.carousel.length - 1, onclick: function () { move(C.carousel, i, 1); } }),
-          h('button', { class: 'btn danger small', text: 'Quitar', disabled: C.carousel.length < 2, onclick: function () { C.carousel.splice(i, 1); markDirty(); route(); } }))),
+          h('button', { class: 'btn ghost small', text: s.hidden ? 'Mostrar' : 'Ocultar', title: 'Ocultar esta imagen del carrusel sin borrarla', onclick: function () { s.hidden = !s.hidden; if (!s.hidden) delete s.hidden; markDirty(); route(); } }),
+          h('button', { class: 'btn danger small', text: 'Quitar', onclick: function () { C.carousel.splice(i, 1); markDirty(); route(); } }))),
         h('div', { class: 'slide-row' }, th, h('div', { style: { display: 'grid', gap: '10px' } },
           h('div', { class: 'field' }, h('label', { text: 'Foto' }), h('div', { class: 'toolbar' },
             imageSelect(s.img, function (k) { s.img = k; markDirty(); route(); }),
@@ -416,7 +499,8 @@
 
     var pics = h('div', { class: 'pics' });
     p.img.forEach(function (im, i) {
-      pics.appendChild(h('div', { class: 'imgc' }, h('div', { class: 'th cover', style: { backgroundImage: 'url("' + imgUrl(im[0]) + '")' } }), h('div', { class: 'b' },
+      pics.appendChild(h('div', { class: 'imgc' }, h('div', { class: 'th cover' + (isHidden(im[0]) ? ' off' : ''), style: { backgroundImage: 'url("' + imgUrl(im[0]) + '")' } }), h('div', { class: 'b' },
+        isHidden(im[0]) ? h('span', { class: 'badge gray', text: 'Oculta en el sitio' }) : null,
         imageSelect(im[0], function (k) { im[0] = k; markDirty(); route(); }),
         (function () { var o = { v: im[1] }; var i2 = bind(o, 'v', { multi: false }); i2.placeholder = 'Descripción'; i2.addEventListener('input', function () { im[1] = o.v; }); return i2; })(),
         h('div', { class: 'row' },
@@ -581,7 +665,7 @@
   function load() {
     return api('content').then(function (r) {
       C = r.content; D = r.defaults; M = r.meta; FONTS = r.fonts;
-      ['texts', 'images'].forEach(function (k) { C[k] = C[k] || {}; });
+      ['texts', 'images', 'imageLabels', 'hiddenImages', 'deletedImages'].forEach(function (k) { C[k] = C[k] || {}; });
       SAVED = JSON.stringify(C); markDirty();
     });
   }

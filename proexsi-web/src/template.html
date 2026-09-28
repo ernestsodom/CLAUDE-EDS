@@ -124,11 +124,12 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .prod li{font-size:.78rem;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 11%,white);border-radius:999px;padding:3px 10px}
 .prod.wide{grid-column:span 2}
 .prod.wide .pic{height:210px}
-.duo{display:grid;grid-template-columns:1fr 1fr;gap:4px;height:100%}
-.duo img{min-height:0;height:100%;width:100%;object-fit:cover}
-.trio{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:4px;height:100%}
-.trio img{min-height:0;height:100%;width:100%;object-fit:cover}
-@media (max-width:620px){.trio{grid-template-columns:1.3fr 1fr}.trio img:last-child{display:none}}
+.duo{display:flex;gap:4px;height:100%}
+.duo img{flex:1 1 0;min-width:0;height:100%;width:100%;object-fit:cover}
+.trio{display:flex;gap:4px;height:100%}
+.trio img{flex:1 1 0;min-width:0;height:100%;width:100%;object-fit:cover}
+.trio img:first-child{flex-grow:1.6}
+@media (max-width:620px){.trio img:nth-child(3){display:none}}
 .art{height:100%;display:grid;place-items:center;position:relative;
   background:
     radial-gradient(circle at 80% 20%,rgba(255,255,255,.28) 0 60px,transparent 61px),

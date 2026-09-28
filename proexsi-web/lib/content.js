@@ -41,6 +41,10 @@ export async function saveContent(data, note = 'Guardado desde el back office') 
             on conflict (id) do update set data = excluded.data, updated_at = now()`;
     await q`insert into content_history (data, note) values (${json}::jsonb, ${note})`;
     await q`delete from content_history where id not in (select id from content_history order by id desc limit 30)`;
+    // Libera espacio: borra fotos subidas que ya no usa el contenido publicado ni ninguna versión guardada
+    await q`delete from images i where i.created_at < now() - interval '1 hour'
+      and not exists (select 1 from site_content c where position(('/api/img?id=' || i.id || '"') in c.data::text) > 0)
+      and not exists (select 1 from content_history h where position(('/api/img?id=' || i.id || '"') in h.data::text) > 0)`;
   } else {
     mem.content = data;
     mem.history.unshift({ id: mem.history.length + 1, data, note, created_at: new Date().toISOString() });
