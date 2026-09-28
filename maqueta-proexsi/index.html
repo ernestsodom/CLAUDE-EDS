@@ -83,20 +83,20 @@ section{padding-block:84px}
 @media (max-width:420px){.logo img{height:20px}}
 
 /* ===== Hero (carrusel) ===== */
-.hero{position:relative;overflow:hidden;padding-block:110px 160px;color:#E1E8FA;background:var(--navy-2)}
+.hero{position:relative;overflow:hidden;padding-block:110px 120px;color:#E1E8FA;background:var(--navy-2)}
 .slide{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity 1.1s ease,transform 7s ease;transform:scale(1.03)}
 .slide.on{opacity:1;transform:scale(1)}
 .hero::after{content:"";position:absolute;inset:0;z-index:1;background:
     linear-gradient(90deg,rgba(20,29,87,.92) 0%,rgba(20,29,87,.74) 38%,rgba(20,29,87,.2) 60%,transparent 76%),
     linear-gradient(0deg,rgba(20,29,87,.45),transparent 30%)}
 .hero .wrap{z-index:2}
-.car-ctl{position:absolute;z-index:3;right:max(20px,calc((100vw - 1180px)/2 + 20px));bottom:84px;display:flex;align-items:center;gap:10px}
+.car-ctl{position:absolute;z-index:3;right:max(20px,calc((100vw - 1180px)/2 + 20px));bottom:36px;display:flex;align-items:center;gap:10px}
 .car-ctl button{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.6);background:rgba(20,29,87,.45);color:#fff;font-size:1.1rem;cursor:pointer;backdrop-filter:blur(4px)}
 .car-ctl button:hover{background:rgba(20,29,87,.75)}
 .dots{display:flex;gap:6px;margin-inline:4px}
 .dots button{width:10px;height:10px;padding:0;border-radius:999px;border:0;background:rgba(255,255,255,.55);transition:width .3s}
 .dots button[aria-current="true"]{width:28px;background:var(--orange)}
-@media (max-width:760px){.hero::after{background:linear-gradient(180deg,rgba(20,29,87,.78),rgba(20,29,87,.6))}.car-ctl{bottom:76px}}
+@media (max-width:760px){.hero::after{background:linear-gradient(180deg,rgba(20,29,87,.78),rgba(20,29,87,.6))}.car-ctl{bottom:24px}}
 .hero .wrap{position:relative}
 .hero-copy{display:grid;gap:22px;max-width:600px}
 .hero h1{color:var(--white);text-shadow:0 2px 24px rgba(0,0,0,.35)}
@@ -106,17 +106,6 @@ section{padding-block:84px}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px}
 .qrcode{width:48px;height:48px;background:conic-gradient(from 90deg at 3px 3px,var(--white) 90deg,var(--navy) 0) 0 0/7px 7px;border:3px solid var(--navy);border-radius:4px}
 section[id],div[id="plataforma"]{scroll-margin-top:72px}
-
-/* ===== Nosotros ===== */
-.about{padding-block:0;margin-top:-60px;position:relative;z-index:2}
-.about-card{background:var(--white);border-radius:22px;box-shadow:0 24px 60px -30px rgba(20,29,87,.45);display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center;padding:32px 40px;border:1px solid var(--line)}
-.years{display:grid;place-items:center;width:140px;height:140px;border-radius:50%;background:conic-gradient(from 200deg,var(--orange),var(--navy),var(--blue),var(--orange));padding:8px}
-.years div{width:100%;height:100%;border-radius:50%;background:var(--white);display:grid;place-content:center;text-align:center}
-.years b{font:800 2.5rem/1 var(--display);color:var(--navy)}
-.years span{font-size:.8rem;color:var(--muted);font-weight:600}
-.about-card p{font-size:1.12rem;max-width:70ch}
-.about-card p strong{color:var(--navy)}
-@media (max-width:720px){.about-card{grid-template-columns:1fr;padding:26px;justify-items:start}.years{width:112px;height:112px}.years b{font-size:2rem}}
 
 /* ===== Productos ===== */
 .prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
@@ -320,6 +309,36 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 @media (max-width:900px){.pp-hero .wrap{grid-template-columns:1fr}.pp-pics{height:240px}.feat-grid,.stp{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.feat-grid,.stp{grid-template-columns:1fr}.pp-pics{--n:1!important}.pp-pics img:not(:first-child){display:none}}
 
+/* ===== Página Nosotros ===== */
+.ab-hero{position:relative;overflow:hidden;color:#fff;padding-block:84px 96px;background:var(--navy-2)}
+.ab-hero::before{content:"";position:absolute;inset:0;background:url("img/hero-contrabajos.webp") center 45%/cover no-repeat}
+.ab-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,29,87,.93) 0%,rgba(20,29,87,.78) 45%,rgba(20,29,87,.25) 100%)}
+.ab-hero .wrap{position:relative;z-index:1;display:grid;gap:18px;max-width:1180px}
+.ab-hero h1{color:#fff;max-width:14ch}
+.ab-hero .lead{color:#D6DEF5;max-width:58ch}
+.ab-intro{padding-block:72px}
+.ab-intro .wrap{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
+.ab-years{width:190px;height:190px;border-radius:50%;padding:10px;background:conic-gradient(from 200deg,var(--orange),var(--navy),var(--blue),var(--orange))}
+.ab-years div{width:100%;height:100%;border-radius:50%;background:#fff;display:grid;place-content:center;text-align:center}
+.ab-years b{font:900 3.4rem/1 var(--display);color:var(--navy)}
+.ab-years span{font-size:.9rem;color:var(--muted);font-weight:700}
+.ab-intro p{font-size:1.15rem;max-width:62ch}
+.ab-intro p + p{margin-top:12px;color:var(--muted);font-size:1.02rem}
+.ab-do{background:var(--sky);padding-block:72px}
+.do-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.do{--c:var(--blue);background:#fff;border-radius:var(--radius);padding:26px;display:grid;gap:10px;align-content:start;box-shadow:0 18px 40px -30px rgba(20,29,87,.5)}
+.do .ic{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#141D57))}
+.do .ic svg{width:26px;height:26px}
+.do p{color:var(--muted)}
+.ab-val{padding-block:72px}
+.val-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.val{border-top:4px solid var(--c);padding-top:16px;display:grid;gap:6px;align-content:start}
+.val p{color:var(--muted);font-size:.96rem}
+.ab-who{padding-block:0 72px}
+.ab-note{margin-top:28px;border:2px dashed var(--line);border-radius:var(--radius);padding:18px 20px;color:var(--muted);font-size:.92rem}
+@media (max-width:900px){.do-grid{grid-template-columns:1fr}.val-grid{grid-template-columns:1fr 1fr}.ab-intro .wrap{grid-template-columns:1fr}.ab-years{width:150px;height:150px}.ab-years b{font-size:2.6rem}}
+@media (max-width:520px){.val-grid{grid-template-columns:1fr}}
+
 /* ===== FAQ ===== */
 .faq .wrap{display:grid;grid-template-columns:1fr 1.6fr;gap:48px}
 details{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:0 20px}
@@ -400,16 +419,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
     <button type="button" id="car-prev" aria-label="Imagen anterior">‹</button>
     <div class="dots" id="car-dots"></div>
     <button type="button" id="car-next" aria-label="Imagen siguiente">›</button>
-  </div>
-</section>
-
-<!-- NOSOTROS -->
-<section class="about" id="nosotros">
-  <div class="wrap">
-    <div class="about-card">
-      <div class="years" aria-hidden="true"><div><b>+20</b><span>años</span></div></div>
-      <p><strong>Empresa de TI con más de 20 años desarrollando sistemas customizados de venta y gestión cultural.</strong> Optimizamos la gestión y eficiencia de organizaciones cuyo foco está en el mundo de la cultura, las artes y el entretenimiento.</p>
-    </div>
   </div>
 </section>
 
@@ -822,10 +831,45 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       '<section class="pp-cta"><div class="wrap"><div class="box" style="--c:'+c+'"><h2>¿Lo vemos con tu programación?</h2><a class="btn btn-orange" href="#contacto">Agenda una demo gratuita →</a></div></div></section>'+
       '<section class="pp-more"><div class="wrap"><h3>Otros productos</h3><div class="chips-row">'+more+'</div></div></section>';
   }
+  function renderAbout(){
+    var chips=Object.keys(P).map(function(x){return '<a href="#p-'+x+'" style="--c:var('+P[x].c+')">'+esc(P[x].n)+'</a>'}).join('');
+    var ico={
+      code:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>',
+      sliders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>',
+      clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+    };
+    pp.innerHTML=
+      '<section class="ab-hero" aria-label="Nosotros"><div class="wrap">'+
+        '<div class="crumb"><a href="#inicio">Inicio</a> / Nosotros</div>'+
+        '<span class="eyebrow" style="color:#FFB27F">Nosotros</span>'+
+        '<h1>Tecnología hecha para la cultura</h1>'+
+        '<p class="lead">Somos Proexsi, una empresa chilena de TI que desarrolla sistemas de venta y gestión para organizaciones culturales, artísticas y de entretenimiento.</p>'+
+      '</div></section>'+
+      '<section class="ab-intro"><div class="wrap">'+
+        '<div class="ab-years" aria-hidden="true"><div><b>+20</b><span>años</span></div></div>'+
+        '<div><p><strong style="color:var(--navy)">Empresa de TI con más de 20 años desarrollando sistemas customizados de venta y gestión cultural.</strong> Optimizamos la gestión y eficiencia de organizaciones cuyo foco está en el mundo de la cultura, las artes y el entretenimiento.</p>'+
+        '<p>Conocemos las reglas de negocio de teatros, centros culturales, orquestas, escuelas de arte y ferias, y las llevamos a una plataforma que tu equipo administra con autonomía.</p></div>'+
+      '</div></section>'+
+      '<section class="ab-do"><div class="wrap"><div class="sec-head"><span class="eyebrow">Qué hacemos</span><h2>Desarrollamos, integramos y operamos contigo</h2></div><div class="do-grid">'+
+        '<div class="do" style="--c:var(--blue)"><span class="ic">'+ico.code+'</span><h3>Sistemas a la medida</h3><p>Adaptamos la plataforma a tus salas, precios, perfiles de público y forma de trabajar.</p></div>'+
+        '<div class="do" style="--c:var(--orange)"><span class="ic">'+ico.sliders+'</span><h3>Autoadministrable</h3><p>Tu equipo crea actividades, precios y cupos sin depender de nosotros para el día a día.</p></div>'+
+        '<div class="do" style="--c:var(--p-mayores)"><span class="ic">'+ico.clock+'</span><h3>Operación 24/7</h3><p>Venta segura y expedita las 24 horas del día, los 365 días del año.</p></div>'+
+      '</div></div></section>'+
+      '<section class="ab-val"><div class="wrap"><div class="sec-head"><span class="eyebrow">Cómo trabajamos</span><h2>Lo que nos importa</h2></div><div class="val-grid">'+
+        '<div class="val" style="--c:var(--blue)"><h3>Tu oferta es tuya</h3><p>Vendes desde tu sitio y con tu marca, sin compartir tu programación en un portal ajeno.</p></div>'+
+        '<div class="val" style="--c:var(--orange)"><h3>Autonomía</h3><p>Herramientas simples para que tu equipo decida y opere sin intermediarios.</p></div>'+
+        '<div class="val" style="--c:var(--p-seminarios)"><h3>Integración completa</h3><p>Medios de pago, boleta electrónica, fidelización y dispositivos de acceso en un solo sistema.</p></div>'+
+        '<div class="val" style="--c:var(--p-mayores)"><h3>Cercanía</h3><p>Un equipo en Chile que conoce la gestión cultural y te acompaña en cada temporada.</p></div>'+
+      '</div></div></section>'+
+      '<section class="ab-who"><div class="wrap"><h3>A quiénes acompañamos</h3><div class="chips-row">'+chips+'</div>'+
+        '<div class="ab-note">Espacio reservado para la historia de Proexsi, el equipo y los logos de clientes. Contenido por definir.</div>'+
+      '</div></section>'+
+      '<section class="pp-cta" style="padding-top:0"><div class="wrap"><div class="box" style="--c:var(--blue)"><h2>¿Conversamos sobre tu programación?</h2><a class="btn btn-orange" href="#contacto">Agenda una demo gratuita →</a></div></div></section>';
+  }
   function route(){
     var h=location.hash.slice(1);
-    if(h.indexOf('p-')===0&&P[h.slice(2)]){
-      render(h.slice(2)); home.hidden=true; pp.hidden=false; window.scrollTo(0,0); clearInterval(timer);
+    if(h==='nosotros'||(h.indexOf('p-')===0&&P[h.slice(2)])){
+      if(h==='nosotros') renderAbout(); else render(h.slice(2)); home.hidden=true; pp.hidden=false; window.scrollTo(0,0); clearInterval(timer);
     }else{
       var wasHidden=home.hidden; home.hidden=false; pp.hidden=true; if(wasHidden) restart();
       var t=h&&document.getElementById(h);
