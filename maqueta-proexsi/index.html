@@ -82,14 +82,22 @@ section{padding-block:84px}
 }
 @media (max-width:420px){.logo img{height:20px}}
 
-/* ===== Hero ===== */
-.hero{position:relative;overflow:hidden;padding-block:104px 150px;color:#E1E8FA;background:linear-gradient(135deg,var(--navy-2),#1B4FA8)}
-.hero::before{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(62%,820px);aspect-ratio:921/576;background:url("img/hero-marionetas.webp") center/cover no-repeat;
-  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 55% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 70% 70% at 55% 50%,#000 55%,transparent 100%)}
-.hero::after{content:"";position:absolute;inset:0;background:
-    linear-gradient(90deg,rgba(20,29,87,.9) 0%,rgba(20,29,87,.6) 35%,rgba(18,120,210,.12) 60%,rgba(18,181,229,.12) 100%)}
-@media (max-width:760px){.hero::before{width:100%;opacity:.6}.hero::after{background:linear-gradient(180deg,rgba(20,29,87,.9),rgba(20,50,130,.8))}}
-.hero .wrap{position:relative;z-index:1}
+/* ===== Hero (carrusel) ===== */
+.hero{position:relative;overflow:hidden;padding-block:110px 160px;color:#E1E8FA;background:var(--navy-2)}
+.slide{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity 1.1s ease,transform 7s ease;transform:scale(1.03)}
+.slide.on{opacity:1;transform:scale(1)}
+.hero::after{content:"";position:absolute;inset:0;z-index:1;background:
+    linear-gradient(90deg,rgba(20,29,87,.92) 0%,rgba(20,29,87,.74) 38%,rgba(20,29,87,.2) 60%,transparent 76%),
+    linear-gradient(0deg,rgba(20,29,87,.45),transparent 30%)}
+.hero .wrap{z-index:2}
+.car-ctl{position:absolute;z-index:3;right:max(20px,calc((100vw - 1180px)/2 + 20px));bottom:84px;display:flex;align-items:center;gap:10px}
+.car-ctl button{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.6);background:rgba(20,29,87,.45);color:#fff;font-size:1.1rem;cursor:pointer;backdrop-filter:blur(4px)}
+.car-ctl button:hover{background:rgba(20,29,87,.75)}
+.dots{display:flex;gap:6px;margin-inline:4px}
+.dots button{width:10px;height:10px;padding:0;border-radius:999px;border:0;background:rgba(255,255,255,.55);transition:width .3s}
+.dots button[aria-current="true"]{width:28px;background:var(--orange)}
+@media (max-width:760px){.hero::after{background:linear-gradient(180deg,rgba(20,29,87,.78),rgba(20,29,87,.6))}.car-ctl{bottom:76px}}
+.hero .wrap{position:relative}
 .hero-copy{display:grid;gap:22px;max-width:600px}
 .hero h1{color:var(--white);text-shadow:0 2px 24px rgba(0,0,0,.35)}
 .hero h1 em{font-style:normal;color:#FF9A57}
@@ -119,6 +127,10 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .prod .tag{position:absolute;left:14px;top:14px;background:var(--white);color:var(--c);font:700 .72rem var(--body);letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:5px 11px;box-shadow:0 4px 12px rgba(0,0,0,.14)}
 .prod .txt{padding:18px 22px 22px;display:grid;gap:8px;align-content:start;border-top:5px solid var(--c)}
 .prod .txt p{color:var(--muted);font-size:.95rem}
+.prod{position:relative}
+.prod .more{font-weight:700;font-size:.9rem;color:var(--c);text-decoration:none;margin-top:4px}
+.prod .more::after{content:"";position:absolute;inset:0}
+.prod .more:hover{text-decoration:underline}
 .prod ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
 .prod li{font-size:.78rem;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 11%,white);border-radius:999px;padding:3px 10px}
 .prod.wide{grid-column:span 2}
@@ -142,19 +154,19 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 
 /* ===== Beneficios ===== */
 .benef{padding-block:0 84px;background:var(--white)}
-.benef-band{position:relative;height:340px;background:url("img/beneficios-compra.webp") 30% 32%/cover no-repeat;display:flex;align-items:center}
-.benef-band::after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,rgba(20,29,87,.92) 0%,rgba(20,29,87,.72) 38%,rgba(31,91,216,.12) 68%,rgba(242,107,29,.08) 100%)}
+.benef-band{position:relative;height:340px;background:#8FD3E6 url("img/beneficios-celular.webp") 42% 35%/cover no-repeat;display:flex;align-items:center}
+.benef-band::after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,rgba(255,255,255,.35) 0%,rgba(255,255,255,.1) 34%,transparent 50%)}
 .benef-band .wrap{position:relative;z-index:1;width:100%;display:flex;justify-content:flex-end}
-.benef-band .txt{max-width:600px;display:grid;gap:10px;padding-bottom:70px}
-.benef-band h2{font-size:clamp(1.6rem,2.8vw,2.2rem)}
-.benef-band h2{color:var(--white)}
-.benef-band .eyebrow{color:#FFB27F}
+.benef-band .txt{max-width:370px;display:grid;gap:10px;padding-bottom:70px}
+.benef-band h2{font-size:clamp(1.5rem,2.4vw,1.95rem)}
+.benef-band h2{color:var(--navy-2)}
+.benef-band .eyebrow{color:var(--orange-2)}
 .pill-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:-56px;position:relative;z-index:2}
 .pillar{display:grid;grid-template-columns:auto 1fr;gap:18px;background:var(--white);border-radius:var(--radius);padding:26px;box-shadow:0 24px 50px -28px rgba(20,29,87,.55);border:1px solid var(--line)}
 .pillar .ic{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;color:var(--white)}
 .pillar .ic svg{width:28px;height:28px}
 .pillar p{color:var(--muted);margin-top:6px}
-@media (max-width:860px){.benef-band::after{background:rgba(20,29,87,.72)}.benef-band .wrap{justify-content:flex-start}.pill-row{grid-template-columns:1fr}}
+@media (max-width:860px){.benef-band::after{background:rgba(255,255,255,.72)}.benef-band .wrap{justify-content:flex-start}.pill-row{grid-template-columns:1fr}}
 
 /* ===== La Plataforma (diagrama único) ===== */
 .integ{background:var(--navy-2);color:#CFD8F3;position:relative;overflow:hidden}
@@ -273,6 +285,41 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .rep-kpis .up{color:#0E7A36;font-weight:700}
 .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--white);font-size:.72rem;border-radius:8px;padding:5px 8px;transform:translate(-50%,-115%);white-space:nowrap;z-index:3}
 
+/* ===== Páginas de producto ===== */
+.pp-hero{--c:var(--blue);background:
+    radial-gradient(520px 320px at 100% 0%,rgba(255,255,255,.18),transparent 70%),
+    linear-gradient(135deg,color-mix(in srgb,var(--c) 70%,#141D57),var(--c));color:#fff;padding-block:56px 64px}
+.pp-hero .wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.pp-hero .wrap>*{min-width:0}
+.crumb{font-size:.86rem;color:rgba(255,255,255,.8)}
+.crumb a{color:#fff;font-weight:700;text-decoration:none}
+.pp-hero h1{color:#fff;font-size:clamp(2.1rem,4.4vw,3.2rem)}
+.pp-hero .lead{color:rgba(255,255,255,.9)}
+.pp-copy{display:grid;gap:18px}
+.pp-pics{display:grid;gap:8px;grid-template-columns:repeat(var(--n),1fr);height:340px}
+.pp-pics img{width:100%;height:100%;object-fit:cover;border-radius:16px;box-shadow:0 24px 50px -24px rgba(0,0,0,.6);min-height:0}
+.btn-white{background:#fff;color:var(--navy-2)}
+.btn-white:hover{transform:translateY(-1px)}
+.pp-feat{padding-block:72px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{--c:var(--blue);border:1px solid var(--line);border-radius:var(--radius);padding:22px;display:grid;gap:8px;align-content:start;background:#fff}
+.feat .fn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,white);color:var(--c);font:900 1rem var(--display)}
+.feat p{color:var(--muted);font-size:.95rem}
+.pp-steps{background:var(--sky);padding-block:72px}
+.stp{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:st}
+.stp div{--c:var(--blue);background:#fff;border-radius:var(--radius);padding:22px 22px 24px;border-top:5px solid var(--c);display:grid;gap:8px;align-content:start}
+.stp div::before{counter-increment:st;content:"Paso " counter(st);font-size:.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+.stp p{color:var(--ink);font-weight:600}
+.pp-cta{padding-block:56px}
+.pp-cta .box{--c:var(--blue);border-radius:22px;padding:34px;display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;color:#fff;background:linear-gradient(120deg,var(--navy-2),var(--c))}
+.pp-cta h2{color:#fff;font-size:clamp(1.5rem,2.6vw,2rem)}
+.pp-more{padding-block:0 72px}
+.chips-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.chips-row a{--c:var(--blue);text-decoration:none;font-weight:700;font-size:.92rem;color:var(--c);border:2px solid color-mix(in srgb,var(--c) 30%,white);border-radius:999px;padding:8px 16px}
+.chips-row a:hover{background:color-mix(in srgb,var(--c) 10%,white)}
+@media (max-width:900px){.pp-hero .wrap{grid-template-columns:1fr}.pp-pics{height:240px}.feat-grid,.stp{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.feat-grid,.stp{grid-template-columns:1fr}.pp-pics{--n:1!important}.pp-pics img:not(:first-child){display:none}}
+
 /* ===== FAQ ===== */
 .faq .wrap{display:grid;grid-template-columns:1fr 1.6fr;gap:48px}
 details{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:0 20px}
@@ -334,7 +381,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 <main id="inicio">
 
 <!-- HERO -->
-<section class="hero" aria-label="Presentación">
+<section class="hero" aria-label="Presentación" id="hero">
+  <div class="slide on" style="background-image:url('img/hero-marionetas.webp');background-position:center 40%" role="img" aria-label="Marionetas de colores en un escenario"></div>
+  <div class="slide" style="background-image:url('img/hero-contrabajos.webp');background-position:center 50%" role="img" aria-label="Pintura de músicos tocando contrabajos"></div>
+  <div class="slide" style="background-image:url('img/hero-jazz.webp');background-position:center 55%" role="img" aria-label="Ilustración de una banda de músicos"></div>
   <div class="wrap">
     <div class="hero-copy">
       <span class="eyebrow">Ticketera para corporaciones culturales de Chile</span>
@@ -345,7 +395,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
         <a class="btn btn-line" href="#productos">Ver productos</a>
       </div>
     </div>
-
+  </div>
+  <div class="car-ctl">
+    <button type="button" id="car-prev" aria-label="Imagen anterior">‹</button>
+    <div class="dots" id="car-dots"></div>
+    <button type="button" id="car-next" aria-label="Imagen siguiente">›</button>
   </div>
 </section>
 
@@ -382,6 +436,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <h3>Cursos y Talleres</h3>
           <p>Inscripciones online y presencial con cupos, pagos en cuotas y asistencia por sesión.</p>
           <ul><li>Cupos por curso</li><li>Asistencia</li><li>Pagos en cuotas</li></ul>
+          <a class="more" href="#p-cursos">Ver producto →</a>
         </div>
       </article>
 
@@ -391,6 +446,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <h3>Actividades Culturales Infantiles</h3>
           <p>Entradas familiares, datos del apoderado y cupos por edad.</p>
           <ul><li>Pase familiar</li><li>Grupos escolares</li></ul>
+          <a class="more" href="#p-infantil">Ver producto →</a>
         </div>
       </article>
 
@@ -400,6 +456,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <h3>Teatro</h3>
           <p>Butacas numeradas, temporadas y cortesías para elencos y prensa.</p>
           <ul><li>Butaca numerada</li><li>Temporadas</li><li>Cortesías</li></ul>
+          <a class="more" href="#p-teatro">Ver producto →</a>
         </div>
       </article>
 
@@ -409,6 +466,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <h3>Orquesta y Sala de Música</h3>
           <p>Temporadas de conciertos y funciones en distintas salas o giras.</p>
           <ul><li>Temporadas</li><li>Multisala</li></ul>
+          <a class="more" href="#p-orquesta">Ver producto →</a>
         </div>
       </article>
 
@@ -418,6 +476,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <h3>Seminarios y Conferencias</h3>
           <p>Acreditación con QR y certificados de participación.</p>
           <ul><li>Acreditación</li><li>Certificados</li></ul>
+          <a class="more" href="#p-seminarios">Ver producto →</a>
         </div>
       </article>
 
@@ -427,6 +486,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <h3>Actividades para la 3.ª Edad</h3>
           <p>Inscripción asistida en boletería y precios preferentes por RUT.</p>
           <ul><li>Venta asistida</li><li>Precio preferente</li></ul>
+          <a class="more" href="#p-mayores">Ver producto →</a>
         </div>
       </article>
 
@@ -436,6 +496,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <h3>Ferias y Eventos Masivos</h3>
           <p>Entradas por día y horario, accesos con torniquetes o lectores y venta en puntos de venta.</p>
           <ul><li>Accesos masivos</li><li>Bloques horarios</li><li>Puntos de venta</li></ul>
+          <a class="more" href="#p-ferias">Ver producto →</a>
         </div>
       </article>
     </div>
@@ -444,7 +505,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 
 <!-- BENEFICIOS -->
 <section class="benef" id="beneficios">
-  <div class="benef-band" role="img" aria-label="Mujer comprando entradas desde su computador con tarjeta en mano">
+  <div class="benef-band" role="img" aria-label="Mujer sonriendo con una tarjeta de pago y su celular">
     <div class="wrap"><div class="txt">
       <span class="eyebrow">Beneficios</span>
       <h2>Tu equipo gana autonomía. Tu público compra sin fricción.</h2>
@@ -653,13 +714,16 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 
 </main>
 
+<!-- PÁGINA INTERNA DE PRODUCTO (se completa según el producto elegido) -->
+<main id="producto" hidden></main>
+
 <footer class="foot">
   <div class="wrap">
     <div>
       <a class="brand" href="#inicio"><img src="img/logo-proexsi.png" alt="Proexsi, volver arriba"></a>
       <p style="margin-top:14px;max-width:36ch">Más de 20 años desarrollando sistemas de venta y gestión cultural.</p>
     </div>
-    <div><h4>Productos</h4><a href="#productos">Cursos y Talleres</a><a href="#productos">Teatro</a><a href="#productos">Orquesta y Sala de Música</a><a href="#productos">Ferias y Eventos Masivos</a></div>
+    <div><h4>Productos</h4><a href="#p-cursos">Cursos y Talleres</a><a href="#p-infantil">Actividades Culturales Infantiles</a><a href="#p-teatro">Teatro</a><a href="#p-orquesta">Orquesta y Sala de Música</a><a href="#p-seminarios">Seminarios y Conferencias</a><a href="#p-mayores">Actividades para la 3.ª Edad</a><a href="#p-ferias">Ferias y Eventos Masivos</a></div>
     <div><h4>Contacto</h4><a href="#contacto">Agenda una demo</a><a href="#preguntas">Preguntas frecuentes</a></div>
     <div class="legal">© 2026 Proexsi S.A. · Maqueta de trabajo, contenidos sujetos a revisión.</div>
   </div>
@@ -695,6 +759,80 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       r.addEventListener('pointerleave',function(){tip.hidden=true});
     });
   }
+
+  // ===== Carrusel del hero =====
+  var slides=[].slice.call(document.querySelectorAll('#hero .slide')), dotsBox=document.getElementById('car-dots'), cur=0, timer=null;
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  slides.forEach(function(sl,i){var b=document.createElement('button');b.type='button';b.setAttribute('aria-label','Ver imagen '+(i+1));b.addEventListener('click',function(){go(i);restart()});dotsBox.appendChild(b)});
+  function go(i){cur=(i+slides.length)%slides.length;slides.forEach(function(sl,k){sl.classList.toggle('on',k===cur)});[].forEach.call(dotsBox.children,function(d,k){d.setAttribute('aria-current',k===cur?'true':'false')})}
+  function restart(){clearInterval(timer);if(!reduce)timer=setInterval(function(){go(cur+1)},6000)}
+  document.getElementById('car-prev').addEventListener('click',function(){go(cur-1);restart()});
+  document.getElementById('car-next').addEventListener('click',function(){go(cur+1);restart()});
+  var heroEl=document.getElementById('hero');
+  heroEl.addEventListener('mouseenter',function(){clearInterval(timer)});heroEl.addEventListener('mouseleave',restart);
+  go(0);restart();
+
+  // ===== Páginas internas de producto =====
+  var P={
+    cursos:{n:'Cursos y Talleres',c:'--p-cursos',tag:'Cursos y Talleres',img:[['cursos-ceramica.webp','Manos trabajando una taza de cerámica'],['cursos-ninos-pintura.webp','Alumnos pintando en un taller de arte'],['cursos-acrilicos.webp','Tubos de pintura acrílica sobre una paleta']],
+      lead:'Abre inscripciones online y presenciales, controla cupos y asistencia, y cobra matrículas y cuotas desde un mismo lugar.',
+      f:[['Inscripciones online y presencial','Una sola lista de cupos para la web y la boletería.'],['Cupos y lista de espera','Cuando se libera un cupo, la siguiente persona recibe el aviso.'],['Matrículas y cuotas','Cobra la matrícula y divide el pago del curso en cuotas.'],['Asistencia por sesión','Registra quién asistió a cada clase desde el celular.'],['Precios por perfil','Valores distintos para estudiantes, vecinos o personas mayores.'],['Informes por curso','Inscritos, recaudación y asistencia de cada taller.']],
+      s:['Publicas tus cursos con horarios, cupos y precios.','Tus alumnos se inscriben y pagan online o en caja.','Registras la asistencia y revisas los informes.']},
+    infantil:{n:'Actividades Culturales Infantiles',c:'--p-infantil',tag:'Infantil',img:[['infantil-maquillaje.webp','Niña disfrazada a quien le pintan la cara']],
+      lead:'Vende entradas familiares y gestiona talleres y funciones para niños, con datos del apoderado y cupos por edad.',
+      f:[['Pase familiar','Una compra para toda la familia, con precios para adultos y niños.'],['Datos del apoderado','Nombre, contacto y autorización quedan asociados a cada inscripción.'],['Cupos por edad','Define rangos de edad para cada taller o función.'],['Grupos escolares','Reservas de colegios con listas de alumnos y profesores.'],['Contacto de emergencia','A mano del equipo durante la actividad.'],['Check in de grupos','Valida a un curso completo en un solo paso.']],
+      s:['Creas la actividad con edades, cupos y precios.','Las familias o colegios reservan y pagan.','Validas el ingreso y revisas la asistencia.']},
+    teatro:{n:'Teatro',c:'--p-teatro',tag:'Teatro',img:[['teatro-sala.webp','Público en un teatro frente al telón rojo']],
+      lead:'Vende butacas numeradas en el mapa real de tu sala, administra temporadas y controla el acceso en cada función.',
+      f:[['Mapa de sala','Butaca numerada por zona, con vista del escenario.'],['Temporadas y funciones','Crea todas las funciones de una obra de una sola vez.'],['Cortesías','Entradas para elenco, prensa e invitados, con control de cupos.'],['Precios por zona','Platea, balcón y palcos, con promociones propias.'],['Tres canales de venta','Internet, caja presencial y tótem con el mismo stock.'],['Control de acceso','Check in por función con QR, lectores o torniquetes.']],
+      s:['Cargas la obra, las funciones y el mapa de sala.','El público elige su butaca y paga en el canal que prefiera.','Validas las entradas en la puerta y revisas la ocupación.']},
+    orquesta:{n:'Orquesta y Sala de Música',c:'--p-orquesta',tag:'Música',img:[['orquesta-violines.webp','Músicos de una orquesta tocando violín']],
+      lead:'Organiza tu temporada de conciertos, vende por programa y gestiona funciones en distintas salas o giras.',
+      f:[['Temporada de conciertos','Todos los programas del año en un solo calendario.'],['Venta por programa','Cada concierto con su repertorio, precios y zonas.'],['Multisala y giras','Vende funciones en salas propias o en otras ciudades.'],['Precios por zona','Valores distintos según la ubicación en la sala.'],['Cortesías','Entradas para músicos, invitados y auspiciadores.'],['Informes por concierto','Ocupación y recaudación de cada fecha.']],
+      s:['Publicas la temporada con sus programas y salas.','Tu público compra online, en caja o en tótem.','Controlas el acceso y comparas los conciertos.']},
+    seminarios:{n:'Seminarios y Conferencias',c:'--p-seminarios',tag:'Seminarios',img:[['seminarios-conferencia.webp','Público asistiendo a una conferencia frente a una pantalla']],
+      lead:'Acredita a los asistentes con QR, controla el acceso a cada charla y entrega certificados de participación.',
+      f:[['Inscripción online','Formulario con los datos que tu evento necesita.'],['Acreditación con QR','Credencial digital que se valida al ingresar.'],['Acceso por charla','Controla el aforo de cada sala o bloque.'],['Certificados','Constancia de participación para quienes asistieron.'],['Precios y convenios','Valores por perfil y códigos para instituciones.'],['Informes de asistencia','Quién asistió a qué charla, en tiempo real.']],
+      s:['Creas el evento con su programa y salas.','Los asistentes se inscriben y reciben su QR.','Acreditas en la entrada y entregas los certificados.']},
+    mayores:{n:'Actividades para la 3.ª Edad',c:'--p-mayores',tag:'3.ª edad',img:[['mayores-danza.webp','Bailarina de flamenco frente a un público de personas mayores']],
+      lead:'Facilita el acceso de las personas mayores a tu programación, con inscripción asistida y precios preferentes.',
+      f:[['Inscripción asistida','El equipo de caja inscribe a cada persona en pocos pasos.'],['Precios preferentes por RUT','El descuento se aplica al validar el RUT.'],['Recordatorios','Avisos por correo o SMS antes de cada actividad.'],['Talleres con cupos','Cupos por taller y lista de espera.'],['Grupos y clubes','Inscripciones para agrupaciones de adultos mayores.'],['Informes de participación','Asistencia y participación por actividad.']],
+      s:['Publicas las actividades con sus cupos y precios.','Las personas se inscriben en caja o por internet.','Registras la asistencia y revisas la participación.']},
+    ferias:{n:'Ferias y Eventos Masivos',c:'--p-ferias',tag:'Ferias y eventos',img:[['ferias-feria.webp','Puestos de una feria de antigüedades al aire libre']],
+      lead:'Vende entradas por día y bloque horario, controla accesos masivos y cobra en los puntos de venta del recinto.',
+      f:[['Entradas por día y horario','Bloques horarios para ordenar el flujo de público.'],['Aforo por bloque','La venta se cierra sola cuando se completa el aforo.'],['Accesos masivos','Torniquetes y lectores para validar muchas entradas por minuto.'],['Puntos de venta','Cobra comida, productos y merchandising en el recinto.'],['Acreditación de expositores','Credenciales para expositores y personal.'],['Flujo de público','Ingresos por hora y por puerta en tiempo real.']],
+      s:['Configuras los días, bloques y aforos.','El público compra online, en caja o en tótem.','Validas en los accesos y sigues el flujo en vivo.']}
+  };
+  var home=document.getElementById('inicio'), pp=document.getElementById('producto');
+  function esc(t){return String(t).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]})}
+  function render(k){
+    var d=P[k], c='var('+d.c+')';
+    var pics=d.img.map(function(i){return '<img src="img/'+i[0]+'" alt="'+esc(i[1])+'">'}).join('');
+    var feats=d.f.map(function(f,i){return '<div class="feat" style="--c:'+c+'"><span class="fn">'+(i+1)+'</span><h3>'+esc(f[0])+'</h3><p>'+esc(f[1])+'</p></div>'}).join('');
+    var steps=d.s.map(function(t){return '<div style="--c:'+c+'"><p>'+esc(t)+'</p></div>'}).join('');
+    var more=Object.keys(P).filter(function(x){return x!==k}).map(function(x){return '<a href="#p-'+x+'" style="--c:var('+P[x].c+')">'+esc(P[x].n)+'</a>'}).join('');
+    pp.innerHTML=
+      '<section class="pp-hero" style="--c:'+c+'"><div class="wrap"><div class="pp-copy">'+
+        '<div class="crumb"><a href="#productos">Productos</a> / '+esc(d.n)+'</div>'+
+        '<h1>'+esc(d.n)+'</h1><p class="lead">'+esc(d.lead)+'</p>'+
+        '<div class="hero-ctas"><a class="btn btn-white" href="#contacto">Agenda una demo →</a><a class="btn btn-line" href="#productos">Ver todos los productos</a></div>'+
+      '</div><div class="pp-pics" style="--n:'+d.img.length+'">'+pics+'</div></div></section>'+
+      '<section class="pp-feat"><div class="wrap"><div class="sec-head"><span class="eyebrow">'+esc(d.tag)+'</span><h2>Qué puedes hacer</h2></div><div class="feat-grid">'+feats+'</div></div></section>'+
+      '<section class="pp-steps"><div class="wrap"><div class="sec-head"><h2>Así funciona</h2></div><div class="stp">'+steps+'</div></div></section>'+
+      '<section class="pp-cta"><div class="wrap"><div class="box" style="--c:'+c+'"><h2>¿Lo vemos con tu programación?</h2><a class="btn btn-orange" href="#contacto">Agenda una demo gratuita →</a></div></div></section>'+
+      '<section class="pp-more"><div class="wrap"><h3>Otros productos</h3><div class="chips-row">'+more+'</div></div></section>';
+  }
+  function route(){
+    var h=location.hash.slice(1);
+    if(h.indexOf('p-')===0&&P[h.slice(2)]){
+      render(h.slice(2)); home.hidden=true; pp.hidden=false; window.scrollTo(0,0); clearInterval(timer);
+    }else{
+      var wasHidden=home.hidden; home.hidden=false; pp.hidden=true; if(wasHidden) restart();
+      var t=h&&document.getElementById(h);
+      if(t&&h!=='inicio') t.scrollIntoView(); else if(wasHidden||h==='inicio') window.scrollTo(0,0);
+    }
+  }
+  window.addEventListener('hashchange',route); route();
 
   // Menú móvil
   var btn=document.getElementById('menu-btn'), nav=document.getElementById('nav');
