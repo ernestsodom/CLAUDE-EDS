@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xperticket Cultura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* ===== Tokens Proexsi (reemplazar por los valores oficiales del manual de marca) ===== */
+:root{
+  color-scheme: light;
+  --navy:#0A2E6E;      /* azul corporativo profundo */
+  --blue:#1565D8;      /* azul acción */
+  --blue-600:#0F52B5;
+  --sky:#EAF2FD;       /* fondo tinte azul */
+  --sky-2:#D6E6FB;
+  --line:#DCE5F2;
+  --ink:#0E1A2B;
+  --muted:#51627C;
+  --white:#FFFFFF;
+  --ok:#16A34A;
+  --sold:#9FB3CF;
+  --radius:14px;
+  --display:"Sora", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--white);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1160px;margin-inline:auto;padding-inline:20px}
+h1,h2,h3{font-family:var(--display);color:var(--navy);text-wrap:balance;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(2.1rem,4.6vw,3.5rem);line-height:1.08;font-weight:800}
+h2{font-size:clamp(1.7rem,3.2vw,2.4rem);line-height:1.15;font-weight:700}
+h3{font-size:1.15rem;line-height:1.3;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);font-weight:500}
+.lead{color:var(--muted);font-size:1.12rem;max-width:60ch}
+section{padding-block:88px}
+.sec-head{display:grid;gap:12px;max-width:720px;margin-bottom:44px}
+
+/* ===== Botones ===== */
+.btn{display:inline-flex;align-items:center;gap:8px;font:600 1rem/1 var(--body);padding:15px 22px;border-radius:999px;text-decoration:none;border:2px solid transparent;cursor:pointer;transition:background .2s,transform .2s}
+.btn-primary{background:var(--blue);color:var(--white)}
+.btn-primary:hover{background:var(--blue-600);transform:translateY(-1px)}
+.btn-ghost{background:var(--white);color:var(--navy);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--blue)}
+
+/* ===== Header ===== */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:24px;height:70px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--navy)}
+.logo svg{height:34px;width:auto}
+.logo small{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:.08em;border-left:1px solid var(--line);padding-left:10px;line-height:1.2}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{white-space:nowrap;color:var(--ink);text-decoration:none;font-weight:600;font-size:.95rem;padding:8px 12px;border-radius:8px}
+.nav a:hover{background:var(--sky);color:var(--navy)}
+.top .btn{padding:11px 18px;font-size:.92rem;white-space:nowrap}
+.hero .wrap>*,.mock-body>*{min-width:0}
+.menu-btn{display:none;margin-left:auto;background:none;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:600 .9rem var(--body);color:var(--navy);cursor:pointer}
+@media (max-width:1020px){
+  .nav{display:none;position:absolute;left:0;right:0;top:70px;background:var(--white);flex-direction:column;padding:12px 20px 20px;border-bottom:1px solid var(--line)}
+  .nav.open{display:flex}
+  .menu-btn{display:block}
+  .top .btn{display:none}
+}
+
+/* ===== Hero ===== */
+.hero{padding-block:64px 80px;background:linear-gradient(180deg,var(--sky) 0%,var(--white) 100%)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;align-items:center}
+.hero-copy{display:grid;gap:22px}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:12px}
+.trust{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:.9rem}
+.trust span{display:inline-flex;gap:6px;align-items:center}
+.trust span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--blue)}
+@media (max-width:900px){.hero .wrap{grid-template-columns:minmax(0,1fr)}}
+
+/* mock de venta */
+.mock{background:var(--white);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px -24px rgba(10,46,110,.35);overflow:hidden}
+.mock-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:#F7FAFE}
+.mock-bar i{width:9px;height:9px;border-radius:50%;background:var(--sky-2)}
+.mock-bar span{margin-left:10px;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.mock-body{display:grid;grid-template-columns:1.4fr 1fr}
+.stage{padding:18px}
+.stage-name{text-align:center;background:var(--navy);color:var(--white);font:700 .7rem var(--display);letter-spacing:.2em;border-radius:40px 40px 8px 8px;padding:8px;margin:0 12% 16px}
+.zone{font-family:var(--mono);font-size:.62rem;color:var(--muted);text-align:center;margin:10px 0 6px;letter-spacing:.1em}
+.seats{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
+.seat{aspect-ratio:1;border-radius:3px 3px 5px 5px;background:var(--sky-2);max-width:100%}
+.seat.sold{background:var(--sold)}
+.seat.pick{background:var(--blue)}
+.legend{display:flex;gap:12px;justify-content:center;margin-top:12px;font-size:.7rem;color:var(--muted)}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.cart{border-left:1px solid var(--line);padding:18px;display:grid;gap:10px;align-content:start;background:#FBFCFF}
+.cart h4{margin:0;font:700 .9rem var(--display);color:var(--navy)}
+.cart .fn{font-size:.78rem;color:var(--muted)}
+.line{display:flex;justify-content:space-between;font-size:.82rem;border-bottom:1px dashed var(--line);padding-bottom:6px;font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;font:700 1.05rem var(--display);color:var(--navy);font-variant-numeric:tabular-nums}
+.pay{background:var(--blue);color:var(--white);text-align:center;border-radius:10px;padding:10px;font-weight:700;font-size:.85rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:.62rem;border:1px solid var(--line);border-radius:6px;padding:3px 6px;color:var(--muted)}
+@media (max-width:560px){.mock-body{grid-template-columns:1fr}.cart{border-left:0;border-top:1px solid var(--line)}}
+
+/* ===== Accesos rápidos (quién eres) ===== */
+.quick{padding-block:0;margin-top:-36px;position:relative}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.quick a{display:grid;gap:4px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;color:var(--ink);box-shadow:0 10px 30px -18px rgba(10,46,110,.3);transition:border-color .2s,transform .2s}
+.quick a:hover{border-color:var(--blue);transform:translateY(-2px)}
+.quick strong{font-family:var(--display);color:var(--navy)}
+.quick span{font-size:.9rem;color:var(--muted)}
+.quick em{font-style:normal;color:var(--blue);font-weight:700;font-size:.9rem}
+@media (max-width:760px){.quick-grid{grid-template-columns:1fr}}
+
+/* ===== Tres momentos ===== */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.step{padding:30px;display:grid;gap:14px;align-content:start;background:var(--white)}
+.step + .step{border-left:1px solid var(--line)}
+.step .n{font-family:var(--mono);font-size:.75rem;color:var(--blue)}
+.step ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.step li{display:flex;gap:10px;font-size:.96rem}
+.step li::before{content:"";flex:none;width:18px;height:18px;margin-top:4px;border-radius:50%;background:var(--sky) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%231565D8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat}
+.step.mid{background:var(--navy);color:#DCE7FA}
+.step.mid h3{color:var(--white)}
+.step.mid .n{color:#8FB8F5}
+.step.mid li::before{background-color:#17428F}
+@media (max-width:900px){.steps{grid-template-columns:1fr}.step + .step{border-left:0;border-top:1px solid var(--line)}}
+
+/* ===== Módulos ===== */
+.modules{background:var(--sky)}
+.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.mod{background:var(--white);border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;display:grid;grid-template-rows:170px auto}
+.mod .shot{background:#F5F9FF;border-bottom:1px solid var(--line);padding:16px;display:grid;place-items:center;overflow:hidden}
+.mod .txt{padding:20px 22px 24px;display:grid;gap:8px;align-content:start}
+.mod .txt p{color:var(--muted);font-size:.95rem}
+@media (max-width:980px){.mod-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.mod-grid{grid-template-columns:1fr}}
+/* mini-ilustraciones */
+.cal{width:100%;max-width:260px;display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-family:var(--mono);font-size:.58rem;color:var(--muted)}
+.cal div{background:var(--white);border:1px solid var(--line);border-radius:4px;height:22px;padding:2px 3px}
+.cal .on{background:var(--sky-2);border-color:#B7CFF3;color:var(--navy)}
+.cal .hd{border:0;background:none;text-align:center;height:auto}
+.tbl{width:100%;max-width:270px;font-size:.66rem;border-collapse:collapse;background:var(--white);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl .tag{font-family:var(--mono);font-size:.56rem;background:#E3F5EA;color:#0E7A36;border-radius:4px;padding:2px 5px}
+.tbl .tag.draft{background:#FFF4DC;color:#8A5A00}
+.qr{display:flex;gap:16px;align-items:center}
+.qr .phone{width:86px;height:140px;border-radius:14px;border:3px solid var(--navy);background:var(--white);display:grid;place-items:center;gap:4px;padding:8px}
+.qr .code{width:56px;height:56px;background:
+  conic-gradient(from 90deg at 3px 3px,var(--white) 90deg,var(--navy) 0) 0 0/8px 8px;border:4px solid var(--navy);border-radius:4px}
+.qr .ok{font:700 .62rem var(--body);color:var(--ok)}
+.qr .scan{font-family:var(--mono);font-size:.62rem;color:var(--muted);display:grid;gap:4px}
+.qr .scan b{font-family:var(--display);font-size:1.4rem;color:var(--navy)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:110px;width:100%;max-width:240px;border-bottom:1px solid var(--line);padding-inline:6px}
+.bars span{flex:1;background:var(--sky-2);border-radius:5px 5px 0 0}
+.bars span.hi{background:var(--blue)}
+.pos{display:grid;grid-template-columns:repeat(3,56px);gap:6px}
+.pos div{height:40px;border-radius:8px;background:var(--white);border:1px solid var(--line);display:grid;place-items:center;font-size:.6rem;color:var(--navy);font-weight:700}
+.pos .go{grid-column:span 3;background:var(--blue);color:var(--white);border:0}
+
+/* ===== Para quién ===== */
+.who-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.who{border:1px solid var(--line);border-radius:var(--radius);padding:22px;display:grid;gap:8px;align-content:start}
+.who svg{width:34px;height:34px}
+.who p{color:var(--muted);font-size:.95rem}
+@media (max-width:900px){.who-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.who-grid{grid-template-columns:1fr}}
+
+/* ===== Hecho para Chile ===== */
+.chile{background:var(--navy);color:#D5E2F7}
+.chile h2{color:var(--white)}
+.chile .eyebrow{color:#8FB8F5}
+.chile .lead{color:#B9CBEA}
+.chile-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#244B91;border-radius:16px;overflow:hidden}
+.chile-grid div{background:var(--navy);padding:24px;display:grid;gap:6px;align-content:start}
+.chile-grid strong{font-family:var(--display);color:var(--white);font-size:1.02rem}
+.chile-grid span{font-size:.92rem}
+@media (max-width:900px){.chile-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.chile-grid{grid-template-columns:1fr}}
+
+/* ===== Cifras + testimonio ===== */
+.proof .wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat{background:var(--sky);border-radius:var(--radius);padding:22px}
+.stat b{display:block;font:800 2rem/1.1 var(--display);color:var(--navy);font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.92rem}
+.note{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:10px}
+blockquote{margin:0;display:grid;gap:18px}
+blockquote p{font:600 1.35rem/1.45 var(--display);color:var(--navy);letter-spacing:-.01em}
+blockquote footer{color:var(--muted);font-size:.95rem}
+@media (max-width:860px){.proof .wrap{grid-template-columns:1fr}}
+
+/* ===== Implementación ===== */
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:t}
+.tl{display:grid;gap:8px;align-content:start;padding-top:18px;border-top:3px solid var(--sky-2)}
+.tl:first-child{border-top-color:var(--blue)}
+.tl .w{font-family:var(--mono);font-size:.72rem;color:var(--blue)}
+.tl p{color:var(--muted);font-size:.94rem}
+@media (max-width:860px){.timeline{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.timeline{grid-template-columns:1fr}}
+
+/* ===== FAQ ===== */
+.faq{background:var(--sky)}
+.faq .wrap{display:grid;grid-template-columns:1fr 1.6fr;gap:48px}
+details{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:0 20px}
+details + details{margin-top:10px}
+summary{cursor:pointer;list-style:none;padding:18px 0;font-weight:700;color:var(--navy);display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:600 1.3rem/1 var(--display);color:var(--blue)}
+details[open] summary::after{content:"–"}
+details p{padding-bottom:18px;color:var(--muted)}
+@media (max-width:860px){.faq .wrap{grid-template-columns:1fr}}
+
+/* ===== Contacto ===== */
+.contact .wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:start}
+form{display:grid;gap:14px;background:var(--white);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 20px 50px -30px rgba(10,46,110,.35)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:grid;gap:6px;font-weight:600;font-size:.9rem;color:var(--navy)}
+input,select,textarea{font:inherit;font-size:.98rem;color:var(--ink);background:var(--white);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-color:var(--blue)}
+.sent{background:#E3F5EA;color:#0E6B31;border-radius:10px;padding:12px 14px;font-weight:600}
+.contact ul{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:12px;color:var(--muted)}
+.contact li strong{color:var(--navy)}
+@media (max-width:860px){.contact .wrap{grid-template-columns:1fr}}
+@media (max-width:480px){.row{grid-template-columns:1fr}}
+
+/* ===== Footer ===== */
+.foot{background:#071E49;color:#9DB2D6;padding-block:48px 36px;font-size:.92rem}
+.foot .wrap{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:28px}
+.foot h4{margin:0 0 10px;color:var(--white);font:700 .9rem var(--display)}
+.foot a{color:#C8D6EE;text-decoration:none;display:block;padding:3px 0}
+.foot a:hover{color:var(--white)}
+.foot .logo{color:var(--white)}
+.foot .legal{grid-column:1/-1;border-top:1px solid #1C3A6E;padding-top:20px;font-size:.82rem}
+@media (max-width:760px){.foot .wrap{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- Logo Proexsi: marca provisoria en SVG. Reemplazar por el archivo oficial (logo-proexsi.svg) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="proexsi-logo" viewBox="0 0 168 40">
+    <rect x="0" y="4" width="32" height="32" rx="9" fill="#1565D8"/>
+    <path d="M9 28V12h8.2c3.6 0 6 2.2 6 5.3s-2.4 5.3-6 5.3H13.4V28Z" fill="#fff"/>
+    <circle cx="25.5" cy="10.5" r="3" fill="#8FC1FF"/>
+    <text x="40" y="28" font-family="Sora, 'Segoe UI', sans-serif" font-weight="800" font-size="23" letter-spacing="-0.5" fill="currentColor">proexsi</text>
+  </symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#inicio" aria-label="Proexsi, inicio">
+      <svg viewBox="0 0 168 40"><use href="#proexsi-logo"/></svg>
+      <small>XPERTICKET<br>CULTURA</small>
+    </a>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav">Menú</button>
+    <nav class="nav" id="nav" aria-label="Principal">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#modulos">Módulos</a>
+      <a href="#para-quien">Para quién</a>
+      <a href="#chile">Hecho para Chile</a>
+      <a href="#preguntas">Preguntas</a>
+    </nav>
+    <a class="btn btn-primary" href="#contacto">Agenda una demo</a>
+  </div>
+</header>
+
+<main id="inicio">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">Ticketera para corporaciones culturales de Chile</span>
+      <h1>Vende tu cartelera sin complicarte. Nosotros ponemos la tecnología.</h1>
+      <p class="lead">Venta online y en boletería, butacas numeradas, abonos, talleres y control de acceso con QR, todo en una sola plataforma. Tu equipo la aprende en una tarde y tu público compra en tres clics.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#contacto">Agenda una demo gratuita →</a>
+        <a class="btn btn-ghost" href="#como-funciona">Ver cómo funciona</a>
+      </div>
+      <div class="trust">
+        <span>Boleta electrónica SII</span>
+        <span>Pagos con Webpay</span>
+        <span>Soporte en Chile</span>
+      </div>
+    </div>
+
+    <div class="mock" role="img" aria-label="Ejemplo de la pantalla de compra: mapa de butacas de un teatro con dos asientos seleccionados y el resumen de pago">
+      <div class="mock-bar"><i></i><i></i><i></i><span>entradas.tucorporacion.cl</span></div>
+      <div class="mock-body">
+        <div class="stage">
+          <div class="stage-name">ESCENARIO</div>
+          <div class="zone">PLATEA</div>
+          <div class="seats" id="seats-a"></div>
+          <div class="zone">BALCÓN</div>
+          <div class="seats" id="seats-b"></div>
+          <div class="legend">
+            <span><b style="background:var(--sky-2)"></b>Libre</span>
+            <span><b style="background:var(--sold)"></b>Vendida</span>
+            <span><b style="background:var(--blue)"></b>Tu elección</span>
+          </div>
+        </div>
+        <div class="cart">
+          <h4>Concierto de Temporada</h4>
+          <div class="fn">Sáb 17 oct 2026 · 19:30 h<br>Sala principal</div>
+          <div class="line"><span>Platea F · 8</span><span>$12.000</span></div>
+          <div class="line"><span>Platea F · 9</span><span>$12.000</span></div>
+          <div class="line"><span>Desc. vecino (−30%)</span><span>−$7.200</span></div>
+          <div class="total"><span>Total</span><span>$16.800</span></div>
+          <div class="pay">Pagar con Webpay</div>
+          <div class="chips"><span class="chip">QR al correo</span><span class="chip">Boleta SII</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ACCESOS RÁPIDOS -->
+<section class="quick" aria-label="Accesos rápidos">
+  <div class="wrap quick-grid">
+    <a href="#modulos"><strong>Tengo un teatro o sala</strong><span>Butacas numeradas, abonos y boletería.</span><em>Ver módulos →</em></a>
+    <a href="#para-quien"><strong>Hago cursos y talleres</strong><span>Inscripciones, cupos y asistencia.</span><em>Ver soluciones →</em></a>
+    <a href="#contacto"><strong>Quiero una cotización</strong><span>Te respondemos en un día hábil.</span><em>Escribirnos →</em></a>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section id="como-funciona">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Cómo funciona</span>
+      <h2>Te acompañamos antes, durante y después de cada función</h2>
+      <p class="lead">Activas solo lo que necesitas. Cada etapa tiene sus herramientas y un equipo de Proexsi disponible.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="n">1 · Antes</span>
+        <h3>Programa y publica</h3>
+        <ul>
+          <li>Cargas tu temporada: obras, funciones, salas y precios.</li>
+          <li>Configuras tarifas: general, estudiante, adulto mayor, vecino.</li>
+          <li>Publicas en tu sitio con un botón de compra.</li>
+        </ul>
+      </div>
+      <div class="step mid">
+        <span class="n">2 · Durante</span>
+        <h3>Vende y controla el acceso</h3>
+        <ul>
+          <li>Venta online y en boletería, con el mismo stock.</li>
+          <li>Tu público recibe su entrada con QR en el correo.</li>
+          <li>Validas en la puerta con cualquier celular.</li>
+        </ul>
+      </div>
+      <div class="step">
+        <span class="n">3 · Después</span>
+        <h3>Mide y rinde cuentas</h3>
+        <ul>
+          <li>Reportes de venta, asistencia y ocupación en tiempo real.</li>
+          <li>Cierres por función listos para contabilidad.</li>
+          <li>Datos de público para tus postulaciones y memorias.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MÓDULOS -->
+<section class="modules" id="modulos">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Módulos</span>
+      <h2>Todo lo que tu corporación necesita, en un solo lugar</h2>
+      <p class="lead">Una plataforma web, sin instalar nada. Funciona en computador, tablet y celular.</p>
+    </div>
+    <div class="mod-grid">
+      <article class="mod">
+        <div class="shot" aria-hidden="true"><div class="cal" id="cal"></div></div>
+        <div class="txt"><h3>Cartelera y temporadas</h3><p>Crea funciones en lote, repite horarios y ve toda la temporada en un calendario.</p></div>
+      </article>
+      <article class="mod">
+        <div class="shot" aria-hidden="true"><div style="width:100%;max-width:230px"><div class="stage-name" style="margin-bottom:10px">ESCENARIO</div><div class="seats" id="seats-c"></div></div></div>
+        <div class="txt"><h3>Mapas de butacas</h3><p>Dibujamos tu sala tal como es. Sirve para teatro, auditorio, anfiteatro o recinto al aire libre.</p></div>
+      </article>
+      <article class="mod">
+        <div class="shot" aria-hidden="true"><div class="pos"><div>General</div><div>Estudiante</div><div>Mayor</div><div>Vecino</div><div>Cortesía</div><div>Abono</div><div class="go">Cobrar $24.000</div></div></div>
+        <div class="txt"><h3>Boletería presencial</h3><p>Vende en taquilla con el mismo inventario que la web. Cero butacas duplicadas.</p></div>
+      </article>
+      <article class="mod">
+        <div class="shot" aria-hidden="true">
+          <table class="tbl">
+            <tr><td>Abono Temporada 2027</td><td>10 funciones</td><td><span class="tag">Activo</span></td></tr>
+            <tr><td>Taller de Cerámica</td><td>18/20 cupos</td><td><span class="tag">Activo</span></td></tr>
+            <tr><td>Pase Familiar</td><td>4 entradas</td><td><span class="tag draft">Borrador</span></td></tr>
+          </table>
+        </div>
+        <div class="txt"><h3>Abonos, cursos y talleres</h3><p>Inscripciones con cupos, pagos en cuotas y lista de asistencia por sesión.</p></div>
+      </article>
+      <article class="mod">
+        <div class="shot" aria-hidden="true">
+          <div class="qr"><div class="phone"><div class="code"></div><span class="ok">✓ Válida</span></div><div class="scan">INGRESADOS<b>312 / 340</b>Sala principal</div></div>
+        </div>
+        <div class="txt"><h3>Control de acceso con QR</h3><p>Tu equipo escanea con su celular. Funciona incluso con mala señal.</p></div>
+      </article>
+      <article class="mod">
+        <div class="shot" aria-hidden="true"><div class="bars"><span style="height:35%"></span><span style="height:52%"></span><span style="height:44%"></span><span style="height:70%"></span><span class="hi" style="height:92%"></span><span style="height:61%"></span></div></div>
+        <div class="txt"><h3>Reportes en línea</h3><p>Ventas, ocupación y público por comuna. Exporta a Excel cuando lo necesites.</p></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUIÉN -->
+<section id="para-quien">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Para quién</span>
+      <h2>Pensado para la gestión cultural chilena</h2>
+      <p class="lead">Trabajamos con instituciones públicas y privadas sin fines de lucro, grandes y pequeñas.</p>
+    </div>
+    <div class="who-grid">
+      <div class="who">
+        <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#EAF2FD"/><path d="M8 25h18M10 25V15l7-5 7 5v10M14 25v-5h6v5" fill="none" stroke="#1565D8" stroke-width="2" stroke-linejoin="round"/></svg>
+        <h3>Corporaciones municipales</h3><p>Rendición clara de ingresos y reportes para el concejo.</p>
+      </div>
+      <div class="who">
+        <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#EAF2FD"/><path d="M8 11c3 2 15 2 18 0v12H8Z M12 19h2M20 19h2" fill="none" stroke="#1565D8" stroke-width="2" stroke-linejoin="round"/></svg>
+        <h3>Teatros regionales</h3><p>Butacas numeradas, abonos y temporadas completas.</p>
+      </div>
+      <div class="who">
+        <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#EAF2FD"/><path d="M9 24V12l8-3 8 3v12M13 16h8M13 20h8" fill="none" stroke="#1565D8" stroke-width="2" stroke-linejoin="round"/></svg>
+        <h3>Centros culturales</h3><p>Talleres, exposiciones y eventos gratuitos con inscripción.</p>
+      </div>
+      <div class="who">
+        <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#EAF2FD"/><path d="M13 23a3 3 0 1 1-2-2.8V9l12-2v12a3 3 0 1 1-2-2.8" fill="none" stroke="#1565D8" stroke-width="2" stroke-linejoin="round"/></svg>
+        <h3>Orquestas y elencos</h3><p>Giras, funciones en distintas salas y venta por concierto.</p>
+      </div>
+      <div class="who">
+        <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#EAF2FD"/><path d="M8 13l9-4 9 4-9 4Zm4 2v5c3 2 7 2 10 0v-5" fill="none" stroke="#1565D8" stroke-width="2" stroke-linejoin="round"/></svg>
+        <h3>Escuelas de artes</h3><p>Matrículas, cursos por semestre y control de asistencia.</p>
+      </div>
+      <div class="who">
+        <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#EAF2FD"/><path d="M8 24l6-9 4 5 3-3 5 7Z M21 11a2 2 0 1 0 0 .1" fill="none" stroke="#1565D8" stroke-width="2" stroke-linejoin="round"/></svg>
+        <h3>Festivales y museos</h3><p>Entradas por horario, grupos escolares y alto flujo de público.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HECHO PARA CHILE -->
+<section class="chile" id="chile">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Hecho para Chile</span>
+      <h2>Cumplimos con lo que tu institución necesita rendir</h2>
+      <p class="lead">Proexsi es una empresa chilena. Conocemos cómo compran y rinden cuentas las instituciones culturales.</p>
+    </div>
+    <div class="chile-grid">
+      <div><strong>Boleta electrónica SII</strong><span>Emisión automática por cada venta, online o en taquilla.</span></div>
+      <div><strong>Webpay y transferencias</strong><span>Débito, crédito y prepago. El dinero llega a tu cuenta.</span></div>
+      <div><strong>Compra vía Mercado Público</strong><span>Te apoyamos con licitaciones, tratos directos y convenios.</span></div>
+      <div><strong>Tarifas sociales</strong><span>Descuentos por RUT para vecinos, estudiantes y personas mayores.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CIFRAS Y TESTIMONIO -->
+<section class="proof">
+  <div class="wrap">
+    <div>
+      <div class="stats">
+        <div class="stat"><b>+120</b><span>instituciones culturales</span></div>
+        <div class="stat"><b>2,4 M</b><span>entradas emitidas al año</span></div>
+        <div class="stat"><b>&lt; 3 min</b><span>tiempo de compra promedio</span></div>
+        <div class="stat"><b>16</b><span>regiones con clientes</span></div>
+      </div>
+      <p class="note">Cifras de ejemplo para la maqueta. Reemplazar por datos reales de Proexsi.</p>
+    </div>
+    <blockquote>
+      <p>“Pasamos de vender con talonario a tener la temporada completa en línea en dos semanas. Hoy sabemos quién viene y desde qué comuna.”</p>
+      <footer>Directora de Programación · Corporación Cultural (testimonio de ejemplo)</footer>
+    </blockquote>
+  </div>
+</section>
+
+<!-- IMPLEMENTACIÓN -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Implementación</span>
+      <h2>De la firma a tu primera venta en cuatro semanas</h2>
+    </div>
+    <div class="timeline">
+      <div class="tl"><span class="w">Semana 1</span><h3>Diagnóstico</h3><p>Revisamos tus salas, tarifas y forma de trabajo.</p></div>
+      <div class="tl"><span class="w">Semana 2</span><h3>Configuración</h3><p>Dibujamos tus mapas y cargamos la cartelera.</p></div>
+      <div class="tl"><span class="w">Semana 3</span><h3>Capacitación</h3><p>Formamos a boletería, sala y administración.</p></div>
+      <div class="tl"><span class="w">Semana 4</span><h3>Salida a venta</h3><p>Acompañamos las primeras funciones en terreno.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="preguntas">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:0">
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2>Lo que nos suelen preguntar</h2>
+      <p class="lead">¿Tienes otra duda? Escríbenos y te respondemos.</p>
+    </div>
+    <div>
+      <details open><summary>¿Cuánto cuesta?</summary><p>Depende del volumen y los módulos. Hay planes con comisión por entrada o con tarifa fija anual. Para eventos gratuitos con inscripción ofrecemos condiciones especiales.</p></details>
+      <details><summary>¿Tengo que cambiar mi sitio web?</summary><p>No. Agregamos un botón o una cartelera embebida en tu sitio actual, con tus colores y tu logo.</p></details>
+      <details><summary>¿Cuándo recibo el dinero de las ventas?</summary><p>Las ventas con Webpay se depositan directamente en la cuenta de tu institución, según los plazos de Transbank.</p></details>
+      <details><summary>¿Se puede comprar vía Mercado Público?</summary><p>Sí. Te entregamos la documentación técnica para licitación o trato directo, y te orientamos en el proceso.</p></details>
+      <details><summary>¿Qué pasa si se corta internet en la sala?</summary><p>El control de acceso guarda las entradas en el celular y sincroniza cuando vuelve la conexión.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO -->
+<section class="contact" id="contacto">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Hablemos</span>
+      <h2 style="margin-top:12px">Agenda una demo de 30 minutos</h2>
+      <p class="lead" style="margin-top:14px">Te mostramos la plataforma con un ejemplo de tu propia sala. Sin compromiso.</p>
+      <ul>
+        <li><strong>Correo:</strong> ventas@proexsi.cl (dato de ejemplo)</li>
+        <li><strong>Teléfono:</strong> +56 2 0000 0000 (dato de ejemplo)</li>
+        <li><strong>Horario:</strong> lunes a viernes, 9:00 a 18:00 h</li>
+      </ul>
+    </div>
+    <form id="demo-form" novalidate>
+      <div class="row">
+        <label for="f-nombre">Nombre<input id="f-nombre" name="nombre" autocomplete="name" value="María González" required></label>
+        <label for="f-cargo">Cargo<input id="f-cargo" name="cargo" value="Jefa de Programación"></label>
+      </div>
+      <label for="f-inst">Institución<input id="f-inst" name="institucion" value="Corporación Cultural de Ejemplo" required></label>
+      <div class="row">
+        <label for="f-correo">Correo<input id="f-correo" name="correo" type="email" autocomplete="email" value="maria@ejemplo.cl" required></label>
+        <label for="f-tipo">Tipo de espacio
+          <select id="f-tipo" name="tipo">
+            <option>Teatro o sala con butacas</option>
+            <option>Centro cultural</option>
+            <option>Cursos y talleres</option>
+            <option>Festival o evento masivo</option>
+            <option>Museo o exposición</option>
+          </select>
+        </label>
+      </div>
+      <label for="f-msg">¿Qué te gustaría resolver?<textarea id="f-msg" name="mensaje" rows="3">Queremos vender abonos para la temporada 2027 y dejar de usar talonarios en boletería.</textarea></label>
+      <button class="btn btn-primary" type="submit" style="justify-self:start">Solicitar demo</button>
+      <p class="sent" id="sent" hidden>Solicitud registrada en la maqueta. En el sitio real, este formulario llegará al equipo comercial.</p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div>
+      <a class="logo" href="#inicio" aria-label="Proexsi, volver arriba"><svg viewBox="0 0 168 40" style="height:32px"><use href="#proexsi-logo"/></svg></a>
+      <p style="margin-top:12px;max-width:34ch">Xperticket es la ticketera de Proexsi para la cultura en Chile.</p>
+    </div>
+    <div><h4>Plataforma</h4><a href="#modulos">Módulos</a><a href="#como-funciona">Cómo funciona</a><a href="#chile">Hecho para Chile</a></div>
+    <div><h4>Soluciones</h4><a href="#para-quien">Teatros</a><a href="#para-quien">Centros culturales</a><a href="#para-quien">Cursos y talleres</a></div>
+    <div><h4>Contacto</h4><a href="#contacto">Agenda una demo</a><a href="#preguntas">Preguntas frecuentes</a></div>
+    <div class="legal">© 2026 Proexsi S.A. · Maqueta de trabajo, contenidos sujetos a revisión.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // Butacas del mock (patrón fijo para que la maqueta se vea igual siempre)
+  function seats(id, rows, cols, sold, pick){
+    var el=document.getElementById(id); if(!el) return;
+    el.style.gridTemplateColumns='repeat('+cols+',1fr)';
+    for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){
+      var s=document.createElement('span'), k=r*cols+c;
+      s.className='seat'+(pick.indexOf(k)>-1?' pick':(sold(k,r,c)?' sold':''));
+      el.appendChild(s);
+    }
+  }
+  seats('seats-a',6,14,function(k){return (k*7)%11<3},[75,76]);
+  seats('seats-b',2,14,function(k){return (k*5)%9<2},[]);
+  seats('seats-c',6,12,function(k){return (k*7)%10<4},[40,41]);
+
+  // Mini calendario
+  var cal=document.getElementById('cal');
+  if(cal){
+    ['L','M','M','J','V','S','D'].forEach(function(d){var h=document.createElement('div');h.className='hd';h.textContent=d;cal.appendChild(h)});
+    for(var d=1;d<=28;d++){var x=document.createElement('div');x.textContent=d;if([2,3,4,9,10,11,16,17,18,24,25].indexOf(d)>-1)x.className='on';cal.appendChild(x)}
+  }
+
+  // Menú móvil
+  var btn=document.getElementById('menu-btn'), nav=document.getElementById('nav');
+  btn.addEventListener('click',function(){var o=nav.classList.toggle('open');btn.setAttribute('aria-expanded',o)});
+  nav.addEventListener('click',function(e){if(e.target.tagName==='A'){nav.classList.remove('open');btn.setAttribute('aria-expanded','false')}});
+
+  // Formulario de maqueta
+  document.getElementById('demo-form').addEventListener('submit',function(e){
+    e.preventDefault(); document.getElementById('sent').hidden=false;
+  });
+})();
+</script>
+</body>
+</html>
