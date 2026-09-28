@@ -86,6 +86,8 @@ section{padding-block:84px}
 .hero{position:relative;overflow:hidden;padding-block:110px 120px;color:#E1E8FA;background:var(--navy-2)}
 .slide{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity 1.1s ease,transform 7s ease;transform:scale(1.03)}
 .slide.on{opacity:1;transform:scale(1)}
+.slide .s-fill{position:absolute;inset:-40px;background:center/cover no-repeat;filter:blur(26px) saturate(1.15);opacity:.85}
+.slide .s-img{position:absolute;inset:0;background-repeat:no-repeat;background-size:cover}
 .hero::after{content:"";position:absolute;inset:0;z-index:1;background:
     linear-gradient(90deg,rgba(8,44,112,.92) 0%,rgba(10,64,150,.74) 38%,rgba(18,120,200,.22) 60%,rgba(18,181,229,.06) 78%),
     linear-gradient(0deg,rgba(8,44,112,.45),transparent 30%)}
@@ -784,6 +786,19 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
   var heroEl=document.getElementById('hero');
   heroEl.addEventListener('mouseenter',function(){clearInterval(timer)});heroEl.addEventListener('mouseleave',restart);
   go(0);restart();
+  // Zoom de cada imagen del carrusel: 100% llena la franja; menos, la aleja para mostrar más de la foto
+  function fitSlides(){
+    document.querySelectorAll('#hero .s-img[data-zoom]').forEach(function(el){
+      var z=Number(el.getAttribute('data-zoom'))||100;
+      if(z>=100){el.style.backgroundSize='cover';return}
+      var src=getComputedStyle(el).backgroundImage.replace(/^url\(["']?|["']?\)$/g,'');
+      var im=new Image(); im.onload=function(){
+        var W=el.clientWidth,H=el.clientHeight,s=Math.max(W/im.naturalWidth,H/im.naturalHeight)*z/100;
+        el.style.backgroundSize=Math.round(im.naturalWidth*s)+'px '+Math.round(im.naturalHeight*s)+'px';
+      }; im.src=src;
+    });
+  }
+  fitSlides(); addEventListener('resize',fitSlides);
 
   // ===== Páginas internas de producto =====
   var P={

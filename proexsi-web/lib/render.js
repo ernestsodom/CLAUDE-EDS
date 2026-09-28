@@ -79,7 +79,15 @@ export function renderPage(content, { preview = false } = {}) {
     slides.forEach((s, i) => {
       const d = document.createElement('div');
       d.className = 'slide' + (i === 0 ? ' on' : '');
-      d.setAttribute('style', `background-image:url('img/${safeCss(s.img).replace(/'/g, '')}');background-position:${safeCss(s.pos || 'center')}`);
+      const url = `url('img/${safeCss(s.img).replace(/'/g, '')}')`;
+      const x = { left: 'left', right: 'right' }[s.x] || 'center';
+      const y = String(s.pos || 'center 50%').split(' ').slice(1).join(' ') || '50%';
+      const zoom = Math.min(Math.max(Number(s.zoom) || 100, 20), 100);
+      if (zoom < 100 && s.fill !== 'color') {
+        const f = document.createElement('div'); f.className = 's-fill'; f.setAttribute('style', `background-image:${url}`); d.appendChild(f);
+      }
+      const im = document.createElement('div'); im.className = 's-img'; im.setAttribute('data-zoom', String(zoom));
+      im.setAttribute('style', `background-image:${url};background-position:${safeCss(x + ' ' + y)}`); d.appendChild(im);
       d.setAttribute('role', 'img');
       d.setAttribute('aria-label', s.alt || '');
       hero.insertBefore(d, wrap);

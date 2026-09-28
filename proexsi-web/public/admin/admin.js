@@ -455,8 +455,22 @@
       var pos = h('select', {});
       POSITIONS.forEach(function (p) { pos.appendChild(h('option', { value: p[0], text: p[1], selected: s.pos === p[0] })); });
       if (!POSITIONS.some(function (p) { return p[0] === s.pos; })) pos.appendChild(h('option', { value: s.pos, text: 'Personalizado (' + s.pos + ')', selected: true }));
-      var th = h('div', { class: 'th' + ((s.hidden || isHidden(s.img)) ? ' off' : ''), style: { backgroundImage: 'url("' + imgUrl(s.img) + '")', backgroundPosition: s.pos } });
-      pos.addEventListener('change', function () { s.pos = pos.value; th.style.backgroundPosition = s.pos; markDirty(); });
+      // Vista previa con la misma proporción que la portada del sitio
+      var zoomV = s.zoom == null ? 100 : Number(s.zoom);
+      function slidePos() { return (s.x || 'center') + ' ' + (String(s.pos || 'center 50%').split(' ').slice(1).join(' ') || '50%'); }
+      var sFill = h('div', { class: 'bg-fill', style: { backgroundImage: 'url("' + imgUrl(s.img) + '")', display: (zoomV >= 100 || s.fill === 'color') ? 'none' : '' } });
+      var sImg = h('div', { class: 'bg-img', style: { backgroundImage: 'url("' + imgUrl(s.img) + '")', backgroundPosition: slidePos() } });
+      var th = h('div', { class: 'th slide-prev' + ((s.hidden || isHidden(s.img)) ? ' off' : '') }, sFill, sImg);
+      function fitThumb() { fitBox(sImg, imgUrl(s.img), zoomV); sFill.style.display = (zoomV >= 100 || s.fill === 'color') ? 'none' : ''; }
+      setTimeout(fitThumb, 50);
+      pos.addEventListener('change', function () { s.pos = pos.value; sImg.style.backgroundPosition = slidePos(); markDirty(); });
+      var zoom = h('input', { type: 'range', min: 20, max: 100, step: 5, value: zoomV });
+      var zoomLbl = h('span', { class: 'hint', text: zoomV + '%' + (zoomV >= 100 ? ' (llena la franja)' : '') });
+      zoom.addEventListener('input', function () { zoomV = Number(zoom.value); s.zoom = zoomV; zoomLbl.textContent = zoomV + '%' + (zoomV >= 100 ? ' (llena la franja)' : ''); fitThumb(); markDirty(); });
+      var alignX = h('select', {}, [['left', 'A la izquierda'], ['center', 'Al centro'], ['right', 'A la derecha']].map(function (o) { return h('option', { value: o[0], text: o[1], selected: (s.x || 'center') === o[0] }); }));
+      alignX.addEventListener('change', function () { s.x = alignX.value; sImg.style.backgroundPosition = slidePos(); markDirty(); });
+      var fillSel = h('select', {}, h('option', { value: 'blur', text: 'La misma foto, difuminada', selected: s.fill !== 'color' }), h('option', { value: 'color', text: 'Azul del sitio', selected: s.fill === 'color' }));
+      fillSel.addEventListener('change', function () { s.fill = fillSel.value; fitThumb(); markDirty(); });
       card.appendChild(h('div', { class: 'item' },
         h('div', { class: 'item-head' }, h('div', { class: 'toolbar' }, h('strong', { text: 'Imagen ' + (i + 1) }), (s.hidden || isHidden(s.img)) ? h('span', { class: 'badge gray', text: s.hidden ? 'Oculta' : 'Foto oculta en Fotos y logo' }) : null), h('div', { class: 'toolbar' },
           h('button', { class: 'btn ghost small', text: '↑', title: 'Subir', disabled: i === 0, onclick: function () { move(C.carousel, i, -1); } }),
@@ -468,10 +482,22 @@
             imageSelect(s.img, function (k) { s.img = k; markDirty(); route(); }),
             h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { s.img = k; route(); } }); } }))),
           h('div', { class: 'field' }, h('label', { text: 'Encuadre' }), pos),
+          h('div', { class: 'field' }, h('label', { text: 'Tamaño de la foto (zoom)' }), h('div', { class: 'toolbar' }, zoom, zoomLbl),
+            h('span', { class: 'hint', text: 'Bájalo para alejar la foto y mostrarla más completa en la portada.' })),
+          h('div', { class: 'grid2' },
+            h('div', { class: 'field' }, h('label', { text: 'Ubicación al alejar' }), alignX),
+            h('div', { class: 'field' }, h('label', { text: 'Relleno de los bordes' }), fillSel)),
           bind(s, 'alt', { multi: false, label: 'Descripción de la imagen', hint: 'Se usa para accesibilidad y buscadores.' })))));
     });
     view.appendChild(card);
     view.appendChild(h('p', { class: 'hint', text: 'El título y los botones que aparecen sobre el carrusel se editan en Textos → Portada (carrusel).' }));
+  }
+  function fitBox(el, url, zoom) {
+    if (zoom >= 100) { el.style.backgroundSize = 'cover'; return; }
+    var im = new Image(); im.onload = function () {
+      var W = el.clientWidth, H = el.clientHeight, sc = Math.max(W / im.naturalWidth, H / im.naturalHeight) * zoom / 100;
+      el.style.backgroundSize = Math.round(im.naturalWidth * sc) + 'px ' + Math.round(im.naturalHeight * sc) + 'px';
+    }; im.src = url;
   }
   function move(arr, i, d) { var x = arr[i]; arr.splice(i, 1); arr.splice(i + d, 0, x); markDirty(); route(); }
 
