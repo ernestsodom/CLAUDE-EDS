@@ -83,45 +83,23 @@ section{padding-block:84px}
 @media (max-width:420px){.logo img{height:20px}}
 
 /* ===== Hero ===== */
-.hero{position:relative;overflow:hidden;padding-block:72px 120px;color:#D8E1F8;
-  background:
-    radial-gradient(560px 380px at 90% 10%,rgba(18,181,229,.45),transparent 70%),
-    radial-gradient(480px 340px at 0% 110%,rgba(242,107,29,.28),transparent 70%),
-    linear-gradient(135deg,var(--navy-2) 0%,var(--navy) 50%,var(--blue) 100%)}
-.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1.05fr;gap:56px;align-items:center}
-.hero .wrap>*{min-width:0}
-.hero h1{color:var(--white)}
+.hero{position:relative;overflow:hidden;padding-block:110px 150px;color:#E1E8FA;background:var(--navy-2)}
+.hero::before{content:"";position:absolute;inset:-20px;background:url("img/hero-marionetas.webp") center 40%/cover no-repeat;transform:scale(1.04)}
+.hero::after{content:"";position:absolute;inset:0;background:
+    linear-gradient(90deg,rgba(20,29,87,.94) 0%,rgba(20,29,87,.82) 45%,rgba(37,53,139,.45) 100%),
+    linear-gradient(0deg,rgba(20,29,87,.7),transparent 40%)}
+.hero .wrap{position:relative;z-index:1}
+.hero-copy{display:grid;gap:22px;max-width:660px}
+.hero h1{color:var(--white);text-shadow:0 2px 24px rgba(0,0,0,.35)}
 .hero h1 em{font-style:normal;color:#FF9A57}
 .hero .eyebrow{color:#FFB27F}
-.hero .lead{color:#CCD7F4}
-.hero-copy{display:grid;gap:22px}
+.hero .lead{color:#D6DEF5}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px}
-.trust{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;color:#C0CCEE}
+.trust{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;color:#C9D3F0}
 .trust span{display:inline-flex;gap:6px;align-items:center}
 .trust span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--orange)}
-@media (max-width:900px){.hero .wrap{grid-template-columns:minmax(0,1fr)}}
-
-/* sala: nueva gráfica */
-.venue{position:relative;padding:26px 0 84px}
-.venue-card{background:var(--white);border-radius:22px;box-shadow:0 34px 70px -24px rgba(5,10,40,.65);padding:20px 20px 16px;color:var(--ink)}
-.venue-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.venue-head h4{margin:0;font:700 1rem var(--display);color:var(--navy)}
-.venue-head span{font-size:.8rem;color:var(--muted)}
-.zones{display:flex;gap:6px;flex-wrap:wrap}
-.zones b{font:600 .72rem var(--body);border-radius:999px;padding:4px 10px;background:var(--sky);color:var(--navy);display:inline-flex;align-items:center;gap:6px}
-.zones i{width:9px;height:9px;border-radius:50%}
-.venue svg{width:100%;height:auto;display:block;margin-top:8px}
-.toast{position:absolute;right:-8px;top:0;background:var(--white);color:var(--ink);border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 18px 40px -16px rgba(5,10,40,.6);font-size:.82rem}
-.toast .dot{width:28px;height:28px;border-radius:50%;background:#E3F5EA;color:var(--ok);display:grid;place-items:center;font-weight:800}
-.toast strong{display:block;color:var(--navy);font-size:.86rem}
-.stub{position:absolute;left:-14px;bottom:0;display:flex;background:var(--white);border-radius:14px;box-shadow:0 20px 44px -16px rgba(5,10,40,.6);color:var(--ink);overflow:hidden}
-.stub .main{padding:12px 16px;border-right:2px dashed var(--line);display:grid;gap:2px}
-.stub .main small{font-family:var(--mono);font-size:.62rem;color:var(--orange-2);letter-spacing:.08em}
-.stub .main strong{font:700 .9rem var(--display);color:var(--navy)}
-.stub .main span{font-size:.76rem;color:var(--muted)}
-.stub .qrb{padding:12px;display:grid;place-items:center}
 .qrcode{width:48px;height:48px;background:conic-gradient(from 90deg at 3px 3px,var(--white) 90deg,var(--navy) 0) 0 0/7px 7px;border:3px solid var(--navy);border-radius:4px}
-@media (max-width:560px){.toast{right:0}.stub{left:0}}
+section[id],div[id="plataforma"]{scroll-margin-top:72px}
 
 /* ===== Nosotros ===== */
 .about{padding-block:0;margin-top:-60px;position:relative;z-index:2}
@@ -147,8 +125,9 @@ section{padding-block:84px}
 .prod li{font-size:.78rem;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 11%,white);border-radius:999px;padding:3px 10px}
 .prod.wide{grid-column:span 2}
 .prod.wide .pic{height:280px}
-.duo{display:grid;grid-template-columns:1.5fr 1fr;gap:4px;height:100%}
-.duo img{min-height:0}
+.trio{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:4px;height:100%}
+.trio img{min-height:0;height:100%;width:100%;object-fit:cover}
+@media (max-width:620px){.trio{grid-template-columns:1.3fr 1fr}.trio img:last-child{display:none}}
 .art{height:100%;display:grid;place-items:center;position:relative;
   background:
     radial-gradient(circle at 80% 20%,rgba(255,255,255,.28) 0 60px,transparent 61px),
@@ -156,9 +135,8 @@ section{padding-block:84px}
     linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#141D57))}
 .art svg{width:88px;height:88px}
 .art small{position:absolute;right:12px;bottom:10px;font-family:var(--mono);font-size:.6rem;color:rgba(255,255,255,.8);letter-spacing:.06em}
-.prod.orq .pic{background:#EDEFF2}
-.prod.orq .pic img{object-position:60% 30%}
-.prod.inf .pic img{object-position:50% 35%}
+.prod.inf .pic img{object-position:50% 30%}
+.prod.may .pic img{object-position:50% 25%}
 @media (max-width:980px){.prod-grid{grid-template-columns:repeat(2,1fr)}.prod.ferias{grid-column:span 1}}
 @media (max-width:620px){.prod-grid{grid-template-columns:1fr}.prod.wide{grid-column:auto}}
 
@@ -209,11 +187,19 @@ section{padding-block:84px}
 .modules{background:var(--sky)}
 .mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
 .mod{background:var(--white);border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
-.mod .shot{height:240px;background:linear-gradient(135deg,#F4F7FE,#E6EDFB);border-bottom:1px solid var(--line);padding:18px;display:grid;place-items:center;overflow:hidden}
+.mod .shot{min-height:250px;background:linear-gradient(135deg,#F4F7FE,#E6EDFB);border-bottom:1px solid var(--line);padding:18px;display:grid;place-items:center;overflow:hidden}
 .mod .txt{padding:20px 24px 24px;display:grid;gap:8px}
 .mod .txt p{color:var(--muted);font-size:.96rem}
 @media (max-width:760px){.mod-grid{grid-template-columns:1fr}}
-.mini-venue{width:100%;max-width:360px}
+.seatmap{width:100%;max-width:340px}
+.stage-name{text-align:center;background:linear-gradient(90deg,var(--navy),var(--blue));color:var(--white);font:700 .68rem var(--display);letter-spacing:.2em;border-radius:40px 40px 8px 8px;padding:7px;margin:0 14% 10px}
+.zone{font-family:var(--mono);font-size:.6rem;color:var(--muted);text-align:center;margin:8px 0 5px;letter-spacing:.1em}
+.seats{display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
+.seat{aspect-ratio:1;border-radius:3px 3px 5px 5px;background:var(--sky-2);max-width:100%}
+.seat.sold{background:#9FB0D3}
+.seat.pick{background:var(--orange)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:10px;font-size:.7rem;color:var(--muted)}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .insc{width:100%;max-width:380px;display:grid;gap:8px}
 .insc-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.82rem}
 .insc-row i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--white);font-style:normal;font-weight:700;font-size:.75rem}
@@ -300,8 +286,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       <a href="#nosotros">Nosotros</a>
       <a href="#productos">Productos</a>
       <a href="#beneficios">Beneficios</a>
-      <a href="#integraciones">Integraciones</a>
-      <a href="#modulos">Módulos</a>
+      <a href="#plataforma">La Plataforma</a>
       <a href="#preguntas">Preguntas</a>
     </nav>
     <a class="btn btn-primary" href="#contacto">Agenda una demo</a>
@@ -311,7 +296,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 <main id="inicio">
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero" aria-label="Presentación">
   <div class="wrap">
     <div class="hero-copy">
       <span class="eyebrow">Ticketera para corporaciones culturales de Chile</span>
@@ -328,24 +313,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       </div>
     </div>
 
-    <div class="venue" role="img" aria-label="Ejemplo de venta: mapa de una sala con platea, platea alta y palcos, dos butacas elegidas, pago aprobado y entrada con código QR">
-      <div class="venue-card">
-        <div class="venue-head">
-          <div><h4>Sala Principal</h4><span>Concierto de Temporada · Sáb 17 oct · 19:30 h</span></div>
-          <div class="zones">
-            <b><i style="background:var(--blue)"></i>Platea $12.000</b>
-            <b><i style="background:var(--cyan)"></i>Platea alta $9.000</b>
-            <b><i style="background:var(--p-seminarios)"></i>Palco $15.000</b>
-          </div>
-        </div>
-        <svg id="hall" viewBox="0 0 440 250" aria-hidden="true"></svg>
-      </div>
-      <div class="toast"><span class="dot">✓</span><div><strong>Pago aprobado</strong>Webpay · $24.000</div></div>
-      <div class="stub">
-        <div class="main"><small>ENTRADA DIGITAL</small><strong>Platea · Fila F</strong><span>Butacas 8 y 9 · Puerta 2</span></div>
-        <div class="qrb"><div class="qrcode"></div></div>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -371,9 +338,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
     <div class="prod-grid">
       <article class="prod wide" style="--c:var(--p-cursos)">
         <div class="pic">
-          <div class="duo">
-            <img src="img/cursos-ceramica.webp" alt="Manos trabajando una taza de cerámica en un torno">
-            <img src="img/cursos-macrame.webp" alt="Manos tejiendo macramé sobre una rama">
+          <div class="trio">
+            <img src="img/cursos-ceramica.webp" alt="Manos trabajando una taza de cerámica">
+            <img src="img/cursos-ninos-pintura.webp" alt="Alumnos pintando en un taller de arte">
+            <img src="img/cursos-acrilicos.webp" alt="Mano sosteniendo tubos de pintura acrílica sobre una paleta">
           </div>
           <span class="tag">Cursos y Talleres</span>
         </div>
@@ -385,7 +353,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       </article>
 
       <article class="prod inf" style="--c:var(--p-infantil)">
-        <div class="pic"><img src="img/infantil-pintura.webp" alt="Niñas y niños pintando en un taller de arte"><span class="tag">Infantil</span></div>
+        <div class="pic"><img src="img/infantil-maquillaje.webp" alt="Niña disfrazada a quien le pintan la cara"><span class="tag">Infantil</span></div>
         <div class="txt">
           <h3>Actividades Culturales Infantiles</h3>
           <p>Entradas familiares, datos del apoderado y cupos por edad.</p>
@@ -394,7 +362,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       </article>
 
       <article class="prod" style="--c:var(--p-teatro)">
-        <div class="pic"><img src="img/teatro-danza.webp" alt="Bailarina de flamenco en escena frente al público"><span class="tag">Teatro</span></div>
+        <div class="pic"><img src="img/teatro-sala.webp" alt="Público en un teatro frente al telón rojo"><span class="tag">Teatro</span></div>
         <div class="txt">
           <h3>Teatro</h3>
           <p>Butacas numeradas, temporadas y cortesías para elencos y prensa.</p>
@@ -402,8 +370,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
         </div>
       </article>
 
-      <article class="prod orq" style="--c:var(--p-orquesta)">
-        <div class="pic"><img src="img/violinista.webp" alt="Violinista tocando su instrumento"><span class="tag">Música</span></div>
+      <article class="prod" style="--c:var(--p-orquesta)">
+        <div class="pic"><img src="img/orquesta-violines.webp" alt="Músicos de una orquesta tocando violín"><span class="tag">Música</span></div>
         <div class="txt">
           <h3>Orquesta y Sala de Música</h3>
           <p>Temporadas de conciertos y funciones en distintas salas o giras.</p>
@@ -422,10 +390,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
         </div>
       </article>
 
-      <article class="prod" style="--c:var(--p-mayores)">
-        <div class="pic"><div class="art" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M32 54S10 41 10 25a11 11 0 0 1 22-3 11 11 0 0 1 22 3c0 16-22 29-22 29z"/><path d="M22 30h6l3-6 4 12 3-6h6"/></svg>
-          <small>IMAGEN POR DEFINIR</small></div><span class="tag">3.ª edad</span></div>
+      <article class="prod may" style="--c:var(--p-mayores)">
+        <div class="pic"><img src="img/mayores-danza.webp" alt="Bailarina de flamenco en escena frente a un público de personas mayores"><span class="tag">3.ª edad</span></div>
         <div class="txt">
           <h3>Actividades para la 3.ª Edad</h3>
           <p>Inscripción asistida en boletería y precios preferentes por RUT.</p>
@@ -470,11 +436,12 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
   </div>
 </section>
 
-<!-- INTEGRACIONES -->
+<div id="plataforma">
+<!-- LA PLATAFORMA: INTEGRACIONES -->
 <section class="integ" id="integraciones">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">Integraciones</span>
+      <span class="eyebrow">La Plataforma · Integraciones</span>
       <h2>Maximiza tus ventas sin compartir tu oferta programática</h2>
     </div>
 
@@ -513,13 +480,22 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 <section class="modules" id="modulos">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">Módulos</span>
+      <span class="eyebrow">La Plataforma · Módulos</span>
       <h2>Todo en una plataforma web, sin instalar nada</h2>
     </div>
     <div class="mod-grid">
       <article class="mod">
-        <div class="shot" aria-hidden="true"><svg class="mini-venue" id="hall-mini" viewBox="0 0 440 250"></svg></div>
-        <div class="txt"><h3>Mapas de sala</h3><p>Dibujamos tu sala tal como es, con zonas, precios y butacas numeradas: teatro, auditorio o recinto al aire libre.</p></div>
+        <div class="shot" aria-hidden="true">
+          <div class="seatmap">
+            <div class="stage-name">ESCENARIO</div>
+            <div class="zone">PLATEA</div>
+            <div class="seats" id="seats-a"></div>
+            <div class="zone">BALCÓN</div>
+            <div class="seats" id="seats-b"></div>
+            <div class="legend"><span><b style="background:var(--sky-2)"></b>Libre</span><span><b style="background:#9FB0D3"></b>Vendida</span><span><b style="background:var(--orange)"></b>Tu elección</span></div>
+          </div>
+        </div>
+        <div class="txt"><h3>Administra tu Oferta</h3><p>Dibujamos tu sala tal como es, con zonas, precios y butacas numeradas: teatro, auditorio o recinto al aire libre. Manejo de promociones, integraciones, listas de espera, distintos tipos de precios con restricciones propias a la medida, y mucho más.</p></div>
       </article>
       <article class="mod">
         <div class="shot" aria-hidden="true">
@@ -553,6 +529,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
     </div>
   </div>
 </section>
+
+</div>
 
 <!-- HECHO PARA CHILE -->
 <section class="chile" id="chile">
@@ -643,38 +621,18 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
   var NS='http://www.w3.org/2000/svg';
   function el(tag,attrs,parent){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e}
 
-  // ===== Sala en abanico: escenario arriba, filas curvas, palcos laterales =====
-  function drawHall(svg,withPick){
-    if(!svg) return;
-    var defs=el('defs',{},svg);
-    var g=el('linearGradient',{id:svg.id+'-st',x1:0,x2:1},defs);
-    el('stop',{offset:0,'stop-color':'#25358B'},g);el('stop',{offset:1,'stop-color':'#1F5BD8'},g);
-    var cx=220, cy=-70;
-    // escenario
-    el('path',{d:'M130 14 Q220 44 310 14 L310 4 Q220 30 130 4 Z',fill:'url(#'+svg.id+'-st)'},svg);
-    var t=el('text',{x:220,y:48,'text-anchor':'middle','font-size':9,'letter-spacing':3,fill:'#8A94B5','font-family':'IBM Plex Mono, monospace'},svg);t.textContent='ESCENARIO';
-    var rows=9, seatR=5.2, pick={'5-9':1,'5-10':1};
-    for(var r=0;r<rows;r++){
-      var rad=140+r*17, span=0.6+r*0.004, n=Math.round(rad*span*2/13.2);
-      var zone=r<6?'#1F5BD8':'#12B5E5';
-      for(var i=0;i<n;i++){
-        var a=-span+i*(2*span/(n-1)), x=cx+rad*Math.sin(a), y=cy+rad*Math.cos(a);
-        var key=r+'-'+i, sold=((r*7+i*3)%5===0)||((r+i)%11===0);
-        var fill=zone, op=1;
-        if(sold){fill='#C9D2E6'}
-        if(withPick&&pick[key]){fill='#F26B1D'}
-        var c=el('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:seatR,fill:fill,'fill-opacity':op},svg);
-        if(withPick&&pick[key]) el('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:seatR+3.5,fill:'none',stroke:'#F26B1D','stroke-opacity':.35,'stroke-width':3},svg);
-      }
+  // ===== Mapa de butacas (patrón fijo para que la maqueta se vea igual siempre) =====
+  function seats(id, rows, cols, sold, pick){
+    var box=document.getElementById(id); if(!box) return;
+    box.style.gridTemplateColumns='repeat('+cols+',1fr)';
+    for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){
+      var sp=document.createElement('span'), k=r*cols+c;
+      sp.className='seat'+(pick.indexOf(k)>-1?' pick':(sold(k)?' sold':''));
+      box.appendChild(sp);
     }
-    // palcos laterales
-    [[20,70],[20,110],[20,150],[396,70],[396,110],[396,150]].forEach(function(p,j){
-      el('rect',{x:p[0],y:p[1],width:24,height:30,rx:7,fill:j%3===1?'#C9D2E6':'#6A4CF0'},svg);
-    });
-    var lb=el('text',{x:220,y:244,'text-anchor':'middle','font-size':9,'letter-spacing':2,fill:'#8A94B5','font-family':'IBM Plex Mono, monospace'},svg);lb.textContent='PLATEA · PLATEA ALTA · PALCOS';
   }
-  drawHall(document.getElementById('hall'),true);
-  drawHall(document.getElementById('hall-mini'),true);
+  seats('seats-a',6,16,function(k){return (k*7)%11<3},[87,88]);
+  seats('seats-b',2,16,function(k){return (k*5)%9<2},[]);
 
   // ===== Informe: área de 14 días (datos de ejemplo) =====
   var data=[210,245,232,280,300,268,335,352,318,390,410,386,470,520];
