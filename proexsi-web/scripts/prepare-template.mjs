@@ -31,7 +31,8 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
     var more=Object.keys(P).filter(function(x){return x!==k}).map(function(x){return '<a href="#p-'+x+'" style="--c:var('+P[x].c+')">'+esc(P[x].n)+'</a>'}).join('');
     pp.innerHTML=
       (bgMode
-        ? '<section class="pp-hero bg" style="--c:'+c+';--pp-bg:url('+esc(imgUrl(d.bg))+');--pp-pos:'+esc(d.bgPos||'center')+';--pp-o:'+(Math.min(Math.max(Number(d.bgDark)||60,0),90)/100)+'"><div class="wrap"><div class="pp-copy">'
+        ? '<section class="pp-hero bg" style="--c:'+c+';--pp-bg:url('+esc(imgUrl(d.bg))+');--pp-pos:'+esc(({left:'left',right:'right'}[d.bgX]||'center')+' '+String(d.bgPos||'center 50%').split(' ').slice(1).join(' '))+';--pp-o:'+(num(d.bgDark,60,0,90)/100)+'">'+
+          (d.bgFill==='color'?'':'<div class="pp-bgfill"></div>')+'<div class="pp-bgimg" data-zoom="'+num(d.bgZoom,100,20,100)+'"></div><div class="wrap"><div class="pp-copy">'
         : '<section class="pp-hero" style="--c:'+c+'"><div class="wrap"><div class="pp-copy">')+
         '<div class="crumb"><a href="#productos">'+esc(PP.crumb)+'</a> / '+esc(d.n)+'</div>'+
         '<h1>'+esc(d.n)+'</h1><p class="lead">'+esc(d.lead)+'</p>'+
@@ -42,6 +43,19 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
       '<section class="pp-cta"><div class="wrap"><div class="box" style="--c:'+c+'"><h2>'+esc(PP.cta)+'</h2><a class="btn btn-orange" href="#contacto">'+esc(PP.ctaBtn)+'</a></div></div></section>'+
       '<section class="pp-more"><div class="wrap"><h3>'+esc(PP.more)+'</h3><div class="chips-row">'+more+'</div></div></section>';
   }
+  function num(v,def,min,max){v=Number(v);if(v===''||v==null||!isFinite(v))v=def;return Math.min(Math.max(v,min),max)}
+  // Zoom de la foto de fondo: 100% llena la franja; menos, la aleja para mostrar más de la foto
+  function fitBg(){
+    var el=pp.querySelector('.pp-bgimg'); if(!el)return;
+    var z=Number(el.getAttribute('data-zoom'))||100;
+    if(z>=100){el.style.backgroundSize='cover';return}
+    var src=getComputedStyle(el).backgroundImage.replace(/^url\(["']?|["']?\)$/g,'');
+    var im=new Image(); im.onload=function(){
+      var W=el.clientWidth,H=el.clientHeight,s=Math.max(W/im.naturalWidth,H/im.naturalHeight)*z/100;
+      el.style.backgroundSize=Math.round(im.naturalWidth*s)+'px '+Math.round(im.naturalHeight*s)+'px';
+    }; im.src=src;
+  }
+  window.addEventListener('resize',function(){if(!pp.hidden)fitBg()});
   function renderAbout(){
     var chips=Object.keys(P).map(function(x){return '<a href="#p-'+x+'" style="--c:var('+P[x].c+')">'+esc(P[x].n)+'</a>'}).join('');
     var ico={

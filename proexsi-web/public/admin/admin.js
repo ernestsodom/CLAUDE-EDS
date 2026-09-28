@@ -514,17 +514,41 @@
     if (bgMode) {
       var pos = h('select', {});
       POSITIONS.forEach(function (o) { pos.appendChild(h('option', { value: o[0], text: o[1], selected: (p.bgPos || 'center 50%') === o[0] })); });
-      var prev = h('div', { class: 'bg-prev', style: { backgroundImage: 'url("' + imgUrl(p.bg) + '")', backgroundPosition: p.bgPos || 'center 50%' } },
-        h('div', { class: 'bg-shade', style: { opacity: String((Number(p.bgDark) || 60) / 100) } }), h('strong', { text: p.n }));
-      pos.addEventListener('change', function () { p.bgPos = pos.value; prev.style.backgroundPosition = p.bgPos; markDirty(); });
-      var dark = h('input', { type: 'range', min: 0, max: 90, step: 5, value: Number(p.bgDark) || 60 });
-      var darkLbl = h('span', { class: 'hint', text: (Number(p.bgDark) || 60) + '%' });
-      dark.addEventListener('input', function () { p.bgDark = Number(dark.value); darkLbl.textContent = dark.value + '%'; prev.firstChild.style.opacity = String(dark.value / 100); markDirty(); });
+      var darkV = p.bgDark == null ? 60 : Number(p.bgDark), zoomV = p.bgZoom == null ? 100 : Number(p.bgZoom);
+      var fillEl = h('div', { class: 'bg-fill', style: { backgroundImage: 'url("' + imgUrl(p.bg) + '")', display: p.bgFill === 'color' ? 'none' : '' } });
+      function bgPosition() { return (p.bgX || 'center') + ' ' + String(p.bgPos || 'center 50%').split(' ').slice(1).join(' '); }
+      var imgEl = h('div', { class: 'bg-img', style: { backgroundImage: 'url("' + imgUrl(p.bg) + '")', backgroundPosition: bgPosition() } });
+      var shade = h('div', { class: 'bg-shade', style: { opacity: String(darkV / 100) } });
+      var prev = h('div', { class: 'bg-prev', style: { '--c': 'var(' + p.c + ')' } }, fillEl, imgEl, shade, h('strong', { text: p.n }));
+      prev.style.background = 'color-mix(in srgb, ' + (C.theme[p.c.slice(2)] || '#1F5BD8') + ' 45%, #141D57)';
+      function fitPrev() {
+        if (zoomV >= 100) { imgEl.style.backgroundSize = 'cover'; return; }
+        var im = new Image(); im.onload = function () {
+          var W = imgEl.clientWidth, H = imgEl.clientHeight, sc = Math.max(W / im.naturalWidth, H / im.naturalHeight) * zoomV / 100;
+          imgEl.style.backgroundSize = Math.round(im.naturalWidth * sc) + 'px ' + Math.round(im.naturalHeight * sc) + 'px';
+        }; im.src = imgUrl(p.bg);
+      }
+      setTimeout(fitPrev, 50);
+      pos.addEventListener('change', function () { p.bgPos = pos.value; imgEl.style.backgroundPosition = bgPosition(); markDirty(); });
+      var alignX = h('select', {}, [['left', 'A la izquierda'], ['center', 'Al centro'], ['right', 'A la derecha']].map(function (o) { return h('option', { value: o[0], text: o[1], selected: (p.bgX || 'center') === o[0] }); }));
+      alignX.addEventListener('change', function () { p.bgX = alignX.value; imgEl.style.backgroundPosition = bgPosition(); markDirty(); });
+      var dark = h('input', { type: 'range', min: 0, max: 90, step: 5, value: darkV });
+      var darkLbl = h('span', { class: 'hint', text: darkV + '%' });
+      dark.addEventListener('input', function () { p.bgDark = Number(dark.value); darkLbl.textContent = dark.value + '%'; shade.style.opacity = String(dark.value / 100); markDirty(); });
+      var zoom = h('input', { type: 'range', min: 20, max: 100, step: 5, value: zoomV });
+      var zoomLbl = h('span', { class: 'hint', text: zoomV + '%' + (zoomV >= 100 ? ' (llena la franja)' : '') });
+      zoom.addEventListener('input', function () { zoomV = Number(zoom.value); p.bgZoom = zoomV; zoomLbl.textContent = zoomV + '%' + (zoomV >= 100 ? ' (llena la franja)' : ''); fitPrev(); markDirty(); });
+      var fill = h('select', {}, h('option', { value: 'blur', text: 'La misma foto, difuminada', selected: p.bgFill !== 'color' }), h('option', { value: 'color', text: 'Color del producto', selected: p.bgFill === 'color' }));
+      fill.addEventListener('change', function () { p.bgFill = fill.value; fillEl.style.display = fill.value === 'color' ? 'none' : ''; markDirty(); });
       layoutCard.appendChild(h('div', { class: 'grid2', style: { marginTop: '14px' } }, prev, h('div', { style: { display: 'grid', gap: '12px', alignContent: 'start' } },
         h('div', { class: 'field' }, h('label', { text: 'Foto de fondo' }), h('div', { class: 'toolbar' },
           imageSelect(p.bg, function (k) { p.bg = k; markDirty(); route(); }),
           h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { p.bg = k; route(); } }); } }))),
         h('div', { class: 'field' }, h('label', { text: 'Encuadre' }), pos),
+        h('div', { class: 'field' }, h('label', { text: 'Tamaño de la foto (zoom)' }), h('div', { class: 'toolbar' }, zoom, zoomLbl),
+          h('span', { class: 'hint', text: 'Bájalo para alejar la foto y mostrarla más completa dentro de la franja.' })),
+        h('div', { class: 'field' }, h('label', { text: 'Ubicación de la foto al alejar' }), alignX),
+        h('div', { class: 'field' }, h('label', { text: 'Relleno de los bordes al alejar' }), fill),
         h('div', { class: 'field' }, h('label', { text: 'Oscurecer la foto para que se lea el texto' }), h('div', { class: 'toolbar' }, dark, darkLbl)),
         isHidden(p.bg) ? h('span', { class: 'badge gray', text: 'Esta foto está oculta: la página mostrará las fotos flotando.' }) : null)));
     }
