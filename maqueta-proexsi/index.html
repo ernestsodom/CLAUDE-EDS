@@ -164,20 +164,25 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .integ h2{color:var(--white)}
 .integ .eyebrow{color:#FFB27F}
 .integ .lead{color:#B9C6EC}
-.pmap{display:grid;grid-template-columns:minmax(0,.85fr) 72px minmax(0,1.55fr) 72px minmax(0,1.1fr);align-items:center;row-gap:0}
-.plabel{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8EA3DA;margin-bottom:10px}
-.pcol{display:grid;gap:12px;align-content:center}
-.pnode{background:#1E2A72;border:1px solid #33429A;border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:center;color:var(--white);font-weight:700;font-size:.92rem;line-height:1.25}
-.pnode small{display:block;font-weight:400;color:#A9B7E3;font-size:.78rem;margin-top:2px}
+.pmap{display:grid;grid-template-columns:minmax(0,1.25fr) 78px minmax(0,1.15fr);align-items:center}
+.pright{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+.plabel{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8EA3DA;margin-bottom:8px}
+.pnode{background:#1E2A72;border:1px solid #33429A;border-radius:16px;padding:16px;color:var(--white);font-weight:700;font-size:.95rem;line-height:1.25;display:flex;flex-direction:column;gap:10px}
+.pnode small{display:block;font-weight:400;color:#A9B7E3;font-size:.8rem;margin-top:3px}
+.pnode .row{display:flex;gap:12px;align-items:center}
 .pnode .fi{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center}
 .pnode .fi svg{width:20px;height:20px}
 .pnode .n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:900 1rem var(--display);color:var(--white)}
-.pnode.big{display:block}
-.pnode.big .ptop{display:flex;gap:12px;align-items:center}
-.psub{display:grid;gap:5px;margin-top:10px}
+.pnode hr{border:0;border-top:1px dashed #3B4BA6;margin:0;width:100%}
+.psub{display:grid;gap:5px}
 .psub div{display:flex;align-items:center;gap:8px;background:rgba(242,107,29,.16);border-radius:8px;padding:6px 9px;font-size:.78rem;font-weight:600;color:#FFE1CC}
 .psub i{font-style:normal;width:18px;height:18px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-size:.66rem;flex:none}
 .pay-tag{margin-left:auto;font-size:.62rem;font-weight:800;background:#D6004A;color:#fff;border-radius:4px;padding:2px 6px}
+.pcheck{background:linear-gradient(145deg,#E5415A,#F26B1D);border:0;box-shadow:0 22px 40px -22px rgba(229,65,90,.9);align-items:center;text-align:center;justify-content:center}
+.pcheck .n{background:#fff;color:#E5415A}
+.pcheck .row{justify-content:center}
+.qr-svg{width:min(120px,70%);height:auto;border-radius:10px;box-shadow:0 10px 24px -10px rgba(0,0,0,.5)}
+.pcheck small{color:#FFE7DD}
 .plink{display:grid;justify-items:center;gap:4px;font-size:.64rem;font-weight:700;color:#8EA3DA;text-align:center;line-height:1.2}
 .plink svg{width:46px;height:24px}
 .plink path{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 6;animation:flowdash 1.4s linear infinite}
@@ -198,23 +203,15 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 .pgen svg{width:22px;height:22px;flex:none}
 .pother{margin-top:10px;font-size:.84rem;color:#D3DDF7;display:flex;gap:8px;align-items:center}
 .pother::before{content:"+";width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-weight:800}
-.pdown{grid-column:5;display:grid;justify-items:center;gap:2px;padding-block:8px;font-size:.64rem;font-weight:700;color:#8EA3DA}
-.pdown svg{width:24px;height:40px}
-.paccess{grid-column:1/-1;background:linear-gradient(90deg,#E5415A,#F26B1D);border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:var(--white);box-shadow:0 20px 40px -24px rgba(229,65,90,.9)}
-.paccess .n{width:40px;height:40px;border-radius:50%;background:var(--white);color:#E5415A;display:grid;place-items:center;font:900 1.1rem var(--display);flex:none}
-.paccess strong{font:800 1.1rem var(--display);display:block}
-.paccess span{font-size:.88rem;color:#FFE7DD}
-.paccess .qrs{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-.paccess .qrs b{background:rgba(255,255,255,.18);border-radius:999px;padding:6px 12px;font-size:.8rem}
 .checks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-top:44px}
 .checks li{display:grid;grid-template-columns:28px 1fr;gap:12px;font-size:.98rem}
 .checks li::before{content:"";width:28px;height:28px;border-radius:50%;background:var(--orange) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/15px no-repeat}
 @media (max-width:1040px){
   .pmap{grid-template-columns:minmax(0,1fr)}
+  .plink{padding-block:6px}
   .plink svg{transform:rotate(90deg)}
-  .pdown{grid-column:1}
 }
-@media (max-width:560px){.pgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.paccess .qrs{margin-left:0}}
+@media (max-width:560px){.pgrid,.pright{grid-template-columns:1fr}.checks{grid-template-columns:1fr}}
 
 /* ===== Módulos ===== */
 .modules{background:linear-gradient(180deg,#F4F7FE,var(--white))}
@@ -503,7 +500,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
         <div class="pic"><img src="img/ferias-feria.webp" alt="Puestos de una feria de antigüedades al aire libre" style="object-position:50% 45%"><span class="tag">Ferias y eventos</span></div>
         <div class="txt">
           <h3>Ferias y Eventos Masivos</h3>
-          <p>Entradas por día y horario, accesos con torniquetes o lectores y venta en puntos de venta.</p>
+          <p>Entradas por día y horario, accesos con lectores QR y venta en puntos de venta.</p>
           <ul><li>Accesos masivos</li><li>Bloques horarios</li><li>Puntos de venta</li></ul>
           <a class="more" href="#p-ferias">Ver producto →</a>
         </div>
@@ -541,18 +538,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
     <div class="sec-head">
       <span class="eyebrow">La Plataforma</span>
       <h2>Maximiza tus ventas sin compartir tu oferta programática</h2>
-      <p class="lead">Configuras todo en un solo lugar, vendes por tres canales con el mismo stock y validas cada entrada en la puerta.</p>
+      <p class="lead">Configuras todo en un solo lugar, vendes online y en caja con el mismo stock, y validas cada entrada con su código QR.</p>
     </div>
 
-    <div class="pmap" role="img" aria-label="Diagrama de la plataforma. Integraciones de canales de pago, boleta electrónica y programas de fidelización se conectan a Proexsi, venta y gestión cultural. Paso 1: los usuarios configuran en el Módulo Back Office la administración de usuarios y cajas, los parámetros, la programación y el reporting, y se generan las entradas. Pasos 2 a 4: se venden en tótem, caja presencial y por internet. Paso 5: control de acceso y check in.">
-      <div class="pcol">
-        <div class="plabel">Integraciones</div>
-        <div class="pnode"><span class="fi" style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span><div>Integraciones<small>Canales de pago, Boleta electrónica</small></div></div>
-        <div class="pnode"><span class="fi" style="background:var(--p-infantil)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg></span><div>Programas de fidelización<small>Descuentos y convenios</small></div></div>
-      </div>
-
-      <div class="plink"><svg viewBox="0 0 46 24" aria-hidden="true"><path d="M2 12h38M32 4l9 8-9 8" stroke="#FF9A57"/></svg></div>
-
+    <div class="pmap" role="img" aria-label="Diagrama de la plataforma. A la izquierda, paso 1: los usuarios configuran en el Módulo Back Office de Proexsi la administración de usuarios y cajas, los parámetros, la programación y el reporting, y se generan las entradas. A la derecha: integraciones de canales de pago, boleta electrónica y programas de fidelización; paso 2, venta en caja presencial; paso 3, venta al público por internet; paso 4, check in con código QR.">
       <div class="pcore">
         <div class="pcore-head"><img src="img/logo-proexsi.png" alt="Proexsi"><strong>Venta y gestión cultural</strong></div>
         <div class="pstep"><span class="n">1</span>Usuarios · Módulo Back Office</div>
@@ -571,25 +560,31 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 
       <div class="plink"><svg viewBox="0 0 46 24" aria-hidden="true"><path d="M2 12h38M32 4l9 8-9 8" stroke="#5FD0F5"/></svg>Entradas<br>disponibles</div>
 
-      <div class="pcol">
-        <div class="plabel">Canales de venta</div>
-        <div class="pnode"><span class="n" style="background:var(--p-mayores)">2</span><div>Venta en tótem<small>Autoatención en el recinto</small></div></div>
-        <div class="pnode"><span class="n" style="background:var(--blue)">3</span><div>Caja presencial<small>Venta asistida en boletería</small></div></div>
-        <div class="pnode big"><div class="ptop"><span class="n" style="background:var(--orange)">4</span><div>Público · Acceso vía internet<small>Compra online desde cualquier dispositivo</small></div></div>
+      <div class="pright">
+        <div class="pnode">
+          <div class="plabel" style="margin:0">Integraciones</div>
+          <div class="row"><span class="fi" style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span><div>Canales de pago y boleta electrónica<small>Webpay, débito y crédito</small></div></div>
+          <hr>
+          <div class="row"><span class="fi" style="background:var(--p-infantil)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg></span><div>Programas de fidelización<small>Descuentos y convenios</small></div></div>
+        </div>
+        <div class="pnode">
+          <div class="plabel" style="margin:0">Venta presencial</div>
+          <div class="row"><span class="n" style="background:var(--blue)">2</span><div>Caja presencial<small>Venta asistida en boletería, con el mismo stock que la web</small></div></div>
+        </div>
+        <div class="pnode">
+          <div class="plabel" style="margin:0">Venta online</div>
+          <div class="row"><span class="n" style="background:var(--orange)">3</span><div>Público · Acceso vía internet<small>Compra desde cualquier dispositivo</small></div></div>
           <div class="psub">
             <div><i>a</i>Información de disponibilidad</div>
             <div><i>b</i>Selección de obra, precios y días</div>
             <div><i>c</i>Carro de compra y pago online<span class="pay-tag">webpay</span></div>
           </div>
         </div>
-      </div>
-
-      <div class="pdown"><svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 2v30M4 25l8 9 8-9" fill="none" stroke="#FF9A57" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 6" style="animation:flowdash 1.4s linear infinite"/></svg>Entrada con QR</div>
-
-      <div class="paccess">
-        <span class="n">5</span>
-        <div><strong>Control de acceso y check in</strong><span>El ingreso queda registrado al instante en los informes.</span></div>
-        <div class="qrs"><b>QR sin papel</b><b>Torniquetes</b><b>Lectores</b><b>Celular</b></div>
+        <div class="pnode pcheck">
+          <div class="row"><span class="n">4</span><div>Check in</div></div>
+          <svg class="qr-svg" viewBox="-2 -2 29 29" aria-hidden="true"><rect x="-2" y="-2" width="29" height="29" fill="#fff" rx="2"/><g fill="#141D57"><path d="M0 0h7v7h-7z M1 1v5h5v-5z" fill-rule="evenodd"/><rect x="2" y="2" width="3" height="3"/><path d="M18 0h7v7h-7z M19 1v5h5v-5z" fill-rule="evenodd"/><rect x="20" y="2" width="3" height="3"/><path d="M0 18h7v7h-7z M1 19v5h5v-5z" fill-rule="evenodd"/><rect x="2" y="20" width="3" height="3"/><path d="M0 8h1v1h-1zM0 9h1v1h-1zM0 11h1v1h-1zM0 13h1v1h-1zM0 14h1v1h-1zM0 16h1v1h-1zM1 8h1v1h-1zM1 9h1v1h-1zM1 10h1v1h-1zM1 11h1v1h-1zM1 13h1v1h-1zM1 14h1v1h-1zM2 9h1v1h-1zM2 11h1v1h-1zM2 13h1v1h-1zM2 14h1v1h-1zM2 15h1v1h-1zM2 16h1v1h-1zM3 9h1v1h-1zM3 12h1v1h-1zM3 14h1v1h-1zM3 15h1v1h-1zM3 16h1v1h-1zM4 9h1v1h-1zM4 10h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 16h1v1h-1zM5 12h1v1h-1zM5 14h1v1h-1zM5 15h1v1h-1zM6 8h1v1h-1zM6 10h1v1h-1zM6 15h1v1h-1zM7 10h1v1h-1zM7 13h1v1h-1zM7 15h1v1h-1zM8 3h1v1h-1zM8 4h1v1h-1zM8 6h1v1h-1zM8 7h1v1h-1zM8 8h1v1h-1zM8 9h1v1h-1zM8 10h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM8 14h1v1h-1zM8 16h1v1h-1zM8 17h1v1h-1zM8 22h1v1h-1zM8 23h1v1h-1zM8 24h1v1h-1zM9 2h1v1h-1zM9 3h1v1h-1zM9 4h1v1h-1zM9 5h1v1h-1zM9 8h1v1h-1zM9 9h1v1h-1zM9 10h1v1h-1zM9 11h1v1h-1zM9 18h1v1h-1zM9 23h1v1h-1zM9 24h1v1h-1zM10 0h1v1h-1zM10 2h1v1h-1zM10 3h1v1h-1zM10 4h1v1h-1zM10 5h1v1h-1zM10 6h1v1h-1zM10 7h1v1h-1zM10 8h1v1h-1zM10 9h1v1h-1zM10 10h1v1h-1zM10 11h1v1h-1zM10 12h1v1h-1zM10 15h1v1h-1zM10 16h1v1h-1zM10 17h1v1h-1zM10 18h1v1h-1zM10 19h1v1h-1zM10 22h1v1h-1zM10 24h1v1h-1zM11 0h1v1h-1zM11 1h1v1h-1zM11 2h1v1h-1zM11 4h1v1h-1zM11 5h1v1h-1zM11 8h1v1h-1zM11 10h1v1h-1zM11 15h1v1h-1zM11 16h1v1h-1zM11 17h1v1h-1zM11 21h1v1h-1zM11 22h1v1h-1zM12 4h1v1h-1zM12 6h1v1h-1zM12 7h1v1h-1zM12 8h1v1h-1zM12 9h1v1h-1zM12 10h1v1h-1zM12 13h1v1h-1zM12 17h1v1h-1zM12 18h1v1h-1zM12 19h1v1h-1zM12 20h1v1h-1zM12 21h1v1h-1zM13 0h1v1h-1zM13 3h1v1h-1zM13 8h1v1h-1zM13 9h1v1h-1zM13 11h1v1h-1zM13 14h1v1h-1zM13 15h1v1h-1zM13 18h1v1h-1zM13 19h1v1h-1zM13 20h1v1h-1zM13 23h1v1h-1zM14 2h1v1h-1zM14 4h1v1h-1zM14 5h1v1h-1zM14 10h1v1h-1zM14 13h1v1h-1zM14 14h1v1h-1zM14 15h1v1h-1zM14 16h1v1h-1zM14 18h1v1h-1zM14 19h1v1h-1zM14 20h1v1h-1zM14 22h1v1h-1zM14 23h1v1h-1zM15 1h1v1h-1zM15 6h1v1h-1zM15 7h1v1h-1zM15 8h1v1h-1zM15 9h1v1h-1zM15 11h1v1h-1zM15 12h1v1h-1zM15 15h1v1h-1zM15 19h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM16 3h1v1h-1zM16 8h1v1h-1zM16 10h1v1h-1zM16 15h1v1h-1zM16 19h1v1h-1zM16 20h1v1h-1zM16 21h1v1h-1zM16 22h1v1h-1zM16 23h1v1h-1zM16 24h1v1h-1zM17 11h1v1h-1zM17 14h1v1h-1zM17 17h1v1h-1zM17 19h1v1h-1zM17 23h1v1h-1zM17 24h1v1h-1zM18 9h1v1h-1zM18 10h1v1h-1zM18 11h1v1h-1zM18 13h1v1h-1zM18 15h1v1h-1zM18 16h1v1h-1zM18 17h1v1h-1zM18 20h1v1h-1zM18 24h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 11h1v1h-1zM19 12h1v1h-1zM19 13h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM19 21h1v1h-1zM19 22h1v1h-1zM19 24h1v1h-1zM20 8h1v1h-1zM20 12h1v1h-1zM20 14h1v1h-1zM20 16h1v1h-1zM20 17h1v1h-1zM20 20h1v1h-1zM20 21h1v1h-1zM20 23h1v1h-1zM20 24h1v1h-1zM21 8h1v1h-1zM21 9h1v1h-1zM21 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM21 14h1v1h-1zM21 16h1v1h-1zM21 17h1v1h-1zM21 18h1v1h-1zM21 19h1v1h-1zM21 20h1v1h-1zM21 23h1v1h-1zM21 24h1v1h-1zM22 9h1v1h-1zM22 11h1v1h-1zM22 14h1v1h-1zM22 18h1v1h-1zM22 22h1v1h-1zM22 23h1v1h-1zM22 24h1v1h-1zM23 8h1v1h-1zM23 9h1v1h-1zM23 11h1v1h-1zM23 12h1v1h-1zM23 13h1v1h-1zM23 17h1v1h-1zM23 18h1v1h-1zM23 19h1v1h-1zM23 20h1v1h-1zM23 21h1v1h-1zM23 22h1v1h-1zM23 23h1v1h-1zM24 10h1v1h-1zM24 12h1v1h-1zM24 13h1v1h-1zM24 14h1v1h-1zM24 15h1v1h-1zM24 16h1v1h-1zM24 18h1v1h-1zM24 20h1v1h-1zM24 21h1v1h-1zM24 22h1v1h-1zM24 23h1v1h-1zM24 24h1v1h-1z"/></g></svg>
+          <small>QR sin papel, validado con lector o celular</small>
+        </div>
       </div>
     </div>
 
@@ -635,7 +630,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
         <div class="shot" aria-hidden="true"><div class="panel">
           <div class="qr"><div class="phone"><div class="qrcode" style="width:60px;height:60px"></div><span class="ok">✓ Entrada válida</span></div><div class="scan">INGRESADOS<b>312 / 340</b><div class="gauge"><b></b></div>Sala Principal · Puerta 2</div></div>
         </div></div>
-        <div class="txt"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><h3>Control de acceso y check in</h3><p>Tu equipo escanea con el celular o con lectores y torniquetes integrados.</p></div>
+        <div class="txt"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><h3>Control de acceso y check in</h3><p>Tu equipo escanea el código QR con el celular o con lectores integrados.</p></div>
       </article>
       <article class="mod" style="--c1:#6A4CF0;--c2:#1F5BD8">
         <div class="shot"><div class="panel rep" id="report">
@@ -646,9 +641,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
           <div>
             <h5>Entradas por canal</h5>
             <div class="hbar">
-              <div class="hrow" data-tip="Internet · 2.930 entradas"><span>Internet</span><div class="htrack"><b style="width:62%;background:var(--orange)"></b></div><em>62%</em></div>
-              <div class="hrow" data-tip="Caja presencial · 1.229 entradas"><span>Caja presencial</span><div class="htrack"><b style="width:26%;background:var(--blue)"></b></div><em>26%</em></div>
-              <div class="hrow" data-tip="Tótem · 567 entradas"><span>Tótem</span><div class="htrack"><b style="width:12%;background:var(--p-mayores)"></b></div><em>12%</em></div>
+              <div class="hrow" data-tip="Internet · 3.214 entradas"><span>Internet</span><div class="htrack"><b style="width:68%;background:var(--orange)"></b></div><em>68%</em></div>
+              <div class="hrow" data-tip="Caja presencial · 1.512 entradas"><span>Caja presencial</span><div class="htrack"><b style="width:32%;background:var(--blue)"></b></div><em>32%</em></div>
             </div>
           </div>
           <div class="rep-kpis">
@@ -793,12 +787,12 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       s:['Creas la actividad con edades, cupos y precios.','Las familias o colegios reservan y pagan.','Validas el ingreso y revisas la asistencia.']},
     teatro:{n:'Teatro',c:'--p-teatro',tag:'Teatro',img:[['teatro-sala.webp','Público en un teatro frente al telón rojo']],
       lead:'Vende butacas numeradas en el mapa real de tu sala, administra temporadas y controla el acceso en cada función.',
-      f:[['Mapa de sala','Butaca numerada por zona, con vista del escenario.'],['Temporadas y funciones','Crea todas las funciones de una obra de una sola vez.'],['Cortesías','Entradas para elenco, prensa e invitados, con control de cupos.'],['Precios por zona','Platea, balcón y palcos, con promociones propias.'],['Tres canales de venta','Internet, caja presencial y tótem con el mismo stock.'],['Control de acceso','Check in por función con QR, lectores o torniquetes.']],
+      f:[['Mapa de sala','Butaca numerada por zona, con vista del escenario.'],['Temporadas y funciones','Crea todas las funciones de una obra de una sola vez.'],['Cortesías','Entradas para elenco, prensa e invitados, con control de cupos.'],['Precios por zona','Platea, balcón y palcos, con promociones propias.'],['Venta online y presencial','Internet y caja presencial con el mismo stock.'],['Control de acceso','Check in por función con código QR, desde lectores o celulares.']],
       s:['Cargas la obra, las funciones y el mapa de sala.','El público elige su butaca y paga en el canal que prefiera.','Validas las entradas en la puerta y revisas la ocupación.']},
     orquesta:{n:'Orquesta y Sala de Música',c:'--p-orquesta',tag:'Música',img:[['orquesta-violines.webp','Músicos de una orquesta tocando violín']],
       lead:'Organiza tu temporada de conciertos, vende por programa y gestiona funciones en distintas salas o giras.',
       f:[['Temporada de conciertos','Todos los programas del año en un solo calendario.'],['Venta por programa','Cada concierto con su repertorio, precios y zonas.'],['Multisala y giras','Vende funciones en salas propias o en otras ciudades.'],['Precios por zona','Valores distintos según la ubicación en la sala.'],['Cortesías','Entradas para músicos, invitados y auspiciadores.'],['Informes por concierto','Ocupación y recaudación de cada fecha.']],
-      s:['Publicas la temporada con sus programas y salas.','Tu público compra online, en caja o en tótem.','Controlas el acceso y comparas los conciertos.']},
+      s:['Publicas la temporada con sus programas y salas.','Tu público compra online o en caja.','Controlas el acceso y comparas los conciertos.']},
     seminarios:{n:'Seminarios y Conferencias',c:'--p-seminarios',tag:'Seminarios',img:[['seminarios-conferencia.webp','Público asistiendo a una conferencia frente a una pantalla']],
       lead:'Acredita a los asistentes con QR, controla el acceso a cada charla y entrega certificados de participación.',
       f:[['Inscripción online','Formulario con los datos que tu evento necesita.'],['Acreditación con QR','Credencial digital que se valida al ingresar.'],['Acceso por charla','Controla el aforo de cada sala o bloque.'],['Certificados','Constancia de participación para quienes asistieron.'],['Precios y convenios','Valores por perfil y códigos para instituciones.'],['Informes de asistencia','Quién asistió a qué charla, en tiempo real.']],
@@ -809,8 +803,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
       s:['Publicas las actividades con sus cupos y precios.','Las personas se inscriben en caja o por internet.','Registras la asistencia y revisas la participación.']},
     ferias:{n:'Ferias y Eventos Masivos',c:'--p-ferias',tag:'Ferias y eventos',img:[['ferias-feria.webp','Puestos de una feria de antigüedades al aire libre']],
       lead:'Vende entradas por día y bloque horario, controla accesos masivos y cobra en los puntos de venta del recinto.',
-      f:[['Entradas por día y horario','Bloques horarios para ordenar el flujo de público.'],['Aforo por bloque','La venta se cierra sola cuando se completa el aforo.'],['Accesos masivos','Torniquetes y lectores para validar muchas entradas por minuto.'],['Puntos de venta','Cobra comida, productos y merchandising en el recinto.'],['Acreditación de expositores','Credenciales para expositores y personal.'],['Flujo de público','Ingresos por hora y por puerta en tiempo real.']],
-      s:['Configuras los días, bloques y aforos.','El público compra online, en caja o en tótem.','Validas en los accesos y sigues el flujo en vivo.']}
+      f:[['Entradas por día y horario','Bloques horarios para ordenar el flujo de público.'],['Aforo por bloque','La venta se cierra sola cuando se completa el aforo.'],['Accesos masivos','Lectores QR para validar muchas entradas por minuto.'],['Puntos de venta','Cobra comida, productos y merchandising en el recinto.'],['Acreditación de expositores','Credenciales para expositores y personal.'],['Flujo de público','Ingresos por hora y por puerta en tiempo real.']],
+      s:['Configuras los días, bloques y aforos.','El público compra online o en caja.','Validas en los accesos y sigues el flujo en vivo.']}
   };
   var home=document.getElementById('inicio'), pp=document.getElementById('producto');
   function esc(t){return String(t).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]})}
