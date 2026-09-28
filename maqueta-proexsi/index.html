@@ -141,130 +141,137 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 @media (max-width:620px){.prod-grid{grid-template-columns:1fr}.prod.wide{grid-column:auto}}
 
 /* ===== Beneficios ===== */
-.pillars{position:relative;overflow:hidden;padding-block:110px;background:#E9EEF8}
-.pillars::before{content:"";position:absolute;inset:-12px;background:url("img/beneficios-compra.webp") 30% 30%/cover no-repeat;opacity:.75}
-.pillars::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(237,242,252,.15) 0%,rgba(237,242,252,.55) 42%,rgba(237,242,252,.93) 62%,rgba(237,242,252,.97) 100%)}
-.pillars .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1.1fr;gap:48px}
-.pillars .wrap>div{grid-column:2;min-width:0}
-.pill-list{display:grid;gap:16px}
-.pillar{display:grid;grid-template-columns:auto 1fr;gap:18px;background:rgba(255,255,255,.96);border-radius:var(--radius);padding:24px;box-shadow:0 18px 40px -26px rgba(20,29,87,.55)}
+.benef{padding-block:0 84px;background:var(--white)}
+.benef-band{position:relative;height:340px;background:url("img/beneficios-compra.webp") 30% 32%/cover no-repeat;display:flex;align-items:center}
+.benef-band::after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,rgba(20,29,87,.92) 0%,rgba(20,29,87,.72) 38%,rgba(31,91,216,.12) 68%,rgba(242,107,29,.08) 100%)}
+.benef-band .wrap{position:relative;z-index:1;width:100%;display:flex;justify-content:flex-end}
+.benef-band .txt{max-width:600px;display:grid;gap:10px;padding-bottom:70px}
+.benef-band h2{font-size:clamp(1.6rem,2.8vw,2.2rem)}
+.benef-band h2{color:var(--white)}
+.benef-band .eyebrow{color:#FFB27F}
+.pill-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:-56px;position:relative;z-index:2}
+.pillar{display:grid;grid-template-columns:auto 1fr;gap:18px;background:var(--white);border-radius:var(--radius);padding:26px;box-shadow:0 24px 50px -28px rgba(20,29,87,.55);border:1px solid var(--line)}
 .pillar .ic{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;color:var(--white)}
 .pillar .ic svg{width:28px;height:28px}
 .pillar p{color:var(--muted);margin-top:6px}
-@media (max-width:860px){.pillars::after{background:rgba(237,242,252,.86)}.pillars .wrap{grid-template-columns:1fr}.pillars .wrap>div{grid-column:1}}
-/* ===== Integraciones ===== */
+@media (max-width:860px){.benef-band::after{background:rgba(20,29,87,.72)}.benef-band .wrap{justify-content:flex-start}.pill-row{grid-template-columns:1fr}}
+
+/* ===== La Plataforma (diagrama único) ===== */
 .integ{background:var(--navy-2);color:#CFD8F3;position:relative;overflow:hidden}
-.integ::before{content:"";position:absolute;right:-160px;top:-160px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(18,181,229,.28),transparent 70%)}
+.integ::before{content:"";position:absolute;right:-160px;top:-160px;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(18,181,229,.28),transparent 70%)}
 .integ .wrap{position:relative}
 .integ h2{color:var(--white)}
 .integ .eyebrow{color:#FFB27F}
-.checks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-top:40px}
+.integ .lead{color:#B9C6EC}
+.pmap{display:grid;grid-template-columns:minmax(0,.85fr) 72px minmax(0,1.55fr) 72px minmax(0,1.1fr);align-items:center;row-gap:0}
+.plabel{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8EA3DA;margin-bottom:10px}
+.pcol{display:grid;gap:12px;align-content:center}
+.pnode{background:#1E2A72;border:1px solid #33429A;border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:center;color:var(--white);font-weight:700;font-size:.92rem;line-height:1.25}
+.pnode small{display:block;font-weight:400;color:#A9B7E3;font-size:.78rem;margin-top:2px}
+.pnode .fi{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center}
+.pnode .fi svg{width:20px;height:20px}
+.pnode .n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:900 1rem var(--display);color:var(--white)}
+.pnode.big{display:block}
+.pnode.big .ptop{display:flex;gap:12px;align-items:center}
+.psub{display:grid;gap:5px;margin-top:10px}
+.psub div{display:flex;align-items:center;gap:8px;background:rgba(242,107,29,.16);border-radius:8px;padding:6px 9px;font-size:.78rem;font-weight:600;color:#FFE1CC}
+.psub i{font-style:normal;width:18px;height:18px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-size:.66rem;flex:none}
+.pay-tag{margin-left:auto;font-size:.62rem;font-weight:800;background:#D6004A;color:#fff;border-radius:4px;padding:2px 6px}
+.plink{display:grid;justify-items:center;gap:4px;font-size:.64rem;font-weight:700;color:#8EA3DA;text-align:center;line-height:1.2}
+.plink svg{width:46px;height:24px}
+.plink path{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 6;animation:flowdash 1.4s linear infinite}
+@keyframes flowdash{to{stroke-dashoffset:-24}}
+.pcore{background:linear-gradient(160deg,#2F66E6 0%,#25358B 70%);border:1px solid rgba(255,255,255,.22);border-radius:22px;padding:22px;box-shadow:0 0 0 10px rgba(255,255,255,.04),0 40px 70px -30px rgba(0,0,0,.7);color:var(--white)}
+.pcore-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.pcore-head img{height:30px;width:auto;background:var(--white);border-radius:8px;padding:6px 10px}
+.pcore-head strong{font:800 1.15rem var(--display)}
+.pstep{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-weight:700;font-size:.9rem}
+.pstep .n{width:30px;height:30px;border-radius:50%;background:var(--white);color:var(--navy);display:grid;place-items:center;font:900 .95rem var(--display);flex:none}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pbox{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px}
+.pbox b{display:block;font-size:.86rem;margin-bottom:4px}
+.pbox ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:.78rem;color:#D3DDF7}
+.pbox li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:2px;background:#FF9A57;margin-right:6px;vertical-align:1px}
+.pmini{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#AFC2F2;margin:12px 0 8px}
+.pgen{margin-top:10px;background:linear-gradient(90deg,#FF8534,var(--orange-2));border-radius:12px;padding:11px 14px;font-weight:800;display:flex;align-items:center;gap:10px;box-shadow:0 12px 24px -12px rgba(242,107,29,.8)}
+.pgen svg{width:22px;height:22px;flex:none}
+.pother{margin-top:10px;font-size:.84rem;color:#D3DDF7;display:flex;gap:8px;align-items:center}
+.pother::before{content:"+";width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-weight:800}
+.pdown{grid-column:5;display:grid;justify-items:center;gap:2px;padding-block:8px;font-size:.64rem;font-weight:700;color:#8EA3DA}
+.pdown svg{width:24px;height:40px}
+.paccess{grid-column:1/-1;background:linear-gradient(90deg,#E5415A,#F26B1D);border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:var(--white);box-shadow:0 20px 40px -24px rgba(229,65,90,.9)}
+.paccess .n{width:40px;height:40px;border-radius:50%;background:var(--white);color:#E5415A;display:grid;place-items:center;font:900 1.1rem var(--display);flex:none}
+.paccess strong{font:800 1.1rem var(--display);display:block}
+.paccess span{font-size:.88rem;color:#FFE7DD}
+.paccess .qrs{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.paccess .qrs b{background:rgba(255,255,255,.18);border-radius:999px;padding:6px 12px;font-size:.8rem}
+.checks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-top:44px}
 .checks li{display:grid;grid-template-columns:28px 1fr;gap:12px;font-size:.98rem}
 .checks li::before{content:"";width:28px;height:28px;border-radius:50%;background:var(--orange) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/15px no-repeat}
-@media (max-width:760px){.checks{grid-template-columns:1fr}}
-/* diagrama de flujo */
-.flow{position:relative;height:400px;margin-top:8px}
-.flow svg.links{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.flow .links path{fill:none;stroke-width:2;vector-effect:non-scaling-stroke;stroke-dasharray:6 7;animation:flowdash 1.4s linear infinite}
-@keyframes flowdash{to{stroke-dashoffset:-26}}
-.fcol-label{position:absolute;top:0;font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;color:#8EA3DA;text-transform:uppercase;transform:translateX(-50%)}
-.fnode{position:absolute;transform:translate(-50%,-50%);background:#1E2A72;border:1px solid #33429A;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;width:210px;color:var(--white);font-weight:600;font-size:.9rem;line-height:1.25}
-.fnode .fi{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center}
-.fnode .fi svg{width:20px;height:20px}
-.fnode small{display:block;font-weight:400;color:#A9B7E3;font-size:.76rem}
-.fcore{position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);width:200px;height:200px;border-radius:50%;display:grid;place-content:center;text-align:center;gap:8px;background:radial-gradient(circle at 30% 25%,#2F6BF0,var(--navy) 70%);box-shadow:0 0 0 12px rgba(255,255,255,.05),0 0 0 28px rgba(255,255,255,.03),0 30px 60px -20px rgba(0,0,0,.6)}
-.fcore img{width:130px;margin-inline:auto;background:var(--white);border-radius:8px;padding:6px 8px}
-.fcore span{color:var(--white);font:700 .95rem/1.25 var(--display)}
-@media (max-width:900px){
-  .flow{height:auto;display:grid;gap:10px;justify-items:center}
-  .flow svg.links,.fcol-label{display:none}
-  .fnode,.fcore{position:static;transform:none}
-  .fnode{width:100%;max-width:340px}
-  .fcore{width:170px;height:170px;margin-block:10px}
+@media (max-width:1040px){
+  .pmap{grid-template-columns:minmax(0,1fr)}
+  .plink svg{transform:rotate(90deg)}
+  .pdown{grid-column:1}
 }
-
-
-/* ===== E-ticket paso a paso ===== */
-.eticket{background:var(--white)}
-.eflow{display:grid;grid-template-columns:minmax(0,1.3fr) 78px minmax(0,1.1fr) 78px minmax(0,.75fr);align-items:center}
-.ecard{--c:var(--navy);background:var(--white);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:var(--radius);padding:20px;box-shadow:0 18px 40px -30px rgba(20,29,87,.5)}
-.ehead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.num{flex:none;width:38px;height:38px;border-radius:50%;background:var(--c);color:var(--white);display:grid;place-items:center;font:900 1.1rem var(--display)}
-.ehead strong{display:block;font:800 1.05rem/1.2 var(--display);color:var(--navy)}
-.ehead div span{font-size:.8rem;color:var(--muted)}
-.egroup{border:1px dashed #C5D0E6;border-radius:12px;padding:12px;display:grid;gap:10px}
-.egroup>small{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.ebox{background:var(--sky);border-radius:10px;padding:10px 12px}
-.ebox b{display:block;color:var(--navy);font-size:.88rem;margin-bottom:4px}
-.ebox ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;color:var(--muted)}
-.ebox li::before{content:"■ ";color:var(--c);font-size:.6rem;vertical-align:1px}
-.erow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.egen{background:linear-gradient(90deg,var(--navy),var(--blue));color:var(--white);border-radius:10px;padding:10px 12px;font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:8px}
-.egen svg{width:20px;height:20px;flex:none}
-.estack{display:grid;gap:12px}
-.estack>small{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center}
-.ecard.mini{padding:14px 16px}
-.ecard.mini .ehead{margin:0}
-.ecard .ico{margin-left:auto;width:38px;height:38px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,white);color:var(--c);display:grid;place-items:center;flex:none}
-.ecard .ico svg{width:22px;height:22px}
-.esub{display:grid;gap:6px;margin-top:12px;counter-reset:sub}
-.esub div{display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--c) 10%,white);border-radius:8px;padding:7px 10px;font-size:.82rem;font-weight:600;color:var(--ink)}
-.esub div::before{counter-increment:sub;content:counter(sub);width:20px;height:20px;border-radius:50%;background:var(--c);color:var(--white);display:grid;place-items:center;font-size:.7rem;flex:none}
-.epay{display:inline-block;margin-left:auto;font-size:.66rem;font-weight:800;color:var(--white);background:#D6004A;border-radius:4px;padding:2px 6px}
-.earrow{display:grid;justify-items:center;gap:4px;color:var(--muted);font-size:.66rem;font-weight:700;text-align:center;line-height:1.2}
-.earrow svg{width:44px;height:24px}
-.earrow svg path{fill:none;stroke:var(--orange);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 6;animation:flowdash 1.4s linear infinite}
-.ecard.end{text-align:left}
-.ecard.end p{font-size:.86rem;color:var(--muted);margin-top:10px}
-.eticket-stub{margin-top:14px;display:flex;align-items:center;gap:12px;border:2px dashed var(--line);border-radius:12px;padding:10px}
-.eticket-stub span{font-size:.78rem;color:var(--muted)}
-.eticket-stub b{display:block;color:var(--navy);font-size:.86rem}
-@media (max-width:1000px){
-  .eflow{grid-template-columns:minmax(0,1fr);gap:6px}
-  .earrow svg{transform:rotate(90deg)}
-}
-@media (max-width:480px){.erow{grid-template-columns:1fr}}
+@media (max-width:560px){.pgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.paccess .qrs{margin-left:0}}
 
 /* ===== Módulos ===== */
-.modules{background:var(--sky)}
-.mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
-.mod{background:var(--white);border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
-.mod .shot{height:270px;background:linear-gradient(135deg,#F4F7FE,#E6EDFB);border-bottom:1px solid var(--line);padding:18px;display:grid;place-items:center;overflow:hidden}
-.mod .txt{padding:20px 24px 24px;display:grid;gap:8px}
-.mod .txt p{color:var(--muted);font-size:.96rem}
+.modules{background:linear-gradient(180deg,#F4F7FE,var(--white))}
+.mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.mod{--c1:var(--blue);--c2:var(--cyan);background:var(--white);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 50px -32px rgba(20,29,87,.55);border:1px solid var(--line);transition:transform .25s}
+.mod:hover{transform:translateY(-4px)}
+.mod .shot{position:relative;height:280px;padding:22px;display:grid;place-items:center;overflow:hidden;background:
+  radial-gradient(circle at 88% 12%,rgba(255,255,255,.25) 0 70px,transparent 71px),
+  radial-gradient(circle at 6% 100%,rgba(255,255,255,.16) 0 90px,transparent 91px),
+  linear-gradient(135deg,var(--c1),var(--c2))}
+.panel{position:relative;width:100%;max-width:380px;background:var(--white);border-radius:14px;padding:14px 16px;box-shadow:0 20px 40px -18px rgba(10,15,50,.55)}
+.mod .txt{padding:20px 24px 24px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:start}
+.mod .txt .mi{grid-row:span 2;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--white);background:linear-gradient(135deg,var(--c1),var(--c2))}
+.mod .txt .mi svg{width:22px;height:22px}
+.mod .txt p{color:var(--muted);font-size:.95rem}
 @media (max-width:760px){.mod-grid{grid-template-columns:1fr}}
-.seatmap{width:100%;max-width:280px}
-.stage-name{text-align:center;background:linear-gradient(90deg,var(--navy),var(--blue));color:var(--white);font:700 .68rem var(--display);letter-spacing:.2em;border-radius:40px 40px 8px 8px;padding:7px;margin:0 14% 10px}
-.zone{font-family:var(--mono);font-size:.6rem;color:var(--muted);text-align:center;margin:8px 0 5px;letter-spacing:.1em}
-.seats{display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
+.seatmap{width:100%}
+.stage-name{text-align:center;background:linear-gradient(90deg,var(--navy),var(--blue));color:var(--white);font:700 .66rem var(--display);letter-spacing:.2em;border-radius:40px 40px 8px 8px;padding:6px;margin:0 14% 8px}
+.zone{font-size:.58rem;font-weight:700;color:var(--muted);text-align:center;margin:6px 0 4px;letter-spacing:.12em}
+.seats{display:grid;grid-template-columns:repeat(16,1fr);gap:3px}
 .seat{aspect-ratio:1;border-radius:3px 3px 5px 5px;background:var(--sky-2);max-width:100%}
 .seat.sold{background:#9FB0D3}
 .seat.pick{background:var(--orange)}
-.legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:10px;font-size:.7rem;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:8px;font-size:.68rem;color:var(--muted)}
 .legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
-.insc{width:100%;max-width:380px;display:grid;gap:8px}
-.insc-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.82rem}
-.insc-row i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--white);font-style:normal;font-weight:700;font-size:.75rem}
-.insc-row strong{display:block;color:var(--navy);font-size:.86rem}
-.insc-row span{color:var(--muted);font-size:.74rem}
-.bar{height:6px;border-radius:4px;background:var(--sky-2);margin-top:5px;overflow:hidden}
+.insc{display:grid;gap:8px}
+.insc-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:.82rem}
+.insc-row i{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--white);font-style:normal;font-weight:700;font-size:.72rem}
+.insc-row strong{display:block;color:var(--navy);font-size:.84rem}
+.insc-row span{color:var(--muted);font-size:.72rem}
+.bar{height:6px;border-radius:4px;background:var(--sky-2);margin-top:4px;overflow:hidden}
 .bar b{display:block;height:100%;border-radius:4px}
-.chan{font:700 .66rem var(--body);border-radius:999px;padding:3px 9px}
-.qr{display:flex;gap:18px;align-items:center}
+.chan{font:700 .64rem var(--body);border-radius:999px;padding:3px 9px}
+.qr{display:flex;gap:18px;align-items:center;justify-content:center}
 .qr .phone{width:96px;height:156px;border-radius:16px;border:3px solid var(--navy);background:var(--white);display:grid;place-items:center;gap:4px;padding:10px}
 .qr .ok{font:700 .66rem var(--body);color:var(--ok)}
-.qr .scan{font-family:var(--mono);font-size:.66rem;color:var(--muted);display:grid;gap:4px}
-.qr .scan b{font-family:var(--display);font-size:1.5rem;color:var(--navy)}
+.qr .scan{font-size:.66rem;font-weight:700;letter-spacing:.08em;color:var(--muted);display:grid;gap:6px}
+.qr .scan b{font-family:var(--display);font-size:1.6rem;color:var(--navy);letter-spacing:0}
 .gauge{height:8px;width:150px;border-radius:5px;background:var(--sky-2);overflow:hidden}
-.gauge b{display:block;height:100%;width:92%;background:linear-gradient(90deg,var(--blue),var(--cyan))}
+.gauge b{display:block;height:100%;width:92%;background:linear-gradient(90deg,var(--p-mayores),var(--p-ferias))}
 /* informes */
-.report{width:100%;max-width:400px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 16px 10px;box-shadow:0 14px 30px -22px rgba(20,29,87,.5);position:relative}
-.report-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
-.report-top small{display:block;font-size:.72rem;color:var(--muted)}
-.report-top b{font:800 1.45rem/1.1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
-.delta{font:700 .72rem var(--body);color:#0E7A36;background:#E3F5EA;border-radius:999px;padding:3px 8px;white-space:nowrap}
-.report svg{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
-.report .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--white);font-size:.72rem;border-radius:8px;padding:5px 8px;transform:translate(-50%,-120%);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rep{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.donut{position:relative;width:112px;height:112px}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut div{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.donut b{font:900 1.5rem/1 var(--display);color:var(--ink)}
+.donut small{font-size:.66rem;color:var(--muted);font-weight:600}
+.rep h5{margin:0 0 8px;font:700 .78rem var(--body);color:var(--ink)}
+.hbar{display:grid;gap:8px}
+.hrow{display:grid;grid-template-columns:86px 1fr 34px;gap:8px;align-items:center;font-size:.74rem;color:var(--muted);cursor:default}
+.htrack{height:12px;border-radius:6px;background:#EEF2FA;overflow:hidden}
+.htrack b{display:block;height:100%;border-radius:6px}
+.hrow em{font-style:normal;font-weight:700;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.rep-kpis{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.rep-kpis div{font-size:.66rem;color:var(--muted)}
+.rep-kpis b{display:block;font:800 1rem var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+.rep-kpis .up{color:#0E7A36;font-weight:700}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--white);font-size:.72rem;border-radius:8px;padding:5px 8px;transform:translate(-50%,-115%);white-space:nowrap;z-index:3}
 
 /* ===== FAQ ===== */
 .faq .wrap{display:grid;grid-template-columns:1fr 1.6fr;gap:48px}
@@ -436,54 +443,84 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
 </section>
 
 <!-- BENEFICIOS -->
-<section class="pillars" id="beneficios" aria-label="Beneficios. Fondo: mujer comprando entradas desde su computador con tarjeta en mano">
+<section class="benef" id="beneficios">
+  <div class="benef-band" role="img" aria-label="Mujer comprando entradas desde su computador con tarjeta en mano">
+    <div class="wrap"><div class="txt">
+      <span class="eyebrow">Beneficios</span>
+      <h2>Tu equipo gana autonomía. Tu público compra sin fricción.</h2>
+    </div></div>
+  </div>
   <div class="wrap">
-    <div>
-      <div class="sec-head" style="margin-bottom:26px">
-        <span class="eyebrow">Beneficios</span>
-        <h2>Tu equipo gana autonomía. Tu público compra sin fricción.</h2>
+    <div class="pill-row">
+      <div class="pillar">
+        <div class="ic" style="background:linear-gradient(135deg,var(--navy),var(--blue))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></div>
+        <div><h3>Autoadministrable</h3><p>Sin limitaciones, aporta full autonomía y facilita el trabajo diario de nuestros clientes, mediante un acabado conocimiento de las reglas del negocio y una completa integración.</p></div>
       </div>
-      <div class="pill-list">
-        <div class="pillar">
-          <div class="ic" style="background:linear-gradient(135deg,var(--navy),var(--blue))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></div>
-          <div><h3>Autoadministrable</h3><p>Sin limitaciones, aporta full autonomía y facilita el trabajo diario de nuestros clientes, mediante un acabado conocimiento de las reglas del negocio y una completa integración.</p></div>
-        </div>
-        <div class="pillar">
-          <div class="ic" style="background:linear-gradient(135deg,#FF8534,var(--orange-2))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-          <div><h3>Venta segura y expedita</h3><p>Nuestra plataforma de TI permite entregar una experiencia de venta segura y expedita al público, con una operación que funciona las 24 horas del día, los 365 días del año.</p></div>
-        </div>
+      <div class="pillar">
+        <div class="ic" style="background:linear-gradient(135deg,#FF8534,var(--orange-2))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div><h3>Venta segura y expedita</h3><p>Nuestra plataforma de TI permite entregar una experiencia de venta segura y expedita al público, con una operación que funciona las 24 horas del día, los 365 días del año.</p></div>
       </div>
     </div>
   </div>
 </section>
 
 <div id="plataforma">
-<!-- LA PLATAFORMA: INTEGRACIONES -->
+<!-- LA PLATAFORMA: DIAGRAMA ÚNICO -->
 <section class="integ" id="integraciones">
   <div class="wrap">
     <div class="sec-head">
       <span class="eyebrow">La Plataforma</span>
       <h2>Maximiza tus ventas sin compartir tu oferta programática</h2>
+      <p class="lead">Configuras todo en un solo lugar, vendes por tres canales con el mismo stock y validas cada entrada en la puerta.</p>
     </div>
 
-    <div class="flow" role="img" aria-label="Diagrama: en la preventa, integraciones de canales de pago y boleta electrónica, y programas de fidelización se conectan a tu plataforma; en la posventa, la plataforma alimenta el control de acceso con check in digital y los informes en línea">
-      <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M22 38 C 34 38, 34 55, 42 55" stroke="#FF9A57"/>
-        <path d="M22 74 C 34 74, 34 55, 42 55" stroke="#FF9A57"/>
-        <path d="M58 55 C 66 55, 66 38, 78 38" stroke="#5FD0F5"/>
-        <path d="M58 55 C 66 55, 66 74, 78 74" stroke="#5FD0F5"/>
-      </svg>
-      <span class="fcol-label" style="left:14%">Preventa</span>
-      <span class="fcol-label" style="left:50%">Tu plataforma</span>
-      <span class="fcol-label" style="left:86%">Posventa y acceso</span>
+    <div class="pmap" role="img" aria-label="Diagrama de la plataforma. Integraciones de canales de pago, boleta electrónica y programas de fidelización se conectan a Proexsi, venta y gestión cultural. Paso 1: los usuarios configuran en el Módulo Back Office la administración de usuarios y cajas, los parámetros, la programación y el reporting, y se generan las entradas. Pasos 2 a 4: se venden en tótem, caja presencial y por internet. Paso 5: control de acceso y check in.">
+      <div class="pcol">
+        <div class="plabel">Integraciones</div>
+        <div class="pnode"><span class="fi" style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span><div>Integraciones<small>Canales de pago, Boleta electrónica</small></div></div>
+        <div class="pnode"><span class="fi" style="background:var(--p-infantil)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg></span><div>Programas de fidelización<small>Descuentos y convenios</small></div></div>
+      </div>
 
-      <div class="fnode" style="left:14%;top:38%"><span class="fi" style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span><div>Integraciones<small>Canales de pago, Boleta electrónica</small></div></div>
-      <div class="fnode" style="left:14%;top:74%"><span class="fi" style="background:var(--p-infantil)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg></span><div>Programas de fidelización<small>Descuentos y convenios</small></div></div>
+      <div class="plink"><svg viewBox="0 0 46 24" aria-hidden="true"><path d="M2 12h38M32 4l9 8-9 8" stroke="#FF9A57"/></svg></div>
 
-      <div class="fcore"><img src="img/logo-proexsi.png" alt="Proexsi"><span>Venta y gestión<br>cultural</span></div>
+      <div class="pcore">
+        <div class="pcore-head"><img src="img/logo-proexsi.png" alt="Proexsi"><strong>Venta y gestión cultural</strong></div>
+        <div class="pstep"><span class="n">1</span>Usuarios · Módulo Back Office</div>
+        <div class="pgrid">
+          <div class="pbox"><b>Administración</b><ul><li>Usuarios</li><li>Cajas</li></ul></div>
+          <div class="pbox"><b>Reporting</b><ul><li>Consultas</li><li>Informes en línea</li></ul></div>
+        </div>
+        <div class="pmini">Información general</div>
+        <div class="pgrid">
+          <div class="pbox"><b>Configuración de parámetros</b><ul><li>Dispositivos</li><li>Bloqueos</li></ul></div>
+          <div class="pbox"><b>Configuración de programación</b><ul><li>Promociones</li><li>Precios</li><li>Infraestructura</li><li>Tipo de espectador</li></ul></div>
+        </div>
+        <div class="pgen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/></svg>Generación de entradas</div>
+        <div class="pother">Otras funcionalidades y herramientas</div>
+      </div>
 
-      <div class="fnode" style="left:86%;top:38%"><span class="fi" style="background:var(--cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><div>Control de acceso y check in<small>QR sin papel, torniquetes y lectores</small></div></div>
-      <div class="fnode" style="left:86%;top:74%"><span class="fi" style="background:var(--p-seminarios)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 20h18M6 16v-5M11 16V7M16 16v-8M21 16V4"/></svg></span><div>Informes en línea<small>Tiempo real, cualquier dispositivo</small></div></div>
+      <div class="plink"><svg viewBox="0 0 46 24" aria-hidden="true"><path d="M2 12h38M32 4l9 8-9 8" stroke="#5FD0F5"/></svg>Entradas<br>disponibles</div>
+
+      <div class="pcol">
+        <div class="plabel">Canales de venta</div>
+        <div class="pnode"><span class="n" style="background:var(--p-mayores)">2</span><div>Venta en tótem<small>Autoatención en el recinto</small></div></div>
+        <div class="pnode"><span class="n" style="background:var(--blue)">3</span><div>Caja presencial<small>Venta asistida en boletería</small></div></div>
+        <div class="pnode big"><div class="ptop"><span class="n" style="background:var(--orange)">4</span><div>Público · Acceso vía internet<small>Compra online desde cualquier dispositivo</small></div></div>
+          <div class="psub">
+            <div><i>a</i>Información de disponibilidad</div>
+            <div><i>b</i>Selección de obra, precios y días</div>
+            <div><i>c</i>Carro de compra y pago online<span class="pay-tag">webpay</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pdown"><svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 2v30M4 25l8 9 8-9" fill="none" stroke="#FF9A57" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 6" style="animation:flowdash 1.4s linear infinite"/></svg>Entrada con QR</div>
+
+      <div class="paccess">
+        <span class="n">5</span>
+        <div><strong>Control de acceso y check in</strong><span>El ingreso queda registrado al instante en los informes.</span></div>
+        <div class="qrs"><b>QR sin papel</b><b>Torniquetes</b><b>Lectores</b><b>Celular</b></div>
+      </div>
     </div>
 
     <ul class="checks">
@@ -495,68 +532,16 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
   </div>
 </section>
 
-<!-- LA PLATAFORMA: E-TICKET PASO A PASO -->
-<section class="eticket" id="paso-a-paso">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">E-ticket paso a paso</span>
-      <h2>Así viaja una entrada, desde la configuración hasta la puerta</h2>
-      <p class="lead">Tu equipo configura todo en el Back Office. Luego vendes por tres canales con el mismo stock, y el acceso se valida al ingresar.</p>
-    </div>
-
-    <div class="eflow" role="img" aria-label="Diagrama en 5 pasos: 1, los usuarios configuran en el Módulo Back Office y se generan las entradas; 2, venta en tótem; 3, caja presencial; 4, público con acceso vía internet: información de disponibilidad, selección de obra, precios y días, carro de compra y pago online; 5, control de acceso.">
-      <div class="ecard" style="--c:var(--navy)">
-        <div class="ehead"><span class="num">1</span><div><strong>Usuarios · Módulo Back Office</strong><span>Configuración y administración</span></div></div>
-        <div class="egroup">
-          <div class="erow">
-            <div class="ebox"><b>Administración</b><ul><li>Usuarios</li><li>Cajas</li></ul></div>
-            <div class="ebox"><b>Reporting</b><ul><li>Consultas</li><li>Informes</li></ul></div>
-          </div>
-          <small>Información general</small>
-          <div class="erow">
-            <div class="ebox"><b>Configuración de parámetros</b><ul><li>Dispositivos</li><li>Bloqueos</li></ul></div>
-            <div class="ebox"><b>Configuración de programación</b><ul><li>Promociones</li><li>Precios</li><li>Infraestructura</li><li>Tipo de espectador</li></ul></div>
-          </div>
-          <div class="egen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>Generación de entradas</div>
-          <div class="ebox"><b>Otras funcionalidades y herramientas</b></div>
-        </div>
-      </div>
-
-      <div class="earrow"><svg viewBox="0 0 44 24" aria-hidden="true"><path d="M2 12h36M30 4l9 8-9 8"/></svg>Entradas<br>disponibles</div>
-
-      <div class="estack">
-        <small>Canales de venta</small>
-        <div class="ecard mini" style="--c:var(--p-mayores)"><div class="ehead"><span class="num">2</span><div><strong>Venta en tótem</strong><span>Autoatención en el recinto</span></div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="15" rx="2"/><path d="M9 6h6M9 10h6M10 21h4M12 17v4"/></svg></span></div></div>
-        <div class="ecard mini" style="--c:var(--blue)"><div class="ehead"><span class="num">3</span><div><strong>Caja presencial</strong><span>Venta asistida en boletería</span></div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1M3 21h18"/></svg></span></div></div>
-        <div class="ecard mini" style="--c:var(--orange)"><div class="ehead"><span class="num">4</span><div><strong>Público · Acceso vía internet</strong><span>Compra online desde cualquier dispositivo</span></div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4M2 13h20"/></svg></span></div>
-          <div class="esub">
-            <div>Información de disponibilidad</div>
-            <div>Selección de obra, precios y días</div>
-            <div>Carro de compra y pago online <span class="epay">webpay</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="earrow"><svg viewBox="0 0 44 24" aria-hidden="true"><path d="M2 12h36M30 4l9 8-9 8"/></svg>Entrada<br>con QR</div>
-
-      <div class="ecard end" style="--c:var(--p-teatro)">
-        <div class="ehead"><span class="num">5</span><div><strong>Control de acceso</strong><span>Check in en la puerta</span></div></div>
-        <div class="eticket-stub"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><div><b>Entrada válida</b><span>Platea · Fila F · 8</span></div></div>
-        <p>El personal escanea la entrada con el celular, un lector o un torniquete, y el ingreso queda registrado en los informes.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- MÓDULOS -->
 <section class="modules" id="modulos">
   <div class="wrap">
     <div class="sec-head">
       <h2>Todo en una plataforma web, sin instalar nada</h2>
+      <p class="lead">Funciona en computador, tablet y celular.</p>
     </div>
     <div class="mod-grid">
-      <article class="mod">
-        <div class="shot" aria-hidden="true">
+      <article class="mod" style="--c1:#1F5BD8;--c2:#12B5E5">
+        <div class="shot" aria-hidden="true"><div class="panel">
           <div class="seatmap">
             <div class="stage-name">ESCENARIO</div>
             <div class="zone">PLATEA</div>
@@ -565,37 +550,45 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
             <div class="seats" id="seats-b"></div>
             <div class="legend"><span><b style="background:var(--sky-2)"></b>Libre</span><span><b style="background:#9FB0D3"></b>Vendida</span><span><b style="background:var(--orange)"></b>Tu elección</span></div>
           </div>
-        </div>
-        <div class="txt"><h3>Administra tu Oferta</h3><p>Dibujamos tu sala tal como es, con zonas, precios y butacas numeradas: teatro, auditorio o recinto al aire libre. Manejo de promociones, integraciones, listas de espera, distintos tipos de precios con restricciones propias a la medida, y mucho más.</p></div>
+        </div></div>
+        <div class="txt"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span><h3>Administra tu Oferta</h3><p>Dibujamos tu sala tal como es, con zonas, precios y butacas numeradas: teatro, auditorio o recinto al aire libre. Manejo de promociones, integraciones, listas de espera, distintos tipos de precios con restricciones propias a la medida, y mucho más.</p></div>
       </article>
-      <article class="mod">
-        <div class="shot" aria-hidden="true">
-          <div class="insc">
-            <div class="insc-row"><i style="background:var(--p-cursos)">CE</i><div><strong>Taller de Cerámica</strong><span>18 de 20 cupos</span><div class="bar"><b style="width:90%;background:var(--p-cursos)"></b></div></div><span class="chan" style="background:#E6EEFC;color:var(--blue)">Online</span></div>
-            <div class="insc-row"><i style="background:var(--p-infantil)">PI</i><div><strong>Pintura para niños</strong><span>12 de 16 cupos</span><div class="bar"><b style="width:75%;background:var(--p-infantil)"></b></div></div><span class="chan" style="background:#FDE7F1;color:#B42370">Presencial</span></div>
-            <div class="insc-row"><i style="background:var(--p-mayores)">CO</i><div><strong>Coro Adulto Mayor</strong><span>25 de 40 cupos</span><div class="bar"><b style="width:62%;background:var(--p-mayores)"></b></div></div><span class="chan" style="background:#E6EEFC;color:var(--blue)">Online</span></div>
-          </div>
-        </div>
-        <div class="txt"><h3>Inscripciones Online y Presencial</h3><p>Una sola lista de cupos para la web y la boletería. Sin dobles inscripciones.</p></div>
+      <article class="mod" style="--c1:#E23D8F;--c2:#F26B1D">
+        <div class="shot" aria-hidden="true"><div class="panel insc">
+          <div class="insc-row"><i style="background:var(--p-cursos)">CE</i><div><strong>Taller de Cerámica</strong><span>18 de 20 cupos</span><div class="bar"><b style="width:90%;background:var(--p-cursos)"></b></div></div><span class="chan" style="background:#E6EEFC;color:var(--blue)">Online</span></div>
+          <div class="insc-row"><i style="background:var(--p-infantil)">PI</i><div><strong>Pintura para niños</strong><span>12 de 16 cupos</span><div class="bar"><b style="width:75%;background:var(--p-infantil)"></b></div></div><span class="chan" style="background:#FDE7F1;color:#B42370">Presencial</span></div>
+          <div class="insc-row"><i style="background:var(--p-mayores)">CO</i><div><strong>Coro Adulto Mayor</strong><span>25 de 40 cupos</span><div class="bar"><b style="width:62%;background:var(--p-mayores)"></b></div></div><span class="chan" style="background:#E6EEFC;color:var(--blue)">Online</span></div>
+        </div></div>
+        <div class="txt"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span><h3>Inscripciones Online y Presencial</h3><p>Una sola lista de cupos para la web y la boletería. Sin dobles inscripciones.</p></div>
       </article>
-      <article class="mod">
-        <div class="shot" aria-hidden="true">
+      <article class="mod" style="--c1:#0FA396;--c2:#1FA35C">
+        <div class="shot" aria-hidden="true"><div class="panel">
           <div class="qr"><div class="phone"><div class="qrcode" style="width:60px;height:60px"></div><span class="ok">✓ Entrada válida</span></div><div class="scan">INGRESADOS<b>312 / 340</b><div class="gauge"><b></b></div>Sala Principal · Puerta 2</div></div>
-        </div>
-        <div class="txt"><h3>Control de acceso y check in</h3><p>Tu equipo escanea con el celular o con lectores y torniquetes integrados.</p></div>
+        </div></div>
+        <div class="txt"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/></svg></span><h3>Control de acceso y check in</h3><p>Tu equipo escanea con el celular o con lectores y torniquetes integrados.</p></div>
       </article>
-      <article class="mod">
-        <div class="shot">
-          <div class="report" id="report">
-            <div class="report-top">
-              <div><small>Entradas vendidas · últimos 14 días</small><b id="rep-total">4.726</b></div>
-              <span class="delta">▲ 18% vs. período anterior</span>
-            </div>
-            <svg id="rep-svg" viewBox="0 0 360 130" role="img" aria-label="Gráfico de área: entradas vendidas por día durante 14 días, de 210 a 520, con tendencia al alza"></svg>
-            <div class="tip" id="rep-tip" hidden></div>
+      <article class="mod" style="--c1:#6A4CF0;--c2:#1F5BD8">
+        <div class="shot"><div class="panel rep" id="report">
+          <div class="donut" role="img" aria-label="Ocupación promedio: 87%">
+            <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#EEF2FA" stroke-width="5"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="#6A4CF0" stroke-width="5" stroke-linecap="round" stroke-dasharray="84.7 97.4"/></svg>
+            <div><b>87%</b><small>ocupación</small></div>
           </div>
-        </div>
-        <div class="txt"><h3>Informes en línea</h3><p>Ventas, asistencia y ocupación por actividad en tiempo real. Datos de ejemplo.</p></div>
+          <div>
+            <h5>Entradas por canal</h5>
+            <div class="hbar">
+              <div class="hrow" data-tip="Internet · 2.930 entradas"><span>Internet</span><div class="htrack"><b style="width:62%;background:var(--orange)"></b></div><em>62%</em></div>
+              <div class="hrow" data-tip="Caja presencial · 1.229 entradas"><span>Caja presencial</span><div class="htrack"><b style="width:26%;background:var(--blue)"></b></div><em>26%</em></div>
+              <div class="hrow" data-tip="Tótem · 567 entradas"><span>Tótem</span><div class="htrack"><b style="width:12%;background:var(--p-mayores)"></b></div><em>12%</em></div>
+            </div>
+          </div>
+          <div class="rep-kpis">
+            <div>Recaudación<b>$8,4 M</b></div>
+            <div>Entradas<b>4.726</b></div>
+            <div>vs. mes anterior<b class="up">▲ 18%</b></div>
+          </div>
+          <div class="tip" id="rep-tip" hidden></div>
+        </div></div>
+        <div class="txt"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 20h18M6 16v-5M11 16V7M16 16v-8M21 16V4"/></svg></span><h3>Informes en línea</h3><p>Ventas por canal, ocupación y recaudación en tiempo real. Cifras de ejemplo.</p></div>
       </article>
     </div>
   </div>
@@ -690,47 +683,17 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
   seats('seats-a',6,16,function(k){return (k*7)%11<3},[87,88]);
   seats('seats-b',2,16,function(k){return (k*5)%9<2},[]);
 
-  // ===== Informe: área de 14 días (datos de ejemplo) =====
-  var data=[210,245,232,280,300,268,335,352,318,390,410,386,470,520];
-  var days=['14 sep','15 sep','16 sep','17 sep','18 sep','19 sep','20 sep','21 sep','22 sep','23 sep','24 sep','25 sep','26 sep','27 sep'];
-  var svg=document.getElementById('rep-svg');
-  if(svg){
-    var W=360,H=130,L=30,R=12,T=10,B=22, max=600;
-    var X=function(i){return L+i*(W-L-R)/(data.length-1)}, Y=function(v){return T+(H-T-B)*(1-v/max)};
-    var defs=el('defs',{},svg), gr=el('linearGradient',{id:'rep-g',x1:0,y1:0,x2:0,y2:1},defs);
-    el('stop',{offset:0,'stop-color':'#1F5BD8','stop-opacity':.32},gr);el('stop',{offset:1,'stop-color':'#1F5BD8','stop-opacity':0},gr);
-    [0,200,400,600].forEach(function(v){
-      el('line',{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:'#E3E8F3','stroke-width':1},svg);
-      var tx=el('text',{x:L-6,y:Y(v)+3,'text-anchor':'end','font-size':9,fill:'#8A94B5'},svg);tx.textContent=v;
+  // ===== Informe: tooltip de barras =====
+  var box=document.getElementById('report'), tip=document.getElementById('rep-tip');
+  if(box&&tip){
+    box.querySelectorAll('.hrow').forEach(function(r){
+      r.addEventListener('pointerenter',function(){
+        var br=box.getBoundingClientRect(), t=r.querySelector('.htrack').getBoundingClientRect();
+        tip.textContent=r.getAttribute('data-tip'); tip.hidden=false;
+        tip.style.left=(t.left-br.left+t.width/2)+'px'; tip.style.top=(t.top-br.top)+'px';
+      });
+      r.addEventListener('pointerleave',function(){tip.hidden=true});
     });
-    // curva suave (Catmull-Rom a Bézier)
-    var pts=data.map(function(v,i){return [X(i),Y(v)]}), d='M'+pts[0][0]+' '+pts[0][1];
-    for(var i=0;i<pts.length-1;i++){
-      var p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
-      d+=' C'+(p1[0]+(p2[0]-p0[0])/6).toFixed(1)+' '+(p1[1]+(p2[1]-p0[1])/6).toFixed(1)+','+(p2[0]-(p3[0]-p1[0])/6).toFixed(1)+' '+(p2[1]-(p3[1]-p1[1])/6).toFixed(1)+','+p2[0].toFixed(1)+' '+p2[1].toFixed(1);
-    }
-    el('path',{d:d+' L'+X(data.length-1)+' '+Y(0)+' L'+X(0)+' '+Y(0)+' Z',fill:'url(#rep-g)'},svg);
-    el('path',{d:d,fill:'none',stroke:'#1F5BD8','stroke-width':2,'stroke-linecap':'round'},svg);
-    [0,7,13].forEach(function(i){var tx=el('text',{x:X(i),y:H-6,'text-anchor':i===0?'start':(i===13?'end':'middle'),'font-size':9,fill:'#8A94B5'},svg);tx.textContent=days[i]});
-    var last=pts[pts.length-1];
-    el('circle',{cx:last[0],cy:last[1],r:5,fill:'#1F5BD8',stroke:'#fff','stroke-width':2},svg);
-    var lab=el('text',{x:last[0]-8,y:last[1]-9,'text-anchor':'end','font-size':10,'font-weight':700,fill:'#10183A'},svg);lab.textContent='520 hoy';
-    // capa de hover
-    var cross=el('line',{y1:T,y2:Y(0),stroke:'#10183A','stroke-opacity':.25,'stroke-width':1,visibility:'hidden'},svg);
-    var dot=el('circle',{r:4.5,fill:'#fff',stroke:'#1F5BD8','stroke-width':2,visibility:'hidden'},svg);
-    var hit=el('rect',{x:L,y:0,width:W-L-R,height:H,fill:'transparent'},svg);
-    var tip=document.getElementById('rep-tip'), box=document.getElementById('report');
-    function move(ev){
-      var r=svg.getBoundingClientRect(), sx=(ev.clientX-r.left)*W/r.width;
-      var i=Math.max(0,Math.min(data.length-1,Math.round((sx-L)/((W-L-R)/(data.length-1)))));
-      cross.setAttribute('x1',X(i));cross.setAttribute('x2',X(i));cross.setAttribute('visibility','visible');
-      dot.setAttribute('cx',X(i));dot.setAttribute('cy',Y(data[i]));dot.setAttribute('visibility','visible');
-      var br=box.getBoundingClientRect();
-      tip.hidden=false;tip.textContent=days[i]+' · '+data[i]+' entradas';
-      tip.style.left=(r.left-br.left+X(i)*r.width/W)+'px';tip.style.top=(r.top-br.top+Y(data[i])*r.height/H)+'px';
-    }
-    hit.addEventListener('pointermove',move);
-    hit.addEventListener('pointerleave',function(){tip.hidden=true;cross.setAttribute('visibility','hidden');dot.setAttribute('visibility','hidden')});
   }
 
   // Menú móvil
