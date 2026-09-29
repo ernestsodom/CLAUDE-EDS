@@ -887,7 +887,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-col
   function route(){
     var h=location.hash.slice(1);
     if(h==='nosotros'||(h.indexOf('p-')===0&&P[h.slice(2)])){
-      if(h==='nosotros') renderAbout(); else {render(h.slice(2)); setTimeout(fitBg);} home.hidden=true; pp.hidden=false; window.scrollTo(0,0); clearInterval(timer);
+      if(h==='nosotros') renderAbout(); else render(h.slice(2)); setTimeout(fitBg); home.hidden=true; pp.hidden=false; window.scrollTo(0,0); clearInterval(timer);
     }else{
       var wasHidden=home.hidden; home.hidden=false; pp.hidden=true; if(wasHidden) restart();
       var t=h&&document.getElementById(h);

@@ -46,7 +46,7 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
   function num(v,def,min,max){v=Number(v);if(v===''||v==null||!isFinite(v))v=def;return Math.min(Math.max(v,min),max)}
   // Zoom de la foto de fondo: 100% llena la franja; menos, la aleja para mostrar más de la foto
   function fitBg(){
-    var el=pp.querySelector('.pp-bgimg'); if(!el)return;
+    var el=pp.querySelector('.pp-bgimg, .pp-zoom'); if(!el)return;
     var z=Number(el.getAttribute('data-zoom'))||100;
     if(z>=100){el.style.backgroundSize='cover';return}
     var src=getComputedStyle(el).backgroundImage.replace(/^url\(["']?|["']?\)$/g,'');
@@ -68,7 +68,8 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
     var dos=(AB.do||[]).map(function(x,i){return '<div class="do" style="--c:'+doCol[i%3]+'"><span class="ic">'+doIco[i%3]+'</span><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('');
     var vals=(AB.val||[]).map(function(x,i){return '<div class="val" style="--c:'+valCol[i%4]+'"><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('');
     pp.innerHTML=
-      '<section class="ab-hero" aria-label="Nosotros" style="--ab-o:'+(num(AB.imgDark,55,0,90)/100)+(vis(AB.image)?';--ab-img:url('+esc(imgUrl(AB.image))+')':'')+'"><div class="wrap">'+
+      '<section class="ab-hero" aria-label="Nosotros" style="--ab-o:'+(num(AB.imgDark,55,0,90)/100)+(vis(AB.image)?';--ab-img:url('+esc(imgUrl(AB.image))+');--ab-pos:'+esc(({left:'left',right:'right'}[AB.imgX]||'center')+' '+(String(AB.imgPos||'center 40%').split(' ').slice(1).join(' ')||'40%')):'')+'">'+
+        (vis(AB.image)?((num(AB.imgZoom,100,20,100)<100&&AB.imgFill!=='color'?'<div class="pp-bgfill"></div>':'')+'<div class="ab-bgimg pp-zoom" data-zoom="'+num(AB.imgZoom,100,20,100)+'"></div>'):'')+'<div class="wrap">'+
         '<div class="crumb"><a href="#inicio">Inicio</a> / '+esc(AB.eyebrow)+'</div>'+
         '<span class="eyebrow" style="color:#FFB27F">'+esc(AB.eyebrow)+'</span>'+
         '<h1>'+esc(AB.title)+'</h1>'+
@@ -91,7 +92,7 @@ html = html.slice(0, rStart) + newRender + html.slice(rEnd);
 
 // La imagen de fondo de Nosotros pasa a ser editable
 html = html.replace('.ab-hero::before{content:"";position:absolute;inset:0;background:url("img/hero-contrabajos.webp") center 45%/cover no-repeat}',
-  '.ab-hero::before{content:"";position:absolute;inset:0;background:var(--ab-img) center 45%/cover no-repeat}');
+  '.ab-hero::before{content:none}\n.ab-hero .pp-bgfill{position:absolute;inset:-40px;background:var(--ab-img) center/cover no-repeat;filter:blur(26px) saturate(1.15);opacity:.85}\n.ab-hero .ab-bgimg{position:absolute;inset:0;background:var(--ab-img) var(--ab-pos,center 45%)/cover no-repeat}');
 
 // ---------- 3. Formulario: guardar la solicitud en la base de datos ----------
 html = html.replace(`  // Formulario de maqueta

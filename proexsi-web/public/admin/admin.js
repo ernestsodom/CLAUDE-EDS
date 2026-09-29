@@ -634,15 +634,38 @@
   function viewAbout(view) {
     var a = C.about;
     var abShade = h('div', { class: 'sh-shade' });
-    var abPrev = h('div', { class: 'bg-prev ab-prev', style: { backgroundImage: a.image && !isHidden(a.image) ? 'url("' + imgUrl(a.image) + '")' : 'none' } }, abShade, h('strong', { text: a.title }));
+    var abZoom = a.imgZoom == null ? 100 : Number(a.imgZoom);
+    var hasImg = a.image && !isHidden(a.image);
+    function abPosition() { return (a.imgX || 'center') + ' ' + (String(a.imgPos || 'center 45%').split(' ').slice(1).join(' ') || '45%'); }
+    var abFill = h('div', { class: 'bg-fill', style: { backgroundImage: hasImg ? 'url("' + imgUrl(a.image) + '")' : 'none' } });
+    var abImg = h('div', { class: 'bg-img', style: { backgroundImage: hasImg ? 'url("' + imgUrl(a.image) + '")' : 'none', backgroundPosition: abPosition() } });
+    var abPrev = h('div', { class: 'bg-prev ab-prev' }, abFill, abImg, abShade, h('strong', { text: a.title }));
+    function fitAb() { if (hasImg) fitBox(abImg, imgUrl(a.image), abZoom); abFill.style.display = (abZoom >= 100 || a.imgFill === 'color') ? 'none' : ''; }
+    setTimeout(fitAb, 50);
+    var abPos = h('select', {});
+    POSITIONS.forEach(function (o) { abPos.appendChild(h('option', { value: o[0], text: o[1], selected: (a.imgPos || 'center 40%') === o[0] })); });
+    abPos.addEventListener('change', function () { a.imgPos = abPos.value; abImg.style.backgroundPosition = abPosition(); markDirty(); });
+    var abZoomR = h('input', { type: 'range', min: 20, max: 100, step: 5, value: abZoom });
+    var abZoomL = h('span', { class: 'hint', text: abZoom + '%' + (abZoom >= 100 ? ' (llena la franja)' : '') });
+    abZoomR.addEventListener('input', function () { abZoom = Number(abZoomR.value); a.imgZoom = abZoom; abZoomL.textContent = abZoom + '%' + (abZoom >= 100 ? ' (llena la franja)' : ''); fitAb(); markDirty(); });
+    var abX = h('select', {}, [['left', 'A la izquierda'], ['center', 'Al centro'], ['right', 'A la derecha']].map(function (o) { return h('option', { value: o[0], text: o[1], selected: (a.imgX || 'center') === o[0] }); }));
+    abX.addEventListener('change', function () { a.imgX = abX.value; abImg.style.backgroundPosition = abPosition(); markDirty(); });
+    var abF = h('select', {}, h('option', { value: 'blur', text: 'La misma foto, difuminada', selected: a.imgFill !== 'color' }), h('option', { value: 'color', text: 'Azul del sitio', selected: a.imgFill === 'color' }));
+    abF.addEventListener('change', function () { a.imgFill = abF.value; fitAb(); markDirty(); });
     view.appendChild(h('div', { class: 'card' }, h('h2', { text: 'Portada' }), h('div', { class: 'grid2' },
       bind(a, 'eyebrow', { multi: false, label: 'Etiqueta' }), bind(a, 'title', { multi: false, label: 'Título' }),
       h('div', { style: { gridColumn: '1/-1' } }, bind(a, 'lead', { label: 'Bajada', rows: 3 })),
       h('div', { class: 'field' }, h('label', { text: 'Foto de fondo' }), h('div', { class: 'toolbar' },
         imageSelect(a.image, function (k) { a.image = k; markDirty(); route(); }),
         h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { a.image = k; route(); } }); } }))),
+      h('div', { class: 'field' }, h('label', { text: 'Encuadre' }), abPos),
       h('div', { class: 'field' }, h('label', { text: 'Opacidad (oscurecer la foto para que se lea el texto)' }),
         darkSlider(a, 'imgDark', 55, function (v) { abShade.style.opacity = String(v / 100); })),
+      h('div', { class: 'field' }, h('label', { text: 'Tamaño de la foto (zoom)' }), h('div', { class: 'toolbar' }, abZoomR, abZoomL),
+        h('span', { class: 'hint', text: 'Bájalo para alejar la foto y mostrarla más completa.' })),
+      h('div', { class: 'grid2' },
+        h('div', { class: 'field' }, h('label', { text: 'Ubicación al alejar' }), abX),
+        h('div', { class: 'field' }, h('label', { text: 'Relleno de los bordes' }), abF)),
       h('div', { style: { gridColumn: '1/-1' } }, abPrev))));
     view.appendChild(h('div', { class: 'card' }, h('h2', { text: 'Presentación' }), h('div', { class: 'grid2' },
       bind(a, 'yearsNum', { multi: false, label: 'Cifra del círculo' }), bind(a, 'yearsLabel', { multi: false, label: 'Texto bajo la cifra' }),
