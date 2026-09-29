@@ -89,7 +89,11 @@ export function renderPage(content, { preview = false } = {}) {
       const im = document.createElement('div'); im.className = 's-img'; im.setAttribute('data-zoom', String(zoom));
       im.setAttribute('style', `background-image:${url};background-position:${safeCss(x + ' ' + y)}`); d.appendChild(im);
       const dark = s.dark == null || s.dark === '' || !isFinite(Number(s.dark)) ? 45 : Math.min(Math.max(Number(s.dark), 0), 90);
-      const sh = document.createElement('div'); sh.className = 's-shade'; sh.setAttribute('style', `--o:${dark / 100}`); d.appendChild(sh);
+      if (s.filter !== 'none') {
+        const m = s.filter === 'color' && /^#?([0-9a-f]{6})$/i.exec(s.filterColor || '');
+        const rgb = m ? [16, 8, 0].map(b => (parseInt(m[1], 16) >> b) & 255).join(',') : '0,0,0';
+        const sh = document.createElement('div'); sh.className = 's-shade'; sh.setAttribute('style', `--o:${dark / 100};--rgb:${rgb}`); d.appendChild(sh);
+      }
       d.setAttribute('role', 'img');
       d.setAttribute('aria-label', s.alt || '');
       hero.insertBefore(d, wrap);
@@ -110,6 +114,8 @@ export function renderPage(content, { preview = false } = {}) {
     .map(([k, v]) => `--${k}:${v}`);
   const disp = FONTS[t.fontDisplay] ? t.fontDisplay : 'Red Hat Display';
   const body = FONTS[t.fontBody] ? t.fontBody : 'Red Hat Text';
+  const sc = (v, a, b) => Math.min(Math.max(Number(v) || 100, a), b) / 100;
+  vars.push(`--ts:${sc(t.fontTitleScale, 80, 125)}`, `--bs:${sc(t.fontBodyScale, 90, 115)}`);
   vars.push(`--display:"${disp}","Segoe UI",system-ui,sans-serif`, `--body:"${body}","Segoe UI",system-ui,sans-serif`, `--mono:"${body}","Segoe UI",system-ui,sans-serif`);
   html = html.replace(/https:\/\/fonts\.googleapis\.com\/css2\?[^"]+/, fontsHref(disp, body).replace(/&/g, '&amp;'));
   const head = `<meta name="description" content="${esc(seo.description)}">

@@ -31,7 +31,7 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
     var more=Object.keys(P).filter(function(x){return x!==k}).map(function(x){return '<a href="#p-'+x+'" style="--c:var('+P[x].c+')">'+esc(P[x].n)+'</a>'}).join('');
     pp.innerHTML=
       (bgMode
-        ? '<section class="pp-hero bg" style="--c:'+c+';--pp-bg:url('+esc(imgUrl(d.bg))+');--pp-pos:'+esc(({left:'left',right:'right'}[d.bgX]||'center')+' '+String(d.bgPos||'center 50%').split(' ').slice(1).join(' '))+';--pp-o:'+(num(d.bgDark,60,0,90)/100)+'">'+
+        ? '<section class="pp-hero bg" style="--c:'+c+';--pp-bg:url('+esc(imgUrl(d.bg))+');--pp-pos:'+esc(({left:'left',right:'right'}[d.bgX]||'center')+' '+String(d.bgPos||'center 50%').split(' ').slice(1).join(' '))+';--pp-o:'+(d.bgFilter==='none'?0:num(d.bgDark,60,0,90)/100)+';--pp-rgb:'+frgb(d.bgFilter,d.bgFilterColor)+'">'+
           (d.bgFill==='color'?'':'<div class="pp-bgfill"></div>')+'<div class="pp-bgimg" data-zoom="'+num(d.bgZoom,100,20,100)+'"></div><div class="wrap"><div class="pp-copy">'
         : '<section class="pp-hero" style="--c:'+c+'"><div class="wrap"><div class="pp-copy">')+
         '<div class="crumb"><a href="#productos">'+esc(PP.crumb)+'</a> / '+esc(d.n)+'</div>'+
@@ -43,6 +43,8 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
       '<section class="pp-cta"><div class="wrap"><div class="box" style="--c:'+c+'"><h2>'+esc(PP.cta)+'</h2><a class="btn btn-orange" href="#contacto">'+esc(PP.ctaBtn)+'</a></div></div></section>'+
       '<section class="pp-more"><div class="wrap"><h3>'+esc(PP.more)+'</h3><div class="chips-row">'+more+'</div></div></section>';
   }
+  // Filtro de color de las fotos: 'none' sin filtro, 'dark' negro, 'color' un color a elección
+  function frgb(mode,hex){if(mode==='color'){var m=/^#?([0-9a-f]{6})$/i.exec(hex||'');if(m){var n=parseInt(m[1],16);return (n>>16&255)+','+(n>>8&255)+','+(n&255)}}return '0,0,0'}
   function num(v,def,min,max){v=Number(v);if(v===''||v==null||!isFinite(v))v=def;return Math.min(Math.max(v,min),max)}
   // Zoom de la foto de fondo: 100% llena la franja; menos, la aleja para mostrar más de la foto
   function fitBg(){
@@ -68,7 +70,7 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
     var dos=(AB.do||[]).map(function(x,i){return '<div class="do" style="--c:'+doCol[i%3]+'"><span class="ic">'+doIco[i%3]+'</span><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('');
     var vals=(AB.val||[]).map(function(x,i){return '<div class="val" style="--c:'+valCol[i%4]+'"><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('');
     pp.innerHTML=
-      '<section class="ab-hero" aria-label="Nosotros" style="--ab-o:'+(num(AB.imgDark,55,0,90)/100)+(vis(AB.image)?';--ab-img:url('+esc(imgUrl(AB.image))+');--ab-pos:'+esc(({left:'left',right:'right'}[AB.imgX]||'center')+' '+(String(AB.imgPos||'center 40%').split(' ').slice(1).join(' ')||'40%')):'')+'">'+
+      '<section class="ab-hero" aria-label="Nosotros" style="--ab-o:'+(AB.imgFilter==='none'?0:num(AB.imgDark,55,0,90)/100)+';--ab-rgb:'+frgb(AB.imgFilter,AB.imgFilterColor)+(vis(AB.image)?';--ab-img:url('+esc(imgUrl(AB.image))+');--ab-pos:'+esc(({left:'left',right:'right'}[AB.imgX]||'center')+' '+(String(AB.imgPos||'center 40%').split(' ').slice(1).join(' ')||'40%')):'')+'">'+
         (vis(AB.image)?((num(AB.imgZoom,100,20,100)<100&&AB.imgFill!=='color'?'<div class="pp-bgfill"></div>':'')+'<div class="ab-bgimg pp-zoom" data-zoom="'+num(AB.imgZoom,100,20,100)+'"></div>'):'')+'<div class="wrap">'+
         '<div class="crumb"><a href="#inicio">Inicio</a> / '+esc(AB.eyebrow)+'</div>'+
         '<span class="eyebrow" style="color:#FFB27F">'+esc(AB.eyebrow)+'</span>'+
@@ -200,13 +202,73 @@ const carousel = [...document.querySelectorAll('#hero .slide')].map(s => {
 const rootCss = html.slice(html.indexOf(':root{'), html.indexOf('}', html.indexOf(':root{')));
 const theme = {};
 for (const m of rootCss.matchAll(/--([\w-]+):(#[0-9A-Fa-f]{3,8});/g)) theme[m[1]] = m[2];
-const THEME_LABELS = {
-  navy: 'Azul corporativo (logo)', 'navy-2': 'Azul oscuro (fondos)', blue: 'Azul de acción', 'blue-600': 'Azul de acción (hover)',
-  cyan: 'Celeste de apoyo', sky: 'Fondo celeste claro', 'sky-2': 'Celeste medio', orange: 'Naranjo (acento)', 'orange-2': 'Naranjo oscuro',
-  line: 'Bordes', ink: 'Texto principal', muted: 'Texto secundario', white: 'Blanco', ok: 'Verde (confirmación)',
-  'p-cursos': 'Producto: Cursos y Talleres', 'p-seminarios': 'Producto: Seminarios', 'p-infantil': 'Producto: Infantil',
-  'p-mayores': 'Producto: 3.ª Edad', 'p-teatro': 'Producto: Teatro', 'p-orquesta': 'Producto: Orquesta', 'p-ferias': 'Producto: Ferias',
-};
+// Colores del sitio agrupados por uso, con nombres claros para el back office
+const THEME_GROUPS = [
+  { title: 'Letras', desc: 'Colores del texto en todo el sitio.', keys: [
+    ['t-title', 'Azul de los títulos', 'Títulos grandes y subtítulos sobre fondo claro, preguntas frecuentes.'],
+    ['ink', 'Texto principal', 'Párrafos y textos generales.'],
+    ['muted', 'Texto secundario (gris azulado)', 'Bajadas bajo los títulos y descripciones de tarjetas.'],
+    ['t-nav', 'Letras del menú superior', 'Inicio, Nosotros, Productos, etc.'],
+    ['t-accent', 'Naranjo de las etiquetas (fondo claro)', 'Textos pequeños en mayúscula sobre los títulos, como “PRODUCTOS”.'],
+    ['t-accent-dark', 'Naranjo de las etiquetas (fondo oscuro)', 'Las mismas etiquetas sobre fotos o fondos azules.'],
+    ['t-highlight', 'Naranjo de la palabra destacada', '“Menos gestión.” en la portada y palabras marcadas con <em>.'],
+    ['t-hero', 'Títulos sobre fotos', 'Título de la portada, de Nosotros y de las páginas de producto.'],
+    ['t-hero-lead', 'Bajadas sobre fotos', 'Texto bajo el título de la portada y de Nosotros.'],
+  ] },
+  { title: 'Botones', desc: 'Los botones redondeados del sitio.', keys: [
+    ['btn1-bg', 'Botón azul: fondo', '“Agenda una demo” del menú superior.'],
+    ['btn1-hover', 'Botón azul: al pasar el mouse', ''],
+    ['btn1-text', 'Botón azul: letras', ''],
+    ['btn2-a', 'Botón naranjo: color de inicio', 'El botón naranjo tiene un degradado de este color…'],
+    ['btn2-b', 'Botón naranjo: color de término', '…hacia este color. “Agenda una demo gratuita”, “Solicitar demo”.'],
+    ['btn2-text', 'Botón naranjo: letras', ''],
+  ] },
+  { title: 'Fondos', desc: 'Fondos generales de la página y sus secciones.', keys: [
+    ['bg-page', 'Blanco de fondo', 'Fondo general de la página.'],
+    ['bg-header', 'Fondo del menú superior', ''],
+    ['bg-hero', 'Azul de fondo de la portada', 'Se ve detrás del carrusel cuando la foto no cubre todo.'],
+    ['sky', 'Celeste de fondo de secciones', '“Así funciona” de productos, “Qué hacemos” de Nosotros, preguntas frecuentes.'],
+    ['bg-contact-a', 'Fondo de Contacto: color de inicio', 'La sección “Agenda una demo” tiene un degradado…'],
+    ['bg-contact-b', 'Fondo de Contacto: color de término', ''],
+    ['bg-footer', 'Azul del pie de página', ''],
+  ] },
+  { title: 'Tarjetas de productos', desc: 'Las 7 tarjetas de la sección Productos y sus páginas.', keys: [
+    ['prod-bg', 'Fondo de las tarjetas', ''],
+    ['prod-border', 'Borde de las tarjetas', ''],
+    ['p-cursos', 'Cursos y Talleres', 'Franja, etiqueta, “Ver producto” y portada de su página.'],
+    ['p-infantil', 'Actividades Culturales Infantiles', ''],
+    ['p-teatro', 'Teatro', ''],
+    ['p-orquesta', 'Orquesta y Sala de Música', ''],
+    ['p-seminarios', 'Seminarios y Conferencias', ''],
+    ['p-mayores', 'Actividades para la 3.ª Edad', ''],
+    ['p-ferias', 'Ferias y Eventos Masivos', ''],
+  ] },
+  { title: 'La Plataforma: diagrama', desc: 'La sección azul con el diagrama de venta y gestión.', keys: [
+    ['plat-bg', 'Fondo de la sección', ''],
+    ['plat-box', 'Fondo de los cuadros', 'Integraciones, Caja presencial, Venta online.'],
+    ['plat-box-border', 'Borde de los cuadros', ''],
+    ['plat-core-a', 'Cuadro central Proexsi: color de inicio', 'Degradado del cuadro “Venta y gestión cultural”…'],
+    ['plat-core-b', 'Cuadro central Proexsi: color de término', ''],
+    ['plat-gen-a', 'Barra “Generación de entradas”: inicio', ''],
+    ['plat-gen-b', 'Barra “Generación de entradas”: término', ''],
+    ['plat-check-a', 'Cuadro “Check in”: inicio', ''],
+    ['plat-check-b', 'Cuadro “Check in”: término', ''],
+  ] },
+  { title: 'La Plataforma: módulos', desc: 'Las 4 tarjetas de “Todo en una plataforma web”. Cada una tiene un degradado de dos colores.', keys: [
+    ['mod-bg', 'Fondo de la sección', ''],
+    ['mod1-a', 'Administra tu Oferta: inicio', ''], ['mod1-b', 'Administra tu Oferta: término', ''],
+    ['mod2-a', 'Inscripciones: inicio', ''], ['mod2-b', 'Inscripciones: término', ''],
+    ['mod3-a', 'Control de acceso: inicio', ''], ['mod3-b', 'Control de acceso: término', ''],
+    ['mod4-a', 'Informes en línea: inicio', ''], ['mod4-b', 'Informes en línea: término', ''],
+  ] },
+  { title: 'Colores base (avanzado)', desc: 'Colores de marca que usan otros detalles del sitio (íconos, bordes, gráficos).', keys: [
+    ['navy', 'Azul corporativo (logo)', ''], ['navy-2', 'Azul oscuro', ''], ['blue', 'Azul de acción', ''], ['blue-600', 'Azul de acción oscuro', ''],
+    ['cyan', 'Celeste de apoyo', ''], ['sky-2', 'Celeste medio', ''], ['orange', 'Naranjo de acento', ''], ['orange-2', 'Naranjo oscuro', ''],
+    ['line', 'Bordes y líneas', ''], ['white', 'Blanco', ''], ['ok', 'Verde de confirmación', ''],
+  ] },
+];
+const THEME_LABELS = Object.fromEntries(THEME_GROUPS.flatMap(g => g.keys.map(k => [k[0], k[1]])));
+
 
 // ---------- 8. Imágenes usadas ----------
 const outHtml = document.toString();
@@ -253,12 +315,12 @@ const pp = {
 
 const DEFAULTS = {
   seo: { title: 'Proexsi · Ticketera para la cultura', description: 'Venta online y presencial, check in con QR e informes en tiempo real para corporaciones culturales de Chile.' },
-  theme: { ...theme, fontDisplay: 'Red Hat Display', fontBody: 'Red Hat Text' },
+  theme: { ...theme, fontDisplay: 'Red Hat Display', fontBody: 'Red Hat Text', fontTitleScale: 100, fontBodyScale: 100 },
   texts, carousel, products, about, pp, images: {},
   formOk: '¡Gracias! Recibimos tu solicitud y te contactaremos pronto.',
   carouselSeconds: 6,
 };
-const META = { texts: meta, sections: SECTION_NAMES, themeLabels: THEME_LABELS, imageKeys, imageLabels: IMAGE_LABELS };
+const META = { texts: meta, sections: SECTION_NAMES, themeLabels: THEME_LABELS, themeGroups: THEME_GROUPS, imageKeys, imageLabels: IMAGE_LABELS };
 
 writeFileSync(new URL('../lib/template.js', import.meta.url),
   '// Generado por scripts/prepare-template.mjs. No editar a mano.\nexport default ' + JSON.stringify(outHtml) + ';\n');

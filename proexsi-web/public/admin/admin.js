@@ -485,8 +485,7 @@
           h('div', { class: 'field' }, h('label', { text: 'Encuadre' }), pos),
           h('div', { class: 'field' }, h('label', { text: 'Tamaño de la foto (zoom)' }), h('div', { class: 'toolbar' }, zoom, zoomLbl),
             h('span', { class: 'hint', text: 'Bájalo para alejar la foto y mostrarla más completa en la portada.' })),
-          h('div', { class: 'field' }, h('label', { text: 'Opacidad (oscurecer la foto para que se lea el texto)' }),
-            darkSlider(s, 'dark', 45, function (v) { sShade.style.opacity = String(v / 100); })),
+          filterControls(s, 'filter', 'filterColor', 'dark', 45, sShade),
           h('div', { class: 'grid2' },
             h('div', { class: 'field' }, h('label', { text: 'Ubicación al alejar' }), alignX),
             h('div', { class: 'field' }, h('label', { text: 'Relleno de los bordes' }), fillSel)),
@@ -494,6 +493,29 @@
     });
     view.appendChild(card);
     view.appendChild(h('p', { class: 'hint', text: 'El título y los botones que aparecen sobre el carrusel se editan en Textos → Portada (carrusel).' }));
+  }
+  // Filtro de la foto: sin filtro, oscurecer (negro) o un color a elección, con su opacidad
+  function hexRgb(hx) { var m = /^#?([0-9a-f]{6})$/i.exec(hx || ''); if (!m) return '0,0,0'; var n = parseInt(m[1], 16); return (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255); }
+  function filterControls(obj, modeKey, colorKey, darkKey, def, shadeEl) {
+    function curMode() { return obj[modeKey] || 'dark'; }
+    function apply() {
+      var mode = curMode(), rgb = mode === 'color' ? hexRgb(obj[colorKey]) : '0,0,0';
+      var o = obj[darkKey] == null || obj[darkKey] === '' ? def : Number(obj[darkKey]);
+      shadeEl.style.background = 'linear-gradient(90deg,rgba(' + rgb + ',.9) 0%,rgba(' + rgb + ',.65) 42%,rgba(' + rgb + ',.15) 75%,rgba(' + rgb + ',0) 100%)';
+      shadeEl.style.opacity = mode === 'none' ? '0' : String(o / 100);
+      colorWrap.style.display = mode === 'color' ? '' : 'none';
+      opWrap.style.display = mode === 'none' ? 'none' : '';
+    }
+    var sel = h('select', {}, [['none', 'Sin filtro (foto tal cual)'], ['dark', 'Oscurecer (negro)'], ['color', 'Color a elección']].map(function (o) {
+      return h('option', { value: o[0], text: o[1], selected: curMode() === o[0] });
+    }));
+    sel.addEventListener('change', function () { obj[modeKey] = sel.value; if (sel.value === 'color' && !obj[colorKey]) obj[colorKey] = '#25358B'; col.value = normHex(obj[colorKey] || '#25358B'); markDirty(); apply(); });
+    var col = h('input', { type: 'color', value: normHex(obj[colorKey] || '#25358B') });
+    col.addEventListener('input', function () { obj[colorKey] = col.value.toUpperCase(); markDirty(); apply(); });
+    var colorWrap = h('div', { class: 'field' }, h('label', { text: 'Color del filtro' }), h('div', { class: 'toolbar' }, col, h('span', { class: 'hint', text: 'Elige el tono que tiñe la foto.' })));
+    var opWrap = h('div', { class: 'field' }, h('label', { text: 'Opacidad del filtro' }), darkSlider(obj, darkKey, def, apply));
+    setTimeout(apply);
+    return h('div', { class: 'filter-box' }, h('div', { class: 'field' }, h('label', { text: 'Filtro de color sobre la foto' }), sel), colorWrap, opWrap);
   }
   // Deslizador de opacidad del oscurecimiento (0 = foto sin oscurecer)
   function darkSlider(obj, key, def, onMove) {
@@ -570,9 +592,7 @@
       pos.addEventListener('change', function () { p.bgPos = pos.value; imgEl.style.backgroundPosition = bgPosition(); markDirty(); });
       var alignX = h('select', {}, [['left', 'A la izquierda'], ['center', 'Al centro'], ['right', 'A la derecha']].map(function (o) { return h('option', { value: o[0], text: o[1], selected: (p.bgX || 'center') === o[0] }); }));
       alignX.addEventListener('change', function () { p.bgX = alignX.value; imgEl.style.backgroundPosition = bgPosition(); markDirty(); });
-      var dark = h('input', { type: 'range', min: 0, max: 90, step: 5, value: darkV });
-      var darkLbl = h('span', { class: 'hint', text: darkV + '%' });
-      dark.addEventListener('input', function () { p.bgDark = Number(dark.value); darkLbl.textContent = dark.value + '%'; shade.style.opacity = String(dark.value / 100); markDirty(); });
+
       var zoom = h('input', { type: 'range', min: 20, max: 100, step: 5, value: zoomV });
       var zoomLbl = h('span', { class: 'hint', text: zoomV + '%' + (zoomV >= 100 ? ' (llena la franja)' : '') });
       zoom.addEventListener('input', function () { zoomV = Number(zoom.value); p.bgZoom = zoomV; zoomLbl.textContent = zoomV + '%' + (zoomV >= 100 ? ' (llena la franja)' : ''); fitPrev(); markDirty(); });
@@ -587,7 +607,7 @@
           h('span', { class: 'hint', text: 'Bájalo para alejar la foto y mostrarla más completa dentro de la franja.' })),
         h('div', { class: 'field' }, h('label', { text: 'Ubicación de la foto al alejar' }), alignX),
         h('div', { class: 'field' }, h('label', { text: 'Relleno de los bordes al alejar' }), fill),
-        h('div', { class: 'field' }, h('label', { text: 'Oscurecer la foto para que se lea el texto' }), h('div', { class: 'toolbar' }, dark, darkLbl)),
+        filterControls(p, 'bgFilter', 'bgFilterColor', 'bgDark', 60, shade),
         isHidden(p.bg) ? h('span', { class: 'badge gray', text: 'Esta foto está oculta: la página mostrará las fotos flotando.' }) : null)));
     }
     view.appendChild(layoutCard);
@@ -659,8 +679,7 @@
         imageSelect(a.image, function (k) { a.image = k; markDirty(); route(); }),
         h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { a.image = k; route(); } }); } }))),
       h('div', { class: 'field' }, h('label', { text: 'Encuadre' }), abPos),
-      h('div', { class: 'field' }, h('label', { text: 'Opacidad (oscurecer la foto para que se lea el texto)' }),
-        darkSlider(a, 'imgDark', 55, function (v) { abShade.style.opacity = String(v / 100); })),
+      filterControls(a, 'imgFilter', 'imgFilterColor', 'imgDark', 55, abShade),
       h('div', { class: 'field' }, h('label', { text: 'Tamaño de la foto (zoom)' }), h('div', { class: 'toolbar' }, abZoomR, abZoomL),
         h('span', { class: 'hint', text: 'Bájalo para alejar la foto y mostrarla más completa.' })),
       h('div', { class: 'grid2' },
@@ -686,56 +705,94 @@
   }
 
   // ===== Diseño =====
+  var PREVIEW_VARS = null;
   function viewDesign(view) {
     var t = C.theme;
-    var sample = h('div', { class: 'sample' });
-    function paintSample() {
-      loadFont(t.fontDisplay); loadFont(t.fontBody);
-      sample.style.fontFamily = '"' + t.fontBody + '", sans-serif';
-      sample.innerHTML = '';
-      sample.appendChild(h('div', { class: 's-h', style: { fontFamily: '"' + t.fontDisplay + '", sans-serif', color: t.navy }, html: 'Más público. <span style="color:' + t.orange + '">Menos gestión.</span>' }));
-      sample.appendChild(h('p', { style: { margin: 0, color: t.muted }, text: 'Cursos, Talleres, Teatro, Conciertos y Ferias en una sola plataforma. Venta online y presencial, check in con QR e informes en tiempo real.' }));
-      sample.appendChild(h('div', { class: 'toolbar' },
-        h('span', { class: 'btn', style: { background: t.orange, color: '#fff', fontFamily: '"' + t.fontBody + '"' }, text: 'Agenda una demo' }),
-        h('span', { class: 'btn', style: { background: t.navy, color: '#fff', fontFamily: '"' + t.fontBody + '"' }, text: 'Ver productos' })));
-      sample.appendChild(h('div', { class: 'swatches' }, Object.keys(t).filter(function (k) { return k.indexOf('font') !== 0; }).map(function (k) { return h('i', { title: M.themeLabels[k] || k, style: { background: t[k] } }); })));
-    }
-    function fontSel(key, label) {
-      var s = h('select', {});
-      FONTS.forEach(function (f) { s.appendChild(h('option', { value: f, text: f, selected: t[key] === f })); });
-      s.addEventListener('change', function () { t[key] = s.value; markDirty(); paintSample(); });
-      return h('div', { class: 'field' }, h('label', { text: label }), s);
-    }
-    view.appendChild(h('div', { class: 'grid2' },
-      h('div', { class: 'card' }, h('h2', { text: 'Tipografías' }), h('div', { style: { display: 'grid', gap: '12px' } },
-        fontSel('fontDisplay', 'Títulos'), fontSel('fontBody', 'Textos y botones'),
-        h('button', { class: 'btn link small', text: 'Volver a las originales', onclick: function () { t.fontDisplay = D.theme.fontDisplay; t.fontBody = D.theme.fontBody; markDirty(); route(); } }))),
-      h('div', { class: 'card' }, h('h2', { text: 'Vista previa' }), sample)));
+    FONTS.forEach(loadFont);
 
-    var colors = h('div', { class: 'colors' });
-    Object.keys(t).filter(function (k) { return k.indexOf('font') !== 0; }).forEach(function (k) {
-      var inp = h('input', { type: 'color', value: normHex(t[k]) });
-      var code = h('code', { text: t[k] });
-      inp.addEventListener('input', function () { t[k] = inp.value.toUpperCase(); code.textContent = t[k]; markDirty(); paintSample(); });
-      colors.appendChild(h('div', { class: 'color' }, inp, h('div', {}, h('strong', { style: { fontSize: '.86rem' }, text: M.themeLabels[k] || k }), h('br'), code),
-        t[k] !== D.theme[k] ? h('button', { class: 'btn link small', title: 'Volver al original', text: '↺', onclick: function () { t[k] = D.theme[k]; markDirty(); route(); } }) : null));
+    // ---- Vista previa en vivo ----
+    var prev = h('div', { class: 'site-prev' });
+    function paint() {
+      var st = prev.style;
+      Object.keys(t).forEach(function (k) { if (k.indexOf('font') !== 0) st.setProperty('--' + k, t[k]); });
+      st.setProperty('--pf-d', '"' + t.fontDisplay + '", sans-serif');
+      st.setProperty('--pf-b', '"' + t.fontBody + '", sans-serif');
+      st.setProperty('--pts', String((Number(t.fontTitleScale) || 100) / 100));
+      st.setProperty('--pbs', String((Number(t.fontBodyScale) || 100) / 100));
+    }
+    prev.innerHTML =
+      '<div class="sp-head"><img src="' + imgUrl('logo-proexsi.png') + '" alt=""><span>Inicio</span><span>Nosotros</span><span>Productos</span><b class="sp-btn1">Agenda una demo</b></div>' +
+      '<div class="sp-hero"><small class="sp-eyedark">TICKETERA PARA LA CULTURA</small><h4>Más público.<br><em>Menos gestión.</em></h4><p>Venta online y presencial, check in con QR e informes.</p><div class="sp-row"><b class="sp-btn2">Agenda una demo gratuita</b><b class="sp-line">Ver productos</b></div></div>' +
+      '<div class="sp-sec"><small class="sp-eye">PRODUCTOS</small><h5>Una solución para cada actividad</h5><p class="sp-muted">Todo en la misma plataforma.</p>' +
+        '<div class="sp-cards"><div class="sp-card" style="--c:var(--p-cursos)"><i></i><strong>Cursos y Talleres</strong><span class="sp-muted">Inscripciones y asistencia.</span><em>Ver producto →</em></div>' +
+        '<div class="sp-card" style="--c:var(--p-teatro)"><i></i><strong>Teatro</strong><span class="sp-muted">Butacas numeradas.</span><em>Ver producto →</em></div></div></div>' +
+      '<div class="sp-plat"><small class="sp-eyedark">LA PLATAFORMA</small><div class="sp-platrow"><div class="sp-core"><b>Venta y gestión cultural</b><i class="sp-gen">Generación de entradas</i></div><div class="sp-col"><div class="sp-box">Caja presencial</div><div class="sp-check">Check in</div></div></div></div>' +
+      '<div class="sp-mods"><div style="--c1:var(--mod1-a);--c2:var(--mod1-b)"></div><div style="--c1:var(--mod2-a);--c2:var(--mod2-b)"></div><div style="--c1:var(--mod3-a);--c2:var(--mod3-b)"></div><div style="--c1:var(--mod4-a);--c2:var(--mod4-b)"></div></div>' +
+      '<div class="sp-contact">Agenda una demo de 30 minutos</div><div class="sp-foot">© Proexsi</div>';
+    paint();
+
+    // ---- Tipografías ----
+    function fontPicker(key, label, sample) {
+      var grid = h('div', { class: 'font-grid' });
+      FONTS.forEach(function (f) {
+        grid.appendChild(h('button', { class: 'font-tile' + (t[key] === f ? ' on' : ''), style: { fontFamily: '"' + f + '", sans-serif' }, onclick: function () {
+          t[key] = f; markDirty(); paint(); grid.querySelectorAll('.font-tile').forEach(function (b) { b.classList.toggle('on', b.textContent.indexOf(f) === 2); });
+        } }, h('b', { text: 'Aa' }), h('span', { text: f })));
+      });
+      return h('div', { class: 'field' }, h('label', { text: label }), h('span', { class: 'hint', text: sample }), grid);
+    }
+    function scale(key, label, min, max) {
+      var v = Number(t[key]) || 100;
+      var r = h('input', { type: 'range', min: min, max: max, step: 5, value: v });
+      var l = h('span', { class: 'hint', text: v + '%' });
+      r.addEventListener('input', function () { t[key] = Number(r.value); l.textContent = r.value + '%'; markDirty(); paint(); });
+      return h('div', { class: 'field' }, h('label', { text: label }), h('div', { class: 'toolbar' }, r, l));
+    }
+    var fontsCard = h('div', { class: 'card' }, h('div', { class: 'card-head' }, h('h2', { text: 'Tipografías' }),
+      h('button', { class: 'btn link small', text: 'Volver a las originales', onclick: function () { t.fontDisplay = D.theme.fontDisplay; t.fontBody = D.theme.fontBody; t.fontTitleScale = 100; t.fontBodyScale = 100; markDirty(); route(); } })),
+      h('div', { style: { display: 'grid', gap: '16px' } },
+        fontPicker('fontDisplay', 'Tipografía de los títulos', 'Títulos grandes, subtítulos y números destacados.'),
+        fontPicker('fontBody', 'Tipografía de los textos y botones', 'Párrafos, menú, botones y formularios.'),
+        h('div', { class: 'grid2' }, scale('fontTitleScale', 'Tamaño de los títulos', 80, 125), scale('fontBodyScale', 'Tamaño del texto', 90, 115))));
+
+    // ---- Colores por grupo ----
+    var groups = h('div', { style: { display: 'grid', gap: '16px' } });
+    (M.themeGroups || []).forEach(function (g, gi) {
+      var rows = h('div', { class: 'color-list' });
+      g.keys.forEach(function (row) {
+        var k = row[0];
+        if (!(k in t)) return;
+        var inp = h('input', { type: 'color', value: normHex(t[k]) });
+        var code = h('code', { text: t[k] });
+        var reset = h('button', { class: 'btn link small', title: 'Volver al original', text: '↺', style: { visibility: t[k] !== D.theme[k] ? 'visible' : 'hidden' }, onclick: function () {
+          t[k] = D.theme[k]; inp.value = normHex(t[k]); code.textContent = t[k]; reset.style.visibility = 'hidden'; markDirty(); paint();
+        } });
+        inp.addEventListener('input', function () { t[k] = inp.value.toUpperCase(); code.textContent = t[k]; reset.style.visibility = t[k] !== D.theme[k] ? 'visible' : 'hidden'; markDirty(); paint(); });
+        rows.appendChild(h('div', { class: 'color-row' }, inp, h('div', {}, h('strong', { text: row[1] }), row[2] ? h('span', { class: 'hint', text: row[2] }) : null), code, reset));
+      });
+      var det = h('details', { class: 'sec', open: gi < 3 }, h('summary', {}, g.title, h('span', { text: g.desc })), h('div', { class: 'fields' }, rows));
+      groups.appendChild(det);
     });
-    view.appendChild(h('div', { class: 'card' }, h('div', { class: 'card-head' }, h('h2', { text: 'Colores' }),
-      h('button', { class: 'btn ghost small', text: 'Restablecer todos los colores', onclick: function () { Object.keys(D.theme).forEach(function (k) { if (k.indexOf('font') !== 0) t[k] = D.theme[k]; }); markDirty(); route(); } })), colors));
 
     var logo = 'logo-proexsi.png';
-    view.appendChild(h('div', { class: 'card' }, h('h2', { text: 'Logo' }), h('div', { class: 'toolbar' },
+    var logoCard = h('div', { class: 'card' }, h('h2', { text: 'Logo' }), h('div', { class: 'toolbar' },
       h('img', { src: imgUrl(logo), alt: 'Logo actual', style: { height: '36px', background: '#fff', border: '1px solid #DDE4F1', borderRadius: '8px', padding: '6px 10px' } }),
       h('button', { class: 'btn ghost small', text: 'Cambiar logo', onclick: function () { uploadImage(logo, true).then(function (r) { if (r) route(); }); } }),
       C.images[logo] ? h('button', { class: 'btn link small', text: 'Volver al original', onclick: function () { delete C.images[logo]; markDirty(); route(); } }) : null),
-      h('p', { class: 'hint', text: 'Usa un PNG con fondo transparente o un SVG. Se muestra en el menú, el pie de página y el diagrama de La Plataforma.' })));
-    paintSample();
+      h('p', { class: 'hint', text: 'Usa un PNG con fondo transparente o un SVG. Se muestra en el menú, el pie de página y el diagrama de La Plataforma.' }));
+
+    view.appendChild(h('div', { class: 'design' },
+      h('div', { class: 'design-main' }, fontsCard,
+        h('div', { class: 'card-head', style: { marginTop: '6px' } }, h('h2', { text: 'Colores' }),
+          h('button', { class: 'btn ghost small', text: 'Restablecer todos los colores', onclick: function () { Object.keys(D.theme).forEach(function (k) { if (k.indexOf('font') !== 0) t[k] = D.theme[k]; }); markDirty(); route(); } })),
+        groups, logoCard),
+      h('aside', { class: 'design-prev' }, h('div', { class: 'card' }, h('h2', { text: 'Vista previa' }), h('p', { class: 'hint', text: 'Se actualiza mientras eliges. Guarda para aplicar al sitio.' }), prev))));
   }
   function normHex(v) { v = String(v || '#000000'); if (/^#[0-9a-f]{3}$/i.test(v)) v = '#' + v[1] + v[1] + v[2] + v[2] + v[3] + v[3]; return v.slice(0, 7); }
   var loadedFonts = {};
   function loadFont(f) {
     if (!f || loadedFonts[f]) return; loadedFonts[f] = 1;
-    document.head.appendChild(h('link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=' + f.replace(/ /g, '+') + ':wght@400;700&display=swap' }));
+    document.head.appendChild(h('link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=' + f.replace(/ /g, '+') + ':wght@400;700;800&display=swap' }));
   }
 
   // ===== Ajustes =====

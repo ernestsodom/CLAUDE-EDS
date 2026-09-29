@@ -26,8 +26,49 @@ export const DEFAULTS = {
   "p-teatro": "#E5415A",
   "p-orquesta": "#0EA0DC",
   "p-ferias": "#1FA35C",
+  "t-title": "#25358B",
+  "t-nav": "#10183A",
+  "t-accent": "#E0560A",
+  "t-accent-dark": "#FFB27F",
+  "t-highlight": "#FF9A57",
+  "t-hero": "#FFFFFF",
+  "t-hero-lead": "#D6DEF5",
+  "btn1-bg": "#25358B",
+  "btn1-hover": "#1F5BD8",
+  "btn1-text": "#FFFFFF",
+  "btn2-a": "#FF8534",
+  "btn2-b": "#E0560A",
+  "btn2-text": "#FFFFFF",
+  "bg-page": "#FFFFFF",
+  "bg-header": "#FFFFFF",
+  "bg-hero": "#141D57",
+  "bg-contact-a": "#141D57",
+  "bg-contact-b": "#1F5BD8",
+  "bg-footer": "#141D57",
+  "prod-bg": "#FFFFFF",
+  "prod-border": "#DDE4F1",
+  "plat-bg": "#141D57",
+  "plat-box": "#1E2A72",
+  "plat-box-border": "#33429A",
+  "plat-core-a": "#2F66E6",
+  "plat-core-b": "#25358B",
+  "plat-gen-a": "#FF8534",
+  "plat-gen-b": "#E0560A",
+  "plat-check-a": "#E5415A",
+  "plat-check-b": "#F26B1D",
+  "mod-bg": "#F4F7FE",
+  "mod1-a": "#1F5BD8",
+  "mod1-b": "#12B5E5",
+  "mod2-a": "#E23D8F",
+  "mod2-b": "#F26B1D",
+  "mod3-a": "#0FA396",
+  "mod3-b": "#1FA35C",
+  "mod4-a": "#6A4CF0",
+  "mod4-b": "#1F5BD8",
   "fontDisplay": "Red Hat Display",
-  "fontBody": "Red Hat Text"
+  "fontBody": "Red Hat Text",
+  "fontTitleScale": 100,
+  "fontBodyScale": 100
  },
  "texts": {
   "header.01": "Menú",
@@ -1991,28 +2032,411 @@ export const META = {
   "footer": "Pie de página"
  },
  "themeLabels": {
-  "navy": "Azul corporativo (logo)",
-  "navy-2": "Azul oscuro (fondos)",
-  "blue": "Azul de acción",
-  "blue-600": "Azul de acción (hover)",
-  "cyan": "Celeste de apoyo",
-  "sky": "Fondo celeste claro",
-  "sky-2": "Celeste medio",
-  "orange": "Naranjo (acento)",
-  "orange-2": "Naranjo oscuro",
-  "line": "Bordes",
+  "t-title": "Azul de los títulos",
   "ink": "Texto principal",
-  "muted": "Texto secundario",
+  "muted": "Texto secundario (gris azulado)",
+  "t-nav": "Letras del menú superior",
+  "t-accent": "Naranjo de las etiquetas (fondo claro)",
+  "t-accent-dark": "Naranjo de las etiquetas (fondo oscuro)",
+  "t-highlight": "Naranjo de la palabra destacada",
+  "t-hero": "Títulos sobre fotos",
+  "t-hero-lead": "Bajadas sobre fotos",
+  "btn1-bg": "Botón azul: fondo",
+  "btn1-hover": "Botón azul: al pasar el mouse",
+  "btn1-text": "Botón azul: letras",
+  "btn2-a": "Botón naranjo: color de inicio",
+  "btn2-b": "Botón naranjo: color de término",
+  "btn2-text": "Botón naranjo: letras",
+  "bg-page": "Blanco de fondo",
+  "bg-header": "Fondo del menú superior",
+  "bg-hero": "Azul de fondo de la portada",
+  "sky": "Celeste de fondo de secciones",
+  "bg-contact-a": "Fondo de Contacto: color de inicio",
+  "bg-contact-b": "Fondo de Contacto: color de término",
+  "bg-footer": "Azul del pie de página",
+  "prod-bg": "Fondo de las tarjetas",
+  "prod-border": "Borde de las tarjetas",
+  "p-cursos": "Cursos y Talleres",
+  "p-infantil": "Actividades Culturales Infantiles",
+  "p-teatro": "Teatro",
+  "p-orquesta": "Orquesta y Sala de Música",
+  "p-seminarios": "Seminarios y Conferencias",
+  "p-mayores": "Actividades para la 3.ª Edad",
+  "p-ferias": "Ferias y Eventos Masivos",
+  "plat-bg": "Fondo de la sección",
+  "plat-box": "Fondo de los cuadros",
+  "plat-box-border": "Borde de los cuadros",
+  "plat-core-a": "Cuadro central Proexsi: color de inicio",
+  "plat-core-b": "Cuadro central Proexsi: color de término",
+  "plat-gen-a": "Barra “Generación de entradas”: inicio",
+  "plat-gen-b": "Barra “Generación de entradas”: término",
+  "plat-check-a": "Cuadro “Check in”: inicio",
+  "plat-check-b": "Cuadro “Check in”: término",
+  "mod-bg": "Fondo de la sección",
+  "mod1-a": "Administra tu Oferta: inicio",
+  "mod1-b": "Administra tu Oferta: término",
+  "mod2-a": "Inscripciones: inicio",
+  "mod2-b": "Inscripciones: término",
+  "mod3-a": "Control de acceso: inicio",
+  "mod3-b": "Control de acceso: término",
+  "mod4-a": "Informes en línea: inicio",
+  "mod4-b": "Informes en línea: término",
+  "navy": "Azul corporativo (logo)",
+  "navy-2": "Azul oscuro",
+  "blue": "Azul de acción",
+  "blue-600": "Azul de acción oscuro",
+  "cyan": "Celeste de apoyo",
+  "sky-2": "Celeste medio",
+  "orange": "Naranjo de acento",
+  "orange-2": "Naranjo oscuro",
+  "line": "Bordes y líneas",
   "white": "Blanco",
-  "ok": "Verde (confirmación)",
-  "p-cursos": "Producto: Cursos y Talleres",
-  "p-seminarios": "Producto: Seminarios",
-  "p-infantil": "Producto: Infantil",
-  "p-mayores": "Producto: 3.ª Edad",
-  "p-teatro": "Producto: Teatro",
-  "p-orquesta": "Producto: Orquesta",
-  "p-ferias": "Producto: Ferias"
+  "ok": "Verde de confirmación"
  },
+ "themeGroups": [
+  {
+   "title": "Letras",
+   "desc": "Colores del texto en todo el sitio.",
+   "keys": [
+    [
+     "t-title",
+     "Azul de los títulos",
+     "Títulos grandes y subtítulos sobre fondo claro, preguntas frecuentes."
+    ],
+    [
+     "ink",
+     "Texto principal",
+     "Párrafos y textos generales."
+    ],
+    [
+     "muted",
+     "Texto secundario (gris azulado)",
+     "Bajadas bajo los títulos y descripciones de tarjetas."
+    ],
+    [
+     "t-nav",
+     "Letras del menú superior",
+     "Inicio, Nosotros, Productos, etc."
+    ],
+    [
+     "t-accent",
+     "Naranjo de las etiquetas (fondo claro)",
+     "Textos pequeños en mayúscula sobre los títulos, como “PRODUCTOS”."
+    ],
+    [
+     "t-accent-dark",
+     "Naranjo de las etiquetas (fondo oscuro)",
+     "Las mismas etiquetas sobre fotos o fondos azules."
+    ],
+    [
+     "t-highlight",
+     "Naranjo de la palabra destacada",
+     "“Menos gestión.” en la portada y palabras marcadas con <em>."
+    ],
+    [
+     "t-hero",
+     "Títulos sobre fotos",
+     "Título de la portada, de Nosotros y de las páginas de producto."
+    ],
+    [
+     "t-hero-lead",
+     "Bajadas sobre fotos",
+     "Texto bajo el título de la portada y de Nosotros."
+    ]
+   ]
+  },
+  {
+   "title": "Botones",
+   "desc": "Los botones redondeados del sitio.",
+   "keys": [
+    [
+     "btn1-bg",
+     "Botón azul: fondo",
+     "“Agenda una demo” del menú superior."
+    ],
+    [
+     "btn1-hover",
+     "Botón azul: al pasar el mouse",
+     ""
+    ],
+    [
+     "btn1-text",
+     "Botón azul: letras",
+     ""
+    ],
+    [
+     "btn2-a",
+     "Botón naranjo: color de inicio",
+     "El botón naranjo tiene un degradado de este color…"
+    ],
+    [
+     "btn2-b",
+     "Botón naranjo: color de término",
+     "…hacia este color. “Agenda una demo gratuita”, “Solicitar demo”."
+    ],
+    [
+     "btn2-text",
+     "Botón naranjo: letras",
+     ""
+    ]
+   ]
+  },
+  {
+   "title": "Fondos",
+   "desc": "Fondos generales de la página y sus secciones.",
+   "keys": [
+    [
+     "bg-page",
+     "Blanco de fondo",
+     "Fondo general de la página."
+    ],
+    [
+     "bg-header",
+     "Fondo del menú superior",
+     ""
+    ],
+    [
+     "bg-hero",
+     "Azul de fondo de la portada",
+     "Se ve detrás del carrusel cuando la foto no cubre todo."
+    ],
+    [
+     "sky",
+     "Celeste de fondo de secciones",
+     "“Así funciona” de productos, “Qué hacemos” de Nosotros, preguntas frecuentes."
+    ],
+    [
+     "bg-contact-a",
+     "Fondo de Contacto: color de inicio",
+     "La sección “Agenda una demo” tiene un degradado…"
+    ],
+    [
+     "bg-contact-b",
+     "Fondo de Contacto: color de término",
+     ""
+    ],
+    [
+     "bg-footer",
+     "Azul del pie de página",
+     ""
+    ]
+   ]
+  },
+  {
+   "title": "Tarjetas de productos",
+   "desc": "Las 7 tarjetas de la sección Productos y sus páginas.",
+   "keys": [
+    [
+     "prod-bg",
+     "Fondo de las tarjetas",
+     ""
+    ],
+    [
+     "prod-border",
+     "Borde de las tarjetas",
+     ""
+    ],
+    [
+     "p-cursos",
+     "Cursos y Talleres",
+     "Franja, etiqueta, “Ver producto” y portada de su página."
+    ],
+    [
+     "p-infantil",
+     "Actividades Culturales Infantiles",
+     ""
+    ],
+    [
+     "p-teatro",
+     "Teatro",
+     ""
+    ],
+    [
+     "p-orquesta",
+     "Orquesta y Sala de Música",
+     ""
+    ],
+    [
+     "p-seminarios",
+     "Seminarios y Conferencias",
+     ""
+    ],
+    [
+     "p-mayores",
+     "Actividades para la 3.ª Edad",
+     ""
+    ],
+    [
+     "p-ferias",
+     "Ferias y Eventos Masivos",
+     ""
+    ]
+   ]
+  },
+  {
+   "title": "La Plataforma: diagrama",
+   "desc": "La sección azul con el diagrama de venta y gestión.",
+   "keys": [
+    [
+     "plat-bg",
+     "Fondo de la sección",
+     ""
+    ],
+    [
+     "plat-box",
+     "Fondo de los cuadros",
+     "Integraciones, Caja presencial, Venta online."
+    ],
+    [
+     "plat-box-border",
+     "Borde de los cuadros",
+     ""
+    ],
+    [
+     "plat-core-a",
+     "Cuadro central Proexsi: color de inicio",
+     "Degradado del cuadro “Venta y gestión cultural”…"
+    ],
+    [
+     "plat-core-b",
+     "Cuadro central Proexsi: color de término",
+     ""
+    ],
+    [
+     "plat-gen-a",
+     "Barra “Generación de entradas”: inicio",
+     ""
+    ],
+    [
+     "plat-gen-b",
+     "Barra “Generación de entradas”: término",
+     ""
+    ],
+    [
+     "plat-check-a",
+     "Cuadro “Check in”: inicio",
+     ""
+    ],
+    [
+     "plat-check-b",
+     "Cuadro “Check in”: término",
+     ""
+    ]
+   ]
+  },
+  {
+   "title": "La Plataforma: módulos",
+   "desc": "Las 4 tarjetas de “Todo en una plataforma web”. Cada una tiene un degradado de dos colores.",
+   "keys": [
+    [
+     "mod-bg",
+     "Fondo de la sección",
+     ""
+    ],
+    [
+     "mod1-a",
+     "Administra tu Oferta: inicio",
+     ""
+    ],
+    [
+     "mod1-b",
+     "Administra tu Oferta: término",
+     ""
+    ],
+    [
+     "mod2-a",
+     "Inscripciones: inicio",
+     ""
+    ],
+    [
+     "mod2-b",
+     "Inscripciones: término",
+     ""
+    ],
+    [
+     "mod3-a",
+     "Control de acceso: inicio",
+     ""
+    ],
+    [
+     "mod3-b",
+     "Control de acceso: término",
+     ""
+    ],
+    [
+     "mod4-a",
+     "Informes en línea: inicio",
+     ""
+    ],
+    [
+     "mod4-b",
+     "Informes en línea: término",
+     ""
+    ]
+   ]
+  },
+  {
+   "title": "Colores base (avanzado)",
+   "desc": "Colores de marca que usan otros detalles del sitio (íconos, bordes, gráficos).",
+   "keys": [
+    [
+     "navy",
+     "Azul corporativo (logo)",
+     ""
+    ],
+    [
+     "navy-2",
+     "Azul oscuro",
+     ""
+    ],
+    [
+     "blue",
+     "Azul de acción",
+     ""
+    ],
+    [
+     "blue-600",
+     "Azul de acción oscuro",
+     ""
+    ],
+    [
+     "cyan",
+     "Celeste de apoyo",
+     ""
+    ],
+    [
+     "sky-2",
+     "Celeste medio",
+     ""
+    ],
+    [
+     "orange",
+     "Naranjo de acento",
+     ""
+    ],
+    [
+     "orange-2",
+     "Naranjo oscuro",
+     ""
+    ],
+    [
+     "line",
+     "Bordes y líneas",
+     ""
+    ],
+    [
+     "white",
+     "Blanco",
+     ""
+    ],
+    [
+     "ok",
+     "Verde de confirmación",
+     ""
+    ]
+   ]
+  }
+ ],
  "imageKeys": [
   "beneficios-celular.webp",
   "logo-proexsi.png",
