@@ -88,9 +88,8 @@ section{padding-block:84px}
 .slide.on{opacity:1;transform:scale(1)}
 .slide .s-fill{position:absolute;inset:-40px;background:center/cover no-repeat;filter:blur(26px) saturate(1.15);opacity:.85}
 .slide .s-img{position:absolute;inset:0;background-repeat:no-repeat;background-size:cover}
-.hero::after{content:"";position:absolute;inset:0;z-index:1;background:
-    linear-gradient(90deg,rgba(8,44,112,.92) 0%,rgba(10,64,150,.74) 38%,rgba(18,120,200,.22) 60%,rgba(18,181,229,.06) 78%),
-    linear-gradient(0deg,rgba(8,44,112,.45),transparent 30%)}
+/* Sin filtro de color: cada imagen tiene un oscurecimiento neutro con opacidad regulable */
+.slide .s-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.65) 40%,rgba(0,0,0,.15) 72%,rgba(0,0,0,0) 100%);opacity:var(--o,.45)}
 .hero .wrap{z-index:2}
 .car-ctl{position:absolute;z-index:3;right:max(20px,calc((100vw - 1180px)/2 + 20px));bottom:36px;display:flex;align-items:center;gap:10px}
 .car-ctl button{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.6);background:rgba(8,44,112,.45);color:#fff;font-size:1.1rem;cursor:pointer;backdrop-filter:blur(4px)}
@@ -98,7 +97,7 @@ section{padding-block:84px}
 .dots{display:flex;gap:6px;margin-inline:4px}
 .dots button{width:10px;height:10px;padding:0;border-radius:999px;border:0;background:rgba(255,255,255,.55);transition:width .3s}
 .dots button[aria-current="true"]{width:28px;background:var(--orange)}
-@media (max-width:760px){.hero::after{background:linear-gradient(180deg,rgba(8,44,112,.8),rgba(14,90,170,.6))}.car-ctl{bottom:24px}}
+@media (max-width:760px){.slide .s-shade{background:rgba(0,0,0,.75)}.car-ctl{bottom:24px}}
 .hero .wrap{position:relative}
 .hero-copy{display:grid;gap:22px;max-width:600px}
 .hero h1{color:var(--white);text-shadow:0 2px 24px rgba(0,0,0,.35)}
@@ -320,7 +319,7 @@ section[id],div[id="plataforma"]{scroll-margin-top:72px}
 /* ===== Página Nosotros ===== */
 .ab-hero{position:relative;overflow:hidden;color:#fff;padding-block:84px 96px;background:var(--navy-2)}
 .ab-hero::before{content:"";position:absolute;inset:0;background:url("img/hero-contrabajos.webp") center 45%/cover no-repeat}
-.ab-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,29,87,.93) 0%,rgba(20,29,87,.78) 45%,rgba(20,29,87,.25) 100%)}
+.ab-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.65) 45%,rgba(0,0,0,.15) 100%);opacity:var(--ab-o,.55)}
 .ab-hero .wrap{position:relative;z-index:1;display:grid;gap:18px;max-width:1180px}
 .ab-hero h1{color:#fff;max-width:14ch}
 .ab-hero .lead{color:#D6DEF5;max-width:58ch}

@@ -460,7 +460,8 @@
       function slidePos() { return (s.x || 'center') + ' ' + (String(s.pos || 'center 50%').split(' ').slice(1).join(' ') || '50%'); }
       var sFill = h('div', { class: 'bg-fill', style: { backgroundImage: 'url("' + imgUrl(s.img) + '")', display: (zoomV >= 100 || s.fill === 'color') ? 'none' : '' } });
       var sImg = h('div', { class: 'bg-img', style: { backgroundImage: 'url("' + imgUrl(s.img) + '")', backgroundPosition: slidePos() } });
-      var th = h('div', { class: 'th slide-prev' + ((s.hidden || isHidden(s.img)) ? ' off' : '') }, sFill, sImg);
+      var sShade = h('div', { class: 'sh-shade' });
+      var th = h('div', { class: 'th slide-prev' + ((s.hidden || isHidden(s.img)) ? ' off' : '') }, sFill, sImg, sShade);
       function fitThumb() { fitBox(sImg, imgUrl(s.img), zoomV); sFill.style.display = (zoomV >= 100 || s.fill === 'color') ? 'none' : ''; }
       setTimeout(fitThumb, 50);
       pos.addEventListener('change', function () { s.pos = pos.value; sImg.style.backgroundPosition = slidePos(); markDirty(); });
@@ -484,6 +485,8 @@
           h('div', { class: 'field' }, h('label', { text: 'Encuadre' }), pos),
           h('div', { class: 'field' }, h('label', { text: 'Tamaño de la foto (zoom)' }), h('div', { class: 'toolbar' }, zoom, zoomLbl),
             h('span', { class: 'hint', text: 'Bájalo para alejar la foto y mostrarla más completa en la portada.' })),
+          h('div', { class: 'field' }, h('label', { text: 'Opacidad (oscurecer la foto para que se lea el texto)' }),
+            darkSlider(s, 'dark', 45, function (v) { sShade.style.opacity = String(v / 100); })),
           h('div', { class: 'grid2' },
             h('div', { class: 'field' }, h('label', { text: 'Ubicación al alejar' }), alignX),
             h('div', { class: 'field' }, h('label', { text: 'Relleno de los bordes' }), fillSel)),
@@ -491,6 +494,15 @@
     });
     view.appendChild(card);
     view.appendChild(h('p', { class: 'hint', text: 'El título y los botones que aparecen sobre el carrusel se editan en Textos → Portada (carrusel).' }));
+  }
+  // Deslizador de opacidad del oscurecimiento (0 = foto sin oscurecer)
+  function darkSlider(obj, key, def, onMove) {
+    var v = obj[key] == null || obj[key] === '' ? def : Number(obj[key]);
+    var r = h('input', { type: 'range', min: 0, max: 90, step: 5, value: v });
+    var l = h('span', { class: 'hint', text: v + '%' + (v === 0 ? ' (foto sin oscurecer)' : '') });
+    r.addEventListener('input', function () { obj[key] = Number(r.value); l.textContent = r.value + '%' + (r.value === '0' ? ' (foto sin oscurecer)' : ''); if (onMove) onMove(Number(r.value)); markDirty(); });
+    if (onMove) setTimeout(function () { onMove(v); });
+    return h('div', { class: 'toolbar' }, r, l);
   }
   function fitBox(el, url, zoom) {
     if (zoom >= 100) { el.style.backgroundSize = 'cover'; return; }
@@ -621,12 +633,17 @@
   // ===== Nosotros =====
   function viewAbout(view) {
     var a = C.about;
+    var abShade = h('div', { class: 'sh-shade' });
+    var abPrev = h('div', { class: 'bg-prev ab-prev', style: { backgroundImage: a.image && !isHidden(a.image) ? 'url("' + imgUrl(a.image) + '")' : 'none' } }, abShade, h('strong', { text: a.title }));
     view.appendChild(h('div', { class: 'card' }, h('h2', { text: 'Portada' }), h('div', { class: 'grid2' },
       bind(a, 'eyebrow', { multi: false, label: 'Etiqueta' }), bind(a, 'title', { multi: false, label: 'Título' }),
       h('div', { style: { gridColumn: '1/-1' } }, bind(a, 'lead', { label: 'Bajada', rows: 3 })),
       h('div', { class: 'field' }, h('label', { text: 'Foto de fondo' }), h('div', { class: 'toolbar' },
-        imageSelect(a.image, function (k) { a.image = k; markDirty(); }),
-        h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { a.image = k; route(); } }); } }))))));
+        imageSelect(a.image, function (k) { a.image = k; markDirty(); route(); }),
+        h('button', { class: 'btn ghost small', text: 'Subir otra', onclick: function () { uploadImage(null).then(function (k) { if (k) { a.image = k; route(); } }); } }))),
+      h('div', { class: 'field' }, h('label', { text: 'Opacidad (oscurecer la foto para que se lea el texto)' }),
+        darkSlider(a, 'imgDark', 55, function (v) { abShade.style.opacity = String(v / 100); })),
+      h('div', { style: { gridColumn: '1/-1' } }, abPrev))));
     view.appendChild(h('div', { class: 'card' }, h('h2', { text: 'Presentación' }), h('div', { class: 'grid2' },
       bind(a, 'yearsNum', { multi: false, label: 'Cifra del círculo' }), bind(a, 'yearsLabel', { multi: false, label: 'Texto bajo la cifra' }),
       h('div', { style: { gridColumn: '1/-1' } }, bind(a, 'introStrong', { label: 'Frase destacada' })),

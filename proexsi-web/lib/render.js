@@ -88,6 +88,8 @@ export function renderPage(content, { preview = false } = {}) {
       }
       const im = document.createElement('div'); im.className = 's-img'; im.setAttribute('data-zoom', String(zoom));
       im.setAttribute('style', `background-image:${url};background-position:${safeCss(x + ' ' + y)}`); d.appendChild(im);
+      const dark = s.dark == null || s.dark === '' || !isFinite(Number(s.dark)) ? 45 : Math.min(Math.max(Number(s.dark), 0), 90);
+      const sh = document.createElement('div'); sh.className = 's-shade'; sh.setAttribute('style', `--o:${dark / 100}`); d.appendChild(sh);
       d.setAttribute('role', 'img');
       d.setAttribute('aria-label', s.alt || '');
       hero.insertBefore(d, wrap);

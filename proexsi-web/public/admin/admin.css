@@ -171,3 +171,6 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.88rem}
 .bg-prev strong{position:relative;color:#fff;font:800 1.5rem var(--display)}
 .card.muted .pics{opacity:.55}
 input[type=range]{width:220px;accent-color:var(--blue)}
+
+.sh-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.65) 40%,rgba(0,0,0,.15) 72%,rgba(0,0,0,0) 100%);opacity:.45;pointer-events:none}
+.ab-prev{background:#141D57 center 45%/cover no-repeat}

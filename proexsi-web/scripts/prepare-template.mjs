@@ -68,7 +68,7 @@ const newRender = String.raw`  function imgUrl(k){return (SITE.images&&SITE.imag
     var dos=(AB.do||[]).map(function(x,i){return '<div class="do" style="--c:'+doCol[i%3]+'"><span class="ic">'+doIco[i%3]+'</span><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('');
     var vals=(AB.val||[]).map(function(x,i){return '<div class="val" style="--c:'+valCol[i%4]+'"><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('');
     pp.innerHTML=
-      '<section class="ab-hero" aria-label="Nosotros"'+(vis(AB.image)?' style="--ab-img:url('+esc(imgUrl(AB.image))+')"':'')+'><div class="wrap">'+
+      '<section class="ab-hero" aria-label="Nosotros" style="--ab-o:'+(num(AB.imgDark,55,0,90)/100)+(vis(AB.image)?';--ab-img:url('+esc(imgUrl(AB.image))+')':'')+'"><div class="wrap">'+
         '<div class="crumb"><a href="#inicio">Inicio</a> / '+esc(AB.eyebrow)+'</div>'+
         '<span class="eyebrow" style="color:#FFB27F">'+esc(AB.eyebrow)+'</span>'+
         '<h1>'+esc(AB.title)+'</h1>'+
