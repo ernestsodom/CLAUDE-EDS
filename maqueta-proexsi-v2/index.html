@@ -82,8 +82,8 @@ section[id],div[id]{scroll-margin-top:84px}
 }
 
 /* hero: foto de lado a lado con velo gris oscuro */
-.hero{position:relative;isolation:isolate;overflow:hidden;background:var(--shade);color:#fff;padding-block:clamp(72px,9vw,128px) clamp(56px,7vw,96px);margin-bottom:40px}
-.hero-bg{position:absolute;inset:0;z-index:-2;background:url("img/hero-feria-full.webp") 72% 40%/cover no-repeat}
+.hero{position:relative;isolation:isolate;overflow:hidden;background:var(--shade);color:#fff;padding-block:clamp(56px,6vw,96px) clamp(44px,5vw,72px);margin-bottom:40px}
+.hero-bg{position:absolute;inset:0;z-index:-2;background:url("img/hero-mercado.webp") 36% 35%/cover no-repeat}
 .hero::before{content:"";position:absolute;inset:0;z-index:-1;background:
   linear-gradient(90deg,color-mix(in srgb,var(--shade) 92%,transparent) 0%,color-mix(in srgb,var(--shade) 80%,transparent) 38%,color-mix(in srgb,var(--shade) 42%,transparent) 68%,color-mix(in srgb,var(--shade) 25%,transparent) 100%),
   linear-gradient(0deg,color-mix(in srgb,var(--shade) 55%,transparent),transparent 45%)}
@@ -100,7 +100,7 @@ section[id],div[id]{scroll-margin-top:84px}
 .hero-facts b{display:block;font-family:var(--serif);font-weight:var(--serif-w);font-size:1.6rem;line-height:1.1;color:#fff}
 @media (max-width:760px){
   .hero::before{background:linear-gradient(180deg,color-mix(in srgb,var(--shade) 70%,transparent),color-mix(in srgb,var(--shade) 88%,transparent))}
-  .hero-bg{background-position:62% center}
+  .hero-bg{background-position:58% center}
   .hero-facts{grid-template-columns:1fr;gap:14px}
 }
 
@@ -312,7 +312,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--green);border-co
 
 <!-- PORTADA -->
 <section class="hero" aria-label="Presentación">
-  <div class="hero-bg" role="img" aria-label="Niña y adulta mayor compartiendo una planta en una feria al aire libre"></div>
+  <div class="hero-bg" role="img" aria-label="Abuela y nieta recorriendo una feria de artesanía al aire libre"></div>
   <div class="wrap">
     <div class="hero-copy">
       <p class="kicker">Venta y gestión cultural</p>
@@ -498,11 +498,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--green);border-co
       lead:'Vende entradas por día y bloque horario, controla accesos masivos y cobra en los puntos de venta del recinto.',
       f:[['Entradas por día y horario','Bloques horarios para ordenar el flujo de público.'],['Aforo por bloque','La venta se cierra sola cuando se completa el aforo.'],['Accesos masivos','Lectores QR para validar muchas entradas por minuto.'],['Puntos de venta','Cobra comida, productos y merchandising en el recinto.'],['Acreditación de expositores','Credenciales para expositores y personal.'],['Flujo de público','Ingresos por hora y por puerta en tiempo real.']],
       s:['Configuras los días, bloques y aforos.','El público compra online o en caja.','Validas en los accesos y sigues el flujo en vivo.']},
-    mayores:{n:'Eventos 3era Edad',img:'cat-mayores.webp',alt:'Grupo de personas mayores conversando en un parque',short:'Inscripción asistida y precios preferentes.',
+    mayores:{n:'Eventos 3era Edad',img:'cat-mayores.webp',alt:'Personas mayores en un taller de cerámica',pos:'center 30%',short:'Inscripción asistida y precios preferentes.',
       lead:'Facilita el acceso de las personas mayores a tu programación, con inscripción asistida y precios preferentes.',
       f:[['Inscripción asistida','El equipo de caja inscribe a cada persona en pocos pasos.'],['Precios preferentes por RUT','El descuento se aplica al validar el RUT.'],['Recordatorios','Avisos por correo o SMS antes de cada actividad.'],['Talleres con cupos','Cupos por taller y lista de espera.'],['Grupos y clubes','Inscripciones para agrupaciones de adultos mayores.'],['Informes de participación','Asistencia y participación por actividad.']],
       s:['Publicas las actividades con sus cupos y precios.','Las personas se inscriben en caja o por internet.','Registras la asistencia y revisas la participación.']},
-    teatro:{n:'Teatro Local',img:'cat-teatro.webp',alt:'Elenco saludando al público al final de una función',short:'Butacas numeradas, temporadas y cortesías.',
+    teatro:{n:'Teatro Local',img:'cat-teatro.webp',alt:'Público en un teatro frente al telón rojo',short:'Butacas numeradas, temporadas y cortesías.',
       lead:'Vende butacas numeradas en el mapa real de tu sala, administra temporadas y controla el acceso en cada función.',
       f:[['Mapa de sala','Butaca numerada por zona, con vista del escenario.'],['Temporadas y funciones','Crea todas las funciones de una obra de una sola vez.'],['Cortesías','Entradas para elenco, prensa e invitados, con control de cupos.'],['Precios por zona','Platea, balcón y palcos, con promociones propias.'],['Venta online y presencial','Internet y caja presencial con el mismo stock.'],['Control de acceso','Check in por función con código QR, desde lectores o celulares.']],
       s:['Cargas la obra, las funciones y el mapa de sala.','El público elige su butaca y paga en el canal que prefiera.','Validas las entradas en la puerta y revisas la ocupación.']},
