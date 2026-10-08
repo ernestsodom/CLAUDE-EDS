@@ -16,14 +16,17 @@ function safeEqual(a, b) {
   return d === 0;
 }
 
+// Quita espacios, saltos de línea y comillas que suelen colarse al pegar la clave en el panel
+const clean = v => String(v ?? '').trim().replace(/^["'`]+|["'`]+$/g, '').trim();
+
 export const config = env => ({
-  password: env.ADMIN_PASSWORD || (env.DATABASE_URL ? '' : 'admin'),
+  password: clean(env.ADMIN_PASSWORD) || (env.DATABASE_URL ? '' : 'admin'),
   secret: env.SESSION_SECRET || (env.DATABASE_URL ? '' : 'dev-secret'),
 });
 
 export async function checkPassword(env, pw) {
   const { password } = config(env);
-  return !!password && safeEqual(pw || '', password);
+  return !!password && safeEqual(clean(pw), password);
 }
 
 export async function makeCookie(env, secure) {
