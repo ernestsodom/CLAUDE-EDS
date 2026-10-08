@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Back office · Proexsi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/admin/admin.css?v=3">
+</head>
+<body>
+
+<div id="login" class="login" hidden>
+  <form id="login-form" class="login-card">
+    <img src="/img/logo-proexsi-verde.png" alt="Proexsi" class="login-logo">
+    <h1>Back office</h1>
+    <p>Ingresa la clave para editar el sitio.</p>
+    <label for="pw">Clave<input id="pw" type="password" autocomplete="current-password" required></label>
+    <button class="b primary" type="submit">Ingresar</button>
+    <p class="msg err" id="login-msg" role="alert" hidden></p>
+  </form>
+</div>
+
+<div id="app" class="app" hidden>
+  <aside class="side">
+    <div class="side-brand"><img src="/img/logo-proexsi-verde.png" alt="Proexsi"><span>Back office</span></div>
+    <nav id="side-nav" aria-label="Secciones del back office">
+      <a href="#diseno" data-v="diseno">Paleta y tipografía</a>
+      <a href="#sitio" data-v="sitio">Sitio, logo y menú</a>
+      <a href="#inicio" data-v="inicio">Página de inicio</a>
+      <a href="#productos" data-v="productos">Productos</a>
+      <a href="#paginas" data-v="paginas">Páginas internas</a>
+      <a href="#imagenes" data-v="imagenes">Imágenes</a>
+      <a href="#solicitudes" data-v="solicitudes">Solicitudes de demo</a>
+      <a href="#historial" data-v="historial">Historial</a>
+    </nav>
+    <div class="side-foot">
+      <a href="/" target="_blank" rel="noopener">Ver sitio publicado ↗</a>
+      <button class="link-btn" id="logout">Cerrar sesión</button>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="bar">
+      <button class="b ghost menu-toggle" id="menu-toggle" aria-label="Abrir menú">☰</button>
+      <h1 id="view-title">Back office</h1>
+      <span class="status" id="status"></span>
+      <div class="bar-actions">
+        <button class="b ghost" id="btn-discard" hidden>Descartar cambios</button>
+        <button class="b" id="btn-preview">Vista previa</button>
+        <button class="b primary" id="btn-publish" disabled>Publicar</button>
+      </div>
+    </header>
+    <div class="dbwarn" id="dbwarn" hidden>Modo de prueba: no hay base de datos conectada, los cambios se pierden al reiniciar el servidor.</div>
+    <section id="view" class="view"></section>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <header><h2 id="modal-title"></h2><button class="b ghost" id="modal-close" aria-label="Cerrar">✕</button></header>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="preview" id="preview" hidden>
+  <div class="preview-top">
+    <strong>Vista previa</strong>
+    <select id="preview-path" aria-label="Página a previsualizar"></select>
+    <div class="seg" role="group" aria-label="Tamaño de pantalla">
+      <button class="b ghost on" data-w="100%">Computador</button>
+      <button class="b ghost" data-w="390px">Celular</button>
+    </div>
+    <button class="b" id="preview-close">Cerrar</button>
+  </div>
+  <div class="preview-stage"><iframe id="preview-frame" title="Vista previa del sitio"></iframe></div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="/admin/admin.js?v=3"></script>
+</body>
+</html>

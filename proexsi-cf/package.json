@@ -1,0 +1,16 @@
+{
+  "name": "proexsi-cultura",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "node scripts/static-images.mjs && wrangler deploy",
+    "images": "node scripts/static-images.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

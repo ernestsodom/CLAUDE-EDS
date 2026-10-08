@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "proexsi-cultura",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "observability": { "enabled": true }
+  // Secretos (se configuran en Cloudflare, no aquí):
+  //   DATABASE_URL    cadena de conexión de Neon
+  //   ADMIN_PASSWORD  clave del back office
+  //   SESSION_SECRET  texto aleatorio largo para firmar la sesión
+}
