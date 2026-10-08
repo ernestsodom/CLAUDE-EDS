@@ -14,7 +14,7 @@ const file = join(dir, 'secrets.json');
 try {
   writeFileSync(file, JSON.stringify(secrets), { mode: 0o600 });
   console.log('[secretos] Cargando en el sitio:', Object.keys(secrets).join(', '));
-  execFileSync('npx', ['wrangler', 'secret', 'bulk', file, '--name', process.env.WRANGLER_CI_OVERRIDE_NAME || 'cultura'], { stdio: 'inherit' });
+  execFileSync('npx', ['wrangler', 'secret', 'bulk', file, '--name', 'proexsi-cultura'], { stdio: 'inherit' });
   console.log('[secretos] Listo.');
 } catch (e) {
   console.log('[secretos] No se pudieron cargar automáticamente:', e.message);
