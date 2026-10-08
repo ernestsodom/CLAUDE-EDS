@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PAROCK Group — Conectamos marcas, productos y oportunidades</title>
+<meta name="description" content="PAROCK es una empresa chilena de desarrollo comercial, gestión de portafolios y distribución de productos para el retail, con foco en la categoría mascotas.">
+<meta property="og:title" content="PAROCK Group">
+<meta property="og:description" content="Conectamos marcas, productos y oportunidades de negocio.">
+<meta property="og:image" content="assets/portafolio-completo.jpg">
+<link rel="icon" href="assets/logo-parock.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ===== Identidad PAROCK (tomada de la Selling Story) ===== */
+  :root{
+    --navy:#0F1D2B; --navy-2:#16293B; --gold:#A9864E; --gold-2:#C9A86B; --gold-soft:#E9DCC4;
+    --cream:#F7F3EC; --paper:#FFFFFF; --ink:#1B2430; --muted:#5E6875; --line:#E6DFD3;
+    --minino:#6E8B2B; --petmetro:#C8383A; --accent:#E8743B;
+    --radius:20px; --shadow:0 18px 40px -18px rgba(15,29,43,.28);
+    --wrap:1180px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:80px}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased}
+  img{max-width:100%;display:block}
+  a{color:inherit}
+  h1,h2,h3,h4{font-family:Montserrat,sans-serif;line-height:1.15;color:var(--navy)}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+  .eyebrow{font-family:Montserrat;font-weight:500;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:14px}
+  .eyebrow::before{content:"";width:36px;height:1px;background:var(--gold)}
+  .center .eyebrow{justify-content:center}
+  .center .eyebrow::after{content:"";width:36px;height:1px;background:var(--gold)}
+  .title{font-weight:300;font-size:clamp(2rem,4vw,3.1rem);letter-spacing:-.01em;margin:14px 0 18px}
+  .title b{font-weight:800}
+  .lead{font-size:1.1rem;color:var(--muted);max-width:640px}
+  .center{text-align:center}.center .lead{margin:0 auto}
+  section{padding:110px 0;position:relative}
+  .btn{display:inline-flex;align-items:center;gap:10px;font-family:Montserrat;font-weight:700;font-size:.9rem;letter-spacing:.04em;padding:15px 28px;border-radius:999px;text-decoration:none;border:2px solid transparent;transition:.25s;cursor:pointer}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#fff;box-shadow:0 10px 24px -10px rgba(169,134,78,.8)}
+  .btn-gold:hover{transform:translateY(-2px)}
+  .btn-line{border-color:var(--navy);color:var(--navy)}
+  .btn-line:hover{background:var(--navy);color:#fff}
+  .btn-light{border-color:rgba(255,255,255,.5);color:#fff}
+  .btn-light:hover{background:#fff;color:var(--navy)}
+
+  /* ===== Header ===== */
+  header{position:fixed;inset:0 0 auto 0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:.3s}
+  header.scrolled{border-color:var(--line);box-shadow:0 6px 24px -18px rgba(0,0,0,.4)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .nav img{height:38px;width:auto}
+  .menu{display:flex;gap:34px;list-style:none;align-items:center}
+  .menu a{text-decoration:none;font-family:Montserrat;font-weight:500;font-size:.9rem;color:var(--navy);position:relative;padding:6px 0}
+  .menu a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:2px;background:var(--gold);transition:.25s}
+  .menu a:hover::after,.menu a.active::after{width:100%}
+  .menu .btn{padding:10px 20px;color:#fff}
+  .menu .btn::after{display:none}
+  .burger{display:none;background:none;border:0;width:44px;height:44px;cursor:pointer}
+  .burger span{display:block;width:24px;height:2px;background:var(--navy);margin:5px auto;transition:.3s}
+
+  /* ===== Hero (inspirado en la portada) ===== */
+  .hero{min-height:100vh;padding:120px 0 70px;background:var(--cream);overflow:hidden;display:flex;align-items:center}
+  .hero .pet{position:absolute;top:0;bottom:0;width:30vw;max-width:440px}
+  .hero .pet img{width:100%;height:100%;object-fit:cover}
+  .hero .pet.left{left:0;clip-path:ellipse(100% 62% at 0% 55%)}
+  .hero .pet.right{right:0;clip-path:ellipse(100% 62% at 100% 45%)}
+  .hero .pet.left img{object-position:30% 40%}
+  .swoosh{position:absolute;pointer-events:none}
+  .swoosh.tl{top:0;left:0;width:46vw;max-width:620px}
+  .swoosh.br{bottom:0;right:0;width:46vw;max-width:620px;transform:rotate(180deg)}
+  .paw{position:absolute;opacity:.10;width:70px;color:var(--gold)}
+  .hero-inner{position:relative;z-index:2;text-align:center;max-width:620px;margin:0 auto}
+  .hero-logo{width:min(420px,80%);margin:0 auto 34px}
+  .hero h1{font-weight:300;font-size:clamp(1.9rem,3.6vw,2.9rem);margin-bottom:18px}
+  .hero h1 b{font-weight:800}
+  .hero p{color:var(--muted);font-size:1.08rem;margin-bottom:34px}
+  .hero .ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .brands-strip{margin-top:54px}
+  .brands-strip .eyebrow{justify-content:center;font-size:.72rem;color:var(--navy)}
+  .brands-strip .eyebrow::before,.brands-strip .eyebrow::after{content:"";width:60px;height:1px;background:var(--navy);opacity:.4}
+  .brands-logos{display:flex;align-items:center;justify-content:center;gap:34px;margin-top:18px}
+  .brands-logos img{height:62px;width:auto;mix-blend-mode:multiply}
+  .brands-logos i{width:1px;height:50px;background:var(--line)}
+
+  /* ===== Nosotros ===== */
+  .about-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:70px;align-items:center}
+  .about-photo{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);aspect-ratio:4/3}
+  .about-photo img{width:100%;height:100%;object-fit:cover}
+  .about-photo .badge{position:absolute;left:22px;bottom:22px;background:rgba(15,29,43,.88);color:#fff;padding:16px 20px;border-radius:14px;font-size:.85rem;border-left:3px solid var(--gold)}
+  .about-photo .badge strong{display:block;font-family:Montserrat;font-size:1.05rem}
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+  .fact{border-top:2px solid var(--gold);padding-top:14px}
+  .fact strong{font-family:Montserrat;font-weight:800;font-size:1.8rem;color:var(--navy);display:block}
+  .fact span{font-size:.85rem;color:var(--muted)}
+  .team{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:80px}
+  .person{display:flex;gap:22px;background:var(--cream);padding:28px;border-radius:var(--radius);align-items:flex-start}
+  .person img{width:96px;height:96px;border-radius:50%;object-fit:cover;flex:none;border:3px solid #fff;box-shadow:0 0 0 2px var(--gold-soft)}
+  .person h4{font-size:1.1rem;color:var(--gold);font-weight:700}
+  .person .role{font-family:Montserrat;font-weight:700;color:var(--navy);font-size:.95rem;margin:2px 0 8px}
+  .person p{font-size:.9rem;color:var(--muted)}
+
+  /* ===== Propuesta ===== */
+  .proposal{background:var(--cream)}
+  .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:56px}
+  .pillar{background:#fff;border-radius:var(--radius);padding:34px 26px;box-shadow:var(--shadow);transition:.3s;border-bottom:3px solid transparent}
+  .pillar:hover{transform:translateY(-6px);border-color:var(--gold)}
+  .pillar .ico{width:58px;height:58px;border-radius:50%;background:var(--navy);display:grid;place-items:center;margin-bottom:22px}
+  .pillar .ico svg{width:26px;height:26px;stroke:var(--gold-2);fill:none;stroke-width:1.8}
+  .pillar .n{font-family:Montserrat;font-size:.75rem;letter-spacing:.2em;color:var(--gold);font-weight:700}
+  .pillar h3{font-size:1.15rem;margin:6px 0 10px}
+  .pillar p{font-size:.92rem;color:var(--muted)}
+
+  /* ===== Visión de categoría ===== */
+  .vision{background:var(--navy);color:#fff;overflow:hidden}
+  .vision h2,.vision h3{color:#fff}
+  .vision .lead{color:#C4CCD6}
+  .vision-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}
+  .vision blockquote{font-family:Montserrat;font-weight:300;font-size:clamp(1.5rem,2.6vw,2.1rem);line-height:1.3;border-left:3px solid var(--gold);padding-left:24px;margin:20px 0 26px}
+  .vision blockquote b{font-weight:700;color:var(--gold-2)}
+  .vision-photo{border-radius:var(--radius);overflow:hidden;position:relative;aspect-ratio:3/2}
+  .vision-photo img{width:100%;height:100%;object-fit:cover}
+  .trends{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:70px}
+  .trend{border:1px solid rgba(255,255,255,.14);border-radius:var(--radius);padding:28px;background:rgba(255,255,255,.03)}
+  .trend .k{font-family:Montserrat;font-weight:800;font-size:2.4rem;color:var(--gold-2);line-height:1}
+  .trend .k small{font-size:.9rem;font-weight:500;color:#C4CCD6;margin-left:6px}
+  .trend h3{font-size:1.1rem;margin:16px 0 8px}
+  .trend p{font-size:.9rem;color:#C4CCD6}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);margin-top:56px;border-top:1px solid rgba(255,255,255,.14)}
+  .stat{padding:30px 20px 0;text-align:center;border-right:1px solid rgba(255,255,255,.14)}
+  .stat:last-child{border:0}
+  .stat strong{font-family:Montserrat;font-weight:800;font-size:2.2rem;color:#fff;display:block}
+  .stat span{font-size:.85rem;color:#C4CCD6}
+  .source{font-size:.72rem;color:#8995A3;margin-top:22px;text-align:right}
+
+  /* ===== Por qué PAROCK ===== */
+  .why-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:70px;align-items:center}
+  .why-list{list-style:none;counter-reset:w}
+  .why-list li{counter-increment:w;display:flex;gap:22px;align-items:center;padding:20px 0;border-bottom:1px solid var(--line);font-family:Montserrat;font-weight:500;font-size:1.08rem;color:var(--navy)}
+  .why-list li::before{content:"0" counter(w);font-weight:800;color:var(--gold);font-size:.9rem;width:42px;height:42px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;flex:none}
+  .why-cat{position:relative}
+  .why-cat img{max-height:440px;margin:0 auto}
+
+  /* ===== Portafolio ===== */
+  .portfolio{background:var(--cream);padding-bottom:60px}
+  .lineup{margin-top:50px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .brand-head{display:flex;align-items:center;gap:22px;margin:90px 0 30px;flex-wrap:wrap}
+  .brand-head img{height:64px;width:auto;mix-blend-mode:multiply}
+  .brand-head .tag{font-family:Montserrat;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;padding:7px 14px;border-radius:999px;background:#fff;color:var(--navy);border:1px solid var(--line)}
+  .brand-head p{flex-basis:100%;color:var(--muted);max-width:720px}
+  /* Minino destacado */
+  .feature{display:grid;grid-template-columns:.8fr 1.2fr;background:#111;color:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .feature .pack{background:radial-gradient(circle at 50% 40%,#3a3550,#111 70%);display:grid;place-items:center;padding:40px}
+  .feature .pack img{max-height:420px;width:auto;filter:drop-shadow(0 30px 30px rgba(0,0,0,.6))}
+  .feature .body{padding:52px 48px}
+  .feature .body .claim{font-family:Montserrat;font-weight:300;font-size:1.7rem;line-height:1.25;margin:10px 0 26px}
+  .feature .body .claim b{font-weight:800;color:#F5C443}
+  .feature .label{font-family:Montserrat;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:#B9A5F0}
+  .feature h3{color:#fff;font-size:1.4rem}
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .spec{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 18px}
+  .spec strong{display:block;font-family:Montserrat;font-size:.95rem;color:#fff}
+  .spec span{font-size:.83rem;color:#B8B8C2}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+  .chip{font-size:.78rem;font-weight:600;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff}
+  /* PetMetro líneas */
+  .lines{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+  .line{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:.3s}
+  .line:hover{transform:translateY(-6px)}
+  .line .img{height:250px;background:#F2EEE7;display:grid;place-items:center;padding:18px}
+  .line .img img{max-height:100%;max-width:100%;width:auto;object-fit:contain}
+  .line .txt{padding:22px 22px 26px;display:flex;flex-direction:column;flex:1}
+  .line .cat{font-family:Montserrat;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--accent)}
+  .line h4{font-size:1.15rem;margin:6px 0 8px}
+  .line p{font-size:.88rem;color:var(--muted)}
+  .line ul{list-style:none;margin:14px 0 18px;font-size:.84rem}
+  .line li{padding:5px 0 5px 22px;position:relative;color:var(--ink)}
+  .line li::before{content:"";position:absolute;left:2px;top:12px;width:10px;height:6px;border-left:2px solid var(--gold);border-bottom:2px solid var(--gold);transform:rotate(-45deg)}
+  .line .fmt{margin-top:auto;font-family:Montserrat;font-weight:700;font-size:.82rem;color:var(--navy);background:var(--cream);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between}
+  .line .fmt span{color:var(--muted);font-weight:500}
+  .coming{margin-top:70px;border:2px dashed var(--gold-soft);border-radius:var(--radius);padding:34px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;background:rgba(255,255,255,.6)}
+  .coming h3{font-size:1.2rem}
+  .coming p{color:var(--muted);font-size:.95rem}
+
+  /* ===== Contacto ===== */
+  .contact-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:start}
+  .contact-info{background:var(--navy);color:#fff;border-radius:var(--radius);padding:44px;position:relative;overflow:hidden}
+  .contact-info h3{color:#fff;font-size:1.5rem;font-weight:300;margin-bottom:24px}
+  .contact-info h3 b{font-weight:800}
+  .ci{display:flex;gap:16px;margin-bottom:22px;font-size:.95rem;color:#D4DAE1}
+  .ci svg{width:22px;height:22px;flex:none;stroke:var(--gold-2);fill:none;stroke-width:1.8;margin-top:2px}
+  .ci strong{display:block;color:#fff;font-family:Montserrat;font-size:.85rem;letter-spacing:.06em}
+  .contact-info .btn{margin-top:12px}
+  .contact-info .swoosh-c{position:absolute;right:-60px;bottom:-60px;width:260px;opacity:.5}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .field{display:flex;flex-direction:column;gap:7px}
+  .field.full{grid-column:1/-1}
+  label{font-family:Montserrat;font-weight:700;font-size:.78rem;letter-spacing:.06em;color:var(--navy)}
+  input,textarea{font:inherit;padding:14px 16px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);transition:.2s}
+  input:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(169,134,78,.15)}
+  textarea{min-height:150px;resize:vertical}
+  .hp{position:absolute;left:-9999px}
+  .consent{grid-column:1/-1;font-family:Inter,sans-serif;font-weight:400;letter-spacing:0;font-size:.85rem;color:var(--muted);display:flex;gap:10px;align-items:flex-start}
+  .consent input{margin-top:4px}
+  .captcha{grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;padding:14px;font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:10px}
+  .form-ok{grid-column:1/-1;display:none;background:#EEF6EC;color:#2F6B2A;border-radius:12px;padding:14px 16px;font-size:.9rem}
+
+  /* ===== Footer ===== */
+  footer{background:var(--navy);color:#AEB8C4;padding:70px 0 30px;font-size:.88rem}
+  .foot{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
+  .foot img{height:42px;width:auto;margin-bottom:18px}
+  .foot h5{font-family:Montserrat;color:#fff;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px}
+  .foot ul{list-style:none}
+  .foot li{margin-bottom:8px}
+  .foot a{text-decoration:none}
+  .foot a:hover{color:var(--gold-2)}
+  .legal{border-top:1px solid rgba(255,255,255,.1);margin-top:50px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.8rem}
+  .gold-rule{height:4px;background:linear-gradient(90deg,var(--navy),var(--gold),var(--gold-2),var(--gold),var(--navy))}
+
+  /* Reveal animation */
+  .rv{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
+  .rv.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+
+  /* ===== Responsive ===== */
+  @media (max-width:1024px){
+    .pillars,.lines{grid-template-columns:repeat(2,1fr)}
+    .about-grid,.vision-grid,.why-grid,.contact-grid{grid-template-columns:1fr;gap:44px}
+    .feature{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stat:nth-child(2){border-right:0}
+    .stat{padding-bottom:24px}
+    .why-cat{display:none}
+  }
+  @media (max-width:860px){
+    .burger{display:block}
+    .menu{position:fixed;top:76px;left:0;right:0;flex-direction:column;gap:0;background:#fff;padding:10px 24px 24px;border-bottom:1px solid var(--line);transform:translateY(-130%);transition:.35s;align-items:stretch}
+    .menu.open{transform:none}
+    .menu li a{display:block;padding:14px 0;border-bottom:1px solid var(--line)}
+    .menu .btn{margin-top:14px;justify-content:center}
+    .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .burger.open span:nth-child(2){opacity:0}
+    .burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+    .hero{padding-top:110px;flex-direction:column}
+    .hero .pet{position:relative;width:46%;height:220px;max-width:none;top:auto;bottom:auto;border-radius:0 0 50% 50%/0 0 30% 30%;clip-path:none;overflow:hidden}
+    .hero .pets-m{display:flex;gap:8%;justify-content:center;width:100%;margin-bottom:28px}
+    .hero .pet.left,.hero .pet.right{left:auto;right:auto;border-radius:999px 999px 999px 999px;width:150px;height:150px;box-shadow:0 0 0 4px #fff,0 0 0 6px var(--gold-soft)}
+    .swoosh{width:70vw}
+    .trends,.team,.facts{grid-template-columns:1fr}
+    .person{flex-direction:column}
+    form{grid-template-columns:1fr}
+    .foot{grid-template-columns:1fr}
+    .feature .body{padding:34px 26px}
+    .specs{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    section{padding:80px 0}
+    .wrap{padding:0 16px}
+    .pillars,.lines{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr}
+    .stat{border-right:0;border-bottom:1px solid rgba(255,255,255,.14)}
+    .brands-logos{gap:16px}
+    .brands-logos img{height:46px}
+    .contact-info{padding:32px 24px}
+  }
+  @media (min-width:861px){.pets-m{display:contents}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-gold" x1="0" x2="1"><stop offset="0" stop-color="#C9A86B"/><stop offset=".5" stop-color="#E9D3A3"/><stop offset="1" stop-color="#A9864E"/></linearGradient>
+    <symbol id="paw" viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="14" ry="12" fill="currentColor"/><ellipse cx="14" cy="26" rx="6" ry="8" fill="currentColor"/><ellipse cx="26" cy="15" rx="6" ry="8" fill="currentColor"/><ellipse cx="40" cy="15" rx="6" ry="8" fill="currentColor"/><ellipse cx="52" cy="26" rx="6" ry="8" fill="currentColor"/></symbol>
+    <symbol id="swoosh" viewBox="0 0 600 300"><path d="M0 0h600C470 40 330 70 210 140 130 186 60 240 0 300Z" fill="#0F1D2B"/><path d="M600 0C470 40 330 70 210 140 130 186 60 240 0 300" fill="none" stroke="url(#g-gold)" stroke-width="7"/></symbol>
+  </defs>
+</svg>
+
+<header id="top">
+  <div class="wrap nav">
+    <a href="#inicio" aria-label="PAROCK Group — inicio"><img src="assets/logo-parock.png" alt="PAROCK Group"></a>
+    <button class="burger" aria-label="Abrir menú" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul class="menu">
+      <li><a href="#inicio" class="active">Inicio</a></li>
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#propuesta">Nuestra Propuesta</a></li>
+      <li><a href="#portafolio">Portafolio</a></li>
+      <li><a href="#contacto" class="btn btn-gold">Contacto</a></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+<!-- ============ INICIO ============ -->
+<section class="hero" id="inicio">
+  <svg class="swoosh tl" aria-hidden="true"><use href="#swoosh"/></svg>
+  <svg class="swoosh br" aria-hidden="true"><use href="#swoosh"/></svg>
+  <svg class="paw" style="top:16%;left:31%" aria-hidden="true"><use href="#paw"/></svg>
+  <svg class="paw" style="bottom:24%;right:30%;width:52px" aria-hidden="true"><use href="#paw"/></svg>
+  <div class="pets-m">
+    <div class="pet left"><img src="assets/gato-portada.jpg" alt="Gato atigrado mirando hacia arriba"></div>
+    <div class="pet right"><img src="assets/perro-portada.jpg" alt="Perro feliz con la lengua afuera"></div>
+  </div>
+  <div class="wrap hero-inner">
+    <img class="hero-logo" src="assets/logo-parock.png" alt="PAROCK Group">
+    <h1>Conectamos <b>marcas, productos</b> y <b>oportunidades</b> de negocio.</h1>
+    <p>Desarrollo comercial, gestión de portafolios y distribución para el retail chileno.</p>
+    <div class="ctas">
+      <a href="#portafolio" class="btn btn-gold">Ver portafolio</a>
+      <a href="#contacto" class="btn btn-line">Hablemos de negocios</a>
+    </div>
+    <div class="brands-strip">
+      <div class="eyebrow">Nuestro portafolio</div>
+      <div class="brands-logos">
+        <img src="assets/logo-minino.png" alt="Minino Arena Premium">
+        <i></i>
+        <img src="assets/logo-petmetro.png" alt="PetMetro — Deliver Your Love">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NOSOTROS ============ -->
+<section id="nosotros">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="rv">
+        <div class="eyebrow">Nosotros</div>
+        <h2 class="title">Una empresa chilena con <b>visión comercial</b></h2>
+        <p class="lead">PAROCK conecta marcas y productos con oportunidades de negocio, generando valor para nuestros clientes y para el consumidor final.</p>
+        <p class="lead" style="margin-top:14px">Combinamos conocimiento del mercado, visión comercial y un portafolio competitivo, con foco inicial en la categoría mascotas.</p>
+        <div class="facts">
+          <div class="fact"><strong>+30</strong><span>años de experiencia combinada en consumo masivo</span></div>
+          <div class="fact"><strong>2</strong><span>marcas propias en la categoría mascotas</span></div>
+          <div class="fact"><strong>5</strong><span>líneas de producto listas para el retail</span></div>
+        </div>
+      </div>
+      <div class="about-photo rv">
+        <img src="assets/joven-gato.jpg" alt="Joven descansando con su gato en el sofá">
+        <div class="badge"><strong>En alianza estratégica con Roval SpA</strong>Abastecimiento y distribución coordinados</div>
+      </div>
+    </div>
+
+    <div class="team">
+      <article class="person rv">
+        <img src="assets/equipo-marcelo.jpg" alt="Marcelo Parodi L.">
+        <div>
+          <h4>Marcelo Parodi L.</h4>
+          <div class="role">+15 años en consumo masivo</div>
+          <p>Gerente de Marketing y Trade Marketing en Mars, Nestlé y Agrosuper. Amplio conocimiento del rubro mascotas y de los principales clientes hard discount de Latinoamérica.</p>
+        </div>
+      </article>
+      <article class="person rv">
+        <img src="assets/equipo-kevin.jpg" alt="Kevin Rosenkranz B.">
+        <div>
+          <h4>Kevin Rosenkranz B.</h4>
+          <div class="role">+17 años en consumo masivo y B2B</div>
+          <p>Trayectoria ejecutiva en Nestlé, Unilever y Puig como Business Manager, Customer Marketing Manager y Key Account Manager. Profundo conocimiento del canal supermercados.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NUESTRA PROPUESTA ============ -->
+<section class="proposal" id="propuesta">
+  <div class="wrap">
+    <div class="center rv">
+      <div class="eyebrow">Nuestra propuesta</div>
+      <h2 class="title">Más allá de la <b>distribución tradicional</b></h2>
+      <p class="lead">Desarrollamos categorías atractivas, competitivas y rentables para nuestros clientes.</p>
+    </div>
+    <div class="pillars">
+      <article class="pillar rv">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg></div>
+        <div class="n">01</div><h3>Portafolio competitivo</h3>
+        <p>Buena calidad, formatos atractivos y precios accesibles.</p>
+      </article>
+      <article class="pillar rv">
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
+        <div class="n">02</div><h3>Conocimiento del consumidor</h3>
+        <p>Identificamos tendencias y nuevas necesidades del mercado.</p>
+      </article>
+      <article class="pillar rv">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <div class="n">03</div><h3>Desarrollo de categorías</h3>
+        <p>Surtidos y oportunidades que potencian rotación y rentabilidad.</p>
+      </article>
+      <article class="pillar rv">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M8 12l3 3 5-6"/><path d="M12 3l2.5 2 3.2-.3.8 3.1 2.7 1.8-1.2 3 1.2 3-2.7 1.8-.8 3.1-3.2-.3L12 21l-2.5-2-3.2.3-.8-3.1-2.7-1.8 1.2-3-1.2-3 2.7-1.8.8-3.1 3.2.3z"/></svg></div>
+        <div class="n">04</div><h3>Relaciones de largo plazo</h3>
+        <p>Alianzas comerciales orientadas al crecimiento conjunto.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Visión de categoría -->
+<section class="vision" id="vision">
+  <div class="wrap">
+    <div class="vision-grid">
+      <div class="rv">
+        <div class="eyebrow">Nuestra visión de la categoría</div>
+        <blockquote>“El consumidor está cambiando, y la categoría de mascotas <b>debe evolucionar con él.</b>”</blockquote>
+        <p class="lead">Las mascotas ocupan un lugar cada vez más importante en los hogares, impulsando nuevas necesidades de alimentación, higiene y cuidado.</p>
+      </div>
+      <div class="vision-photo rv"><img src="assets/gato-snack.jpg" alt="Gato disfrutando su alimento"></div>
+    </div>
+
+    <div class="trends">
+      <article class="trend rv">
+        <div class="k">82%<small>de los tutores</small></div>
+        <h3>Humanización</h3>
+        <p>Las mascotas son consideradas integrantes de la familia.</p>
+      </article>
+      <article class="trend rv">
+        <div class="k">+30%<small>salud preventiva</small></div>
+        <h3>Bienestar y cuidado</h3>
+        <p>Los consumidores buscan productos que contribuyan al cuidado cotidiano de sus mascotas.</p>
+      </article>
+      <article class="trend rv">
+        <div class="k">+40%<small>snacks y treats</small></div>
+        <h3>Valor y accesibilidad</h3>
+        <p>Buena calidad, formatos convenientes y precios competitivos.</p>
+      </article>
+    </div>
+
+    <div class="stats rv">
+      <div class="stat"><strong>57%</strong><span>de los hogares chilenos tiene al menos un perro</span></div>
+      <div class="stat"><strong>48%</strong><span>de los hogares chilenos tiene al menos un gato</span></div>
+      <div class="stat"><strong>+4,2%</strong><span>crecimiento anual alimento para gatos 2020–2025</span></div>
+      <div class="stat"><strong>70%</strong><span>de quienes tienen mascota compra arena sanitaria</span></div>
+    </div>
+    <p class="source">Fuentes: Nielsen, Euromonitor y Kantar, 2025.</p>
+  </div>
+</section>
+
+<!-- Por qué PAROCK -->
+<section id="por-que">
+  <div class="wrap why-grid">
+    <div class="rv">
+      <div class="eyebrow">¿Por qué trabajar con PAROCK?</div>
+      <h2 class="title">Un socio que aporta al <b>crecimiento</b> de tu negocio</h2>
+      <ul class="why-list">
+        <li>Desarrollo y gestión de portafolios</li>
+        <li>Propuestas comerciales adaptadas a cada canal</li>
+        <li>Visión de categoría, surtido y exhibición</li>
+        <li>Coordinación de abastecimiento y distribución</li>
+        <li>Foco en rotación, competitividad y rentabilidad</li>
+      </ul>
+      <a href="#contacto" class="btn btn-gold" style="margin-top:34px">Conversemos</a>
+    </div>
+    <div class="why-cat rv"><img src="assets/gato-saludo.jpg" alt="Gato levantando la pata en señal de saludo"></div>
+  </div>
+</section>
+
+<!-- ============ PORTAFOLIO ============ -->
+<section class="portfolio" id="portafolio">
+  <div class="wrap">
+    <div class="center rv">
+      <div class="eyebrow">Portafolio</div>
+      <h2 class="title">Productos pensados para el <b>retail</b> y para sus <b>mascotas</b></h2>
+      <p class="lead">Respondemos a las tendencias de humanización, cuidado y bienestar animal.</p>
+    </div>
+    <div class="lineup rv"><img src="assets/portafolio-completo.jpg" alt="Línea completa de productos Minino y PetMetro"></div>
+
+    <!-- Minino -->
+    <div class="brand-head rv">
+      <img src="assets/logo-minino.png" alt="Minino">
+      <span class="tag">Higiene y cuidado</span>
+      <p>Arena sanitaria para gatos, elaborada con bentonita aglomerante.</p>
+    </div>
+    <article class="feature rv">
+      <div class="pack"><img src="assets/minino-4kg.jpg" alt="Envase Minino Arena Premium Aglutinante Lavanda 4 kg"></div>
+      <div class="body">
+        <div class="label">Producto destacado</div>
+        <h3>Minino Arena Sanitaria 4 kg Lavanda</h3>
+        <p class="claim">La limpieza que tu gato necesita. <b>Al precio que buscas.</b></p>
+        <div class="specs">
+          <div class="spec"><strong>Absorción 350%</strong><span>Atrapa la humedad de forma rápida y eficiente.</span></div>
+          <div class="spec"><strong>Control de olores</strong><span>Aroma lavanda, mayor frescura en el hogar.</span></div>
+          <div class="spec"><strong>Aglutinamiento concentrado</strong><span>Facilita la limpieza y rinde por más tiempo.</span></div>
+          <div class="spec"><strong>Baja emisión de polvo</strong><span>99% libre de polvo.</span></div>
+        </div>
+        <div class="chips"><span class="chip">Bentonita aglomerante</span><span class="chip">Mango transportable</span><span class="chip">Pallet a medida del cliente</span></div>
+      </div>
+    </article>
+
+    <!-- PetMetro -->
+    <div class="brand-head rv">
+      <img src="assets/logo-petmetro.png" alt="PetMetro">
+      <span class="tag">Alimentación y premios</span>
+      <p>Alimentación y snacks para perros y gatos, con formatos prácticos y competitivos.</p>
+    </div>
+    <div class="lines">
+      <article class="line rv">
+        <div class="img"><img src="assets/balance-nutrition.jpg" alt="Latas PetMetro Balance Nutrition"></div>
+        <div class="txt">
+          <span class="cat">Alimento húmedo · Gatos</span>
+          <h4>Balance Nutrition</h4>
+          <p>Nutrición real y deliciosa para todos los días.</p>
+          <ul><li>Proteínas reales de pollo, atún y salmón</li><li>Sin colorantes ni conservantes artificiales</li><li>Con taurina y omega</li></ul>
+          <div class="fmt">Lata 400 g <span>Caja 24 un.</span></div>
+        </div>
+      </article>
+      <article class="line rv">
+        <div class="img"><img src="assets/super-chunk.jpg" alt="Latas PetMetro Super Chunk"></div>
+        <div class="txt">
+          <span class="cat">Alimento húmedo · Perros</span>
+          <h4>Super Chunk</h4>
+          <p>Trozos reales de carne y un sabor irresistible.</p>
+          <ul><li>Proteínas de alta calidad</li><li>Con vitaminas y minerales</li><li>Cordero, pollo, pato y vacuno</li></ul>
+          <div class="fmt">Lata 400 g <span>Caja 24 un.</span></div>
+        </div>
+      </article>
+      <article class="line rv">
+        <div class="img"><img src="assets/creamy-treats.jpg" alt="Sobres PetMetro Creamy Treats"></div>
+        <div class="txt">
+          <span class="cat">Premios cremosos · Gatos</span>
+          <h4>Creamy Treats</h4>
+          <p>Un snack cremoso para consentirlos todos los días.</p>
+          <ul><li>Ingredientes reales</li><li>Sin sabores ni aditivos artificiales</li><li>Atún, salmón y pollo</li></ul>
+          <div class="fmt">5 sobres × 15 g <span>75 g</span></div>
+        </div>
+      </article>
+      <article class="line rv">
+        <div class="img"><img src="assets/crunchy-biscuits.jpg" alt="Bolsas PetMetro Crunchy Biscuits"></div>
+        <div class="txt">
+          <span class="cat">Snacks y galletas · Gatos</span>
+          <h4>Crunchy Biscuits</h4>
+          <p>El snack perfecto para sorprender a tu gato.</p>
+          <ul><li>Proteínas reales de pollo, atún y leche</li><li>Sin aditivos artificiales</li><li>Premio diario y funcional</li></ul>
+          <div class="fmt">Bolsa 85 g <span>3 sabores</span></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="coming rv">
+      <div><h3>Nuevas marcas y categorías en desarrollo</h3><p>¿Tienes una marca o un producto con potencial para el retail? Conversemos.</p></div>
+      <a href="#contacto" class="btn btn-line">Proponer una alianza</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACTO ============ -->
+<section id="contacto">
+  <div class="wrap">
+    <div class="center rv" style="margin-bottom:56px">
+      <div class="eyebrow">Contacto</div>
+      <h2 class="title">Hablemos de <b>oportunidades</b></h2>
+      <p class="lead">Para compradores, proveedores y potenciales socios comerciales.</p>
+    </div>
+    <div class="contact-grid">
+      <aside class="contact-info rv">
+        <h3><b>PAROCK</b> Group</h3>
+        <div class="ci"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><div><strong>DIRECCIÓN</strong>Av. Las Condes 11271, Oficina 11<br>Las Condes, Santiago, Chile</div></div>
+        <div class="ci"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><div><strong>CORREO COMERCIAL</strong>contacto@parock.cl</div></div>
+        <a class="btn btn-gold" href="mailto:contacto@parock.cl?subject=Contacto%20comercial%20desde%20parock.cl">Contacto comercial por correo</a>
+        <svg class="swoosh-c" viewBox="0 0 200 200" aria-hidden="true"><circle cx="200" cy="200" r="150" fill="none" stroke="url(#g-gold)" stroke-width="4"/><circle cx="200" cy="200" r="120" fill="none" stroke="url(#g-gold)" stroke-width="1.5"/></svg>
+      </aside>
+      <form class="rv" id="form" novalidate>
+        <div class="field"><label for="f-nombre">Nombre</label><input id="f-nombre" name="nombre" required autocomplete="name"></div>
+        <div class="field"><label for="f-empresa">Empresa</label><input id="f-empresa" name="empresa" required autocomplete="organization"></div>
+        <div class="field full"><label for="f-email">Correo electrónico</label><input id="f-email" name="email" type="email" required autocomplete="email"></div>
+        <div class="field full"><label for="f-msg">Mensaje</label><textarea id="f-msg" name="mensaje" required></textarea></div>
+        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="captcha">🛡️ Protección antispam (Cloudflare Turnstile o reCAPTCHA v3, invisible para el usuario)</div>
+        <label class="consent"><input type="checkbox" required><span>Acepto la <a href="#privacidad">política de privacidad</a> y el tratamiento de mis datos para fines de contacto comercial.</span></label>
+        <div><button class="btn btn-gold" type="submit">Enviar mensaje</button></div>
+        <div class="form-ok" role="status">¡Gracias! Recibimos tu mensaje y te contactaremos pronto.</div>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="gold-rule"></div>
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <img src="assets/logo-parock-white.png" alt="PAROCK Group">
+        <p>Conectamos marcas, productos y oportunidades de negocio.</p>
+      </div>
+      <div>
+        <h5>Navegación</h5>
+        <ul><li><a href="#inicio">Inicio</a></li><li><a href="#nosotros">Nosotros</a></li><li><a href="#propuesta">Nuestra Propuesta</a></li><li><a href="#portafolio">Portafolio</a></li><li><a href="#contacto">Contacto</a></li></ul>
+      </div>
+      <div>
+        <h5>Contacto</h5>
+        <ul><li>Av. Las Condes 11271, Of. 11</li><li>Las Condes, Santiago</li><li><a href="mailto:contacto@parock.cl">contacto@parock.cl</a></li></ul>
+      </div>
+    </div>
+    <div class="legal">
+      <span>© 2026 PAROCK Group. Todos los derechos reservados.</span>
+      <span><a id="privacidad" href="#privacidad">Política de privacidad</a> · <a href="#privacidad">Términos de uso</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const header=document.querySelector('header'),burger=document.querySelector('.burger'),menu=document.querySelector('.menu');
+  addEventListener('scroll',()=>header.classList.toggle('scrolled',scrollY>20),{passive:true});
+  burger.addEventListener('click',()=>{const o=menu.classList.toggle('open');burger.classList.toggle('open',o);burger.setAttribute('aria-expanded',o)});
+  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('open');burger.classList.remove('open')}));
+  // Menú activo según sección
+  const links=[...menu.querySelectorAll('a')],map={vision:'propuesta','por-que':'propuesta'};
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const id=map[e.target.id]||e.target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+id&&!l.classList.contains('btn')))}}),{rootMargin:'-45% 0px -50% 0px'});
+  document.querySelectorAll('main section[id]').forEach(s=>io.observe(s));
+  // Animaciones de entrada
+  const rv=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rv.unobserve(e.target)}}),{threshold:.12});
+  document.querySelectorAll('.rv').forEach(el=>rv.observe(el));
+  // Formulario (demo): en producción se envía a un endpoint con verificación antispam
+  document.getElementById('form').addEventListener('submit',e=>{
+    e.preventDefault();const f=e.target;
+    if(f.website.value) return;           // honeypot
+    if(!f.checkValidity()){f.reportValidity();return}
+    f.querySelector('.form-ok').style.display='block';f.reset();
+  });
+</script>
+</body>
+</html>
