@@ -212,6 +212,12 @@ export default {
       if (url.pathname === '/admin') return Response.redirect(url.origin + '/admin/', 301);
       if (url.pathname.startsWith('/media/') && req.method === 'GET') return await media(req, env, url, db, ctx);
       if (url.pathname === '/api/lead' && req.method === 'POST') return await lead(req, db);
+      if (url.pathname === '/api/estado') {
+        // Diagnóstico sin datos sensibles: indica si los secretos están configurados y si responde la base de datos
+        let base = 'sin conexión';
+        if (env.DATABASE_URL) { try { await db.getContent(); base = 'conectada'; } catch (e) { base = 'error: ' + String(e.message || e).slice(0, 120); } }
+        return json({ baseDeDatos: env.DATABASE_URL ? base : 'falta DATABASE_URL (modo de prueba)', claveAdmin: env.ADMIN_PASSWORD ? 'configurada' : 'falta ADMIN_PASSWORD', sesion: env.SESSION_SECRET ? 'configurada' : 'falta SESSION_SECRET' });
+      }
       if (req.method !== 'GET' && req.method !== 'HEAD') return new Response('Método no permitido', { status: 405 });
 
       const { data } = await loadContent(db);
