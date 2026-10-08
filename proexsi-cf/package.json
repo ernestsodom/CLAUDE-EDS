@@ -6,7 +6,8 @@
     "dev": "wrangler dev",
     "deploy": "node scripts/static-images.mjs && wrangler deploy",
     "images": "node scripts/static-images.mjs",
-    "deploy:cf": "node scripts/deploy-ci.mjs"
+    "deploy:cf": "node scripts/deploy-ci.mjs",
+    "postinstall": "node scripts/sync-secrets.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0"
