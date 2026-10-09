@@ -206,6 +206,8 @@ function sitemap(content, origin) {
 export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
+    // www.cultura360.cl → cultura360.cl
+    if (url.hostname.startsWith('www.')) { url.hostname = url.hostname.slice(4); return Response.redirect(url.toString(), 301); }
     const db = getDb(env);
     try {
       if (url.pathname.startsWith('/admin/api/')) return await adminApi(req, env, url, db);
