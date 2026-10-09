@@ -1,5 +1,7 @@
 # Proexsi · sitio + back office (Cloudflare Workers + Neon)
 
+Sitio publicado en **https://cultura360.cl** · back office en **https://cultura360.cl/admin**.
+
 Sitio público y back office en un solo Worker de Cloudflare. El contenido, las imágenes subidas y las solicitudes de demo se guardan en Neon (Postgres).
 
 ## Qué se puede editar desde `/admin`
