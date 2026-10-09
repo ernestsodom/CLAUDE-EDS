@@ -9,6 +9,11 @@
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
   },
+  "routes": [
+    { "pattern": "cultura360.cl", "custom_domain": true },
+    { "pattern": "www.cultura360.cl", "custom_domain": true }
+  ],
+  "workers_dev": true,
   "observability": { "enabled": true }
   // Secretos (se configuran en Cloudflare, no aquí):
   //   DATABASE_URL    cadena de conexión de Neon

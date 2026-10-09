@@ -25,7 +25,7 @@ Sitio público y back office en un solo Worker de Cloudflare. El contenido, las 
    - `DATABASE_URL`: cadena de conexión de Neon (proyecto **proexsi-cultura-cloudflare** → **Connect**; usa la conexión *pooled*).
    - `ADMIN_PASSWORD`: clave del back office.
    - `SESSION_SECRET`: texto aleatorio largo (por ejemplo, 40 caracteres).
-5. Vuelve a desplegar. El sitio queda en `https://proexsi-cultura.<tu-subdominio>.workers.dev` y el back office en `/admin`.
+5. Vuelve a desplegar. El sitio queda en `https://cultura360.cl` y el back office en `/admin`.
 6. Para un dominio propio: Worker → **Settings** → **Domains & Routes** → **Add custom domain**.
 
 ### Opción B: desde la terminal
