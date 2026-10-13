@@ -17,7 +17,7 @@ let ready = null;
 function pg(env) {
   const sql = neon(env.DATABASE_URL);
   const q = (text, params = []) => sql.query(text, params);
-  if (!ready) ready = (async () => { for (const s of SCHEMA) await q(s); })().catch(e => { ready = null; throw e; });
+  if (!ready) { ready = (async () => { for (const s of SCHEMA) await q(s); })().catch(e => { ready = null; throw e; }); ready.catch(() => {}); }
   return { q, ready };
 }
 
@@ -54,8 +54,13 @@ const memDb = {
 };
 
 function pgDb(env) {
-  const { q } = pg(env);
-  const run = async (text, params) => { await ready; return q(text, params); };
+  // La conexión se arma recién al primer uso: un error de configuración no bota la página entera
+  let conn = null;
+  const run = async (text, params) => {
+    if (!conn) conn = pg(env);
+    try { await conn.ready; } catch (e) { conn = null; throw e; }
+    return conn.q(text, params);
+  };
   return {
     kind: 'neon',
     async getContent() {

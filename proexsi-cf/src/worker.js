@@ -31,11 +31,36 @@ export function mergeContent(saved) {
 }
 
 let cache = null; // { data, updated_at, at }
+const SNAPSHOT_KEY = 'https://cache.interno/contenido.json';
+const withTimeout = (p, ms) => {
+  p.catch(() => {}); // si vence el plazo, el error tardío de la consulta no queda sin manejar
+  let t;
+  return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(new Error('La base de datos no respondió a tiempo')), ms); })]).finally(() => clearTimeout(t));
+};
+
+// Para el back office: siempre lee la base de datos (si falla, el error se muestra en pantalla)
 async function loadContent(db, fresh = false) {
   if (!fresh && cache && Date.now() - cache.at < 10_000) return cache;
-  const row = await db.getContent();
+  const row = await withTimeout(db.getContent(), 8000);
   cache = { data: mergeContent(row?.data), updated_at: row?.updated_at || null, at: Date.now() };
   return cache;
+}
+
+// Para el sitio público: nunca se cae por la base de datos. Si no responde, usa la última versión buena
+// (en memoria o guardada en la caché de Cloudflare) y, como último recurso, el contenido inicial.
+async function loadPublicContent(db, ctx) {
+  if (cache && Date.now() - cache.at < 30_000) return cache.data;
+  try {
+    const c = await withTimeout(loadContent(db, true), 4000);
+    ctx.waitUntil(caches.default.put(SNAPSHOT_KEY, new Response(JSON.stringify(c.data), { headers: { 'Cache-Control': 'max-age=31536000' } })).catch(() => {}));
+    return c.data;
+  } catch (e) {
+    console.error('Contenido desde respaldo:', e.message || e);
+    if (cache) { cache.at = Date.now() - 20_000; return cache.data; }
+    const snap = await caches.default.match(SNAPSHOT_KEY).catch(() => null);
+    if (snap) { const data = await snap.json(); cache = { data, updated_at: null, at: Date.now() - 20_000 }; return data; }
+    return mergeContent(null);
+  }
 }
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -124,7 +149,8 @@ async function adminApi(req, env, url, db) {
     if (!body.force && cur.updated_at && body.base && new Date(body.base).getTime() !== new Date(cur.updated_at).getTime())
       return json({ error: 'Otra persona guardó cambios mientras editabas. Recarga para ver la versión más reciente o publica de todos modos.', conflict: true }, 409);
     const updated_at = await db.saveContent(body.content, String(body.note || '').slice(0, 200));
-    cache = null;
+    cache = { data: mergeContent(body.content), updated_at, at: Date.now() };
+    await caches.default.put(SNAPSHOT_KEY, new Response(JSON.stringify(cache.data), { headers: { 'Cache-Control': 'max-age=31536000' } })).catch(() => {});
     return json({ ok: true, updated_at });
   }
   if (path === 'preview' && req.method === 'POST') {
@@ -218,7 +244,7 @@ async function track(req, db, url) {
     e.campaign = str(b.utm_campaign, 80);
     e.source = classifySource(b.referrer, b.utm_source, url.hostname.replace(/^www\./, ''));
   }
-  await db.addEvent(e);
+  await withTimeout(db.addEvent(e), 4000).catch(err => console.error('No se registró la visita:', err.message || err));
   return new Response(null, { status: 204 });
 }
 
@@ -247,7 +273,9 @@ export default {
     const url = new URL(req.url);
     // www.cultura360.cl → cultura360.cl
     // El paso de http a https lo hace Cloudflare (Always Use HTTPS); hacerlo aquí provocaba redirecciones en bucle
-    if (url.hostname.startsWith('www.')) { url.hostname = url.hostname.slice(4); return Response.redirect(url.toString(), 301); }
+    if (url.hostname.startsWith('www.') && req.method === 'GET' && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/admin/api/')) {
+      url.hostname = url.hostname.slice(4); return Response.redirect(url.toString(), 301);
+    }
     const db = getDb(env);
     try {
       if (url.pathname.startsWith('/admin/api/')) return await adminApi(req, env, url, db);
@@ -280,12 +308,7 @@ export default {
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') return new Response('Método no permitido', { status: 405 });
 
-      // Archivos fijos (back office, imágenes, estilos): pasan por las redirecciones de arriba y luego se entregan tal cual
-      if (!url.pathname.startsWith('/productos/') && url.pathname !== '/') {
-        const asset = await env.ASSETS.fetch(req);
-        if (asset.status !== 404) return asset;
-      }
-      const { data } = await loadContent(db);
+      const data = await loadPublicContent(db, ctx);
       const content = { ...data, __assetVersion: ASSET_VERSION };
       if (url.pathname === '/robots.txt') return new Response(`User-agent: *\nDisallow: /admin/\nSitemap: ${url.origin}/sitemap.xml\n`, { headers: { 'Content-Type': 'text/plain' } });
       if (url.pathname === '/sitemap.xml') return new Response(sitemap(content, url.origin), { headers: { 'Content-Type': 'application/xml' } });
