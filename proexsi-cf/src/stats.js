@@ -136,7 +136,7 @@ export function computeStats({ events, leads, days, content, now = Date.now() })
     const m = l.data?._meta || {};
     const evs = byVisitor.get(m.visitor) || [];
     const prods = [...new Set(evs.filter(e => e.type === 'pageview' && /^\/productos\//.test(e.path || '')).map(e => pageName(e.path, content).replace('Producto: ', '')))];
-    const first = evs.find(e => e.source);
+    const first = evs.find(e => e.source && e.source !== 'Directo') || evs.find(e => e.source);
     return {
       id: l.id, created_at: l.created_at, nombre: l.data.nombre, institucion: l.data.institucion, cargo: l.data.cargo,
       correo: l.data.correo, telefono: l.data.telefono, producto: l.data.producto,

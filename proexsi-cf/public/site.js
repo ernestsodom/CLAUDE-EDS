@@ -8,7 +8,10 @@
     function set(store, k, v) { try { store.setItem(k, v); } catch (e) {} }
     var visitor = get(localStorage, 'cx_v') || rid(); set(localStorage, 'cx_v', visitor);
     var last = Number(get(localStorage, 'cx_t') || 0), session = get(sessionStorage, 'cx_s'), first = false;
-    if (!session || Date.now() - last > 30 * 60000) { session = rid(); first = true; set(sessionStorage, 'cx_s', session); }
+    var q = new URLSearchParams(location.search), ref = '';
+    try { ref = document.referrer && new URL(document.referrer).host !== location.host ? document.referrer : ''; } catch (e) {}
+    // Llegar desde otro sitio (Google, LinkedIn…) o desde una campaña inicia una visita nueva, aunque haya otra reciente
+    if (!session || Date.now() - last > 30 * 60000 || ref || q.get('utm_source')) { session = rid(); first = true; set(sessionStorage, 'cx_s', session); }
     function send(type, extra) {
       set(localStorage, 'cx_t', String(Date.now()));
       var d = { type: type, path: location.pathname, visitor: visitor, session: session };
@@ -19,8 +22,7 @@
       } catch (e) {}
       fetch('/api/t', { method: 'POST', body: body, keepalive: true, headers: { 'Content-Type': 'application/json' } }).catch(function () {});
     }
-    var q = new URLSearchParams(location.search);
-    send('pageview', { first: first, referrer: first ? document.referrer : '', utm_source: q.get('utm_source'), utm_campaign: q.get('utm_campaign') });
+    send('pageview', { first: first, referrer: first ? ref : '', utm_source: q.get('utm_source'), utm_campaign: q.get('utm_campaign') });
     if ('IntersectionObserver' in window) {
       var seen = {};
       var io = new IntersectionObserver(function (es) {

@@ -9,7 +9,7 @@ import { ICONS, iconSvg } from './icons.js';
 import { STATIC_IMAGES } from './static-images.js';
 import { isBot, parseUA, classifySource, computeStats } from './stats.js';
 
-const ASSET_VERSION = 5;
+const ASSET_VERSION = 6;
 // Dirección oficial del sitio (para Google). Se puede cambiar con la variable SITE_URL en Cloudflare.
 const canonicalOf = env => String(env.SITE_URL || 'https://cultura360.cl').replace(/\/+$/, '');
 const MAX_UPLOAD = 6 * 1024 * 1024;
