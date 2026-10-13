@@ -43,7 +43,7 @@ const ICONITEM = [{ k: 'icon', label: 'Ícono', type: 'icon' }, T('title', 'Tít
 export const BLOCKS = {
   hero: {
     name: 'Portada con foto', desc: 'Foto a todo ancho con título, botones y datos destacados.',
-    fields: [T('kicker', 'Etiqueta superior'), T('title', 'Título'), T('titleAccent', 'Final del título en color de acento'), TA('lead', 'Bajada'),
+    fields: [T('kicker', 'Etiqueta superior', { hint: 'Forma parte del título principal para Google: conviene que diga qué ofreces (ej: "Software de venta de entradas e inscripciones").' }), T('title', 'Título'), T('titleAccent', 'Final del título en color de acento'), TA('lead', 'Bajada'),
       IMG('image', 'Foto de fondo'), T('alt', 'Descripción de la foto (accesibilidad)'), POS(), POS('posMobile', 'Encuadre en celular'), VEIL,
       T('cta1Label', 'Botón principal'), T('cta1Href', 'Enlace del botón principal'), T('cta2Label', 'Botón secundario'), T('cta2Href', 'Enlace del botón secundario'),
       ITEMS('facts', 'Datos destacados', [T('title', 'Dato'), T('text', 'Detalle')], 'Agregar dato')],
@@ -127,6 +127,9 @@ export const CATEGORY_FIELDS = [
   T('name', 'Nombre'), T('slug', 'Dirección (ej: teatro → /productos/teatro)'), { k: 'icon', label: 'Ícono', type: 'icon' },
   IMG('image', 'Foto'), T('alt', 'Descripción de la foto'), POS(), VEIL,
   TA('short', 'Texto corto (tarjeta)'), TA('lead', 'Bajada de la página del producto'),
+  T('h1', 'Título principal de la página (H1)', { hint: 'Vacío = se usa un título sugerido con palabras clave (ej: "Software de venta de entradas para teatros").' }),
+  T('seoTitle', 'Título para Google', { hint: 'Vacío = título sugerido. Se agrega "| Cultura360" al final.' }),
+  TA('seoDescription', 'Descripción para Google', { hint: 'Vacío = descripción sugerida. Ideal: 140 a 160 caracteres.' }),
   ITEMS('features', 'Qué puedes hacer', [T('title', 'Título'), TA('text', 'Texto')], 'Agregar función'),
   { k: 'steps', label: 'Así funciona (pasos)', type: 'strings', add: 'Agregar paso' },
   { k: 'hidden', label: 'Ocultar este producto', type: 'bool' },
@@ -140,7 +143,10 @@ export const CATEGORY_PAGE_FIELDS = [
 export const SITE_FIELDS = [
   T('name', 'Nombre del sitio'), IMG('logo', 'Logo'),
   { k: 'logoMode', label: 'Color del logo', type: 'select', options: [['tint', 'Teñir con el color del logo de la paleta (logos de un color)'], ['original', 'Mostrar el logo con sus colores originales']] },
-  T('title', 'Título para Google (inicio)'), TA('description', 'Descripción para Google'),
+  T('title', 'Título para Google (inicio)', { hint: 'Si no lo cambias, se usa: "Ticketera y software de venta de entradas | Cultura360 · Proexsi".' }),
+  TA('description', 'Descripción para Google (inicio)', { hint: 'Ideal: 140 a 160 caracteres, con las palabras que busca tu cliente.' }),
+  T('googleVerification', 'Código de verificación de Google Search Console', { hint: 'Pega solo el código del campo content="…" de la etiqueta HTML que entrega Search Console.' }),
+  T('bingVerification', 'Código de verificación de Bing Webmaster (opcional)'),
   T('ctaLabel', 'Botón del menú'), T('ctaHref', 'Enlace del botón del menú'),
   T('email', 'Correo de contacto'), T('phone', 'Teléfono'), T('hours', 'Horario'),
   TA('footerText', 'Texto del pie de página'), T('legal', 'Línea legal'),
@@ -151,6 +157,8 @@ export const SITE_FIELDS = [
 export const NAV_FIELDS = [T('label', 'Texto'), T('href', 'Enlace (ej: /nosotros o /#productos)')];
 
 export const PAGE_FIELDS = [
-  T('title', 'Nombre de la página'), T('slug', 'Dirección (ej: nosotros → /nosotros)'), TA('seoDescription', 'Descripción para Google'),
+  T('title', 'Nombre de la página'), T('slug', 'Dirección (ej: nosotros → /nosotros)'),
+  T('seoTitle', 'Título para Google', { hint: 'Vacío = se usa el nombre de la página. Se agrega "| Cultura360 · Proexsi" al final.' }),
+  TA('seoDescription', 'Descripción para Google', { hint: 'Ideal: 140 a 160 caracteres.' }),
   { k: 'hidden', label: 'Ocultar esta página', type: 'bool' },
 ];

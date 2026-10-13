@@ -2,6 +2,7 @@
 import { iconSvg } from './icons.js';
 import { FONTS, fontStack, fontHref } from './fonts.js';
 import { COLOR_TOKENS } from './schema.js';
+import { homeSeo, categorySeo, pageSeo, homeLd, categoryLd, pageLd, SUFFIX } from './seo.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -42,8 +43,7 @@ const R = {
     return `<section class="hero" id="${esc(b.id)}" aria-label="Presentación" style="--veil:${veil(b.veil)}">
   <div class="hero-bg" role="img" aria-label="${esc(b.alt)}" style="background-image:${cssUrl(b.image)};--pos:${safePos(b.pos)};--pos-m:${safePos(b.posMobile || b.pos)}"></div>
   <div class="wrap"><div class="hero-copy">
-    ${b.kicker ? `<p class="kicker">${esc(b.kicker)}</p>` : ''}
-    <h1>${esc(b.title)}${b.titleAccent ? ` <em>${esc(b.titleAccent)}</em>` : ''}</h1>
+    <h1>${b.kicker ? `<span class="kicker">${esc(b.kicker)}</span> ` : ''}${esc(b.title)}${b.titleAccent ? ` <em>${esc(b.titleAccent)}</em>` : ''}</h1>
     ${b.lead ? `<p class="lead">${nl2br(b.lead)}</p>` : ''}
     <div class="hero-ctas">${btn(b.cta1Label, b.cta1Href, 'btn-orange')}${btn(b.cta2Label, b.cta2Href, 'btn-ghost')}</div>
     ${facts.length ? `<ul class="hero-facts">${facts.map(f => `<li><b>${esc(f.title)}</b>${esc(f.text)}</li>`).join('')}</ul>` : ''}
@@ -238,25 +238,36 @@ function logo(site, cls = 'logo') {
   return `<a class="${cls}" href="/" aria-label="${label}, inicio">${inner}</a>`;
 }
 
-function layout(content, { title, description, body, path, preview, origin }) {
+function layout(content, { title, description, body, path, preview, origin, canonical, head = '', noindex }) {
+  const base = canonical || origin;
   const s = content.site;
   const { css, links } = themeCss(content.theme || {}, s);
   const cats = visibleCats(content);
   const navLinks = (content.nav || []).filter(n => n.label).map(n => `<a href="${esc(safeUrl(n.href))}">${esc(n.label)}</a>`).join('');
   const ogImg = content.home?.blocks?.find(b => b.type === 'hero')?.image;
   return `<!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
+${noindex ? '<meta name="robots" content="noindex">' : ''}
+${s.googleVerification ? `<meta name="google-site-verification" content="${esc(s.googleVerification)}">` : ''}
+${s.bingVerification ? `<meta name="msvalidate.01" content="${esc(s.bingVerification)}">` : ''}
+${path && base ? `<link rel="canonical" href="${esc(base + path)}">` : ''}
+<meta property="og:site_name" content="${esc(SUFFIX)}">
+<meta property="og:locale" content="es_CL">
+<meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
-<meta property="og:type" content="website">
-${ogImg && origin ? `<meta property="og:image" content="${esc(origin + safeUrl(ogImg))}">` : ''}
-${path && origin ? `<link rel="canonical" href="${esc(origin + path)}">` : ''}
-<link rel="icon" href="${esc(safeUrl(s.favicon || s.logo || '/favicon.ico'))}">
+${path && base ? `<meta property="og:url" content="${esc(base + path)}">` : ''}
+${ogImg && base ? `<meta property="og:image" content="${esc(base + safeUrl(ogImg))}">` : ''}
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+${head}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${links.map(l => `<link rel="stylesheet" href="${esc(l)}">`).join('\n')}
@@ -294,15 +305,20 @@ ${preview ? '<div class="preview-bar">Vista previa · los cambios aún no están
 
 /* ---------- páginas ---------- */
 export function renderHome(content, opts = {}) {
-  const s = content.site;
-  return layout(content, { title: s.title || s.name, description: s.description, body: renderBlocks(content.home?.blocks, { content }), path: '/', ...opts });
+  const seo = homeSeo(content.site || {});
+  const hero = (content.home?.blocks || []).find(b => b.type === 'hero' && !b.hidden);
+  const base = opts.canonical || opts.origin || '';
+  const head = (hero?.image ? `<link rel="preload" as="image" href="${esc(safeUrl(hero.image))}" fetchpriority="high">\n` : '') + (base ? homeLd(content, base) : '');
+  return layout(content, { title: seo.title, description: seo.description, body: renderBlocks(content.home?.blocks, { content }), path: '/', head, ...opts });
 }
 
 export function renderCategory(content, c, opts = {}) {
   const p = content.categoryPage || {};
+  const seo = categorySeo(c);
+  const base = opts.canonical || opts.origin || '';
   const crumb = `<a href="/#productos">${esc(p.crumb || 'Productos')}</a> / ${esc(c.name)}`;
   const blocks = [
-    { id: 'encabezado', type: 'pageHero', icon: c.icon, title: c.name, lead: c.lead, image: c.image, alt: c.alt, pos: c.pos, veil: c.veil,
+    { id: 'encabezado', type: 'pageHero', icon: c.icon, eyebrow: c.name, title: seo.h1, lead: c.lead, image: c.image, alt: c.alt, pos: c.pos, veil: c.veil,
       cta1Label: p.cta1Label, cta1Href: '/#contacto', cta2Label: p.cta2Label, cta2Href: '/#productos' },
     (c.features || []).length && { id: 'funciones', type: 'cards', style: 'number', eyebrow: c.name, title: p.featuresTitle, items: c.features },
     (c.steps || []).filter(Boolean).length && { id: 'pasos', type: 'steps', title: p.stepsTitle, items: c.steps },
@@ -310,18 +326,21 @@ export function renderCategory(content, c, opts = {}) {
     p.ctaTitle && { id: 'cta', type: 'cta', title: p.ctaTitle, button: content.site.ctaLabel || 'Agenda una demo', href: '/#contacto' },
   ].filter(Boolean);
   const body = renderBlocks(blocks, { content, crumb, skip: c.slug });
-  return layout(content, { title: `${c.name} | ${content.site.name}`, description: c.lead || c.short, body, path: productUrl(c), ...opts });
+  const head = (c.image ? `<link rel="preload" as="image" href="${esc(safeUrl(c.image))}" fetchpriority="high">\n` : '') + (base ? categoryLd(content, c, base) : '');
+  return layout(content, { title: seo.title, description: seo.description, body, path: productUrl(c), head, ...opts });
 }
 
 export function renderPage(content, page, opts = {}) {
   const crumb = `<a href="/">Inicio</a> / ${esc(page.title)}`;
   const body = renderBlocks(page.blocks, { content, crumb });
-  return layout(content, { title: `${page.title} | ${content.site.name}`, description: page.seoDescription || content.site.description, body, path: pageUrl(page), ...opts });
+  const seo = pageSeo(page, content.site || {});
+  const base = opts.canonical || opts.origin || '';
+  return layout(content, { title: seo.title, description: seo.description, body, path: pageUrl(page), head: base ? pageLd(content, page, base) : '', ...opts });
 }
 
 export function renderNotFound(content, opts = {}) {
   const body = `<section class="notfound"><div class="wrap"><span class="eyebrow">Error 404</span><h1>No encontramos esta página</h1><p class="lead">Puede que la dirección haya cambiado o que la página ya no exista.</p><a class="btn btn-orange" href="/">Volver al inicio</a></div></section>`;
-  return layout(content, { title: `Página no encontrada | ${content.site.name}`, description: content.site.description, body, ...opts });
+  return layout(content, { title: `Página no encontrada | ${SUFFIX}`, description: homeSeo(content.site || {}).description, body, noindex: true, ...opts });
 }
 
 // Resuelve una ruta pública a su HTML (o null si no existe)

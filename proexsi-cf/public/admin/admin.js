@@ -140,10 +140,10 @@
     if (f.type === 'bool') {
       return h('div', { class: 'f wide' }, h('label', { class: 'check' }, [h('input', { type: 'checkbox', checked: !!val, onchange: function (e) { set(e.target.checked); } }), f.label]));
     }
-    if (f.type === 'text') { wrap.append(lab, h('input', { id: id, type: 'text', value: val || '', oninput: function (e) { set(e.target.value); } })); return wrap; }
+    if (f.type === 'text') { wrap.append(lab, h('input', { id: id, type: 'text', value: val || '', oninput: function (e) { set(e.target.value); } })); if (f.hint) wrap.append(h('span', { class: 'hint', text: f.hint })); return wrap; }
     if (f.type === 'textarea') {
       var ta = h('textarea', { id: id, rows: Math.min(8, Math.max(2, Math.ceil(String(val || '').length / 70))), oninput: function (e) { set(e.target.value); } }); ta.value = val || '';
-      wrap.append(lab, ta); return wrap;
+      wrap.append(lab, ta); if (f.hint) wrap.append(h('span', { class: 'hint', text: f.hint })); return wrap;
     }
     if (f.type === 'rich') {
       var rt = h('textarea', { id: id, rows: 5, oninput: function (e) { set(e.target.value); } }); rt.value = val || '';

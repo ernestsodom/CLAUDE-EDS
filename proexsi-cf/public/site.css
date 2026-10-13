@@ -304,3 +304,5 @@ h3{font-size:calc(1.55rem*var(--ts,1))}
 .cat h3{font-size:calc(1.4rem*var(--ts,1))}
 .feat h3{font-size:calc(1.35rem*var(--ts,1))}
 .cta-box h2{font-size:calc(clamp(1.8rem,3vw,2.4rem)*var(--ts,1))}
+/* la etiqueta superior del portada forma parte del título principal (H1) para Google, con el mismo aspecto */
+.hero h1 .kicker{display:flex;font-family:var(--sans);line-height:1.4;margin-bottom:26px}

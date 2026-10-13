@@ -9,7 +9,9 @@ import { ICONS, iconSvg } from './icons.js';
 import { STATIC_IMAGES } from './static-images.js';
 import { isBot, parseUA, classifySource, computeStats } from './stats.js';
 
-const ASSET_VERSION = 4;
+const ASSET_VERSION = 5;
+// Dirección oficial del sitio (para Google). Se puede cambiar con la variable SITE_URL en Cloudflare.
+const canonicalOf = env => String(env.SITE_URL || 'https://cultura360.cl').replace(/\/+$/, '');
 const MAX_UPLOAD = 6 * 1024 * 1024;
 const RESERVED = new Set(['productos', 'admin', 'api', 'media', 'img', 'site.css', 'site.js', 'favicon.ico', 'robots.txt', 'sitemap.xml']);
 const IMAGE_TYPES = new Set(['image/webp', 'image/jpeg', 'image/png', 'image/gif', 'image/avif', 'image/svg+xml']);
@@ -263,9 +265,10 @@ async function lead(req, db) {
   return json({ ok: true });
 }
 
-function sitemap(content, origin) {
-  const urls = ['/', ...content.categories.filter(c => !c.hidden).map(c => `/productos/${c.slug}`), ...content.pages.filter(p => !p.hidden).map(p => `/${p.slug}`)];
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(u => `<url><loc>${origin}${u}</loc></url>`).join('')}</urlset>`;
+function sitemap(content, origin, updated) {
+  const urls = [['/', '1.0'], ...content.categories.filter(c => !c.hidden).map(c => [`/productos/${c.slug}`, '0.8']), ...content.pages.filter(p => !p.hidden).map(p => [`/${p.slug}`, '0.6'])];
+  const lastmod = updated ? `<lastmod>${new Date(updated).toISOString().slice(0, 10)}</lastmod>` : '';
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([u, pr]) => `<url><loc>${origin}${u}</loc>${lastmod}<priority>${pr}</priority></url>`).join('')}</urlset>`;
 }
 
 export default {
@@ -310,10 +313,18 @@ export default {
 
       const data = await loadPublicContent(db, ctx);
       const content = { ...data, __assetVersion: ASSET_VERSION };
-      if (url.pathname === '/robots.txt') return new Response(`User-agent: *\nDisallow: /admin/\nSitemap: ${url.origin}/sitemap.xml\n`, { headers: { 'Content-Type': 'text/plain' } });
-      if (url.pathname === '/sitemap.xml') return new Response(sitemap(content, url.origin), { headers: { 'Content-Type': 'application/xml' } });
-      const out = renderPath(content, url.pathname, { origin: url.origin });
-      return out ? html(out) : html(renderNotFound(content, { origin: url.origin }), 404);
+      const canonical = canonicalOf(env);
+      const official = url.hostname === new URL(canonical).hostname;
+      if (url.pathname === '/robots.txt') {
+        // La dirección de prueba (workers.dev) no se indexa: así Google no ve contenido duplicado
+        const body = official ? `User-agent: *\nDisallow: /admin/\nDisallow: /api/\nSitemap: ${canonical}/sitemap.xml\n` : 'User-agent: *\nDisallow: /\n';
+        return new Response(body, { headers: { 'Content-Type': 'text/plain' } });
+      }
+      if (url.pathname === '/sitemap.xml') return new Response(sitemap(content, canonical, cache?.updated_at), { headers: { 'Content-Type': 'application/xml' } });
+      const out = renderPath(content, url.pathname, { origin: url.origin, canonical });
+      const res = out ? html(out) : html(renderNotFound(content, { origin: url.origin, canonical }), 404);
+      if (!official) res.headers.set('X-Robots-Tag', 'noindex');
+      return res;
     } catch (e) {
       console.error(e);
       if (url.pathname.startsWith('/admin/api/')) return json({ error: 'Error del servidor: ' + (e.message || e) }, 500);
