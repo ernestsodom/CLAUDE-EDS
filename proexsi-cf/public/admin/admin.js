@@ -50,7 +50,7 @@
     e.preventDefault();
     var m = $('#login-msg'); m.hidden = true;
     api('login', { method: 'POST', json: { password: $('#pw').value } })
-      .then(function () { $('#pw').value = ''; boot(); })
+      .then(function () { $('#pw').value = ''; boot(true); })
       .catch(function (er) { m.textContent = er.message; m.hidden = false; });
   });
   $('#logout').addEventListener('click', function () {
@@ -59,13 +59,22 @@
     api('logout', { method: 'POST' }).finally(function () { location.reload(); });
   });
 
-  function boot() {
+  function boot(fromLogin) {
     Promise.all([api('meta'), api('content'), api('media')]).then(function (r) {
       S.meta = r[0]; S.content = r[1].content; S.base = r[1].updated_at; S.saved = JSON.stringify(S.content); S.media = r[2].items;
       $('#login').hidden = true; $('#app').hidden = false;
       $('#dbwarn').hidden = S.meta.db !== 'memoria';
       route(); markDirty();
-    }).catch(function (e) { if (e.status !== 401) toast(e.message, true); });
+    }).catch(function (e) {
+      if (fromLogin) {
+        // La clave fue aceptada pero no se pudo cargar el back office: se muestra el motivo en la tarjeta de acceso
+        var m = $('#login-msg');
+        m.textContent = e.status === 401
+          ? 'La clave es correcta, pero la sesión no se pudo iniciar. Permite las cookies para este sitio o abre https://' + location.host + '/api/estado y envía lo que aparece.'
+          : 'La clave es correcta, pero el back office no pudo cargar sus datos: ' + e.message;
+        m.hidden = false; $('#login').hidden = false; $('#app').hidden = true;
+      } else if (e.status !== 401) toast(e.message, true);
+    });
   }
 
   /* ---------- estado de cambios ---------- */

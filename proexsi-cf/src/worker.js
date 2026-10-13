@@ -86,6 +86,7 @@ async function adminApi(req, env, url, db) {
     if (tooMany(ip)) return json({ error: 'Demasiados intentos. Espera 10 minutos e inténtalo de nuevo.' }, 429);
     const { password } = await req.json().catch(() => ({}));
     if (!config(env).password) return json({ error: 'Falta configurar la clave del back office (ADMIN_PASSWORD) en Cloudflare.' }, 500);
+    if (!config(env).secret) return json({ error: 'Falta configurar SESSION_SECRET en Cloudflare: sin ella no se puede iniciar sesión.' }, 500);
     if (!(await checkPassword(env, password))) { addFail(ip); return json({ error: 'La clave no es correcta.' }, 401); }
     fails.delete(ip);
     return json({ ok: true }, 200, { 'Set-Cookie': await makeCookie(env, secure) });
@@ -256,10 +257,27 @@ export default {
       if (url.pathname === '/api/lead' && req.method === 'POST') return await lead(req, db);
       if (url.pathname === '/api/t' && req.method === 'POST') return await track(req, db, url);
       if (url.pathname === '/api/estado') {
-        // Diagnóstico sin datos sensibles: indica si los secretos están configurados y si responde la base de datos
-        let base = 'sin conexión';
-        if (env.DATABASE_URL) { try { await db.getContent(); base = 'conectada'; } catch (e) { base = 'error: ' + String(e.message || e).slice(0, 120); } }
-        return json({ baseDeDatos: env.DATABASE_URL ? base : 'falta DATABASE_URL (modo de prueba)', claveAdmin: env.ADMIN_PASSWORD ? 'configurada' : 'falta ADMIN_PASSWORD', sesion: env.SESSION_SECRET ? 'configurada' : 'falta SESSION_SECRET' });
+        // Diagnóstico sin datos sensibles: secretos configurados y prueba de cada parte de la base de datos
+        const probar = async fn => { try { await fn(); return 'ok'; } catch (e) { return 'error: ' + String(e.message || e).slice(0, 160); } };
+        const out = {
+          baseDeDatos: env.DATABASE_URL ? 'configurada' : 'falta DATABASE_URL (modo de prueba)',
+          claveAdmin: env.ADMIN_PASSWORD ? 'configurada' : 'falta ADMIN_PASSWORD',
+          sesion: env.SESSION_SECRET ? 'configurada' : 'falta SESSION_SECRET',
+          protocolo: url.protocol, cfVisitor: req.headers.get('CF-Visitor') || null,
+        };
+        if (env.DATABASE_URL) {
+          out.contenido = await probar(() => db.getContent());
+          out.imagenes = await probar(() => db.listMedia());
+          out.solicitudes = await probar(() => db.listLeads());
+          out.visitas = await probar(() => db.listEvents(new Date(Date.now() - 86400000).toISOString()));
+        }
+        if (env.SESSION_SECRET) {
+          out.pruebaSesion = await probar(async () => {
+            const c = (await makeCookie(env, true)).split(';')[0];
+            if (!(await isAuthed(env, new Request(url.origin, { headers: { Cookie: c } })))) throw new Error('la cookie firmada no se valida');
+          });
+        }
+        return json(out);
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') return new Response('Método no permitido', { status: 405 });
 
