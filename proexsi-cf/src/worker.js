@@ -281,6 +281,11 @@ export default {
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') return new Response('Método no permitido', { status: 405 });
 
+      // Archivos fijos (back office, imágenes, estilos): pasan por las redirecciones de arriba y luego se entregan tal cual
+      if (!url.pathname.startsWith('/productos/') && url.pathname !== '/') {
+        const asset = await env.ASSETS.fetch(req);
+        if (asset.status !== 404) return asset;
+      }
       const { data } = await loadContent(db);
       const content = { ...data, __assetVersion: ASSET_VERSION };
       if (url.pathname === '/robots.txt') return new Response(`User-agent: *\nDisallow: /admin/\nSitemap: ${url.origin}/sitemap.xml\n`, { headers: { 'Content-Type': 'text/plain' } });
