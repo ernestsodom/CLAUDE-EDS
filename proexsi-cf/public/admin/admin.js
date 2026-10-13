@@ -392,6 +392,67 @@
     return h('div', { class: 'kpi' }, [h('span', { class: 'k-l', text: label }), h('span', { class: 'k-v', text: fmt ? fmt(value) : nf(value) }), d, help ? h('span', { class: 'k-h', text: help }) : null]);
   }
 
+  // Color por categoría: cada nombre conserva su color mientras se usa el panel (el color sigue al dato, no a su posición)
+  var PALETTE = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)', 'var(--c7)', 'var(--c8)'];
+  S.colorMap = S.colorMap || {};
+  function colorFor(key, label) {
+    var m = S.colorMap[key] || (S.colorMap[key] = {});
+    if (!(label in m)) m[label] = Object.keys(m).length;
+    return m[label] < PALETTE.length ? PALETTE[m[label]] : 'var(--c-other)';
+  }
+  try { S.chartMode = localStorage.getItem('px_chart') || 'bars'; } catch (e) { S.chartMode = 'bars'; }
+
+  // Torta: hasta 7 porciones y el resto agrupado en "Otros"
+  function pieChart(items, opts) {
+    opts = opts || {};
+    if (!items || !items.length) return h('p', { class: 'empty2', text: opts.empty || 'Sin datos en este período.' });
+    var list = items.slice(0, 7).map(function (i) { return { label: opts.map ? opts.map(i.label) : i.label, raw: i.label, value: i.value }; });
+    var rest = items.slice(7).reduce(function (a, i) { return a + i.value; }, 0);
+    list.forEach(function (i) { i.color = colorFor(opts.key, i.raw); });
+    if (rest) list.push({ label: 'Otros', value: rest, color: 'var(--c-other)' });
+    var total = list.reduce(function (a, i) { return a + i.value; }, 0) || 1;
+    var R0 = 80, R1 = 50, cx = 85, cy = 85, a0 = -Math.PI / 2;
+    var s = svg('svg', { viewBox: '0 0 170 170', role: 'img', 'aria-label': 'Gráfico de torta' });
+    var legend = h('div', { class: 'legend' });
+    var wrap = h('div', { class: 'pie-wrap' });
+    var tip = h('div', { class: 'tip', hidden: true });
+    var paths = [], rows = [];
+    function arc(a1, a2) {
+      if (a2 - a1 >= Math.PI * 2 - 1e-6) a2 = a1 + Math.PI * 2 - 1e-4;
+      var large = a2 - a1 > Math.PI ? 1 : 0, p = function (r, a) { return (cx + r * Math.cos(a)).toFixed(2) + ' ' + (cy + r * Math.sin(a)).toFixed(2); };
+      return 'M' + p(R0, a1) + ' A' + R0 + ' ' + R0 + ' 0 ' + large + ' 1 ' + p(R0, a2) + ' L' + p(R1, a2) + ' A' + R1 + ' ' + R1 + ' 0 ' + large + ' 0 ' + p(R1, a1) + ' Z';
+    }
+    function focus(i, e) {
+      paths.forEach(function (p, j) { p.classList.toggle('dim', i != null && j !== i); });
+      rows.forEach(function (r, j) { r.classList.toggle('on', j === i); });
+      if (i == null || !e) { tip.hidden = true; return; }
+      var it = list[i], r = wrap.getBoundingClientRect();
+      tip.innerHTML = ''; tip.append(h('b', { text: nf(it.value) }), ' ' + (opts.unit || '') + ' · ', it.label, ' (' + pct(it.value / total) + ')');
+      tip.style.left = (e.clientX - r.left) + 'px'; tip.style.top = (e.clientY - r.top) + 'px'; tip.hidden = false;
+    }
+    list.forEach(function (it, i) {
+      var a1 = a0, a2 = a0 + it.value / total * Math.PI * 2; a0 = a2;
+      var p = svg('path', { d: arc(a1, a2), fill: it.color, stroke: list.length > 1 ? '#fff' : 'none', 'stroke-width': 2, tabindex: 0 });
+      p.style.fill = it.color;
+      p.addEventListener('pointermove', function (e) { focus(i, e); });
+      p.addEventListener('pointerleave', function () { focus(null); });
+      p.addEventListener('focus', function () { var b = p.getBoundingClientRect(); focus(i, { clientX: b.left + b.width / 2, clientY: b.top + b.height / 2 }); });
+      p.addEventListener('blur', function () { focus(null); });
+      paths.push(p); s.append(p);
+      var row = h('div', { class: 'lg' }, [h('i', { style: { background: it.color } }), h('span', { text: it.label, title: it.label }), h('b', { text: nf(it.value) }), h('small', { text: pct(it.value / total) })]);
+      row.addEventListener('pointerenter', function () { focus(i); });
+      row.addEventListener('pointerleave', function () { focus(null); });
+      rows.push(row); legend.append(row);
+    });
+    var t1 = svg('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', class: 'p-total' }); t1.textContent = nf(total);
+    var t2 = svg('text', { x: cx, y: cy + 21, 'text-anchor': 'middle', class: 'p-cap' }); t2.textContent = opts.unit || 'total';
+    s.append(t1, t2);
+    wrap.append(s, tip);
+    return h('div', { class: 'pie' }, [wrap, legend]);
+  }
+
+  function dist(items, opts) { return S.chartMode === 'pie' ? pieChart(items, opts) : barList(items, opts); }
+
   function barList(items, opts) {
     opts = opts || {};
     if (!items || !items.length) return h('p', { class: 'empty2', text: opts.empty || 'Sin datos en este período.' });
@@ -401,7 +462,7 @@
       var label = opts.map ? opts.map(i.label) : i.label;
       var row = h('div', { class: 'bar-row', tabindex: 0, title: label + ': ' + nf(i.value) + (opts.unit ? ' ' + opts.unit : '') + ' (' + pct(total ? i.value / total : 0) + ')' }, [
         h('div', { class: 'bar-top' }, [h('span', { text: label }), h('b', { text: nf(i.value) })]),
-        h('div', { class: 'bar-track' }, h('div', { class: 'bar-fill', style: { width: Math.max(1, i.value / max * 100) + '%' } }))]);
+        h('div', { class: 'bar-track' }, h('div', { class: 'bar-fill', style: { width: Math.max(1, i.value / max * 100) + '%', background: opts.key ? colorFor(opts.key, i.label) : '' } }))]);
       return row;
     }));
   }
@@ -483,7 +544,14 @@
       return h('button', { type: 'button', class: S.days === o[0] ? 'on' : '', 'aria-pressed': S.days === o[0], onclick: function () { S.days = o[0]; load(); seg.querySelectorAll('button').forEach(function (b, i) { var on = [7, 30, 90, 365][i] === S.days; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); } }, o[1]);
     }));
     var body = h('div', { style: { display: 'grid', gap: '18px' } });
-    root.append(h('div', { class: 'filters' }, [seg, live, h('button', { class: 'b sm', type: 'button', onclick: function () { load(); } }, 'Actualizar')]), body);
+    var modeSeg = h('div', { class: 'seg2', role: 'group', 'aria-label': 'Tipo de gráfico' }, [['bars', 'Barras'], ['pie', 'Torta']].map(function (o) {
+      return h('button', { type: 'button', class: S.chartMode === o[0] ? 'on' : '', 'aria-pressed': S.chartMode === o[0], onclick: function () {
+        S.chartMode = o[0]; try { localStorage.setItem('px_chart', o[0]); } catch (e) {}
+        modeSeg.querySelectorAll('button').forEach(function (b, i) { var on = ['bars', 'pie'][i] === S.chartMode; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+        if (S.lastStats) draw(S.lastStats);
+      } }, o[1]);
+    }));
+    root.append(h('div', { class: 'filters' }, [seg, h('span', { class: 'sub', style: { color: 'var(--muted)', fontSize: '.85rem' }, text: 'Ver gráficos como' }), modeSeg, live, h('button', { class: 'b sm', type: 'button', onclick: function () { load(); } }, 'Actualizar')]), body);
     v.append(root);
 
     function load() {
@@ -492,6 +560,7 @@
     }
 
     function draw(st) {
+      S.lastStats = st;
       live.lastChild.textContent = '';
       live.lastChild.append(h('b', { text: nf(st.online) }), st.online === 1 ? ' persona en el sitio ahora' : ' personas en el sitio ahora');
       var c = st.kpi.cur, p = st.kpi.prev;
@@ -518,14 +587,14 @@
       };
       g.append(card('Visitantes por día', 'Pasa el mouse sobre el gráfico para ver cada día.', [lineChart(st.daily), tableBtn, tableBox], true));
       g.append(card('Camino hacia la demo', 'Cuántos visitantes avanzan en cada paso.', [funnel(st.funnel)], true));
-      g.append(card('¿Desde dónde llegan?', 'Origen de cada visita.', [barList(st.sources, { unit: 'visitas' })]));
-      g.append(card('¿Dónde están?', 'Ciudades de los visitantes.', [barList(st.cities, { unit: 'visitantes' }),
+      g.append(card('¿Desde dónde llegan?', 'Origen de cada visita.', [dist(st.sources, { key: 'sources', unit: 'visitas' })]));
+      g.append(card('¿Dónde están?', 'Ciudades de los visitantes.', [dist(st.cities, { key: 'cities', unit: 'visitantes' }),
         st.countries.length > 1 ? h('p', { class: 'sub', style: { margin: 0 }, text: 'Países: ' + st.countries.map(function (x) { return countryName(x.label) + ' (' + nf(x.value) + ')'; }).join(' · ') }) : null]));
-      g.append(card('Productos que más interesan', 'Visitantes que abrieron la página o la tarjeta de cada producto.', [barList(st.interest, { unit: 'visitantes', empty: 'Nadie ha abierto un producto en este período.' })]));
-      g.append(card('Páginas más vistas', null, [barList(st.pages, { unit: 'vistas' })]));
-      g.append(card('Secciones del inicio que más se ven', 'Visitantes que llegaron a cada sección al bajar por la página.', [barList(st.sections, { unit: 'visitantes' })]));
-      g.append(card('Botones y enlaces con más clics', null, [barList(st.clicks, { unit: 'clics', empty: 'Sin clics registrados en este período.' })]));
-      g.append(card('Dispositivo', null, [barList(st.devices, { unit: 'visitantes' })]));
+      g.append(card('Productos que más interesan', 'Visitantes que abrieron la página o la tarjeta de cada producto.', [dist(st.interest, { key: 'interest', unit: 'visitantes', empty: 'Nadie ha abierto un producto en este período.' })]));
+      g.append(card('Páginas más vistas', null, [dist(st.pages, { key: 'pages', unit: 'vistas' })]));
+      g.append(card('Secciones del inicio que más se ven', 'Visitantes que llegaron a cada sección al bajar por la página.', [dist(st.sections, { key: 'sections', unit: 'visitantes' })]));
+      g.append(card('Botones y enlaces con más clics', null, [dist(st.clicks, { key: 'clicks', unit: 'clics', empty: 'Sin clics registrados en este período.' })]));
+      g.append(card('Dispositivo', null, [dist(st.devices, { key: 'devices', unit: 'visitantes' })]));
 
       // solicitudes con su recorrido
       var leadsBody = st.leads.length ? h('div', { class: 'table-wrap' }, h('table', {}, [
