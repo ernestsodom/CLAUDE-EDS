@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ticketeras Culturales Chile 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: "programa de sala" — portada tipo boleto, índice lateral fijo en escritorio, columna de lectura de ~70ch, fichas de competidor como talones perforados. */
+:root{
+  --paper:#f5f6f8; --sheet:#ffffff; --ink:#151b2e; --ink-2:#4a5266; --rule:#dde1e8;
+  --velvet:#8c1d40; --velvet-soft:#f6e6ec; --gold:#b9852b; --gold-soft:#f7eedb;
+  --good:#1d7a4c; --good-soft:#e2f2e9; --warn:#a86a06; --warn-soft:#fbefd6; --bad:#b3261e; --bad-soft:#f9e1df; --own:#3d4fb8; --own-soft:#e5e8fa;
+  --f-display:"Bricolage Grotesque","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#10131c; --sheet:#171b27; --ink:#e9ebf1; --ink-2:#a6adbf; --rule:#2b3142;
+  --velvet:#e26a8f; --velvet-soft:#3a1a26; --gold:#e0b45e; --gold-soft:#352b17;
+  --good:#5fc893; --good-soft:#15301f; --warn:#e5ab48; --warn-soft:#352812; --bad:#f07b72; --bad-soft:#3a1917; --own:#9aa8ff; --own-soft:#1e2448; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#10131c; --sheet:#171b27; --ink:#e9ebf1; --ink-2:#a6adbf; --rule:#2b3142;
+  --velvet:#e26a8f; --velvet-soft:#3a1a26; --gold:#e0b45e; --gold-soft:#352b17;
+  --good:#5fc893; --good-soft:#15301f; --warn:#e5ab48; --warn-soft:#352812; --bad:#f07b72; --bad-soft:#3a1917; --own:#9aa8ff; --own-soft:#1e2448; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 72px}
+a{color:var(--velvet);text-underline-offset:2px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--velvet);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.12;margin:0}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--velvet)}
+
+/* ---------- Portada (boleto) ---------- */
+.cover{display:grid;grid-template-columns:minmax(0,1fr) 230px;background:var(--sheet);border-radius:14px;overflow:hidden;box-shadow:0 1px 0 var(--rule),0 18px 40px -28px rgba(20,25,45,.45);position:relative}
+.cover-main{padding:clamp(24px,4vw,48px);display:flex;flex-direction:column;gap:18px;min-width:0}
+.cover h1{font-size:clamp(32px,5vw,58px);font-weight:800;letter-spacing:-.02em}
+.cover h1 em{font-style:normal;color:var(--velvet)}
+.cover .lede{font-size:18px;color:var(--ink-2);max-width:60ch}
+.cover-meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--f-mono);font-size:13px;color:var(--ink-2)}
+.cover-meta b{color:var(--ink);font-weight:500}
+.stub{background:var(--velvet);color:#fff;padding:28px 22px;display:flex;flex-direction:column;justify-content:space-between;gap:16px;position:relative;border-left:2px dashed rgba(255,255,255,.55)}
+.stub::before,.stub::after{content:"";position:absolute;left:-13px;width:24px;height:24px;border-radius:50%;background:var(--paper)}
+.stub::before{top:-12px}.stub::after{bottom:-12px}
+.stub .s-lab{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+.stub .s-val{font-family:var(--f-display);font-size:26px;font-weight:700;line-height:1.1}
+.stub .s-code{font-family:var(--f-mono);font-size:12px;letter-spacing:.3em;opacity:.85;word-break:break-all}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--ink-2);align-items:center}
+
+/* ---------- Estructura con índice ---------- */
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;margin-top:36px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;font-size:14px}
+.toc ol{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:2px;counter-reset:t}
+.toc li{counter-increment:t}
+.toc a{display:flex;gap:10px;padding:6px 8px;border-radius:6px;color:var(--ink-2);text-decoration:none}
+.toc a::before{content:counter(t,decimal-leading-zero);font-family:var(--f-mono);font-size:12px;color:var(--velvet);padding-top:2px}
+.toc a:hover{background:var(--sheet);color:var(--ink)}
+main{min-width:0;display:flex;flex-direction:column;gap:64px}
+section{display:flex;flex-direction:column;gap:20px;min-width:0;scroll-margin-top:20px}
+.sec-head{display:flex;flex-direction:column;gap:8px;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+.sec-head h2{font-size:clamp(26px,3.2vw,36px);font-weight:700;letter-spacing:-.01em}
+.prose{max-width:72ch;display:flex;flex-direction:column;gap:14px}
+.prose ul,.prose ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+h3{font-size:21px;font-weight:700}
+h4{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin:0;font-weight:500}
+
+/* certeza */
+.tag{display:inline-block;font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.06em;padding:1px 6px;border-radius:4px;vertical-align:1px;white-space:nowrap}
+.tag.v{background:var(--good-soft);color:var(--good)}.tag.p{background:var(--warn-soft);color:var(--warn)}.tag.e{background:var(--own-soft);color:var(--own)}
+
+/* hallazgos */
+.findings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.finding{background:var(--sheet);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--rule);min-width:0}
+.finding .n{font-family:var(--f-mono);font-size:12px;color:var(--velvet)}
+.finding h3{font-size:18px}
+.finding p{font-size:14.5px;color:var(--ink-2)}
+.finding.alert{border-color:var(--bad);background:var(--bad-soft)}
+.finding.alert .n{color:var(--bad)}
+.callout{background:var(--ink);color:var(--paper);border-radius:var(--radius);padding:24px 26px;display:flex;flex-direction:column;gap:12px}
+.callout .eyebrow{color:var(--gold)}
+.callout p{font-size:17px;max-width:75ch}
+.callout ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+
+/* KPI talones */
+.stubs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--radius);padding:16px 18px;position:relative;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi::after{content:"";position:absolute;right:-1px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--paper);border:1px solid var(--rule);border-right-color:var(--paper);clip-path:inset(0 50% 0 0)}
+.kpi .kv{font-family:var(--f-display);font-size:30px;font-weight:800;color:var(--velvet);line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:13px;color:var(--ink-2);line-height:1.4}
+
+/* barras */
+.chart{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.chart-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;align-items:baseline}
+.chart-title h3{font-size:17px}
+.chart-title span{font-size:12.5px;color:var(--ink-2)}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:150px minmax(0,1fr) 92px;gap:12px;align-items:center;font-size:13.5px}
+.bar .lab{color:var(--ink);line-height:1.25}
+.bar .track{height:14px;background:var(--paper);border-radius:3px;position:relative;overflow:hidden}
+.bar .fill{position:absolute;inset:0 auto 0 0;background:var(--ink-2);border-radius:3px}
+.bar .range{position:absolute;top:0;bottom:0;background:var(--velvet);opacity:.85;border-radius:3px}
+.bar .val{font-family:var(--f-mono);font-size:12.5px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.bar.hl .lab{font-weight:600}
+.axis{display:grid;grid-template-columns:150px minmax(0,1fr) 92px;gap:12px;font-family:var(--f-mono);font-size:11px;color:var(--ink-2)}
+.axis .ticks{display:flex;justify-content:space-between}
+.stack{display:flex;height:42px;border-radius:6px;overflow:hidden;font-family:var(--f-mono);font-size:13px;color:#fff}
+.stack div{display:flex;align-items:center;padding-inline:12px;white-space:nowrap}
+.note{font-size:12.5px;color:var(--ink-2)}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+
+/* tablas */
+.tablewrap{overflow-x:auto;background:var(--sheet);border:1px solid var(--rule);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{text-align:left;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--rule)}
+th{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:500;background:var(--paper)}
+tr:last-child td{border-bottom:none}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr.me td{background:var(--own-soft)}
+
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.hi{background:var(--good-soft);color:var(--good)}
+.pill.mid{background:var(--warn-soft);color:var(--warn)}
+.pill.lo{background:var(--bad-soft);color:var(--bad)}
+.pill.own{background:var(--own-soft);color:var(--own)}
+
+/* fichas competidores */
+.cards{display:flex;flex-direction:column;gap:16px}
+.comp{display:grid;grid-template-columns:200px minmax(0,1fr);background:var(--sheet);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden}
+.comp-side{padding:20px;border-right:2px dashed var(--rule);display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.comp-side .rank{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.comp-side h3{font-size:22px}
+.threat{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)}
+.meter{display:flex;gap:3px}
+.meter i{flex:1;height:6px;border-radius:2px;background:var(--rule)}
+.meter i.on{background:var(--velvet)}
+.comp-body{padding:20px 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 26px;min-width:0}
+.comp-body .full{grid-column:1/-1}
+.comp-body div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.comp-body p,.comp-body li{font-size:14px}
+.comp-body ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.comp.lead{border:2px solid var(--velvet)}
+.comp.lead .comp-side{background:var(--velvet-soft)}
+.minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mini{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.mini h3{font-size:17px}
+.mini p,.mini li{font-size:13.5px;color:var(--ink-2)}
+.mini ul{margin:0;padding-left:18px}
+
+/* plan */
+.phases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.phase{background:var(--sheet);border:1px solid var(--rule);border-top:4px solid var(--velvet);border-radius:var(--radius);padding:18px 20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.phase .when{font-family:var(--f-mono);font-size:12px;color:var(--velvet)}
+.phase h3{font-size:19px}
+.phase ol,.phase ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.swot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.swot div{border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.swot ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.sw-s{background:var(--good-soft)}.sw-w{background:var(--warn-soft)}.sw-o{background:var(--own-soft)}.sw-t{background:var(--bad-soft)}
+.sources{font-size:13px;columns:2;column-gap:28px}
+.sources li{break-inside:avoid;margin-bottom:6px;overflow-wrap:anywhere}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-2);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
+
+@media (max-width:980px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .toc{position:static}
+  .toc ol{flex-direction:row;flex-wrap:wrap}
+  .stubs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .minis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .cover{grid-template-columns:minmax(0,1fr)}
+  .stub{border-left:none;border-top:2px dashed rgba(255,255,255,.55)}
+  .stub::before,.stub::after{display:none}
+  .findings,.two,.phases,.swot,.minis,.comp-body{grid-template-columns:minmax(0,1fr)}
+  .comp{grid-template-columns:minmax(0,1fr)}
+  .comp-side{border-right:none;border-bottom:2px dashed var(--rule)}
+  .bar,.axis{grid-template-columns:96px minmax(0,1fr) 70px;gap:8px}
+  .sources{columns:1}
+  .toc{display:none}
+}
+@media (prefers-reduced-motion:no-preference){.toc a,.finding{transition:background-color .15s}}
+@media print{
+  @page{size:A4;margin:14mm 13mm 16mm}
+  :root{--paper:#f5f6f8;--sheet:#fff;--ink:#151b2e;--ink-2:#4a5266;--rule:#dde1e8;--velvet:#8c1d40;--velvet-soft:#f6e6ec;--gold:#b9852b;--good:#1d7a4c;--good-soft:#e2f2e9;--warn:#a86a06;--warn-soft:#fbefd6;--bad:#b3261e;--bad-soft:#f9e1df;--own:#3d4fb8;--own-soft:#e5e8fa;color-scheme:light}
+  body{font-size:11.5px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wrap{padding:0;max-width:none}
+  .layout{grid-template-columns:minmax(0,1fr);margin-top:20px}
+  .toc{display:none}
+  main{gap:30px}
+  section{gap:12px}
+  .cover{box-shadow:none;border:1px solid var(--rule);break-after:page}
+  .sec-head{break-after:avoid}
+  .finding,.kpi,.chart,.comp,.mini,.phase,.swot div,tr,.callout{break-inside:avoid}
+  .tablewrap{overflow:visible}
+  table{min-width:0;font-size:10px}
+  th,td{padding:5px 8px}
+  .kpi .kv{font-size:22px}
+  .stubs{grid-template-columns:repeat(4,minmax(0,1fr))}
+  main,section{display:block}
+  section>*+*{margin-top:12px}
+  main>section+section{margin-top:26px}
+  .sec-head{break-inside:avoid;break-after:avoid;page-break-after:avoid}
+  .sec-head+*{break-before:avoid;page-break-before:avoid}
+  h3{break-after:avoid;page-break-after:avoid}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .chart{max-width:150mm}
+  .comp-side{background:var(--paper)!important}
+  a{text-decoration:none}
+}
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="cover">
+  <div class="cover-main">
+    <span class="eyebrow">Estudio de mercado · Xperticket</span>
+    <h1>Ticketeras para <em>corporaciones culturales</em> en Chile</h1>
+    <p class="lede">Quién vende las entradas de los teatros, centros culturales y corporaciones municipales del país, cuánto cobra cada ticketera, cómo se compite en las licitaciones y dónde puede ganar Xperticket.</p>
+    <div class="cover-meta">
+      <span>Fecha <b>13 oct 2026</b></span>
+      <span>Instituciones revisadas <b>~45</b></span>
+      <span>Ticketeras perfiladas <b>12</b></span>
+    </div>
+    <div class="legend">
+      Nivel de certeza de cada dato:
+      <span class="tag v">V</span> verificado en fuente primaria
+      <span class="tag p">P</span> prensa o terceros
+      <span class="tag e">E</span> estimación propia
+    </div>
+  </div>
+  <aside class="stub" aria-label="Datos del boleto">
+    <div><div class="s-lab">Función</div><div class="s-val">Mercado cultural institucional</div></div>
+    <div><div class="s-lab">Sala</div><div class="s-val">Chile · 16 regiones</div></div>
+    <div><div class="s-lab">Fila / Butaca</div><div class="s-val">120–150 cuentas</div></div>
+    <div class="s-code">XPT·2026·10·13</div>
+  </aside>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Índice">
+    <span class="eyebrow">Programa</span>
+    <ol>
+      <li><a href="#s0">Resumen ejecutivo</a></li>
+      <li><a href="#s1">Alcance y método</a></li>
+      <li><a href="#s2">Cómo funciona el mercado</a></li>
+      <li><a href="#s3">Competidores</a></li>
+      <li><a href="#s4">Mapa de clientes</a></li>
+      <li><a href="#s5">Precios y cobro</a></li>
+      <li><a href="#s6">Tamaño de mercado</a></li>
+      <li><a href="#s7">Diagnóstico</a></li>
+      <li><a href="#s8">Plan de acción</a></li>
+      <li><a href="#s9">Por validar</a></li>
+      <li><a href="#s10">Fuentes</a></li>
+    </ol>
+  </nav>
+
+<main>
+
+<!-- ============ 0 RESUMEN ============ -->
+<section id="s0">
+  <div class="sec-head"><span class="eyebrow">Acto I</span><h2>Resumen ejecutivo</h2></div>
+
+  <div class="stubs">
+    <div class="kpi"><span class="kv">~20</span><span class="l">instituciones culturales venden con Ticketplus de forma oficial</span></div>
+    <div class="kpi"><span class="kv">17,3%</span><span class="l">ingreso real promedio de Ticketplus sobre lo vendido (2025) <span class="tag v">V</span></span></div>
+    <div class="kpi"><span class="kv">60%</span><span class="l">del puntaje en licitaciones municipales depende solo del % de comisión <span class="tag v">V</span></span></div>
+    <div class="kpi"><span class="kv">10–12%</span><span class="l">recargo que paga el público en salas de Ticketplus <span class="tag v">V</span></span></div>
+  </div>
+
+  <div class="findings">
+    <article class="finding"><span class="n">Hallazgo 1</span><h3>En cultura, el rival es Ticketplus, no Puntoticket</h3>
+      <p>Puntoticket y Ticketmaster dominan los conciertos masivos. En corporaciones, teatros regionales y salas, Ticketplus tiene la mayor penetración: GAM, Teatro Biobío, M100, Corcudec, Teatro Nacional Chileno, Gran Sala Sinfónica, Corpartes, Teatro a Mil, Puerto de Ideas, Teatro UC y las corporaciones de La Reina, Temuco y Antofagasta, entre otros. <span class="tag v">V</span></p></article>
+    <article class="finding"><span class="n">Hallazgo 2</span><h3>Ticketplus cotiza en EE.UU. y su modelo es público</h3>
+      <p>Salió a NYSE American en agosto de 2026 (US$15M a US$8 por acción). Contrata con 8%–15% sobre el valor de la entrada, en contratos de hasta 3 años con exclusividad de 1 a 3 años. En 2025 facturó US$29,5M; US$27,8M vienen de Chile. Debe defender márgenes ante inversionistas. <span class="tag v">V</span></p></article>
+    <article class="finding"><span class="n">Hallazgo 3</span><h3>Las corporaciones municipales deben licitar, y gana el precio</h3>
+      <p>Las licitaciones cuestan $1 a la corporación, duran 24 meses y puntúan 60% comisión, 30% técnico y 10% experiencia. En La Reina 2025 compitieron Ticketplus y Passline; ganó Ticketplus. La pelea se gana en cómo se escriben las bases. <span class="tag v">V</span></p></article>
+    <article class="finding"><span class="n">Hallazgo 4</span><h3>Los teatros regionales no controlan su venta</h3>
+      <p>Cada productor trae su ticketera: Puntoticket, Ticketpro, Ticketplus, Passline o PortalTickets, y la boletería opera aparte. Pasa en el Lucho Gatica, el Municipal de Viña, Chillán, el TRM y el Cervantes. La corporación pierde datos, caja y control. Es el dolor que Xperticket resuelve. <span class="tag v">V</span>/<span class="tag p">P</span></p></article>
+    <article class="finding"><span class="n">Hallazgo 5</span><h3>El precio lo paga el público, no la corporación</h3>
+      <p>El cargo por servicio va de 8% a 15% (hasta 16,5% en masivos). Para la corporación el costo directo suele ser cero. Una comisión menor o una licencia fija con 0% al público es un arma fuerte en licitaciones. <span class="tag p">P</span>/<span class="tag v">V</span></p></article>
+    <article class="finding alert"><span class="n">Alerta</span><h3>Fuga de eventos en clientes propios</h3>
+      <p>El Festival de Verano San Ginés 2026 se vendió por Ticketmaster. La Corporación Cultural de Las Condes tiene página en Passline. Eventos de productores externos del Teatro Municipal de Las Condes aparecen en Puntoticket. Hay que blindarlo por contrato. <span class="tag p">P</span>/<span class="tag v">V</span></p></article>
+  </div>
+
+  <div class="callout">
+    <span class="eyebrow">Recomendación central</span>
+    <p>Posicionar a Xperticket como <b>el sistema de boletería y gestión de públicos de la corporación</b>, no como otra ticketera. La corporación es dueña de su canal y de su dato, y los productores externos venden dentro de su sistema.</p>
+    <ul>
+      <li>Licitaciones: influir en las bases con consultas al mercado y criterios técnicos.</li>
+      <li>Regiones: donde no hay sistema propio.</li>
+      <li>Clientes de Ticketplus: cuando venza su exclusividad de 1 a 3 años.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 1 ALCANCE ============ -->
+<section id="s1">
+  <div class="sec-head"><span class="eyebrow">Acto I</span><h2>Alcance, método y límites</h2></div>
+  <div class="two">
+    <div class="prose">
+      <h4>Universo</h4>
+      <p>Corporaciones culturales municipales, teatros regionales y municipales, centros culturales con asignación directa en la Ley de Presupuestos, universidades con teatro propio y salas independientes relevantes.</p>
+      <h4>Método</h4>
+      <ul>
+        <li>Revisión directa de sitios y flujos de compra de cada institución.</li>
+        <li>Sitemap de Ticketplus (128 clientes listados) y páginas de productora de Passline.</li>
+        <li>Carteleras de Ticketpro y VivoTicket.</li>
+        <li>Fichas, bases y actas de Mercado Público.</li>
+        <li>Prospecto F-1 de Ticketplus ante la SEC y resolución FNE F383-2024.</li>
+        <li>Documentos PAOCC y Red Cultura del Ministerio de las Culturas.</li>
+      </ul>
+    </div>
+    <div class="prose">
+      <h4>Límites</h4>
+      <ul>
+        <li>Las ticketeras no publican sus tarifas negociadas. Los % por cliente se infieren de licitaciones o de precios publicados.</li>
+        <li>Varias páginas son dinámicas o están protegidas (Passline).</li>
+        <li>Un "cliente" listado en una ticketera puede ser parcial: un solo evento o un productor que arrienda la sala.</li>
+        <li>Todo dato debe validarse comercialmente antes de usarlo en una propuesta.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2 MERCADO ============ -->
+<section id="s2">
+  <div class="sec-head"><span class="eyebrow">Acto I</span><h2>Cómo funciona este mercado</h2></div>
+
+  <h3>Tres segmentos que no compiten igual</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Segmento</th><th>Quién decide</th><th>Ticketeras dominantes</th><th>Cómo se cobra</th></tr></thead>
+    <tbody>
+      <tr><td><b>Masivos</b><br>estadios, arenas, Caupolicán</td><td>Productora</td><td>Puntoticket (Eventim-Sony), Ticketmaster</td><td>Cargo al público 10%–16,5%, negociado por evento</td></tr>
+      <tr class="me"><td><b>Institucional cultural</b><br>corporaciones, teatros regionales y municipales, centros culturales</td><td>Corporación; en las municipales, por licitación</td><td>Ticketplus, Passline, Ticketpro y sistemas propios (Xperticket, Ticketera del Municipal, VivoTicket)</td><td>Comisión al público ~8%–12%, costo $1 para la corporación; a veces licencia o desarrollo propio</td></tr>
+      <tr><td><b>Autoservicio</b><br>salas chicas, productores independientes</td><td>Productor</td><td>Passline, PortalTickets, Welcu, Eventrid, Tikzet, NexoPass</td><td>Welcu 10% + IVA; Tikzet fee fijo por ticket; Passline cobra al comprador</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="two">
+    <div class="prose">
+      <h3>Marco legal que define la venta</h3>
+      <p>El Dictamen CGR E160316 (29-11-2021) sujeta a las corporaciones municipales a la Ley 19.886 de compras públicas. Así lo cita el acta de La Reina. <span class="tag v">V</span></p>
+      <ul>
+        <li><b>Los contratos vencen y se re-licitan.</b> No hay lock-in eterno.</li>
+        <li><b>El comprador debe justificar</b> la elección con criterios objetivos.</li>
+        <li>SERNAC fiscaliza la transparencia del cargo y hay jurisprudencia sobre su devolución en eventos cancelados. <span class="tag p">P</span></li>
+        <li>No encontramos un proyecto de ley vigente que tope el cargo por servicio.</li>
+      </ul>
+    </div>
+    <div class="chart">
+      <div class="chart-title"><h3>Cómo se puntúa una licitación</h3><span>La Reina, 1238111-4-LE25</span></div>
+      <div class="stack" role="img" aria-label="Comisión 60%, técnico 30%, experiencia 10%">
+        <div style="width:60%;background:var(--velvet)">Comisión 60%</div>
+        <div style="width:30%;background:var(--ink-2)">Técnico 30%</div>
+        <div style="width:10%;background:var(--gold);padding-inline:6px">10%</div>
+      </div>
+      <ul class="note" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+        <li>Monto máximo: <b>$1 por 24 meses</b>.</li>
+        <li>Comisión = promedio del % ofertado para eventos de más y de menos de 3.000 asistentes.</li>
+        <li>Técnico casi binario: 1.000 puntos si cumple y ofrece extras, 800 si solo cumple, 0 si no.</li>
+        <li>Experiencia: puntaje máximo con 10 o más contratos acreditados desde 2015.</li>
+        <li>Ofertas: Passline y Ticketplus. Ganó Ticketplus. <span class="tag v">V</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Licitaciones de ticketera detectadas</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Organismo</th><th>Proceso</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Corp. Cultural de La Reina</td><td class="num">1238111-4-LE25 · abr 2025 · 24 meses</td><td>Ticketplus · vence ~abr-may 2027</td></tr>
+      <tr><td>Corp. Cultural de Temuco</td><td class="num">2022 · 2025 · 2026 (1214071-2-L126)</td><td>Ticketplus en 2022 y 2026</td></tr>
+      <tr><td>Corp. Cultural de Chillán</td><td class="num">1298357-13-L125 · 2025</td><td>Teatro Municipal; resultado por confirmar</td></tr>
+      <tr><td>Corp. Cultural de Peñalolén</td><td class="num">Verano 2026</td><td>Ticketpro ($5,06M)</td></tr>
+      <tr><td>Corp. Municipal de Huechuraba</td><td class="num">LP · 29-09-2026</td><td>Ticketplus ("servicio integral de ticketera")</td></tr>
+      <tr><td>Municipalidades de Lo Barnechea, Providencia, Paine, Quillota y Licantén</td><td class="num">2023–2026</td><td>Ticketplus y Ticketpro, por evento</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Concentración: la FNE estimó en su momento que Puntoticket tenía más del 80% de las entradas y 60%–70% de los eventos; archivó en julio de 2024 la investigación por la compra de Eventim-Sony (65%). <span class="tag v">V</span>/<span class="tag p">P</span> Ticketplus reporta 2.800 promotores y venues, ninguno sobre el 4% de sus ingresos. <span class="tag v">V</span></p>
+</section>
+
+<!-- ============ 3 COMPETIDORES ============ -->
+<section id="s3">
+  <div class="sec-head"><span class="eyebrow">Acto II</span><h2>Perfiles de competidores</h2></div>
+
+  <div class="cards">
+  <article class="comp lead">
+    <div class="comp-side">
+      <span class="rank">Competidor principal</span>
+      <h3>Ticketplus</h3>
+      <div class="threat">Amenaza en cultura<div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+      <span class="note">Chilena, más de 12 años. NYSE American (TP) desde ago 2026. Controlador con ~76% de los votos. <span class="tag v">V</span></span>
+    </div>
+    <div class="comp-body">
+      <div class="full">
+        <div class="tablewrap"><table style="min-width:0">
+          <thead><tr><th>2025</th><th>Ingresos</th><th>Volumen vendido (GMV)</th><th>Tickets</th></tr></thead>
+          <tbody>
+            <tr><td>Operación completa (Chile)</td><td class="num">US$27,78M</td><td class="num">US$159,7M</td><td class="num">5,5M · 20.800 eventos</td></tr>
+            <tr><td>Marca blanca (10 países)</td><td class="num">US$1,68M</td><td class="num">US$109,1M</td><td class="num">4,7M · 19.000 eventos</td></tr>
+            <tr><td><b>Total</b></td><td class="num"><b>US$29,46M</b></td><td class="num"><b>US$268,9M</b></td><td class="num">Utilidad ~US$2,2M <span class="tag p">P</span></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div><h4>Modelo de cobro</h4><ul>
+        <li>Fee de <b>8%–15%</b> sobre el valor de la entrada según contrato.</li>
+        <li>Ingreso efectivo: <b>17,3%</b> de lo vendido (incluye operación en terreno y pagos).</li>
+        <li>Contratos de hasta 3 años con <b>exclusividad de 1 a 3 años</b>.</li>
+        <li>Liquida 48–72 h después del evento. <span class="tag p">P</span></li>
+        <li>Recargo medido en salas: Cachafaz +10,0%, Teatro UC y Azares +12,0%, Biobío +10,7%. <span class="tag v">V</span></li>
+      </ul></div>
+      <div><h4>Producto</h4><ul>
+        <li>Mapas de sala, cola virtual, POS y tótem con stock compartido.</li>
+        <li>Validación QR sin conexión, cortesías con seguimiento.</li>
+        <li>Marketing gestionado ("Booster"), membresías, streaming.</li>
+        <li>Marketplace propio con tráfico; subdominios de marca blanca (gam.ticketplus.cl).</li>
+      </ul></div>
+      <div><h4>Fortalezas</h4><ul>
+        <li>Escala, marketplace y caja de la IPO.</li>
+        <li>16 licitaciones adjudicadas.</li>
+        <li>Operación en terreno.</li>
+      </ul></div>
+      <div><h4>Por dónde atacarlo</h4><ul>
+        <li><b>Generalista:</b> su negocio está en fiestas, festivales, deportes y masivos.</li>
+        <li><b>El público queda en su marketplace</b>, no en la corporación.</li>
+        <li>Exclusividad de 1–3 años y recargo de ~10%–12% al público.</li>
+        <li>Debe sostener ~17% de margen ante inversionistas: le cuesta bajar precios.</li>
+        <li>Sin evidencia de abonos complejos, donaciones, reportería PAOCC o integración contable pública. Validar en demos.</li>
+      </ul></div>
+    </div>
+  </article>
+
+  <article class="comp">
+    <div class="comp-side">
+      <span class="rank">Retador de autoservicio</span>
+      <h3>Passline</h3>
+      <div class="threat">Amenaza en cultura<div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+      <span class="note">Chilena, presente en ~19 países. Tótems de autoatención y licencias. <span class="tag v">V</span></span>
+    </div>
+    <div class="comp-body">
+      <div><h4>Cobro</h4><ul>
+        <li>"Gratis para el organizador"; el cargo lo paga el comprador.</li>
+        <li>En reembolsos retiene ~13%–15% según versión de sus términos. <span class="tag p">P</span></li>
+        <li>Liquida después del evento; reportes de 5–10 días hábiles. <span class="tag p">P</span></li>
+      </ul></div>
+      <div><h4>Clientes culturales</h4><ul>
+        <li>Corp. Cultural de Las Condes (¡cliente Xperticket!), Corcudec, Arte Alameda / CEINA.</li>
+        <li>Corp. Cultural San Javier, Temuco, Paine, Calama.</li>
+        <li>Teatro Regional Cervantes, Teatro Municipal de Antofagasta, SEMCO Concepción.</li>
+      </ul></div>
+      <div class="full"><h4>Lectura</h4><p>Las corporaciones lo usan para eventos gratuitos con inscripción y eventos puntuales. Compite en licitaciones (La Reina 2025). Es débil en numerado complejo y abonos, con reclamos por devoluciones.</p></div>
+    </div>
+  </article>
+
+  <article class="comp">
+    <div class="comp-side">
+      <span class="rank">Masivos</span>
+      <h3>Puntoticket</h3>
+      <div class="threat">Amenaza en cultura<div class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+      <span class="note">Eventim + Sony Music (65%). Más del 80% de las entradas según la FNE. <span class="tag p">P</span></span>
+    </div>
+    <div class="comp-body">
+      <div><h4>En cultura</h4><p>Entra por productores externos: Municipal de Viña (Cuarteto de Nos 2026), TRM (Los Jaivas), Teatro del Lago, Lucho Gatica, Centenario de La Serena y algunos eventos en Las Condes. <span class="tag p">P</span></p></div>
+      <div><h4>Cobro y riesgo</h4><p>Cargo por evento, no publicado, típicamente 10%–15%. Riesgo bajo como proveedor de la corporación y <b>alto como fuga de eventos</b> cuando un productor arrienda la sala.</p></div>
+    </div>
+  </article>
+
+  <article class="comp">
+    <div class="comp-side">
+      <span class="rank">Expansión a teatros</span>
+      <h3>Ticketmaster</h3>
+      <div class="threat">Amenaza en cultura<div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+      <span class="note">Live Nation. Cada vez más presente en venues. <span class="tag p">P</span></span>
+    </div>
+    <div class="comp-body">
+      <div><h4>Clientes</h4><ul>
+        <li>Exclusivo del Teatro Nescafé de las Artes desde 2024.</li>
+        <li>Teatro Oriente (Providencia) y Teatro Mori.</li>
+        <li><b>Festival de Verano San Ginés 2026</b>: logo que Xperticket muestra en su web. Riesgo de cuenta.</li>
+      </ul></div>
+      <div><h4>Cobro</h4><p>Cargo por entrada variable; 16,5% en Ed Sheeran 2026. Amenaza media-alta en salas privadas de Santiago con programación comercial. <span class="tag p">P</span></p></div>
+    </div>
+  </article>
+
+  <article class="comp">
+    <div class="comp-side">
+      <span class="rank">Giras y municipios</span>
+      <h3>Ticketpro</h3>
+      <div class="threat">Amenaza en cultura<div class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+      <span class="note">Chilena, RUT 76.048.589-6. <span class="tag v">V</span></span>
+    </div>
+    <div class="comp-body">
+      <div><h4>Presencia</h4><ul>
+        <li>Giras de teatro y stand-up en teatros regionales: Municipal de Santiago (arriendos), Valparaíso, Chillán, Arica, TRM, UdeC, Lucho Gatica.</li>
+        <li>Contratos: Peñalolén (verano 2026, $5,06M), Providencia, Lo Barnechea, Paine; convenio histórico con Antofagasta.</li>
+      </ul></div>
+      <div><h4>Debilidad grave</h4><p>CONAF terminó en 2024 su contrato de Parques Nacionales por "incumplimientos en la transferencia de fondos recaudados" y la empresa declaró "serio riesgo de subsistencia". Argumento fuerte de <b>riesgo de contraparte</b>. Cobro histórico ~12%. <span class="tag p">P</span></p></div>
+    </div>
+  </article>
+  </div>
+
+  <h3>Sistemas propios y competidores menores</h3>
+  <div class="minis">
+    <div class="mini"><h3>Ticketera del Municipal</h3><p>Plataforma propia del Teatro Municipal de Santiago con abonos, tarjeta virtual de saldo, donaciones y visitas guiadas. Antes tuvo a Daleticket. Los arrendatarios venden por Ticketpro. <span class="tag v">V</span></p></div>
+    <div class="mini"><h3>Teatro del Lago</h3><p>Vende en su propio sitio. Presencia marginal en Ticketplus (3 eventos) y Puntoticket. <span class="tag v">V</span></p></div>
+    <div class="mini"><h3>VivoTicket</h3><p>Desarrollo propio del Teatro Regional del Maule. También vende para el Teatro Provincial de Curicó y la UCM. Posible socio o cliente. <span class="tag v">V</span></p></div>
+    <div class="mini"><h3>Daleticket</h3><p>Histórico (10%). Tuvo el Municipal y vendía para Temuco, Chillán, U. de Chile y UdeC. Hoy su sitio es inestable: competidor en declive, sus clientes son targets. <span class="tag p">P</span></p></div>
+    <div class="mini"><h3>Autoservicio de bajo costo</h3><ul>
+      <li>Welcu: 10% + impuestos (publicado). <span class="tag v">V</span></li>
+      <li>PortalTickets: "menor que otras"; Diego Rivera, Cervantes, Chillán. <span class="tag v">V</span></li>
+      <li>Eventrid: 10%. <span class="tag p">P</span></li>
+      <li>Tikzet: fee fijo ~$111 por ticket, 0% al público. <span class="tag v">V</span></li>
+      <li>NexoPass: anunciará 10% + IVA. <span class="tag v">V</span></li>
+    </ul></div>
+    <div class="mini"><h3>Internacionales</h3><p>Tessitura, Spektrix y AudienceView ofrecen ticketing, CRM y donaciones para instituciones culturales. <b>Sin presencia en Chile.</b> Xperticket puede ser "el Tessitura chileno" a precio local.</p></div>
+  </div>
+</section>
+
+<!-- ============ 4 MAPA ============ -->
+<section id="s4">
+  <div class="sec-head"><span class="eyebrow">Acto II</span><h2>Mapa de clientes: quién usa qué</h2></div>
+
+  <div class="two">
+    <div class="chart">
+      <div class="chart-title"><h3>Quién controla las ~45 instituciones revisadas</h3><span>conteo aproximado</span></div>
+      <div class="bars">
+        <div class="bar hl"><span class="lab">Ticketplus</span><span class="track"><span class="fill" style="width:100%;background:var(--velvet)"></span></span><span class="val">~20</span></div>
+        <div class="bar"><span class="lab">Sin sistema único</span><span class="track"><span class="fill" style="width:75%;background:var(--good)"></span></span><span class="val">~15</span></div>
+        <div class="bar"><span class="lab">Sistema propio</span><span class="track"><span class="fill" style="width:25%"></span></span><span class="val">~5</span></div>
+        <div class="bar"><span class="lab">Ticketmaster</span><span class="track"><span class="fill" style="width:15%"></span></span><span class="val">3</span></div>
+        <div class="bar"><span class="lab">Xperticket</span><span class="track"><span class="fill" style="width:10%;background:var(--own)"></span></span><span class="val">2</span></div>
+      </div>
+      <div class="axis"><span></span><span class="ticks"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span></span><span></span></div>
+      <p class="note">"Sin sistema único" = cada productor trae su ticketera. Es el océano azul.</p>
+    </div>
+    <div class="prose">
+      <h3>Lectura del mapa</h3>
+      <p>Ticketplus controla cerca de 20 instituciones de forma oficial. Unas 5 tienen sistema propio (Municipal de Santiago, Teatro del Lago, TRM/VivoTicket, Chillán, CCLM) y 3 son exclusivas de Ticketmaster.</p>
+      <p><b>La mayoría de los teatros regionales y municipales no tiene un sistema único que controle.</b> Ahí está la mayor oportunidad.</p>
+      <div class="legend"><span class="pill hi">Alta</span> sin sistema, fragmentado o contrato por vencer <span class="pill mid">Media</span> <span class="pill lo">Baja</span> cliente estable de otro <span class="pill own">Xperticket</span></div>
+    </div>
+  </div>
+
+  <h3>Región Metropolitana</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Institución</th><th>Ticketera actual</th><th>Evidencia</th><th>Oportunidad</th></tr></thead>
+    <tbody>
+      <tr class="me"><td>Corp. Cultural de Las Condes / Teatro Municipal Las Condes / MUI</td><td><b>Xperticket</b> (sertex.stonline.cl) + algo de Passline y Puntoticket</td><td>sitio, Passline</td><td><span class="pill own">Blindar</span></td></tr>
+      <tr class="me"><td>Teatro San Ginés / CC San Ginés</td><td><b>Xperticket</b> (logo); festival 2026 por <b>Ticketmaster</b></td><td>xperticket.cl, prensa</td><td><span class="pill own">En riesgo</span></td></tr>
+      <tr><td>Corp. Cultural Municipal de Santiago (Teatro Municipal)</td><td>Ticketera propia; arriendos por Ticketpro</td><td>sitio, Ticketpro</td><td><span class="pill mid">Módulos / arriendos</span></td></tr>
+      <tr><td>GAM</td><td>Ticketplus (gam.ticketplus.cl) + sitio propio + tótem</td><td>FAQ GAM</td><td><span class="pill mid">Al vencer contrato</span></td></tr>
+      <tr><td>Matucana 100</td><td>Ticketplus (m100.ticketplus.cl)</td><td>sitio</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Centro Cultural La Moneda</td><td>Ticketera propia para reservas (mayoría liberado)</td><td>sitio</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Fundación Teatro a Mil</td><td>Ticketplus</td><td>sitemap</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Teatro UC / Teatro Nacional Chileno / CEAC UChile</td><td>Ticketplus</td><td>sitemap</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Corpartes / Gran Sala Sinfónica Nacional</td><td>Ticketplus</td><td>sitemap</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Teatro Oriente (Providencia)</td><td>Ticketmaster</td><td>Ticketmaster</td><td><span class="pill lo">Baja</span></td></tr>
+      <tr><td>Teatro Nescafé de las Artes / Teatro Mori</td><td>Ticketmaster (exclusivo)</td><td>prensa</td><td><span class="pill lo">Baja</span></td></tr>
+      <tr><td>Corp. Cultural de La Reina (Sala Nemesio y otros)</td><td>Ticketplus, licitación abr 2025 a 24 meses: <b>vence ~abr-may 2027</b>. Otra adjudicada oct-nov 2025 ($12M) por verificar <span class="tag p">P</span></td><td>Mercado Público</td><td><span class="pill hi">Preparar re-licitación</span></td></tr>
+      <tr><td>Corp. Cultural de Peñalolén</td><td>Ticketpro (verano 2026)</td><td>Mercado Público</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Corp. de Huechuraba (deportes y cultura)</td><td>Ticketplus (LP 29-09-2026)</td><td>todolicitaciones</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Lo Barnechea / Vitacura / Ñuñoa / Providencia</td><td>Mixto; eventos municipales por licitación (Ticketpro, Ticketplus)</td><td>Mercado Público</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Corporaciones PAOCC: Cerro Navia, San Francisco de El Monte, La Florida, La Pintana, Lo Prado, Paine, Recoleta, San Joaquín</td><td>Mayoritariamente sin sistema o autoservicio (La Florida: PortalTickets; Paine: Passline)</td><td>PAOCC 2025</td><td><span class="pill hi">Paquete corporación chica</span></td></tr>
+      <tr><td>Salas independientes (Ictus, Aleph, Camilo Henríquez y otras)</td><td>Ticketplus Red de Salas</td><td>sitemap</td><td><span class="pill lo">Ticket bajo</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Regiones</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Institución</th><th>Ticketera actual</th><th>Oportunidad</th></tr></thead>
+    <tbody>
+      <tr><td>Teatro Biobío (Concepción)</td><td>Ticketplus + tótem; cliente insignia de Ticketplus, con asignación directa en el presupuesto</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Corcudec (Teatro UdeC)</td><td>Ticketplus + Passline; giras por Ticketpro</td><td><span class="pill hi">Fragmentado</span></td></tr>
+      <tr><td>Artistas del Acero (Concepción)</td><td>Sin dato</td><td><span class="pill hi">Investigar</span></td></tr>
+      <tr><td>Teatro Regional del Maule (Talca)</td><td>VivoTicket (propio) + giras por Puntoticket y Ticketpro</td><td><span class="pill hi">Socio o reemplazo</span></td></tr>
+      <tr><td>Teatro Provincial de Curicó / UCM</td><td>VivoTicket</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Municipal Español de Talca / Teatro Municipal de San Javier</td><td>Ticketplus / Passline</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Teatro Municipal de Chillán</td><td>Sitio propio + licitación 2025 + Ticketpro y PortalTickets</td><td><span class="pill hi">Licitación activa</span></td></tr>
+      <tr><td>Teatro Regional Lucho Gatica (Rancagua)</td><td>Sin sistema; Ticketpro y Puntoticket por evento; boletería</td><td><span class="pill hi">Muy alta</span></td></tr>
+      <tr><td>Teatro Regional Cervantes (Valdivia)</td><td>Sitio propio + Passline + Ticketplus + PortalTickets</td><td><span class="pill hi">Caos de canales</span></td></tr>
+      <tr><td>Corp. Municipal de Desarrollo Cultural de Temuco</td><td>Ticketplus (licitación 2026), antes Passline</td><td><span class="pill mid">Próximo ciclo</span></td></tr>
+      <tr><td>Corp. Cultural de Antofagasta</td><td>Ticketplus (antes Ticketpro) + Passline</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Corp. de Cultura y Turismo de Calama</td><td>Passline</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Corp. Cultural de Ovalle (TMO) / Vicuña</td><td>Ticketplus / sin dato</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Teatro Municipal de Viña del Mar</td><td>Por evento (Puntoticket, Ticketpro, Passline)</td><td><span class="pill hi">Muy alta</span></td></tr>
+      <tr><td>Parque Cultural de Valparaíso / Teatro Municipal de Valparaíso</td><td>Sin dato / Ticketpro por evento</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Corp. Cultura y Artes de San Antonio</td><td>Sin dato</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Corp. Cultural de Puerto Montt (Teatro Diego Rivera)</td><td>Boletería + PortalTickets por evento</td><td><span class="pill hi">Alta</span></td></tr>
+      <tr><td>Corp. Cultural de Ancud / Coyhaique / Padre Las Casas</td><td>Sin sistema visible</td><td><span class="pill hi">Paquete chico</span></td></tr>
+      <tr><td>Teatro del Lago (Frutillar)</td><td>Sitio propio + Ticketplus y Puntoticket marginal</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Filarmónica Lago Llanquihue</td><td>Ticketplus</td><td><span class="pill mid">Media</span></td></tr>
+      <tr><td>Teatro Municipal de Iquique (reabierto 2025)</td><td>Boletería / gratuito</td><td><span class="pill hi">Nuevo</span></td></tr>
+      <tr><td>Arica / La Serena / Punta Arenas / Osorno</td><td>Por evento (Ticketpro, Puntoticket) o boletería</td><td><span class="pill hi">Alta</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ 5 PRECIOS ============ -->
+<section id="s5">
+  <div class="sec-head"><span class="eyebrow">Acto II</span><h2>Precios y modelos de cobro</h2></div>
+
+  <div class="chart">
+    <div class="chart-title"><h3>Cargo por servicio que paga el público</h3><span>rango conocido por ticketera, % sobre el valor de la entrada</span></div>
+    <div class="bars">
+      <div class="bar hl"><span class="lab">Ticketplus (contrato)</span><span class="track"><span class="range" style="left:40%;width:35%"></span></span><span class="val">8–15%</span></div>
+      <div class="bar hl"><span class="lab">Ticketplus (medido)</span><span class="track"><span class="range" style="left:50%;width:10%"></span></span><span class="val">10–12%</span></div>
+      <div class="bar"><span class="lab">Puntoticket</span><span class="track"><span class="range" style="left:50%;width:25%;background:var(--ink-2)"></span></span><span class="val">10–15%</span></div>
+      <div class="bar"><span class="lab">Ticketmaster</span><span class="track"><span class="range" style="left:50%;width:32.5%;background:var(--ink-2)"></span></span><span class="val">hasta 16,5%</span></div>
+      <div class="bar"><span class="lab">Passline (reembolsos)</span><span class="track"><span class="range" style="left:65%;width:10%;background:var(--ink-2)"></span></span><span class="val">13–15%</span></div>
+      <div class="bar"><span class="lab">Ticketpro</span><span class="track"><span class="range" style="left:59%;width:2%;background:var(--ink-2)"></span></span><span class="val">~12%</span></div>
+      <div class="bar"><span class="lab">Welcu / Eventrid</span><span class="track"><span class="range" style="left:49%;width:2%;background:var(--ink-2)"></span></span><span class="val">10%</span></div>
+      <div class="bar"><span class="lab">Tikzet</span><span class="track"><span class="range" style="left:0;width:1%;background:var(--good)"></span></span><span class="val">0% (fee fijo)</span></div>
+    </div>
+    <div class="axis"><span></span><span class="ticks"><span>0%</span><span>5%</span><span>10%</span><span>15%</span><span>20%</span></span><span></span></div>
+    <p class="note">Ticketplus contrato y medido <span class="tag v">V</span>; el resto <span class="tag p">P</span>, salvo Welcu y Tikzet <span class="tag v">V</span>. Escala 0–20%.</p>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Ticketera</th><th>Quién paga</th><th>% o tarifa</th><th>Contrato</th><th>Liquidación</th></tr></thead>
+    <tbody>
+      <tr><td><b>Ticketplus</b></td><td>Público</td><td>8%–15% por contrato; ~10%–12% medido; ingreso efectivo 17,3%</td><td>Hasta 3 años, exclusividad 1–3 años</td><td>48–72 h post evento</td></tr>
+      <tr><td>Passline</td><td>Público</td><td>No publica; retiene 13%–15% en reembolsos</td><td>Por evento o licitación</td><td>Post evento (5–10 días hábiles)</td></tr>
+      <tr><td>Puntoticket</td><td>Público</td><td>10%–15% por evento</td><td>Por productora</td><td>Corporativo</td></tr>
+      <tr><td>Ticketmaster</td><td>Público</td><td>Variable; 16,5% en Ed Sheeran 2026</td><td>Exclusividades de venue</td><td>Corporativo</td></tr>
+      <tr><td>Ticketpro</td><td>Público</td><td>~12% (histórico)</td><td>Licitaciones por evento o temporada</td><td>—</td></tr>
+      <tr><td>Daleticket</td><td>Público</td><td>10% (histórico)</td><td>—</td><td>—</td></tr>
+      <tr><td>Welcu</td><td>Organizador o público</td><td>10% + impuestos</td><td>Autoservicio</td><td>—</td></tr>
+      <tr><td>PortalTickets</td><td>Público</td><td>"Menor que otras", no publica</td><td>Autoservicio</td><td>—</td></tr>
+      <tr><td>Eventrid</td><td>Público</td><td>10%</td><td>Autoservicio</td><td>—</td></tr>
+      <tr><td>Tikzet</td><td>Organizador</td><td>Fee fijo ~$111 por ticket; 0% al público</td><td>Prepago</td><td>Instantánea (pasarela propia)</td></tr>
+      <tr class="me"><td><b>Licitaciones municipales</b></td><td>—</td><td><b>$1 para la corporación</b>; se compite por % de comisión</td><td>24 meses</td><td>Según bases</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="prose" style="max-width:none">
+    <h3>Conclusión de precio</h3>
+    <p>La referencia en cultura es <b>9%–12% cobrado al público</b>, con costo cero para la corporación. Tres formas de ganar en precio sin destruir margen:</p>
+  </div>
+  <div class="minis">
+    <div class="mini"><h3>1 · Ofertar 7%–9%</h3><p>En licitaciones municipales, 60 puntos dependen solo de esto. Bajar de 10% a 8% da unos 12 puntos de ventaja en el total.</p></div>
+    <div class="mini"><h3>2 · Modelo dual</h3><p>Licencia mensual con 0% al público (la corporación cobra con su propia pasarela y se queda el dato) o comisión baja. Ideal para GAM, Biobío, M100, Teatro a Mil o Parque Cultural, sensibles a la crítica por el cargo.</p></div>
+    <div class="mini"><h3>3 · Fee del productor externo</h3><p>Cuando un productor arrienda la sala vende por el sistema de la corporación, y el fee se comparte con ella. Xperticket pasa a ser una fuente de ingresos para la corporación.</p></div>
+  </div>
+</section>
+
+<!-- ============ 6 TAMAÑO ============ -->
+<section id="s6">
+  <div class="sec-head"><span class="eyebrow">Acto II</span><h2>Tamaño de mercado <span class="tag e" style="font-size:13px;vertical-align:6px">E</span></h2></div>
+  <div class="two">
+    <div class="chart">
+      <div class="chart-title"><h3>Ventas anuales de entradas por tier</h3><span>CLP miles de millones, rango estimado</span></div>
+      <div class="bars">
+        <div class="bar"><span class="lab">Tier A · 10–12 cuentas</span><span class="track"><span class="range" style="left:27.8%;width:18.5%"></span></span><span class="val">15–25</span></div>
+        <div class="bar"><span class="lab">Tier B · ~35 cuentas</span><span class="track"><span class="range" style="left:6.5%;width:32.4%;background:var(--ink-2)"></span></span><span class="val">3,5–21</span></div>
+        <div class="bar"><span class="lab">Tier C · 80–100 cuentas</span><span class="track"><span class="range" style="left:1.9%;width:12.9%;background:var(--ink-2)"></span></span><span class="val">1–8</span></div>
+        <div class="bar hl"><span class="lab">Total</span><span class="track"><span class="range" style="left:37%;width:63%;background:var(--gold)"></span></span><span class="val">20–54</span></div>
+      </div>
+      <div class="axis"><span></span><span class="ticks"><span>0</span><span>18</span><span>36</span><span>54</span></span><span></span></div>
+      <p class="note">Escala 0–54 mil millones de pesos.</p>
+    </div>
+    <div class="prose">
+      <div class="stubs" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div class="kpi"><span class="kv">US$20–55M</span><span class="l">ventas anuales de entradas del segmento cultural institucional</span></div>
+        <div class="kpi"><span class="kv">US$2–5,5M</span><span class="l">pool anual de comisiones a un 10%</span></div>
+      </div>
+      <p>Tier A: Municipal de Santiago, GAM, Biobío, Teatro del Lago, Las Condes, M100, Teatro a Mil, CCLM, TRM, Corcudec, Corpartes, Teatro UC y TNCh. Tier B: teatros regionales y municipales medianos. Tier C: corporaciones municipales chicas, espacios bajo convenio y salas.</p>
+      <p>Referencia: Ticketplus factura US$27,8M en Chile con todas sus categorías; cultura es una fracción. <b>Ganar 10–15 cuentas Tier A/B cambia la escala de Xperticket</b>, y para Ticketplus es un vertical menor que probablemente no defenderá a cualquier costo.</p>
+    </div>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Universo de cuentas</th><th>Cantidad</th><th>Fuente</th></tr></thead>
+    <tbody>
+      <tr><td>Corporaciones culturales (mapa regional)</td><td class="num">~81</td><td>Documento Cámara <span class="tag p">P</span></td></tr>
+      <tr><td>Espacios culturales bajo convenio (45 comunas)</td><td class="num">48</td><td>Red Cultura <span class="tag v">V</span></td></tr>
+      <tr><td>Organizaciones PAOCC 2026</td><td class="num">78</td><td>Ministerio de las Culturas <span class="tag v">V</span></td></tr>
+      <tr><td>Teatros regionales y municipales con PAOCC 2025</td><td class="num">21</td><td>Ministerio de las Culturas <span class="tag v">V</span></td></tr>
+      <tr><td>Instituciones con asignación directa (Ley de Presupuestos 2025)</td><td class="num">14</td><td>Bases PAOCC <span class="tag v">V</span></td></tr>
+      <tr class="me"><td><b>Total depurado estimado</b></td><td class="num"><b>120–150</b></td><td><span class="tag e">E</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ 7 DIAGNOSTICO ============ -->
+<section id="s7">
+  <div class="sec-head"><span class="eyebrow">Acto III</span><h2>Diagnóstico estratégico para Xperticket</h2></div>
+  <div class="swot">
+    <div class="sw-s"><h4>Fortalezas</h4><ul>
+      <li>~15 años 100% en corporaciones culturales.</li>
+      <li>Referencias de primer nivel: Corporación Cultural y Teatro Municipal de Las Condes.</li>
+      <li>Abonos, convenios, preventas, promociones y productos complementarios.</li>
+      <li>Validación con lector de RUT y reportería en tiempo real.</li>
+      <li>El dato no se comparte con terceros; desarrollo a medida.</li>
+    </ul></div>
+    <div class="sw-w"><h4>Debilidades a corregir</h4><ul>
+      <li>Marca casi invisible: web de 2023, pocos logos, sin casos ni cifras.</li>
+      <li>La compra vive en un dominio técnico (sertex.stonline.cl) que un analizador automático califica 32/100. Daña la confianza.</li>
+      <li>Sin marketplace ni tráfico propio.</li>
+      <li>No aparece adjudicado con nombre propio en Mercado Público: verificar el RUT con que licita (el 10% del puntaje es experiencia).</li>
+    </ul></div>
+    <div class="sw-o"><h4>Oportunidades</h4><ul>
+      <li>Fragmentación regional.</li>
+      <li>Re-licitaciones cada 24 meses.</li>
+      <li>Ticketpro debilitado (caso CONAF) y Daleticket en declive.</li>
+      <li>Vacío de un "Tessitura chileno".</li>
+      <li>Sensibilidad política al cargo por servicio.</li>
+      <li>PAOCC exige reportar públicos: la reportería es valor.</li>
+    </ul></div>
+    <div class="sw-t"><h4>Amenazas</h4><ul>
+      <li>Ticketplus capitalizado, con exclusividades de 1–3 años.</li>
+      <li>Ticketmaster entrando a teatros privados (San Ginés).</li>
+      <li>Plataformas de fee fijo (Tikzet) que bajan la referencia de precio.</li>
+      <li>Licitaciones que premian solo el % de comisión.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ 8 PLAN ============ -->
+<section id="s8">
+  <div class="sec-head"><span class="eyebrow">Acto III</span><h2>Plan de acción</h2></div>
+  <div class="phases">
+    <div class="phase"><span class="when">Días 0–30</span><h3>Blindar la base</h3><ol>
+      <li><b>Las Condes y San Ginés:</b> exclusividad sobre eventos de terceros que usen la sala, con fee compartido. Ofrecer el módulo de productor externo para que Passline, Puntoticket y Ticketmaster no entren por el arriendo. Investigar por qué el Festival San Ginés se fue a Ticketmaster.</li>
+      <li><b>Compra en dominio de marca</b> (ej. entradas.tmlascondes.cl), con el branding del cliente. Elimina la objeción de confianza.</li>
+      <li><b>Caso de éxito cuantificado de Las Condes:</b> entradas, % online, abonados, tiempos de acceso y ahorro frente a la comisión de mercado.</li>
+    </ol></div>
+    <div class="phase"><span class="when">Días 30–180</span><h3>Ganar licitaciones</h3><ol>
+      <li>Alerta diaria en Mercado Público ("ticketera", "venta de entradas", "boletería", "control de acceso") con la herramienta mercado-publico del repo.</li>
+      <li>Calendario: La Reina (~abr-may 2027), Temuco (anual), Chillán, Peñalolén (verano), Huechuraba, Lo Barnechea y Providencia.</li>
+      <li><b>Influir en las bases:</b> plantilla técnica de boletería institucional (numerado multi-sala, abonos con saldo, convenios, boletería con stock compartido, validación offline, reportería PAOCC, propiedad del dato, conciliación contable, pasarela propia, SLA). Pedir puntaje técnico gradual y comisión bajo 40%. Usar las consultas al mercado (RFI).</li>
+      <li>Oferta igual o menor que Ticketplus en eventos chicos; opción 0% al público con licencia.</li>
+      <li>Reunir 10+ certificados de clientes desde 2015.</li>
+      <li>Destacar custodia de fondos y liquidación inmediata frente a los incumplimientos de Ticketpro.</li>
+    </ol></div>
+    <div class="phase"><span class="when">Días 60–365</span><h3>Ofensiva en regiones</h3><ol>
+      <li><b>Lucho Gatica, Municipal de Viña, Municipal de Valparaíso / Parque Cultural y Cervantes:</b> "un solo sistema; los productores externos venden dentro de él".</li>
+      <li><b>TRM / VivoTicket:</b> alianza o migración. Xperticket como motor y VivoTicket conserva la marca: tres recintos de una vez.</li>
+      <li><b>Corcudec, Antofagasta, Calama, Ovalle, Chillán, Temuco:</b> atacar al vencer contrato con la demo de abonos y reportería.</li>
+      <li><b>Paquete "Corporación PAOCC"</b> para ~20 corporaciones chicas: precio plano, marcha en 2 semanas, eventos gratuitos sin costo y reportes listos para el Ministerio.</li>
+    </ol></div>
+    <div class="phase"><span class="when">Meses 6–18</span><h3>Clientes insignia de Ticketplus</h3><ul>
+      <li><b>Targets:</b> GAM, Teatro Biobío, M100, Teatro a Mil, Corpartes, Teatro UC y TNCh.</li>
+      <li>Detectar el fin de la exclusividad y llegar 6 meses antes con un piloto en una sala, temporada, festival o abonos.</li>
+      <li><b>Mensajes:</b> "Tu público es tuyo, no del marketplace de otro" · "Sin sobreprecio del 10%–12% a tu audiencia" · "Hecho para abonos, convenios y gestión de públicos" · "Reportería para el Ministerio".</li>
+      <li>Ojo: las de asignación directa no siempre licitan; la venta es consultiva y decide el directorio.</li>
+    </ul></div>
+  </div>
+
+  <div class="two">
+    <div class="prose">
+      <h3>Lo que debe estar sí o sí en la demo</h3>
+      <ol>
+        <li>Módulo de productor externo y arriendo de sala con revenue share.</li>
+        <li>Abonos, temporadas y tarjeta de saldo.</li>
+        <li>Gestión de públicos (CRM) y donaciones (Ley de Donaciones Culturales).</li>
+        <li>Inscripción a eventos gratuitos a costo cero: la puerta de entrada que hoy se lleva Passline.</li>
+        <li>Reportes PAOCC y de transparencia con un clic.</li>
+        <li>Pasarela propia de la corporación con liquidación inmediata.</li>
+        <li>Marca blanca en el dominio del cliente.</li>
+      </ol>
+    </div>
+    <div class="chart">
+      <div class="chart-title"><h3>Metas</h3><span>indicadores del plan</span></div>
+      <div class="stubs" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div class="kpi"><span class="kv">8 + 2</span><span class="l">cuentas nuevas Tier B/C + Tier A en 12 meses</span></div>
+        <div class="kpi"><span class="kv">100%</span><span class="l">licitaciones de ticketera cultural detectadas y respondidas</span></div>
+        <div class="kpi"><span class="kv">0</span><span class="l">eventos de clientes vendidos por terceros</span></div>
+        <div class="kpi"><span class="kv">25 · 8</span><span class="l">cuentas y regiones con presencia en 24 meses</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 VALIDAR ============ -->
+<section id="s9">
+  <div class="sec-head"><span class="eyebrow">Epílogo</span><h2>Datos por validar</h2></div>
+  <div class="prose"><ol>
+    <li>Bases, oferta económica y % ganador de las licitaciones de Temuco 2026, Chillán 2025, Huechuraba 2026 y La Reina (segunda licitación, oct-nov 2025).</li>
+    <li>Ingresos por boletería de las cuentas Tier A (memorias y transparencia) para afinar el tamaño de mercado.</li>
+    <li>Fecha de vencimiento de los contratos de Ticketplus con GAM, Biobío y M100 (solicitud por Ley de Transparencia).</li>
+    <li>RUT y razón social con que Xperticket participa en Mercado Público, y su historial acreditable.</li>
+    <li>Estado real de Ticketek y Daleticket en 2026.</li>
+  </ol></div>
+</section>
+
+<!-- ============ 10 FUENTES ============ -->
+<section id="s10">
+  <div class="sec-head"><span class="eyebrow">Epílogo</span><h2>Fuentes principales</h2></div>
+  <ul class="sources">
+    <li><a href="https://www.sec.gov/Archives/edgar/data/2104296/000121390026062169/ea0291977-f1_ticket.htm">Ticketplus — Prospecto F-1 (SEC)</a></li>
+    <li><a href="https://www.globenewswire.com/news-release/2026/08/10/3342204/0/en/ticketplus-announces-closing-of-initial-public-offering.html">Ticketplus — Cierre de la IPO</a></li>
+    <li><a href="https://ticketplus.cl/sitemap.xml">Ticketplus — Sitemap de clientes</a> · <a href="https://ticketplus.cl/en/collections/red-salas-de-teatro">Red de Salas</a> · <a href="https://ticketplus.com/servicios/">Servicios</a></li>
+    <li><a href="https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion=1238111-4-LE25">Mercado Público — La Reina 1238111-4-LE25</a></li>
+    <li><a href="https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion=1214071-2-L126">Mercado Público — Temuco 1214071-2-L126</a></li>
+    <li><a href="https://www.todolicitaciones.cl/proveedor/764681886/ticketplus-spa">Todolicitaciones — Ticketplus SpA</a> · <a href="https://www.todolicitaciones.cl/proveedor/760485896/ticketpro-sa">Ticketpro S.A.</a></li>
+    <li><a href="https://www.fne.gob.cl/wp-content/uploads/2024/07/inpu_F383_2024.pdf">FNE — Archivo investigación Punto Ticket (F383-2024)</a></li>
+    <li><a href="https://www.latercera.com/pulso/noticia/las-cifras-desconocidas-de-la-venta-de-punto-ticket/7UBMZPIJIBCTPKAGIP6ERYEDPU/">La Tercera — Cifras de la venta de Punto Ticket</a></li>
+    <li><a href="http://www.jec.cl/articulos/?p=22877">La Tercera (2012) — Industria de tickets</a></li>
+    <li><a href="https://www.cultura.gob.cl/actualidad/convocatoria-de-teatros-regionales-y-municipales-del-programa-de-apoyo-a-organizaciones-culturales-colaboradoras-beneficiara-a-21-espacios-con-mas-de-mil-cuatrocientos-millones-de-pesos/">Ministerio de las Culturas — PAOCC Teatros 2025</a></li>
+    <li><a href="https://www.cultura.gob.cl/actualidad/programa-de-organizaciones-colaboradoras-culturales-paocc-entregara-mas-de-5-mil-millones-para-apoyar-el-funcionamiento-de-78-organizaciones-a-traves-de-las-convocatorias-de-ingreso-y-continuidad/">Ministerio de las Culturas — PAOCC 2026</a></li>
+    <li><a href="https://www.cultura.gob.cl/paocc/wp-content/uploads/sites/78/2025/10/paocc-continuidad-2026.pdf">Bases PAOCC Continuidad 2026</a></li>
+    <li><a href="https://www.cultura.gob.cl/redcultura/espacios-culturales-bajo-convenio/">Red Cultura — Espacios bajo convenio</a></li>
+    <li><a href="https://gam.cl/es/experiencia/preguntas-frecuentes/">GAM — Preguntas frecuentes</a></li>
+    <li><a href="https://teatrobiobio.cl/guia-de-publicos/">Teatro Biobío — Guía de públicos</a></li>
+    <li><a href="https://www.teatroregional.cl/boleteria">TRM — Boletería</a> · <a href="https://www.vivoticket.cl/web/">VivoTicket</a></li>
+    <li><a href="https://ticketera.municipal.cl/">Ticketera del Municipal</a> · <a href="https://ticketera.municipal.cl/terminos-y-condiciones">Términos</a></li>
+    <li><a href="https://sertex.stonline.cl/tmlc/tmlcFrontOffice">Teatro Municipal de Las Condes — Venta</a></li>
+    <li><a href="https://www.teatroregionalcervantes.cl/preguntas-frecuentes/">Teatro Regional Cervantes — FAQ</a> · <a href="https://www.passline.com/productora/teatro-cervantes">Passline</a></li>
+    <li><a href="https://www.passline.com/productora/corporacion-cultural-de-las-condes">Passline — Corporación Cultural de Las Condes</a></li>
+    <li><a href="https://www.ticketpro.cl/">Ticketpro — Cartelera</a> · <a href="https://www.df.cl/empresas/industria/ticketpro-se-declara-en-serio-riesgo-de-subsistencia-tras-conflicto">Caso CONAF (DF)</a></li>
+    <li><a href="https://www.ticketmaster.cl/page/home-teatro-oriente">Ticketmaster — Teatro Oriente</a> · <a href="https://www.teatro-nescafe-delasartes.cl/venta-de-entradas/">Nescafé de las Artes</a></li>
+    <li><a href="https://www.radioagricultura.cl/entretencion/hoy-se-sale/festival-de-verano-san-gines-lanza-su-programacion-2026-con-una-seleccion-imperdible_20251231/">Radio Agricultura — Festival San Ginés 2026</a></li>
+    <li><a href="https://www.puntoticket.com/cuarteto-de-nos-teatro-municipal-de-vina-del-mar-ene-2026">Puntoticket — Cuarteto de Nos, Municipal de Viña</a></li>
+    <li><a href="https://www.tikzet.com/blog/cuanto-cobran-cargo-por-servicio-ticketeras-chile/">Tikzet — Comparativa de cargos</a> · <a href="https://nexopass.cl/ticketeras-en-chile/">NexoPass</a> (partes interesadas)</li>
+    <li><a href="https://welcu.com/es/pricing">Welcu — Precios</a> · <a href="https://portaldisc.com/queesportaltickets">PortalTickets</a></li>
+    <li><a href="https://www.biobiochile.cl/noticias/artes-y-cultura/actualidad-cultural/2026/06/23/cargo-por-servicio-el-factor-que-encarece-las-entradas-y-que-te-cobra-de-mas-por-ofrecer-lo-mismo.shtml">BioBioChile — Cargo por servicio (jun 2026)</a></li>
+    <li><a href="https://www.iqmagazine.com/publications/international-ticketing-report-2026/chile/">IQ Magazine — Ticketing Report 2026 (Chile)</a></li>
+    <li><a href="https://xperticket.cl">Xperticket</a></li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <span>Estudio de mercado · Ticketeras para corporaciones culturales en Chile · preparado para Xperticket</span>
+  <span class="mono">13-10-2026</span>
+</footer>
+</div>
+
+</body>
+</html>
