@@ -43,7 +43,8 @@ const withTimeout = (p, ms) => {
 // Para el back office: siempre lee la base de datos (si falla, el error se muestra en pantalla)
 async function loadContent(db, fresh = false) {
   if (!fresh && cache && Date.now() - cache.at < 10_000) return cache;
-  const row = await withTimeout(db.getContent(), 8000);
+  // Neon apaga la base tras unos minutos sin uso; despertarla puede tardar. Si falla, se reintenta una vez.
+  const row = await withTimeout(db.getContent(), 12000).catch(() => withTimeout(db.getContent(), 12000));
   cache = { data: mergeContent(row?.data), updated_at: row?.updated_at || null, at: Date.now() };
   return cache;
 }

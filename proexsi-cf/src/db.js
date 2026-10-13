@@ -17,7 +17,8 @@ let ready = null;
 function pg(env) {
   const sql = neon(env.DATABASE_URL);
   const q = (text, params = []) => sql.query(text, params);
-  if (!ready) { ready = (async () => { for (const s of SCHEMA) await q(s); })().catch(e => { ready = null; throw e; }); ready.catch(() => {}); }
+  // Todas las tablas se revisan en un solo viaje a Neon: cuando la base está dormida, cada viaje extra suma demora
+  if (!ready) { ready = sql.transaction(SCHEMA.map(s => sql.query(s))).catch(e => { ready = null; throw e; }); ready.catch(() => {}); }
   return { q, ready };
 }
 

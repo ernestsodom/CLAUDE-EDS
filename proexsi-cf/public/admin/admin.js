@@ -59,13 +59,18 @@
     api('logout', { method: 'POST' }).finally(function () { location.reload(); });
   });
 
-  function boot(fromLogin) {
+  function boot(fromLogin, retried) {
+    if (fromLogin && !retried) { var lm = $('#login-msg'); lm.className = 'msg'; lm.textContent = 'Conectando con la base de datos…'; lm.hidden = false; }
     Promise.all([api('meta'), api('content'), api('media')]).then(function (r) {
+      $('#login-msg').hidden = true; $('#login-msg').className = 'msg err';
       S.meta = r[0]; S.content = r[1].content; S.base = r[1].updated_at; S.saved = JSON.stringify(S.content); S.media = r[2].items;
       $('#login').hidden = true; $('#app').hidden = false;
       $('#dbwarn').hidden = S.meta.db !== 'memoria';
       route(); markDirty();
     }).catch(function (e) {
+      // Si la base de datos estaba dormida, el segundo intento suele funcionar
+      if (e.status !== 401 && !retried) { setTimeout(function () { boot(fromLogin, true); }, 1500); return; }
+      $('#login-msg').className = 'msg err';
       if (fromLogin) {
         // La clave fue aceptada pero no se pudo cargar el back office: se muestra el motivo en la tarjeta de acceso
         var m = $('#login-msg');
