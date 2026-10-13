@@ -246,8 +246,7 @@ export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
     // www.cultura360.cl → cultura360.cl
-    // http → https (Cloudflare indica el protocolo original en CF-Visitor; en desarrollo local no existe)
-    if (/"scheme":"http"/.test(req.headers.get('CF-Visitor') || '')) { url.protocol = 'https:'; return Response.redirect(url.toString(), 301); }
+    // El paso de http a https lo hace Cloudflare (Always Use HTTPS); hacerlo aquí provocaba redirecciones en bucle
     if (url.hostname.startsWith('www.')) { url.hostname = url.hostname.slice(4); return Response.redirect(url.toString(), 301); }
     const db = getDb(env);
     try {
