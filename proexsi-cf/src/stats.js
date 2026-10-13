@@ -73,7 +73,7 @@ export function computeStats({ events, leads, days, content, now = Date.now() })
   const curLeads = leads.filter(l => new Date(l.created_at).getTime() >= start);
   const prevLeads = leads.filter(l => new Date(l.created_at).getTime() < start);
   const k = summarize(cur, curLeads), kp = summarize(prev, prevLeads);
-  const online = new Set(events.filter(e => now - new Date(e.ts).getTime() < 5 * 60000).map(e => e.visitor)).size;
+  const online = new Set(events.filter(e => e.visitor && now - new Date(e.ts).getTime() < 5 * 60000).map(e => e.visitor)).size;
 
   // visitas por día
   const daily = new Map();
