@@ -6,7 +6,11 @@ const SCHEMA = [
   `create table if not exists content_history (id serial primary key, data jsonb not null, note text, created_at timestamptz not null default now())`,
   `create table if not exists media (id serial primary key, name text not null, mime text not null, bytes bytea not null, size int not null, width int, height int, created_at timestamptz not null default now())`,
   `create table if not exists leads (id serial primary key, data jsonb not null, created_at timestamptz not null default now())`,
+  `create table if not exists events (id bigserial primary key, ts timestamptz not null default now(), type text not null, path text, section text, label text,
+    visitor text, session text, source text, referrer text, campaign text, country text, region text, city text, device text, browser text, os text)`,
+  `create index if not exists events_ts on events (ts)`,
 ];
+const EVENT_COLS = ['type', 'path', 'section', 'label', 'visitor', 'session', 'source', 'referrer', 'campaign', 'country', 'region', 'city', 'device', 'browser', 'os'];
 const KEEP_HISTORY = 40;
 
 let ready = null;
@@ -44,6 +48,9 @@ const memDb = {
   async addLead(data) { mem.leads.unshift({ id: mem.seq++, data, created_at: new Date().toISOString() }); },
   async listLeads() { return mem.leads; },
   async deleteLead(id) { mem.leads = mem.leads.filter(l => l.id !== Number(id)); },
+  async addEvent(e) { (mem.events ||= []).push({ ...e, ts: new Date().toISOString() }); },
+  async listEvents(since) { const t = new Date(since).getTime(); return (mem.events || []).filter(e => new Date(e.ts).getTime() >= t); },
+  async leadsSince(since) { const t = new Date(since).getTime(); return mem.leads.filter(l => new Date(l.created_at).getTime() >= t); },
 };
 
 function pgDb(env) {
@@ -78,6 +85,14 @@ function pgDb(env) {
     async addLead(data) { await run('insert into leads (data) values ($1)', [JSON.stringify(data)]); },
     async listLeads() { return run('select id, data, created_at from leads order by id desc limit 500'); },
     async deleteLead(id) { await run('delete from leads where id = $1', [Number(id)]); },
+    async addEvent(e) {
+      await run(`insert into events (${EVENT_COLS.join(', ')}) values (${EVENT_COLS.map((_, i) => '$' + (i + 1)).join(', ')})`, EVENT_COLS.map(c => e[c] ?? null));
+      if (Math.random() < 0.002) await run(`delete from events where ts < now() - interval '400 days'`);
+    },
+    async listEvents(since) {
+      return run(`select ts, ${EVENT_COLS.join(', ')} from events where ts >= $1 order by ts limit 250000`, [since]);
+    },
+    async leadsSince(since) { return run('select id, data, created_at from leads where created_at >= $1 order by id desc', [since]); },
   };
 }
 

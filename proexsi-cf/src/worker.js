@@ -7,8 +7,9 @@ import { BLOCKS, CATEGORY_FIELDS, CATEGORY_PAGE_FIELDS, SITE_FIELDS, NAV_FIELDS,
 import { FONTS } from './fonts.js';
 import { ICONS, iconSvg } from './icons.js';
 import { STATIC_IMAGES } from './static-images.js';
+import { isBot, parseUA, classifySource, computeStats } from './stats.js';
 
-const ASSET_VERSION = 3;
+const ASSET_VERSION = 4;
 const MAX_UPLOAD = 6 * 1024 * 1024;
 const RESERVED = new Set(['productos', 'admin', 'api', 'media', 'img', 'site.css', 'site.js', 'favicon.ico', 'robots.txt', 'sitemap.xml']);
 const IMAGE_TYPES = new Set(['image/webp', 'image/jpeg', 'image/png', 'image/gif', 'image/avif', 'image/svg+xml']);
@@ -161,6 +162,12 @@ async function adminApi(req, env, url, db) {
     return json({ ok: true });
   }
 
+  if (path === 'stats') {
+    const days = [7, 30, 90, 365].includes(Number(url.searchParams.get('days'))) ? Number(url.searchParams.get('days')) : 30;
+    const since = new Date(Date.now() - 2 * days * 86400000).toISOString();
+    const [events, leads, c] = await Promise.all([db.listEvents(since), db.leadsSince(since), loadContent(db)]);
+    return json(computeStats({ events, leads, days, content: c.data }));
+  }
   if (path === 'leads' && req.method === 'GET') return json({ items: await db.listLeads() });
   m = path.match(/^leads\/(\d+)$/);
   if (m && req.method === 'DELETE') { await db.deleteLead(m[1]); return json({ ok: true }); }
@@ -185,6 +192,35 @@ async function media(req, env, url, db, ctx) {
   return res;
 }
 
+// Datos de contexto de quien visita (los entrega Cloudflare en cada solicitud)
+function place(req) {
+  const cf = req.cf || {};
+  return { country: cf.country || null, region: cf.region || null, city: cf.city || null };
+}
+
+async function track(req, db, url) {
+  const ua = req.headers.get('User-Agent') || '';
+  if (isBot(ua)) return new Response(null, { status: 204 });
+  const raw = await req.text();
+  if (raw.length > 4000) return new Response(null, { status: 413 });
+  let b; try { b = JSON.parse(raw); } catch { return new Response(null, { status: 400 }); }
+  const type = ['pageview', 'section', 'click'].includes(b.type) ? b.type : null;
+  if (!type) return new Response(null, { status: 400 });
+  const str = (v, n = 160) => (v == null || v === '' ? null : String(v).slice(0, n));
+  const e = {
+    type, path: str(b.path, 200), section: str(b.section, 200), label: str(b.label, 120),
+    visitor: str(b.visitor, 40), session: str(b.session, 40),
+    ...place(req), ...parseUA(ua),
+  };
+  if (type === 'pageview' && b.first) {
+    e.referrer = str(b.referrer, 300);
+    e.campaign = str(b.utm_campaign, 80);
+    e.source = classifySource(b.referrer, b.utm_source, url.hostname.replace(/^www\./, ''));
+  }
+  await db.addEvent(e);
+  return new Response(null, { status: 204 });
+}
+
 async function lead(req, db) {
   const len = Number(req.headers.get('Content-Length') || 0);
   if (len > 20_000) return json({ error: 'Solicitud demasiado grande.' }, 413);
@@ -194,7 +230,9 @@ async function lead(req, db) {
   const clean = {};
   for (const k of ['nombre', 'cargo', 'institucion', 'correo', 'telefono', 'producto', 'mensaje']) clean[k] = String(b[k] ?? '').trim().slice(0, k === 'mensaje' ? 2000 : 200);
   if (!clean.nombre || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean.correo)) return json({ error: 'Escribe tu nombre y un correo válido.' }, 400);
+  clean._meta = { visitor: String(b.visitor || '').slice(0, 40) || null, session: String(b.session || '').slice(0, 40) || null, ...place(req), ...parseUA(req.headers.get('User-Agent') || '') };
   await db.addLead(clean);
+  await db.addEvent({ type: 'click', label: 'Envió solicitud de demo', section: '#contacto', path: '/', visitor: clean._meta.visitor, session: clean._meta.session, ...place(req) }).catch(() => {});
   return json({ ok: true });
 }
 
@@ -207,8 +245,8 @@ export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
     // www.cultura360.cl → cultura360.cl
-    const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-    if (url.protocol === 'http:' && !local) { url.protocol = 'https:'; return Response.redirect(url.toString(), 301); }
+    // http → https (Cloudflare indica el protocolo original en CF-Visitor; en desarrollo local no existe)
+    if (/"scheme":"http"/.test(req.headers.get('CF-Visitor') || '')) { url.protocol = 'https:'; return Response.redirect(url.toString(), 301); }
     if (url.hostname.startsWith('www.')) { url.hostname = url.hostname.slice(4); return Response.redirect(url.toString(), 301); }
     const db = getDb(env);
     try {
@@ -216,6 +254,7 @@ export default {
       if (url.pathname === '/admin') return Response.redirect(url.origin + '/admin/', 301);
       if (url.pathname.startsWith('/media/') && req.method === 'GET') return await media(req, env, url, db, ctx);
       if (url.pathname === '/api/lead' && req.method === 'POST') return await lead(req, db);
+      if (url.pathname === '/api/t' && req.method === 'POST') return await track(req, db, url);
       if (url.pathname === '/api/estado') {
         // Diagnóstico sin datos sensibles: indica si los secretos están configurados y si responde la base de datos
         let base = 'sin conexión';
