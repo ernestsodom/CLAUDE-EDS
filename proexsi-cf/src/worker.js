@@ -207,6 +207,8 @@ export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
     // www.cultura360.cl → cultura360.cl
+    const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    if (url.protocol === 'http:' && !local) { url.protocol = 'https:'; return Response.redirect(url.toString(), 301); }
     if (url.hostname.startsWith('www.')) { url.hostname = url.hostname.slice(4); return Response.redirect(url.toString(), 301); }
     const db = getDb(env);
     try {
