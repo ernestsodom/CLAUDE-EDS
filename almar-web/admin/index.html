@@ -216,7 +216,7 @@ main{padding:28px max(16px,env(safe-area-inset-right,0px)) 60px clamp(16px,3vw,4
 .order button{width:32px;height:32px;border:1px solid var(--line);background:var(--panel);border-radius:8px;cursor:pointer}
 .photos{grid-column:1/-1;border-top:1px solid var(--line);padding-top:14px;display:grid;gap:12px}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;max-height:460px;overflow:auto;padding:2px}
-.ph{position:relative;display:block;width:100%;aspect-ratio:1/1;border-radius:6px;overflow:hidden;cursor:pointer;border:0;padding:0;background:var(--panel-2)}
+.ph{position:relative;display:block;width:100%;height:0;padding:100% 0 0;border-radius:6px;overflow:hidden;cursor:pointer;border:0;background:var(--panel-2)}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ph::before,.ph::after{z-index:1}
 .ph.off img{opacity:.25;filter:grayscale(1)}

@@ -47,7 +47,7 @@ const igSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const mailSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m3.5 6 8.5 7 8.5-7"/></svg>';
 
 /* ---------- Bloques compartidos ---------- */
-function band(imgHtml, tk, xk) { return `<section class="band">${imgHtml}<div class="wrap fade"><span class="eyebrow" style="color:#fff">Hablemos</span><h2>${T(tk)}</h2><p style="max-width:44ch;font-size:var(--step-1)">${T(xk)}</p><div class="cbtns"><a class="btn light" href="#contacto">Cotizar mi evento</a>${waNumber() ? `<a class="btn light" href="${waLink()}" target="_blank" rel="noopener" data-track="whatsapp">${waSvg} WhatsApp</a>` : ''}</div></div></section>`; }
+function band(imgHtml, tk, xk) { return `<section class="band">${imgHtml}<div class="wrap fade"><span class="eyebrow" style="color:#fff">Hablemos</span><h2>${T(tk)}</h2><p style="max-width:44ch;font-size:var(--step-1)">${T(xk)}</p><div class="cbtns"><a class="btn light" href="#contacto">Cotizar</a>${waNumber() ? `<a class="btn light" href="${waLink()}" target="_blank" rel="noopener" data-track="whatsapp">${waSvg} WhatsApp</a>` : ''}</div></div></section>`; }
 function preview(key, n, start = 0) {
   const g = galleries().find((x) => x.k === key); if (!g || !g.items.length) return '';
   const pick = []; const step = Math.max(1, Math.floor(g.items.length / n));
@@ -279,7 +279,7 @@ function render() {
   app.style.animation = 'none'; void app.offsetWidth; app.style.animation = '';
   document.body.classList.toggle('over-hero', !!app.querySelector('.hero,.phero'));
   document.querySelectorAll('.nav [data-r]').forEach((a) => a.classList.toggle('on', a.dataset.r === r || (a.dataset.r === 'galerias' && (r === 'galerias' || !!g))));
-  document.querySelectorAll('#dnav a').forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + r));
+  document.querySelectorAll('#dnav a, #dgal a').forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + r || (a.getAttribute('href') === '#galerias' && !!g)));
   document.title = r === 'inicio' ? 'Almar Fotografía · Matrimonios, eventos y fotografía corporativa' : `${g ? g.t + ' · Galerías' : app.querySelector('h1')?.textContent} · Almar Fotografía`;
   window.scrollTo({ top: 0, behavior: 'instant' });
   if (g) mountGallery(g);
@@ -292,16 +292,21 @@ function chrome() {
   const gs = galleries();
   document.getElementById('ddmenu').innerHTML = gs.map((g) => `<a href="#${g.slug}">${esc(g.t)}<em>${g.items.length}</em></a>`).join('');
   document.getElementById('fgal').innerHTML = gs.map((g) => `<li><a href="#${g.slug}">${esc(g.t)}</a></li>`).join('');
-  document.getElementById('dnav').innerHTML = [['inicio', 'Inicio'], ['matrimonios', raw('mat_title')], ['otros-eventos', raw('otr_title')], ['corporativas', raw('corp_title')], ['galerias', raw('gal_title')]].map(([h, t]) => `<a href="#${h}">${esc(t)}</a>`).join('') + gs.map((g) => `<a class="sub" href="#${g.slug}">${esc(g.t)}</a>`).join('') + '<a href="#contacto">Contacto</a>';
+  document.getElementById('dnav').innerHTML = [['inicio', 'Inicio'], ['matrimonios', raw('mat_title')], ['otros-eventos', raw('otr_title')], ['corporativas', raw('corp_title')], ['galerias', raw('gal_title')], ['contacto', 'Contacto']].map(([h, t]) => `<a href="#${h}"><span>${esc(t)}</span><i aria-hidden="true">→</i></a>`).join('');
+  document.getElementById('dgal').innerHTML = gs.map((g) => `<a class="chip" href="#${g.slug}">${esc(g.t)}</a>`).join('');
   document.getElementById('ftag').innerHTML = T('footer_tagline');
   document.getElementById('year').textContent = new Date().getFullYear();
   const ig = document.getElementById('hdrIg'); ig.href = igLink(); ig.hidden = !igUser(); ig.setAttribute('aria-label', 'Instagram @' + igUser());
-  document.getElementById('dfoot').textContent = igUser() ? '@' + igUser() + ' · Almar Foto Litoral' : 'Almar Foto Litoral';
+  document.getElementById('dfoot').innerHTML = `${waNumber() ? `<a class="btn solid" href="${waLink()}" target="_blank" rel="noopener" data-track="whatsapp">${waSvg} Escríbeme por WhatsApp</a>` : `<a class="btn solid" href="#contacto">Cotizar mi evento</a>`}
+    ${igUser() ? `<a class="dig" href="${igLink()}" target="_blank" rel="noopener" data-track="instagram">${igSvg}@${esc(igUser())}</a>` : ''}`;
+  const row = (href, ic, label, value, track, ext) => `<li><a href="${href}" ${ext ? 'target="_blank" rel="noopener"' : ''} data-track="${track}"><span class="ci">${ic}</span><span><small>${label}</small>${value}</span></a></li>`;
   document.getElementById('fcontact').innerHTML = [
-    waNumber() ? `<li><a href="${waLink()}" target="_blank" rel="noopener" data-track="whatsapp">WhatsApp · +${esc(waNumber())}</a></li>` : '',
-    has('email') ? `<li><a href="mailto:${esc(raw('email'))}" data-track="email">${esc(raw('email'))}</a></li>` : '',
-    igUser() ? `<li><a href="${igLink()}" target="_blank" rel="noopener" data-track="instagram">Instagram · @${esc(igUser())}</a></li>` : ''
+    waNumber() ? row(waLink(), waSvg, 'WhatsApp', '+' + esc(waNumber()), 'whatsapp', 1) : '',
+    has('email') ? row('mailto:' + esc(raw('email')), mailSvg, 'Correo', esc(raw('email')), 'email') : '',
+    igUser() ? row(igLink(), igSvg, 'Instagram', '@' + esc(igUser()), 'instagram', 1) : ''
   ].join('');
+  const fwa = document.getElementById('fwa');
+  fwa.hidden = !waNumber(); fwa.href = waLink(); fwa.innerHTML = waSvg + ' WhatsApp';
   const wa = document.getElementById('wa');
   wa.href = waLink();
   if (waNumber()) { wa.target = '_blank'; wa.dataset.tip = 'Escríbeme por WhatsApp'; } else { wa.removeAttribute('target'); wa.dataset.tip = 'Escríbeme'; }
@@ -343,8 +348,8 @@ addEventListener('scroll', onScroll, { passive: true });
 addEventListener('hashchange', render);
 
 const drawer = document.getElementById('drawer'), burger = document.getElementById('burger');
-function closeDrawer() { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); burger.setAttribute('aria-expanded', 'false'); }
-burger.onclick = () => { drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); burger.setAttribute('aria-expanded', 'true'); };
+function closeDrawer() { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); burger.setAttribute('aria-expanded', 'false'); document.documentElement.classList.remove('lock'); }
+burger.onclick = () => { drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); burger.setAttribute('aria-expanded', 'true'); document.documentElement.classList.add('lock'); };
 document.getElementById('dclose').onclick = closeDrawer;
 drawer.addEventListener('click', (e) => { if (e.target.closest('a')) closeDrawer(); });
 

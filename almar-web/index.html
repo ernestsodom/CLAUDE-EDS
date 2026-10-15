@@ -38,28 +38,30 @@
   </div>
 </header>
 
-<div class="drawer" id="drawer" aria-hidden="true">
+<div class="drawer" id="drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Menú">
   <div class="drawer-top">
-    <a class="brand" href="#inicio"><img src="/assets/logo-s.png" alt="" width="48" height="48"><span>Almar<small>Foto Litoral</small></span></a>
-    <button class="close" id="dclose" type="button" aria-label="Cerrar menú">×</button>
+    <a class="brand" href="#inicio"><img src="/assets/logo-s.png" alt="" width="44" height="44"><span>Almar<small>Foto Litoral</small></span></a>
+    <button class="close" id="dclose" type="button" aria-label="Cerrar menú"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
   </div>
   <nav id="dnav" aria-label="Menú móvil"></nav>
-  <div class="foot" id="dfoot"></div>
+  <div class="dgal"><span class="eyebrow">Galerías</span><div id="dgal"></div></div>
+  <div class="dfoot" id="dfoot"></div>
 </div>
 
 <main id="app"></main>
 
 <footer>
-  <div class="wrap">
-    <div style="display:grid;gap:18px">
+  <div class="wrap fgrid">
+    <div class="fbrand">
+      <a href="#inicio" class="flogo" aria-label="Almar Fotografía, inicio"><img src="/assets/logo-s.png" alt="" width="64" height="64"></a>
       <div class="big">Almar fotografía</div>
-      <p style="color:var(--ink-soft);max-width:36ch" id="ftag"></p>
-      <div><a class="btn solid" href="#contacto">Hablemos</a></div>
+      <p id="ftag"></p>
+      <div class="fbtns"><a class="btn solid" href="#contacto">Cotizar</a><a class="btn" id="fwa" href="#contacto" target="_blank" rel="noopener" data-track="whatsapp">WhatsApp</a></div>
     </div>
-    <div><h4>Servicios</h4><ul><li><a href="#matrimonios">Matrimonios</a></li><li><a href="#otros-eventos">Otros eventos</a></li><li><a href="#corporativas">Corporativas</a></li><li><a href="#contacto">Contacto</a></li></ul></div>
-    <div><h4>Galerías</h4><ul id="fgal"></ul></div>
-    <div><h4>Contacto</h4><ul id="fcontact"></ul></div>
-    <div class="legal"><span>Almar Foto Litoral <span id="year"></span>. Derechos reservados.</span><span>Magdalena Domínguez · Fotógrafa y diseñadora editorial</span></div>
+    <nav class="fcol" aria-label="Servicios"><h4>Servicios</h4><ul><li><a href="#matrimonios">Matrimonios</a></li><li><a href="#otros-eventos">Otros eventos</a></li><li><a href="#corporativas">Corporativas</a></li><li><a href="#galerias">Galerías</a></li><li><a href="#contacto">Contacto</a></li></ul></nav>
+    <nav class="fcol" aria-label="Galerías"><h4>Galerías</h4><ul id="fgal"></ul></nav>
+    <div class="fcol fcontact"><h4>Contacto</h4><ul id="fcontact"></ul></div>
+    <div class="legal"><span>© <span id="year"></span> Almar Foto Litoral. Derechos reservados.</span><span>Magdalena Domínguez · Fotógrafa y diseñadora editorial</span></div>
   </div>
 </footer>
 
