@@ -5,7 +5,7 @@ const STATUSES = new Set(['nuevo', 'contactado', 'cotizado', 'cerrado', 'descart
 const TZ = 'America/Santiago';
 
 export default async function handler(req, res) {
-  if (!isAdmin(req)) return json(res, 401, { error: 'Sesión expirada. Vuelve a ingresar.' });
+  if (!(await isAdmin(req))) return json(res, 401, { error: 'Sesión expirada. Vuelve a ingresar.' });
   const action = req.query.action;
   const sql = db();
   try {

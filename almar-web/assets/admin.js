@@ -405,6 +405,35 @@ view.addEventListener('click', async (e) => {
 });
 view.addEventListener('change', (e) => { const sw = e.target.closest('.switch input'); if (sw) sw.parentElement.lastChild.textContent = sw.checked ? 'Visible' : 'Oculta'; });
 
+
+/* ---------- Cambiar contraseña ---------- */
+const pwDlg = $('#pwDlg'), pwForm = $('#pwForm');
+function pwStrength(v) {
+  let s = 0; if (v.length >= 8) s++; if (v.length >= 12) s++; if (/[a-z]/.test(v) && /[A-Z]/.test(v)) s++; if (/\d/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v)) s++;
+  return s;
+}
+$('#openPw').onclick = () => { pwForm.reset(); $('#pwErr').textContent = ''; $('#pwBar').style.width = '0'; $('#side').classList.remove('open'); pwDlg.showModal(); $('#pwCur').focus(); };
+$('#pwCancel').onclick = () => pwDlg.close();
+$('#pwShow').onchange = (e) => ['#pwCur', '#pwNew', '#pwRep'].forEach((id) => { $(id).type = e.target.checked ? 'text' : 'password'; });
+$('#pwNew').oninput = (e) => {
+  const v = e.target.value, s = pwStrength(v);
+  const lv = !v ? ['0', 'var(--line)', 'Mínimo 8 caracteres. Mezcla letras, números y algún símbolo.'] : v.length < 8 ? ['20%', 'var(--bad)', `Faltan ${8 - v.length} caracteres.`] : s <= 2 ? ['45%', 'var(--warn)', 'Aceptable. Agrega números o símbolos para hacerla más segura.'] : s <= 3 ? ['72%', 'var(--good)', 'Buena contraseña.'] : ['100%', 'var(--good)', 'Muy segura.'];
+  $('#pwBar').style.width = lv[0]; $('#pwBar').style.background = lv[1]; $('#pwHint').textContent = lv[2];
+};
+pwForm.addEventListener('submit', async (e) => {
+  e.preventDefault(); const err = $('#pwErr'); err.textContent = '';
+  const current = $('#pwCur').value, next = $('#pwNew').value, rep = $('#pwRep').value;
+  if (!current) { err.textContent = 'Escribe tu contraseña actual.'; $('#pwCur').focus(); return; }
+  if (next.length < 8) { err.textContent = 'La nueva contraseña debe tener al menos 8 caracteres.'; $('#pwNew').focus(); return; }
+  if (next !== rep) { err.textContent = 'Las dos contraseñas nuevas no coinciden.'; $('#pwRep').focus(); return; }
+  const b = $('#pwSave'); b.disabled = true; b.textContent = 'Guardando…';
+  try {
+    await api('/api/login', { method: 'PUT', body: JSON.stringify({ current, next }) });
+    pwDlg.close(); toast('Contraseña actualizada');
+  } catch (ex) { err.textContent = ex.message; }
+  finally { b.disabled = false; b.textContent = 'Guardar contraseña'; }
+});
+
 /* ---------- Inicio ---------- */
 api('/api/login').then((r) => (r.admin ? showApp() : showLogin())).catch(showLogin);
 })();

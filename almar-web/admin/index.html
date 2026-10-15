@@ -236,6 +236,21 @@ main{padding:28px max(16px,env(safe-area-inset-right,0px)) 60px clamp(16px,3vw,4
 .skel{background:linear-gradient(90deg,var(--panel-2),var(--line),var(--panel-2));background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px;min-height:90px}
 @keyframes sk{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Cambiar contraseña */
+.dlg{border:0;border-radius:16px;padding:0;width:min(440px,calc(100% - 32px));background:var(--panel);color:var(--ink);box-shadow:0 40px 80px -30px rgba(0,0,0,.5)}
+.dlg::backdrop{background:rgba(20,12,16,.55);backdrop-filter:blur(3px)}
+.dlg form{display:grid;gap:14px;padding:28px}
+.dlg h2{font-family:var(--font-display);font-style:italic;font-weight:400;font-size:1.7rem}
+.dlg p{margin:0;color:var(--ink-3);font-size:.9rem}
+.dlg label{display:grid;gap:6px;font-size:.8rem;font-weight:600;color:var(--ink-2)}
+.dlg input[type=password],.dlg input[type=text]{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 12px;background:var(--panel-2);font-weight:400;font-size:.95rem}
+.dlg input:focus{outline:none;border-color:var(--rose);background:var(--panel)}
+.dlg .show{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--ink-3)}
+.dlg small{color:var(--ink-3);font-size:.8rem;margin-top:-8px}
+.meter{height:5px;border-radius:999px;background:var(--panel-2);overflow:hidden;margin-top:-6px}
+.meter i{display:block;height:100%;width:0;border-radius:999px;transition:width .3s,background .3s}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
 </style>
 </head>
 <body>
@@ -262,11 +277,26 @@ main{padding:28px max(16px,env(safe-area-inset-right,0px)) 60px clamp(16px,3vw,4
     <nav id="nav"></nav>
     <div class="bottom">
       <a href="/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>Ver sitio</a>
+      <button type="button" id="openPw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="11" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14.5v2.5"/></svg>Cambiar contraseña</button>
       <button type="button" id="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg>Salir</button>
     </div>
   </aside>
   <main id="view"></main>
 </div>
+<dialog class="dlg" id="pwDlg" aria-labelledby="pwTitle">
+  <form id="pwForm" novalidate>
+    <h2 id="pwTitle">Cambiar contraseña</h2>
+    <p>Al guardarla, se cerrarán las sesiones abiertas en otros dispositivos. Esta sigue abierta.</p>
+    <label for="pwCur">Contraseña actual<input id="pwCur" type="password" autocomplete="current-password" required></label>
+    <label for="pwNew">Nueva contraseña<input id="pwNew" type="password" autocomplete="new-password" minlength="8" required></label>
+    <div class="meter" aria-hidden="true"><i id="pwBar"></i></div>
+    <small id="pwHint">Mínimo 8 caracteres. Mezcla letras, números y algún símbolo.</small>
+    <label for="pwRep">Repite la nueva contraseña<input id="pwRep" type="password" autocomplete="new-password" required></label>
+    <label class="show"><input type="checkbox" id="pwShow"> Mostrar contraseñas</label>
+    <div class="err" id="pwErr" role="alert"></div>
+    <div class="dlg-actions"><button class="btn ghost" type="button" id="pwCancel">Cancelar</button><button class="btn pri" type="submit" id="pwSave">Guardar contraseña</button></div>
+  </form>
+</dialog>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="/assets/schema.js"></script>
