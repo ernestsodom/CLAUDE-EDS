@@ -227,6 +227,13 @@ table.models th { font-size: 11px; text-transform: uppercase; letter-spacing: .0
         <button data-act="profile" data-id="europa" id="pf-europa">Padel Europa</button>
       </div>
     </div>
+    <div>
+      <div class="label" style="margin-bottom:6px">Fondo de la página</div>
+      <div class="profiles" role="group" aria-label="Fondo de la página">
+        <button data-act="theme" data-id="dark" id="th-dark">Negro</button>
+        <button data-act="theme" data-id="light" id="th-light">Blanco</button>
+      </div>
+    </div>
     <nav class="nav" id="nav" aria-label="Módulos"></nav>
     <div class="side-foot">
       <span>Maqueta navegable. Los datos son de ejemplo y se guardan solo en este navegador.</span>
@@ -379,6 +386,9 @@ const UI = { profile: 'atila', view: 'bandeja', dealFilter: 'activos', deal: nul
   cal: TODAY.slice(0, 7), calProject: '', mapProv: '', mapSel: null, cfg: null };
 try { const u = JSON.parse(localStorage.getItem(KEY + '-ui') || '{}'); if (u.view) UI.view = u.view; if (u.profile) UI.profile = u.profile; } catch (e) {}
 const saveUI = () => { try { localStorage.setItem(KEY + '-ui', JSON.stringify({ view: UI.view, profile: UI.profile })); } catch (e) {} };
+// Fondo elegido por el usuario (negro o blanco); sin elección se sigue el tema del sistema.
+try { const t = localStorage.getItem(KEY + '-theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+const currentTheme = () => document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
 
 const model = id => S.models.find(m => m.id === id) || { nombre: '(modelo eliminado)', tipo: 'estandar' };
 const project = id => S.projects.find(p => p.id === id);
@@ -474,6 +484,9 @@ const icon = d => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" s
 function renderNav() {
   $('#pf-atila').setAttribute('aria-pressed', UI.profile === 'atila');
   $('#pf-europa').setAttribute('aria-pressed', UI.profile === 'europa');
+  const th = currentTheme();
+  $('#th-dark').setAttribute('aria-pressed', th === 'dark');
+  $('#th-light').setAttribute('aria-pressed', th === 'light');
   $('#brandName').textContent = UI.profile === 'atila' ? 'Atila' : 'Padel Europa';
   $('#brandSub').textContent = UI.profile === 'atila' ? 'Gestión de entregas · Argentina' : 'Perfil en preparación';
   if (UI.profile !== 'atila') { $('#nav').innerHTML = `<button aria-current="page">${icon('M3 12l9-8 9 8M5 10v10h14V10')}Inicio</button>`; return; }
@@ -749,6 +762,7 @@ document.addEventListener('click', ev => {
   switch (act) {
     case 'profile': UI.profile = id; if (id === 'atila' && !UI.view) UI.view = 'bandeja'; saveUI(); render(); break;
     case 'view': UI.view = id; UI.cfg = null; saveUI(); render(); window.scrollTo(0, 0); break;
+    case 'theme': document.documentElement.dataset.theme = id; try { localStorage.setItem(KEY + '-theme', id); } catch (e) {} renderNav(); break;
     case 'reset': S = seed(); UI.deal = null; UI.project = 'p1'; UI.cfg = null; commit('Datos de ejemplo restablecidos'); break;
     case 'dfilter': UI.dealFilter = id; UI.deal = null; UI.closing = false; render(); break;
     case 'deal': UI.deal = id; UI.closing = false; render(); break;
