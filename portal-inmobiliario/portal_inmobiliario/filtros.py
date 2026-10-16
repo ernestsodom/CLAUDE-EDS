@@ -178,7 +178,10 @@ class Filtros:
         nativos: list[str] = []
         atributos: list[str] = []
 
-        if self.precio_min is not None or self.precio_max is not None:
+        # Sin valor UF no se puede convertir un precio en UF a pesos: se omite en
+        # la URL y el precio se verifica solo en local (analisis.filtrar).
+        precio_en_url = self.moneda == "CLP" or bool(valor_uf)
+        if (self.precio_min is not None or self.precio_max is not None) and precio_en_url:
             nativos.append("PriceRange_" + self._rango_precio(valor_uf))
         if self.publicados_hoy:
             nativos.append("PublishedToday_YES")
@@ -215,9 +218,6 @@ class Filtros:
         """El sitio filtra el precio en pesos (con conversión) y usa 0 como abierto."""
         lo, hi = self.precio_min or 0, self.precio_max or 0
         if self.moneda == "UF":
-            if not valor_uf:
-                # Sin valor UF se usa el código ISO de la UF (CLF).
-                return f"{_num(lo)}CLF-{_num(hi)}CLF"
             lo, hi = round(lo * valor_uf), round(hi * valor_uf)
         return f"{_num(lo)}CLP-{_num(hi)}CLP"
 
@@ -250,6 +250,32 @@ class Filtros:
         if tokens:
             ruta += "/_" + "_".join(tokens)
         return BASE_URL + quote(ruta, safe="/*-_.~")
+
+    def claves_sitio(self, valor_uf: float | None = None) -> dict[str, str]:
+        """Clave con que la página reporta cada filtro pedido (``applied_filters``) -> etiqueta.
+
+        Claves vistas en páginas reales: price, BEDROOMS, MAINTENANCE_FEE,
+        HAS_TERRACE, OPERATION_SUBTYPE; los atributos siguen el token con "_".
+        """
+        nativos, atributos = self._tokens(valor_uf)
+        claves = {}
+        if any(t.startswith("PriceRange_") for t in nativos):
+            claves["price"] = "Precio"
+        if self.dormitorios_min is not None or self.dormitorios_max is not None:
+            claves["BEDROOMS"] = "Dormitorios"
+        if self.condicion:
+            claves["OPERATION_SUBTYPE"] = "Nuevo/usado"
+        etiquetas = {
+            "FULL*BATHROOMS": "Baños", "PARKING*LOTS": "Estacionamientos",
+            "COVERED*AREA": "Superficie útil", "TOTAL*AREA": "Superficie total",
+            "PROPERTY*AGE": "Antigüedad", "MAINTENANCE*FEE": "Gastos comunes",
+            **dict(CARACTERISTICAS.values()),
+        }
+        for token in atributos:
+            nombre = token.split("_", 1)[0]
+            if nombre in etiquetas:
+                claves[nombre.replace("*", "_")] = etiquetas[nombre]
+        return claves
 
     # ------------------------------------------------------------------ #
     # Utilidades para el informe

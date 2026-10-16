@@ -70,7 +70,8 @@ def _filtros(kw: dict) -> Filtros:
 def _uf(fecha: date | None = None):
     uf = valor_uf(fecha)
     if uf is None:
-        click.echo("⚠️  No se pudo obtener el valor UF (mindicador.cl); define PI_VALOR_UF.")
+        click.echo("⚠️  No se pudo obtener el valor UF (mindicador.cl ni boostr.cl). Un precio en UF "
+                   "se filtrará solo en local; para fijarlo define PI_VALOR_UF.")
     return uf
 
 

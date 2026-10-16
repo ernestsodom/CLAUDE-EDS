@@ -61,6 +61,25 @@ class TestFiltros(unittest.TestCase):
             BASE + "/venta/departamento/nunoa-metropolitana/_PriceRange_160000000CLP-240000000CLP",
         )
 
+    def test_busqueda_con_varios_filtros(self):
+        f = Filtros(comuna="Las Condes", dormitorios_min=3, banos_min=2, superficie_util_min=100,
+                    precio_max=8900, caracteristicas=["terraza", "jardin", "piscina"])
+        self.assertEqual(
+            f.url(valor_uf=40000),
+            BASE + "/venta/departamento/las-condes-metropolitana/_PriceRange_0CLP-356000000CLP"
+            "_BEDROOMS_3-*_COVERED*AREA_100m%C2%B2-*_FULL*BATHROOMS_2-*_HAS*GARDEN_242085"
+            "_HAS*SWIMMING*POOL_242085_HAS*TERRACE_242085",
+        )
+        self.assertEqual(
+            set(f.claves_sitio(valor_uf=40000)),
+            {"price", "BEDROOMS", "FULL_BATHROOMS", "COVERED_AREA", "HAS_GARDEN",
+             "HAS_SWIMMING_POOL", "HAS_TERRACE"},
+        )
+
+    def test_sin_valor_uf_el_precio_queda_fuera_de_la_url(self):
+        f = Filtros(comuna="Ñuñoa", precio_max=6000, caracteristicas=["terraza"])
+        self.assertEqual(f.url(), BASE + "/venta/departamento/nunoa-metropolitana/_HAS*TERRACE_242085")
+
     def test_paginacion_y_orden(self):
         f = Filtros(comuna="Ñuñoa", orden="precio-asc")
         self.assertEqual(

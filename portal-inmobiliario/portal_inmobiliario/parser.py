@@ -90,6 +90,8 @@ class Pagina:
     canonical: str | None = None
     offset: int | None = None
     orden_sitio: str | None = None
+    # Filtros que la búsqueda aplicó según la analítica: clave -> valor.
+    filtros_ids: dict[str, str] = field(default_factory=dict)
     bloqueada: bool = False
 
 
@@ -252,4 +254,8 @@ def parsear_pagina(html: str, url_final: str = "") -> Pagina:
         canonical=canonical.get("href") if canonical is not None else None,
         offset=evento.get("offset") if isinstance(evento.get("offset"), int) else None,
         orden_sitio=evento.get("sort_id"),
+        filtros_ids={
+            f["key"]: f.get("value") for f in evento.get("applied_filters") or []
+            if isinstance(f, dict) and f.get("key")
+        },
     )

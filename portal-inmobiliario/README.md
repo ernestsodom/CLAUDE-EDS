@@ -32,6 +32,11 @@ Por eso hay tres formas de usar la herramienta:
    del entorno, nunca en el repositorio ni en un chat. Usa una cuenta
    secundaria de MercadoLibre: la cookie da acceso a la cuenta, caduca, y
    MercadoLibre puede pedir verificación si la sesión se usa desde otra red.
+
+   Sin instalar nada, el mismo valor se obtiene desde Chrome: con la sesión
+   iniciada abre cualquier búsqueda, `F12` → pestaña **Network** → recarga con
+   `F5` → clic en la primera fila (la página) → **Headers** → *Request
+   Headers* → `cookie` → clic derecho → **Copy value**.
 3. **Páginas guardadas a mano.** Abre la búsqueda en tu navegador, guárdala
    con `Ctrl+S` y procésala con `python pi.py desde-html pagina.html`. Sin
    automatización; siempre funciona.
@@ -112,11 +117,12 @@ Con `--artefacto` se guarda además una versión del informe sin
   sitio; las pruebas comprueban que 18 combinaciones producen **exactamente**
   la URL del sitio.
 - El extractor se probó con 7 páginas reales (venta, arriendo en UF y pesos,
-  casas, proyectos "Desde", oficinas): 247 avisos, todos con precio y moneda.
+  casas, proyectos "Desde", oficinas): 253 avisos, todos con precio y moneda.
 - Cada informe muestra **los filtros que el sitio confirmó** (sus etiquetas de
-  filtros aplicados) y la herramienta re-verifica en local precio, dormitorios,
-  baños y superficie; los avisos que no cumplen se descartan y se informa
-  cuántos.
+  filtros aplicados). Si alguno de los pedidos no figura entre los que la
+  página reporta como aplicados, el informe lo advierte.
+- Además se re-verifican en local precio, dormitorios, baños y superficie; los
+  avisos que no cumplen se descartan y se informa cuántos.
 - La paginación (`_Desde_N`) y el orden se contrastan con el offset y orden
   que reporta la página; si no coinciden, se detiene y lo avisa.
 

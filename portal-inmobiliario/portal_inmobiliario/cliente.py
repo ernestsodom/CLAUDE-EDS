@@ -239,6 +239,15 @@ def buscar(cliente: ClientePortal, *, filtros: Filtros | None = None,
                 res.advertencias.append(
                     "El sitio no confirmó el orden pedido; los avisos quedan en orden de relevancia."
                 )
+            if filtros is not None and pagina.filtros_ids:
+                faltan = [etq for clave, etq in filtros.claves_sitio(valor_uf).items()
+                          if clave not in pagina.filtros_ids]
+                if faltan:
+                    res.advertencias.append(
+                        "El sitio no confirmó estos filtros: " + ", ".join(faltan) + ". Precio, "
+                        "dormitorios, baños y superficie se verifican en local; el resto, revísalo "
+                        "en cada aviso."
+                    )
         elif pagina.offset is not None and pagina.offset == 0:
             res.advertencias.append(
                 f"La página {numero} devolvió los primeros resultados otra vez; "

@@ -5,6 +5,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from portal_inmobiliario import analisis, reporte
+from portal_inmobiliario.cliente import buscar
 from portal_inmobiliario.filtros import Filtros
 from portal_inmobiliario.parser import es_barrera, numero, parsear_pagina
 
@@ -24,6 +25,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(p.filtros_sitio, ["Ñuñoa", "Con terraza", "Venta"])
         self.assertEqual(p.offset, 48)
         self.assertEqual(p.orden_sitio, "relevance")
+        self.assertEqual(p.filtros_ids, {"HAS_TERRACE": "242085", "price": "*CLP-300000000CLP",
+                                         "category": "MLC1459"})
         self.assertTrue(p.canonical.endswith("/nunoa-metropolitana/_HAS*TERRACE_242085"))
         self.assertEqual([a.id for a in p.avisos],
                          ["MLC1111111111", "MLC2222222222", "MLC3333333333", "MLC4444444444"])
@@ -66,6 +69,32 @@ class TestParser(unittest.TestCase):
         self.assertEqual(numero("47,75"), 47.75)
         self.assertEqual(numero("23.900"), 23900)
         self.assertEqual(numero("2.5"), 2.5)
+
+
+class ClienteFalso:
+    """Devuelve siempre el fixture, como si fuera la primera página de resultados."""
+
+    def __init__(self):
+        self.urls = []
+
+    def obtener(self, url):
+        self.urls.append(url)
+        return (FIXTURES / "resultados.html").read_text(encoding="utf-8"), url
+
+
+class TestBuscar(unittest.TestCase):
+    def test_advierte_filtros_que_el_sitio_no_aplico(self):
+        f = Filtros(comuna="Ñuñoa", precio_max=300000000, moneda="CLP",
+                    caracteristicas=["terraza", "piscina"])
+        cliente = ClienteFalso()
+        res = buscar(cliente, filtros=f, max_paginas=3, progreso=lambda _: None)
+        # La página 2 repite los mismos avisos: no se duplican y la paginación se detiene.
+        self.assertEqual(len(cliente.urls), 2)
+        self.assertIn("/_Desde_5_", cliente.urls[1])
+        self.assertEqual(len(res.avisos), 4)
+        self.assertEqual(len(res.advertencias), 1)
+        faltantes = res.advertencias[0].split(":", 1)[1].split(".", 1)[0].strip()
+        self.assertEqual(faltantes, "Con piscina")  # terraza y precio sí venían aplicados
 
 
 class TestAnalisisYReporte(unittest.TestCase):
