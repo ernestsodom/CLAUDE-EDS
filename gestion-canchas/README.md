@@ -14,8 +14,15 @@ sin dependencias de compilación). Los datos son de ejemplo y se guardan en el
 | Proyectos y entregas | Línea de tiempo (Gantt) por proyecto con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
 | Calendario | Vista mensual con los hitos de todas las entregas, filtrable por proyecto. |
 | Mapa de Argentina | Proyectos ubicados por provincia / ciudad / comuna, coloreados por etapa. |
-| Diseño de cancha | Vista 3D de la cancha: modelo, tipo (panorámica / semi / estándar, según el modelo), personalización con logo, color de pasto, postes de luz, amortiguadores de perfiles y estructura. |
+| Diseño de cancha | Renders reales de cada cancha (panorámica = Full Vision, semi panorámica = Elite Pro, estándar = Panoramic). Si es personalizada se recolorean pasto, postes de luz y amortiguadores / perfiles, y se coloca el logo sobre el vidrio. |
 | Modelos | Nombres editables (Atila Panorámica, Atila PRO, Atila Clásica, Atila Básica) y asignación del tipo. |
+
+## Imágenes de las canchas
+
+`maqueta/canchas/` contiene las renders (tomadas de padelcourtsmaster-frontend.vercel.app/es-cl/pistas/)
+y una máscara por imagen (canal R = pasto, G = amortiguadores / perfiles, B = poste de luz), generadas con
+`generar_mascaras.py`. La maqueta las lleva incrustadas en `index.html` y recolorea en el navegador
+conservando la luminancia original (luces y sombras).
 
 ## Arquitectura prevista (no implementada todavía)
 
