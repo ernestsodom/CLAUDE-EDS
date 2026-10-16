@@ -1,0 +1,880 @@
+<title>Atila Gestión de Canchas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: barra lateral de módulos + área de trabajo en paneles; la vista 3D de la cancha siempre en escena nocturna. */
+:root {
+  --bg: #0c1116; --surface: #131a21; --surface2: #1a232c; --line: #26323d;
+  --fg: #e6ecf1; --muted: #8b98a4; --accent: #3d9bff; --accent-fg: #04121f;
+  --lamp: #ffd27a; --ok: #3fbf7f; --warn: #e8a93a; --bad: #ef5a4f;
+  --stage: #05080b;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f2f4f6; --surface: #ffffff; --surface2: #eaeef2; --line: #d5dce3;
+  --fg: #121a21; --muted: #5a6875; --accent: #1468c8; --accent-fg: #ffffff;
+  --lamp: #a86e06; --ok: #1d8752; --warn: #a96d12; --bad: #c4372d; color-scheme: light } }
+:root[data-theme="light"] {
+  --bg: #f2f4f6; --surface: #ffffff; --surface2: #eaeef2; --line: #d5dce3;
+  --fg: #121a21; --muted: #5a6875; --accent: #1468c8; --accent-fg: #ffffff;
+  --lamp: #a86e06; --ok: #1d8752; --warn: #a96d12; --bad: #c4372d; color-scheme: light }
+
+* { box-sizing: border-box }
+html, body { height: 100% }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.45 }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.1 }
+h1 { font-size: 30px } h2 { font-size: 22px } h3 { font-size: 17px; text-transform: uppercase; letter-spacing: .06em }
+button, input, select, textarea { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums }
+.muted { color: var(--muted) }
+.small { font-size: 12px }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+
+.app { display: grid; grid-template-columns: 232px 1fr; min-height: 100% }
+.side { background: var(--surface); border-right: 1px solid var(--line); padding-block: 18px; padding-inline: 14px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh }
+.brand { display: flex; align-items: center; gap: 10px }
+.brand svg { flex: none }
+.brand b { font-family: var(--f-display); font-size: 21px; letter-spacing: .04em; text-transform: uppercase; display: block; line-height: 1 }
+.brand span { font-size: 11px; color: var(--muted) }
+.profiles { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface2); border-radius: 8px; padding: 3px; gap: 3px }
+.profiles button { border: 0; background: transparent; padding: 7px 4px; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--muted) }
+.profiles button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg) }
+.nav { display: flex; flex-direction: column; gap: 2px }
+.nav button { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; padding: 9px 10px; border-radius: 7px; text-align: left; color: var(--muted); font-weight: 500 }
+.nav button:hover { background: var(--surface2); color: var(--fg) }
+.nav button[aria-current="page"] { background: var(--surface2); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent) }
+.nav .count { margin-left: auto; font-family: var(--f-mono); font-size: 11px; background: var(--line); color: var(--fg); border-radius: 10px; padding: 0 7px }
+.side-foot { margin-top: auto; font-size: 11px; color: var(--muted); display: grid; gap: 8px }
+.side-foot button { justify-self: start }
+
+.main { min-width: 0; padding-block: 22px 40px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 18px }
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap }
+.head p { margin: 4px 0 0; color: var(--muted); max-width: 70ch }
+
+.btn { border: 1px solid var(--line); background: var(--surface2); padding: 7px 12px; border-radius: 7px; font-weight: 500; font-size: 13px }
+.btn:hover { border-color: var(--muted) }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600 }
+.btn.ghost { background: transparent }
+.btn.sm { padding: 4px 9px; font-size: 12px }
+.btn.danger { color: var(--bad) }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0 }
+.panel > .ph { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap }
+.panel > .pb { padding: 16px }
+.split { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 16px; align-items: start }
+.split > * { min-width: 0 }
+
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; border: 1px solid currentColor; white-space: nowrap; line-height: 1.5 }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor }
+.st-ok { color: var(--ok) } .st-warn { color: var(--warn) } .st-bad { color: var(--bad) } .st-acc { color: var(--accent) } .st-mut { color: var(--muted) }
+
+/* Bandeja */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap }
+.tabs button { border: 1px solid var(--line); background: transparent; border-radius: 20px; padding: 4px 11px; font-size: 12px; color: var(--muted) }
+.tabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+.inbox { list-style: none; margin: 0; padding: 0 }
+.inbox li button { width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 12px 16px; display: grid; grid-template-columns: 1fr auto; gap: 3px 10px }
+.inbox li button:hover { background: var(--surface2) }
+.inbox li button[aria-current="true"] { background: var(--surface2); box-shadow: inset 3px 0 0 var(--accent) }
+.inbox .t { font-weight: 600 }
+.inbox .s { color: var(--muted); font-size: 12px; grid-column: 1 / -1 }
+.funnel { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--line); border-radius: 8px; overflow: hidden; border: 1px solid var(--line) }
+.funnel div { background: var(--surface); padding: 10px 12px }
+.funnel b { font-family: var(--f-display); font-size: 26px; display: block; line-height: 1 }
+.kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 0 }
+.kv dt { color: var(--muted) } .kv dd { margin: 0 }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 0 }
+.log li { display: grid; grid-template-columns: 78px 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 13px }
+.log li:last-child { border-bottom: 0 }
+.log .d { color: var(--muted); font-family: var(--f-mono); font-size: 12px }
+.closebox { border: 1px solid var(--accent); border-radius: 10px; padding: 14px; display: grid; gap: 10px; background: color-mix(in srgb, var(--accent) 7%, transparent) }
+
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px }
+.form .full { grid-column: 1 / -1 }
+.field { display: grid; gap: 4px; min-width: 0 }
+.field > span { font-size: 12px; color: var(--muted); font-weight: 500 }
+input[type=text], input[type=date], input[type=number], select, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; width: 100%; min-width: 0 }
+textarea { resize: vertical; min-height: 60px }
+.check { display: flex; align-items: center; gap: 8px }
+
+/* Proyectos */
+.kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 2px }
+.kpi b { font-family: var(--f-display); font-size: 28px; line-height: 1 }
+.plist { display: grid; gap: 8px }
+.pcard { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px }
+.pcard:hover { border-color: var(--muted) }
+.pcard[aria-current="true"] { border-color: var(--accent) }
+.pcard .top { display: flex; justify-content: space-between; gap: 8px; align-items: start }
+.pcard .t { font-weight: 600 }
+.bar { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; display: flex; gap: 2px }
+.bar i { flex: 1; background: var(--line) }
+.bar i.done { background: var(--ok) } .bar i.cur { background: var(--accent) } .bar i.late { background: var(--bad) }
+
+.gantt { display: grid; gap: 6px; overflow-x: auto }
+.grow { display: grid; grid-template-columns: 170px 1fr; gap: 10px; align-items: center; min-width: 560px }
+.gtrack { position: relative; height: 26px; background: var(--surface2); border-radius: 5px }
+.gbar { position: absolute; top: 4px; bottom: 4px; border-radius: 4px; min-width: 8px; background: var(--line); display: flex; align-items: center; padding: 0 6px; font-size: 11px; font-family: var(--f-mono); white-space: nowrap; overflow: hidden; color: var(--fg) }
+.gbar.done { background: color-mix(in srgb, var(--ok) 55%, var(--surface2)) }
+.gbar.cur { background: var(--accent); color: var(--accent-fg) }
+.gbar.late { background: var(--bad); color: #fff }
+.gtoday { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--lamp); z-index: 2 }
+.gaxis { display: grid; grid-template-columns: 170px 1fr; gap: 10px; min-width: 560px }
+.gaxis div { position: relative; height: 16px; font-size: 11px; color: var(--muted); font-family: var(--f-mono) }
+.gaxis > div span { position: absolute; transform: translateX(-50%); white-space: nowrap }
+
+.stages { list-style: none; margin: 0; padding: 0; display: grid }
+.stages li { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line) }
+.stages li:last-child { border-bottom: 0 }
+.dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: 11px; font-weight: 700; font-family: var(--f-mono) }
+.dot.done { background: var(--ok); border-color: var(--ok); color: #fff }
+.dot.cur { border-color: var(--accent); color: var(--accent) }
+.dot.late { border-color: var(--bad); color: var(--bad) }
+.dates { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 4px }
+.dates input { width: auto; padding: 3px 6px; font-size: 12px }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px }
+.two > * { min-width: 0 }
+
+/* Escena 3D */
+.scene { background: var(--stage); border-radius: 10px; overflow: hidden; border: 1px solid var(--line) }
+.scene svg { display: block; width: 100%; height: auto }
+
+/* Calendario */
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.cal .dh { background: var(--surface2); padding: 6px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+.cal .dc { background: var(--surface); min-height: 104px; padding: 6px; display: flex; flex-direction: column; gap: 3px; min-width: 0 }
+.cal .dc.out { background: var(--bg) }
+.cal .dc.today { box-shadow: inset 0 0 0 2px var(--lamp) }
+.cal .n { font-family: var(--f-mono); font-size: 12px; color: var(--muted) }
+.ev { border: 0; text-align: left; font-size: 11px; padding: 2px 5px; border-radius: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100% }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted) }
+.legend span { display: inline-flex; align-items: center; gap: 6px }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block }
+
+/* Mapa */
+.mapwrap { display: grid; grid-template-columns: minmax(260px, 420px) 1fr; gap: 16px; align-items: start }
+.mapwrap > * { min-width: 0 }
+.map svg { width: 100%; height: auto; display: block; max-height: 78vh }
+.land { fill: var(--surface2); stroke: var(--muted); stroke-width: .6 }
+.mk { cursor: pointer }
+.mk circle.halo { opacity: .25 }
+.mk.sel circle.core { stroke: var(--fg); stroke-width: 2 }
+.maplist { display: grid; gap: 0 }
+.maplist button { border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; padding: 10px 14px; display: grid; grid-template-columns: 12px 1fr auto; gap: 10px; align-items: center }
+.maplist button:hover, .maplist button[aria-current="true"] { background: var(--surface2) }
+.sw { width: 10px; height: 10px; border-radius: 50% }
+
+/* Configurador */
+.cfg { display: grid; grid-template-columns: 330px 1fr; gap: 16px; align-items: start }
+.cfg > * { min-width: 0 }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.swatches button { width: 26px; height: 26px; border-radius: 6px; border: 2px solid var(--line); padding: 0 }
+.swatches button[aria-pressed="true"] { border-color: var(--fg) }
+.swatches input[type=color] { width: 34px; height: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); padding: 2px }
+.typebadge { font-family: var(--f-display); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--lamp) }
+.disabled { opacity: .45; pointer-events: none }
+.logo-prev { width: 90px; height: 46px; background: var(--bg); border: 1px dashed var(--line); border-radius: 6px; display: grid; place-items: center; overflow: hidden }
+.logo-prev img { max-width: 100%; max-height: 100% }
+
+table.models { width: 100%; border-collapse: collapse }
+table.models th, table.models td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle }
+table.models th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+.tablewrap { overflow-x: auto }
+
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); display: grid; gap: 8px; justify-items: center }
+.toast { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 14px; border-radius: 8px; font-weight: 500; z-index: 20; box-shadow: 0 6px 20px rgb(0 0 0 / .3) }
+
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+  .funnel { grid-template-columns: repeat(3, 1fr) }
+  .cfg, .mapwrap { grid-template-columns: 1fr }
+}
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr }
+  .side { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); gap: 12px }
+  .nav { flex-direction: row; overflow-x: auto }
+  .nav button { white-space: nowrap }
+  .side-foot { display: none }
+  .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+  .split, .two { grid-template-columns: 1fr }
+  .form { grid-template-columns: 1fr }
+  .kv { grid-template-columns: 110px 1fr }
+  .cal .dc { min-height: 70px }
+  .cal .ev { font-size: 0; height: 6px; padding: 0 }
+}
+@media (prefers-reduced-motion: no-preference) { .gbar, .pcard, .nav button { transition: background .15s, border-color .15s } }
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="1" y="1" width="32" height="32" rx="7" fill="none" stroke="currentColor" stroke-opacity=".35"/><rect x="8" y="5" width="18" height="24" rx="1.5" fill="none" stroke="var(--accent)" stroke-width="2"/><line x1="8" y1="17" x2="26" y2="17" stroke="var(--fg)" stroke-width="1.5"/><line x1="17" y1="10" x2="17" y2="24" stroke="var(--accent)" stroke-width="1.2"/></svg>
+      <div><b id="brandName">Atila</b><span id="brandSub">Gestión de entregas · Argentina</span></div>
+    </div>
+    <div>
+      <div class="label" style="margin-bottom:6px">Perfil de negocio</div>
+      <div class="profiles" role="group" aria-label="Perfil de negocio">
+        <button data-act="profile" data-id="atila" id="pf-atila">Atila Argentina</button>
+        <button data-act="profile" data-id="europa" id="pf-europa">Padel Europa</button>
+      </div>
+    </div>
+    <nav class="nav" id="nav" aria-label="Módulos"></nav>
+    <div class="side-foot">
+      <span>Maqueta navegable. Los datos son de ejemplo y se guardan solo en este navegador.</span>
+      <button class="btn sm ghost" data-act="reset">Restablecer datos de ejemplo</button>
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ===================== Utilidades ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = iso => new Date(iso + 'T12:00:00');
+const addDays = (iso, n) => { const d = parse(iso); d.setDate(d.getDate() + n); return isoOf(d); };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+const TODAY = isoOf(new Date());
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const fmt = iso => { if (!iso) return '—'; const d = parse(iso); return `${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}`; };
+const fmtY = iso => { if (!iso) return '—'; const d = parse(iso); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`; };
+const uid = p => p + Math.random().toString(36).slice(2, 8);
+
+/* ===================== Catálogos ===================== */
+const TIPOS = { panoramica: 'Panorámica', semi: 'Semi panorámica', estandar: 'Estándar' };
+const STAGES = [
+  { key: 'venta', nombre: 'Venta cerrada', off: 0, len: 1, color: '#7c8a96' },
+  { key: 'construccion', nombre: 'En construcción', off: 2, len: 20, color: '#c9862b' },
+  { key: 'salida', nombre: 'Salida y transporte', off: 22, len: 5, color: '#8a63d2' },
+  { key: 'entrega', nombre: 'Entrega en obra', off: 27, len: 1, color: '#2f8fe0' },
+  { key: 'instalacion', nombre: 'Instalación', off: 28, len: 5, color: '#14a3a0' },
+  { key: 'habilitada', nombre: 'Cancha habilitada', off: 33, len: 1, color: '#2ea86a' }
+];
+const DEAL_STAGES = [
+  { key: 'nuevo', nombre: 'Nuevo contacto', cls: 'st-mut' },
+  { key: 'calificado', nombre: 'Calificado', cls: 'st-acc' },
+  { key: 'propuesta', nombre: 'Propuesta enviada', cls: 'st-acc' },
+  { key: 'negociacion', nombre: 'Negociación', cls: 'st-warn' },
+  { key: 'cerrada', nombre: 'Venta cerrada', cls: 'st-ok' },
+  { key: 'perdida', nombre: 'Perdida', cls: 'st-bad' }
+];
+const CITIES = [
+  ['Ciudad Autónoma de Buenos Aires', 'Buenos Aires (CABA)', -34.60, -58.38],
+  ['Buenos Aires', 'Tigre', -34.43, -58.58], ['Buenos Aires', 'San Isidro', -34.47, -58.53],
+  ['Buenos Aires', 'Pilar', -34.46, -58.91], ['Buenos Aires', 'La Plata', -34.92, -57.95],
+  ['Buenos Aires', 'Mar del Plata', -38.00, -57.55], ['Buenos Aires', 'Bahía Blanca', -38.72, -62.27],
+  ['Buenos Aires', 'Quilmes', -34.72, -58.25],
+  ['Córdoba', 'Córdoba', -31.42, -64.18], ['Córdoba', 'Villa Carlos Paz', -31.42, -64.50],
+  ['Santa Fe', 'Rosario', -32.95, -60.65], ['Santa Fe', 'Santa Fe', -31.63, -60.70],
+  ['Mendoza', 'Mendoza', -32.89, -68.84], ['Mendoza', 'San Rafael', -34.62, -68.33],
+  ['Tucumán', 'San Miguel de Tucumán', -26.82, -65.22], ['Salta', 'Salta', -24.78, -65.41],
+  ['Jujuy', 'San Salvador de Jujuy', -24.19, -65.30], ['Neuquén', 'Neuquén', -38.95, -68.06],
+  ['Río Negro', 'San Carlos de Bariloche', -41.13, -71.31], ['Chubut', 'Puerto Madryn', -42.77, -65.04],
+  ['Chubut', 'Comodoro Rivadavia', -45.86, -67.48], ['Santa Cruz', 'Río Gallegos', -51.62, -69.22],
+  ['Tierra del Fuego', 'Ushuaia', -54.80, -68.30], ['San Juan', 'San Juan', -31.54, -68.53],
+  ['San Luis', 'San Luis', -33.30, -66.34], ['Entre Ríos', 'Paraná', -31.73, -60.53],
+  ['Corrientes', 'Corrientes', -27.47, -58.83], ['Misiones', 'Posadas', -27.37, -55.90],
+  ['Chaco', 'Resistencia', -27.45, -58.99], ['Santiago del Estero', 'Santiago del Estero', -27.79, -64.26]
+].map(([prov, ciudad, lat, lon]) => ({ prov, ciudad, lat, lon }));
+const cityOf = name => CITIES.find(c => c.ciudad === name) || CITIES[0];
+const PROVINCIAS = [...new Set(CITIES.map(c => c.prov))].sort();
+
+const STD_DESIGN = { pasto: '#1f86d6', postes: '#1b2127', estructura: '#1b2127', amort: '#1b2127', logo: '' };
+const SW_PASTO = ['#1f86d6', '#8fb59b', '#b8bec4', '#2e7d4f', '#c4553a', '#6b4fb8'];
+const SW_POSTE = ['#1b2127', '#f2f4f6', '#3d9bff', '#d4a23a', '#c4372d', '#2e7d4f'];
+const SW_AMORT = ['#1b2127', '#7ec3f0', '#f2f4f6', '#ffcf3f', '#e5564b', '#3fbf7f'];
+
+const logoSvg = (txt, bg, fg) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 150'><rect width='300' height='150' rx='18' fill='${bg}'/><text x='150' y='98' font-family='Arial,Helvetica,sans-serif' font-weight='700' font-size='64' fill='${fg}' text-anchor='middle'>${txt}</text></svg>`);
+
+/* ===================== Datos de ejemplo ===================== */
+function schedule(venta) {
+  return STAGES.map(s => ({ key: s.key, inicio: addDays(venta, s.off), fin: addDays(venta, s.off + s.len - 1), estado: 'pendiente', hecho: '' }));
+}
+function autoState(p) {
+  p.etapas.forEach(e => {
+    if (e.fin < TODAY) { e.estado = 'completada'; e.hecho = e.fin; }
+    else if (e.inicio <= TODAY) e.estado = 'en_curso';
+  });
+}
+function seed() {
+  const models = [
+    { id: 'm1', nombre: 'Atila Panorámica', tipo: 'panoramica', desc: 'Cristal sin montantes, máxima visibilidad.' },
+    { id: 'm2', nombre: 'Atila PRO', tipo: 'semi', desc: 'Cristal de fondo panorámico, laterales con estructura.' },
+    { id: 'm3', nombre: 'Atila Clásica', tipo: 'estandar', desc: 'Estructura completa con montantes cada 2 m.' },
+    { id: 'm4', nombre: 'Atila Básica', tipo: 'estandar', desc: 'Versión de entrada, estructura estándar.' }
+  ];
+  const P = [
+    { nombre: 'Club Náutico Delta — Cancha 3', cliente: 'Club Náutico Delta', ciudad: 'Tigre', comuna: 'Partido de Tigre', modelo: 'm1', canchas: 1, venta: -30,
+      pers: true, dis: { pasto: '#1f86d6', postes: '#f2f4f6', estructura: '#1b2127', amort: '#7ec3f0', logo: logoSvg('CND', '#0c2340', '#ffffff') } },
+    { nombre: 'Córdoba Padel Center — Canchas 1 y 2', cliente: 'Córdoba Padel Center', ciudad: 'Córdoba', comuna: 'Nueva Córdoba', modelo: 'm2', canchas: 2, venta: -12,
+      pers: true, dis: { pasto: '#8fb59b', postes: '#1b2127', estructura: '#1b2127', amort: '#ffcf3f', logo: logoSvg('CPC', '#ffcf3f', '#1b2127') } },
+    { nombre: 'Godoy Cruz Padel', cliente: 'Godoy Cruz Padel SRL', ciudad: 'Mendoza', comuna: 'Godoy Cruz', modelo: 'm3', canchas: 1, venta: -2, pers: false },
+    { nombre: 'Bariloche Sport Club', cliente: 'Bariloche Sport Club', ciudad: 'San Carlos de Bariloche', comuna: 'Centro', modelo: 'm1', canchas: 2, venta: -28, late: 'salida',
+      pers: true, dis: { pasto: '#b8bec4', postes: '#1b2127', estructura: '#1b2127', amort: '#7ec3f0', logo: logoSvg('BSC', '#1b2127', '#7ec3f0') } },
+    { nombre: 'Palermo Padel — Cancha central', cliente: 'Palermo Padel', ciudad: 'Buenos Aires (CABA)', comuna: 'Comuna 14 · Palermo', modelo: 'm4', canchas: 1, venta: -70, pers: false },
+    { nombre: 'Rosario Padel Norte', cliente: 'Rosario Padel Norte', ciudad: 'Rosario', comuna: 'Distrito Norte', modelo: 'm2', canchas: 3, venta: -24, pers: false }
+  ];
+  const projects = [], deals = [];
+  P.forEach((x, i) => {
+    const c = cityOf(x.ciudad), venta = addDays(TODAY, x.venta);
+    const dealId = 'd' + (100 + i), id = 'p' + (i + 1);
+    const p = { id, dealId, nombre: x.nombre, cliente: x.cliente, prov: c.prov, ciudad: c.ciudad, comuna: x.comuna, lat: c.lat, lon: c.lon,
+      modelo: x.modelo, canchas: x.canchas, personalizada: x.pers, diseno: { ...STD_DESIGN, ...(x.dis || {}) }, etapas: schedule(venta), traza: [] };
+    autoState(p);
+    if (x.late) { const e = p.etapas.find(e => e.key === x.late); e.estado = 'en_curso'; e.hecho = '';
+      p.etapas.slice(p.etapas.indexOf(e) + 1).forEach(n => { n.estado = 'pendiente'; n.hecho = ''; }); }
+    p.traza.push({ f: addDays(venta, -21), t: 'Primer contacto registrado en la bandeja.' });
+    p.traza.push({ f: addDays(venta, -9), t: 'Propuesta enviada al cliente.' });
+    p.traza.push({ f: venta, t: 'Venta cerrada. Proyecto creado desde la bandeja de negocios.' });
+    p.etapas.forEach(e => { if (e.key !== 'venta' && e.estado === 'completada') p.traza.push({ f: e.hecho, t: `Etapa completada: ${stageName(e.key)}.` });
+      if (e.estado === 'en_curso' && e.key !== 'venta') p.traza.push({ f: e.inicio, t: `Etapa iniciada: ${stageName(e.key)}.` }); });
+    if (x.late) p.traza.push({ f: addDays(TODAY, -1), t: 'Camión retenido en ruta por clima. Nueva fecha a confirmar con el transportista.' });
+    projects.push(p);
+    deals.push({ id: dealId, cliente: x.cliente, contacto: '—', prov: c.prov, ciudad: c.ciudad, comuna: x.comuna, modelo: x.modelo, canchas: x.canchas,
+      origen: 'Referido', etapa: 'cerrada', actualizado: venta, proyectoId: id,
+      hist: [{ f: addDays(venta, -21), t: 'Primer contacto.' }, { f: addDays(venta, -9), t: 'Propuesta enviada.' }, { f: venta, t: 'Venta cerrada; pasa a Proyectos.' }] });
+  });
+  const open = [
+    ['Club Atlético San Isidro', 'Martín Ferreyra', 'San Isidro', 'San Isidro centro', 'm2', 2, 'Referido', 'negociacion', -1,
+      [[-18, 'Consulta por 2 canchas techadas.'], [-11, 'Visita a terreno, medidas 25 × 30 m.'], [-6, 'Propuesta enviada (Atila PRO).'], [-1, 'Piden ajustar plazo de entrega a 45 días.']]],
+    ['Costa Padel', 'Lucía Benítez', 'Mar del Plata', 'General Pueyrredón', 'm4', 2, 'Feria', 'calificado', -3,
+      [[-9, 'Contacto en feria Expo Deportes.'], [-3, 'Confirma presupuesto disponible para 2 canchas.']]],
+    ['Complejo Los Andes', 'Diego Arancibia', 'Salta', 'Capital', 'm3', 1, 'Instagram', 'propuesta', -4,
+      [[-12, 'Mensaje por Instagram.'], [-4, 'Propuesta enviada (Atila Clásica).']]],
+    ['Padel Point Neuquén', 'Florencia Rossi', 'Neuquén', 'Confluencia', 'm1', 3, 'Web', 'nuevo', 0,
+      [[0, 'Formulario web: interesada en 3 panorámicas.']]],
+    ['Tucumán Padel Club', 'Ramiro Paz', 'San Miguel de Tucumán', 'Yerba Buena', 'm2', 1, 'WhatsApp', 'negociacion', -2,
+      [[-15, 'Contacto por WhatsApp.'], [-8, 'Propuesta enviada.'], [-2, 'Solicita personalizar con colores del club.']]],
+    ['Quilmes Padel Arena', 'Sergio Molina', 'Quilmes', 'Bernal', 'm4', 1, 'Referido', 'perdida', -20,
+      [[-40, 'Primer contacto.'], [-20, 'Eligió otro proveedor por precio.']]]
+  ];
+  open.forEach((o, i) => { const c = cityOf(o[2]);
+    deals.push({ id: 'd' + (200 + i), cliente: o[0], contacto: o[1], prov: c.prov, ciudad: c.ciudad, comuna: o[3], modelo: o[4], canchas: o[5], origen: o[6],
+      etapa: o[7], actualizado: addDays(TODAY, o[8]), proyectoId: null, hist: o[9].map(([d, t]) => ({ f: addDays(TODAY, d), t })) }); });
+  return { v: 1, models, deals, projects };
+}
+function stageName(k) { return (STAGES.find(s => s.key === k) || {}).nombre || k; }
+
+const KEY = 'atila-maqueta-v1';
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+if (!S || S.v !== 1) S = seed();
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+const UI = { profile: 'atila', view: 'bandeja', dealFilter: 'activos', deal: null, closing: false, newDeal: false, project: 'p1',
+  cal: TODAY.slice(0, 7), calProject: '', mapProv: '', mapSel: null, cfg: null };
+try { const u = JSON.parse(localStorage.getItem(KEY + '-ui') || '{}'); if (u.view) UI.view = u.view; if (u.profile) UI.profile = u.profile; } catch (e) {}
+const saveUI = () => { try { localStorage.setItem(KEY + '-ui', JSON.stringify({ view: UI.view, profile: UI.profile })); } catch (e) {} };
+
+const model = id => S.models.find(m => m.id === id) || { nombre: '(modelo eliminado)', tipo: 'estandar' };
+const project = id => S.projects.find(p => p.id === id);
+function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => el.hidden = true, 2400); }
+
+/* ===================== Estado de proyectos ===================== */
+function isLate(e) { return e.estado !== 'completada' && e.fin < TODAY; }
+function current(p) { return p.etapas.find(e => e.estado !== 'completada') || null; }
+function pStatus(p) {
+  const c = current(p);
+  if (!c) return { txt: 'Cancha habilitada', cls: 'st-ok', key: 'fin' };
+  if (p.etapas.some(isLate)) return { txt: `${stageName(c.key)} · atrasada`, cls: 'st-bad', key: c.key };
+  return { txt: stageName(c.key), cls: c.estado === 'en_curso' ? 'st-acc' : 'st-mut', key: c.key };
+}
+function stageColor(k) { return (STAGES.find(s => s.key === k) || { color: '#2ea86a' }).color; }
+
+/* ===================== Escena 3D de la cancha ===================== */
+function courtSVG(d, tipo, opt = {}) {
+  const s = 24, O = [400, 440];
+  const P = (x, y, z = 0) => [O[0] + (0.95 * x - 0.75 * y) * s, O[1] + (-0.35 * x - 0.30 * y - 0.95 * z) * s];
+  const pts = arr => arr.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const poly = (arr, a) => `<polygon points="${pts(arr)}" ${a}/>`;
+  const line = (a, b, st) => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" ${st}/>`;
+  const quad = (x1, y1, x2, y2, z1, z2) => [P(x1, y1, z1), P(x2, y2, z1), P(x2, y2, z2), P(x1, y1, z2)];
+  const out = [];
+
+  function mesh(x1, y1, x2, y2, z1, z2) {
+    let g = poly(quad(x1, y1, x2, y2, z1, z2), 'fill="rgba(0,0,0,.28)" stroke="none"');
+    const L = Math.hypot(x2 - x1, y2 - y1), n = Math.round(L / 0.5);
+    for (let i = 1; i < n; i++) { const t = i / n, x = x1 + (x2 - x1) * t, y = y1 + (y2 - y1) * t; g += line(P(x, y, z1), P(x, y, z2), 'stroke="#aab3bb" stroke-opacity=".28" stroke-width=".5"'); }
+    for (let z = z1 + 0.5; z < z2 - 0.01; z += 0.5) g += line(P(x1, y1, z), P(x2, y2, z), 'stroke="#aab3bb" stroke-opacity=".28" stroke-width=".5"');
+    return g;
+  }
+  const glass = (x1, y1, x2, y2, z1, z2) => poly(quad(x1, y1, x2, y2, z1, z2), 'fill="rgba(190,225,255,.07)" stroke="rgba(220,240,255,.38)" stroke-width=".7"');
+
+  // Segmentos de pared: [desde, hasta, alto del cristal, alto total]
+  const sideSegs = [[0, 2, 3, 4], [2, 4, 2, 3], [4, 16, 0, 3], [16, 18, 2, 3], [18, 20, 3, 4]];
+  function sideWall(X) {
+    let g = '';
+    sideSegs.forEach(([a, b, gz, tz]) => { if (gz) g += glass(X, a, X, b, 0, gz); g += mesh(X, a, X, b, gz, tz); });
+    return g;
+  }
+  const endWall = Y => glass(0, Y, 10, Y, 0, 3) + mesh(0, Y, 10, Y, 3, 4);
+  const sideTop = y => y <= 2 || y >= 18 ? 4 : 3;
+  function posts(wall) {
+    // wall: 'x0' | 'x10' | 'y0' | 'y20'
+    const res = [];
+    const add = (x, y, h) => res.push([x, y, h]);
+    if (wall[0] === 'x') {
+      const X = wall === 'x0' ? 0 : 10;
+      for (let y = 0; y <= 20; y += 2) {
+        const inGlass = y < 4 || y > 16;
+        if (tipo === 'estandar' || y === 0 || y === 20 || !inGlass || (tipo === 'semi' && (y === 4 || y === 16 || y === 2 || y === 18))) add(X, y, sideTop(y));
+      }
+    } else {
+      const Y = wall === 'y0' ? 0 : 20;
+      for (let x = 0; x <= 10; x += 2) if (tipo === 'estandar' || x === 0 || x === 10) add(x, Y, 4);
+    }
+    const w = tipo === 'estandar' ? 3.2 : 2.6;
+    return res.map(([x, y, h]) =>
+      line(P(x, y, 0), P(x, y, h), `stroke="${d.estructura}" stroke-width="${w}" stroke-linecap="square"`) +
+      line(P(x, y, 0), P(x, y, 0.35), `stroke="${d.amort}" stroke-width="${w + 2.4}"`) +
+      line(P(x, y, h - 0.12), P(x, y, h), `stroke="${d.amort}" stroke-width="${w + 2}"`)).join('');
+  }
+  function rails(wall) {
+    // Perfil inferior (amortiguador) y perfil superior en el color de estructura
+    let g = '';
+    if (wall[0] === 'x') {
+      const X = wall === 'x0' ? 0 : 10;
+      g += poly(quad(X, 0, X, 20, 0, 0.14), `fill="${d.amort}"`);
+      const top = [P(X, 0, 4), P(X, 2, 4), P(X, 2, 3), P(X, 18, 3), P(X, 18, 4), P(X, 20, 4)];
+      g += `<polyline points="${pts(top)}" fill="none" stroke="${d.estructura}" stroke-width="2.2"/>`;
+      g += `<polyline points="${pts([P(X, 0, 3), P(X, 2, 3), P(X, 2, 2), P(X, 4, 2)])}" fill="none" stroke="${d.amort}" stroke-width="2"/>`;
+      g += `<polyline points="${pts([P(X, 16, 2), P(X, 18, 2), P(X, 18, 3), P(X, 20, 3)])}" fill="none" stroke="${d.amort}" stroke-width="2"/>`;
+    } else {
+      const Y = wall === 'y0' ? 0 : 20;
+      g += poly(quad(0, Y, 10, Y, 0, 0.14), `fill="${d.amort}"`);
+      g += line(P(0, Y, 4), P(10, Y, 4), `stroke="${d.estructura}" stroke-width="2.2"`);
+      g += line(P(0, Y, 3), P(10, Y, 3), `stroke="${d.amort}" stroke-width="2"`);
+    }
+    return g;
+  }
+  function pole(px, py) {
+    const inward = px < 5 ? 1.3 : -1.3, hx = px + inward, hz = 7;
+    const b = P(px, py, 0), m = P(px, py, 5.4), c = P(px, py, 7.2), e = P(hx, py, hz);
+    let g = `<path d="M${b[0].toFixed(1)},${b[1].toFixed(1)} L${m[0].toFixed(1)},${m[1].toFixed(1)} Q${c[0].toFixed(1)},${c[1].toFixed(1)} ${e[0].toFixed(1)},${e[1].toFixed(1)}" fill="none" stroke="${d.postes}" stroke-width="3.2" stroke-linecap="round"/>`;
+    g += poly([P(hx - 0.25, py - 0.7, hz), P(hx + 0.25, py - 0.7, hz), P(hx + 0.25, py + 0.7, hz), P(hx - 0.25, py + 0.7, hz)], `fill="${d.postes}" stroke="${d.postes}" stroke-width="2"`);
+    return g;
+  }
+  function lampGlow(px, py) {
+    const hx = px + (px < 5 ? 1.3 : -1.3), e = P(hx, py, 6.9);
+    return `<circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="16" fill="url(#glow)"/><circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="2.6" fill="#fffbe8"/>`;
+  }
+  function cone(px, py) {
+    const hx = px + (px < 5 ? 1.3 : -1.3);
+    const cx = px < 5 ? 3.5 : 6.5;
+    return poly([P(hx, py, 6.9), P(cx - 3, py + (py < 10 ? 0 : -6), 0), P(cx + 3, py + (py < 10 ? 6 : 0), 0)], 'fill="url(#beam)"');
+  }
+  const poles = [[-0.7, 1], [-0.7, 19], [10.7, 1], [10.7, 19]];
+
+  out.push(`<defs><radialGradient id="glow"><stop offset="0" stop-color="#fff6d6" stop-opacity=".95"/><stop offset="1" stop-color="#fff6d6" stop-opacity="0"/></radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d6" stop-opacity=".16"/><stop offset="1" stop-color="#fff6d6" stop-opacity=".02"/></linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient></defs>`);
+  out.push(poly([P(-1.2, -0.8), P(11.2, -0.8), P(11.2, 20.8), P(-1.2, 20.8)], 'fill="#1a1f24" stroke="#2b3238" stroke-width="1"'));
+  out.push(poly([P(0, 0), P(10, 0), P(10, 20), P(0, 20)], `fill="${d.pasto}"`));
+  out.push(poly([P(0, 0), P(10, 0), P(10, 20), P(0, 20)], 'fill="url(#sheen)"'));
+  const W = 'stroke="#fff" stroke-opacity=".92" stroke-width="1.6"';
+  out.push(line(P(0, 3.05), P(10, 3.05), W) + line(P(0, 16.95), P(10, 16.95), W) + line(P(5, 3.05), P(5, 16.95), W) + line(P(5, 0), P(5, 0.2), W) + line(P(5, 19.8), P(5, 20), W));
+  poles.forEach(([x, y]) => out.push(cone(x, y)));
+  out.push(pole(10.7, 1), pole(10.7, 19));
+  out.push(sideWall(10), rails('x10'), posts('x10'));
+  out.push(endWall(20), rails('y20'), posts('y20'));
+  if (d.logo) {
+    const o = P(3.5, 20, 2.5);
+    out.push(`<image href="${esc(d.logo)}" x="0" y="0" width="3" height="1.5" preserveAspectRatio="xMidYMid meet" opacity=".92" transform="matrix(${(0.95 * s).toFixed(2)},${(-0.35 * s).toFixed(2)},0,${(0.95 * s).toFixed(2)},${o[0].toFixed(1)},${o[1].toFixed(1)})"/>`);
+  }
+  // Red
+  out.push(poly(quad(-0.2, 10, 10.2, 10, 0, 0.88), 'fill="rgba(0,0,0,.45)" stroke="none"'));
+  for (let x = 0; x <= 10; x += 0.5) out.push(line(P(x, 10, 0), P(x, 10, 0.88), 'stroke="#cfd6dc" stroke-opacity=".35" stroke-width=".5"'));
+  out.push(line(P(-0.2, 10, 0.88), P(10.2, 10, 0.88), 'stroke="#fff" stroke-width="2"'));
+  out.push(line(P(-0.2, 10, 0), P(-0.2, 10, 0.95), `stroke="${d.estructura}" stroke-width="3"`) + line(P(10.2, 10, 0), P(10.2, 10, 0.95), `stroke="${d.estructura}" stroke-width="3"`));
+  out.push(sideWall(0), rails('x0'), posts('x0'));
+  out.push(endWall(0), rails('y0'), posts('y0'));
+  out.push(pole(-0.7, 1), pole(-0.7, 19));
+  poles.forEach(([x, y]) => out.push(lampGlow(x, y)));
+  if (opt.label) out.push(`<text x="24" y="440" fill="#9aa6b1" font-family="IBM Plex Mono, monospace" font-size="12">${esc(opt.label)}</text>`);
+  return `<svg viewBox="8 34 664 430" role="img" aria-label="Vista 3D de la cancha">${out.join('')}</svg>`;
+}
+
+/* ===================== Mapa de Argentina ===================== */
+const AR = [[-65.75,-22.1],[-64.3,-22.8],[-62.8,-22.0],[-62.3,-22.4],[-61.0,-23.8],[-59.0,-24.9],[-57.8,-25.1],[-57.6,-25.6],[-58.6,-27.2],[-56.5,-27.5],[-55.6,-27.3],[-54.6,-25.6],[-53.65,-26.25],[-53.8,-27.1],[-55.7,-28.4],[-57.6,-30.2],[-58.1,-32.0],[-58.2,-33.1],[-58.4,-34.0],[-57.2,-35.3],[-57.4,-35.9],[-56.7,-36.4],[-57.7,-38.2],[-59.2,-38.7],[-61.3,-38.9],[-62.3,-38.8],[-62.1,-39.9],[-62.3,-40.6],[-64.9,-40.8],[-65.1,-42.0],[-64.3,-42.4],[-63.7,-42.8],[-64.9,-43.0],[-65.3,-44.5],[-66.6,-45.0],[-67.6,-46.3],[-66.6,-47.0],[-65.6,-47.9],[-67.8,-49.9],[-68.9,-51.6],[-68.4,-52.3],[-71.9,-52.0],[-72.3,-51.4],[-73.2,-50.7],[-73.4,-49.3],[-72.4,-47.7],[-71.7,-46.7],[-71.8,-45.0],[-71.3,-44.4],[-71.9,-43.4],[-71.7,-42.2],[-71.9,-40.4],[-71.4,-38.9],[-70.9,-37.0],[-70.4,-36.1],[-70.0,-33.9],[-70.5,-32.0],[-69.8,-30.1],[-69.0,-28.0],[-68.3,-26.9],[-68.6,-25.2],[-67.3,-24.0],[-67.0,-23.0],[-66.2,-21.8]];
+const TDF = [[-68.6,-52.6],[-68.6,-54.9],[-67.3,-54.9],[-65.1,-55.0],[-66.4,-54.5],[-67.6,-53.9],[-68.3,-53.3]];
+const MX = lon => (lon + 74.5) * 12 * 0.8, MY = lat => (-lat - 20.5) * 12;
+const mpts = a => a.map(([lo, la]) => MX(lo).toFixed(1) + ',' + MY(la).toFixed(1)).join(' ');
+
+/* ===================== Vistas ===================== */
+const VIEWS_ATILA = [
+  { id: 'bandeja', name: 'Bandeja de negocios', icon: 'M3 8l9 6 9-6M3 6h18v12H3z' },
+  { id: 'proyectos', name: 'Proyectos y entregas', icon: 'M4 6h10M4 12h16M4 18h7' },
+  { id: 'calendario', name: 'Calendario', icon: 'M4 6h16v14H4zM4 10h16M9 3v4M15 3v4' },
+  { id: 'mapa', name: 'Mapa de Argentina', icon: 'M12 21s-6-5.5-6-10a6 6 0 0112 0c0 4.5-6 10-6 10zM12 11.5a1.5 1.5 0 100-.01' },
+  { id: 'configurador', name: 'Diseño de cancha', icon: 'M4 18L12 4l8 14zM8 13h8' },
+  { id: 'modelos', name: 'Modelos', icon: 'M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z' }
+];
+const icon = d => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+
+function renderNav() {
+  $('#pf-atila').setAttribute('aria-pressed', UI.profile === 'atila');
+  $('#pf-europa').setAttribute('aria-pressed', UI.profile === 'europa');
+  $('#brandName').textContent = UI.profile === 'atila' ? 'Atila' : 'Padel Europa';
+  $('#brandSub').textContent = UI.profile === 'atila' ? 'Gestión de entregas · Argentina' : 'Perfil en preparación';
+  if (UI.profile !== 'atila') { $('#nav').innerHTML = `<button aria-current="page">${icon('M3 12l9-8 9 8M5 10v10h14V10')}Inicio</button>`; return; }
+  const active = S.deals.filter(d => !['cerrada', 'perdida'].includes(d.etapa)).length;
+  const live = S.projects.filter(p => current(p)).length;
+  $('#nav').innerHTML = VIEWS_ATILA.map(v => `<button data-act="view" data-id="${v.id}" ${UI.view === v.id ? 'aria-current="page"' : ''}>${icon(v.icon)}${v.name}${
+    v.id === 'bandeja' ? `<span class="count">${active}</span>` : v.id === 'proyectos' ? `<span class="count">${live}</span>` : ''}</button>`).join('');
+}
+
+function render() {
+  renderNav();
+  const m = $('#main');
+  if (UI.profile === 'europa') { m.innerHTML = vEuropa(); return; }
+  m.innerHTML = ({ bandeja: vBandeja, proyectos: vProyectos, calendario: vCalendario, mapa: vMapa, configurador: vConfig, modelos: vModelos }[UI.view] || vBandeja)();
+}
+
+function vEuropa() {
+  return `<div class="head"><div><h1>Padel Europa</h1><p>Este perfil ya está separado del de Atila Argentina: tiene su propia navegación y sus propios datos. Sus módulos se definirán en la próxima etapa.</p></div></div>
+  <div class="panel"><div class="empty">${icon('M3 12l9-8 9 8M5 10v10h14V10')}<b style="color:var(--fg)">Sin módulos configurados</b><span>Cuando definas qué necesitas gestionar en Europa, aparecerán aquí.</span>
+  <button class="btn" data-act="profile" data-id="atila">Ir a Atila Argentina</button></div></div>`;
+}
+
+/* ---------- Bandeja ---------- */
+function vBandeja() {
+  const counts = Object.fromEntries(DEAL_STAGES.map(s => [s.key, S.deals.filter(d => d.etapa === s.key).length]));
+  const filters = [['activos', 'En gestión'], ...DEAL_STAGES.map(s => [s.key, s.nombre]), ['todos', 'Todos']];
+  let list = S.deals.filter(d => UI.dealFilter === 'todos' ? true : UI.dealFilter === 'activos' ? !['cerrada', 'perdida'].includes(d.etapa) : d.etapa === UI.dealFilter);
+  list = list.sort((a, b) => b.actualizado.localeCompare(a.actualizado));
+  if (!UI.deal || !S.deals.find(d => d.id === UI.deal)) UI.deal = list[0]?.id || null;
+  const d = S.deals.find(x => x.id === UI.deal);
+  return `<div class="head"><div><h1>Bandeja de negocios</h1><p>Negocios en gestión comercial. Al cerrar la venta, el negocio pasa a <b>Proyectos y entregas</b> con todo su historial.</p></div>
+    <button class="btn primary" data-act="newdeal">+ Nuevo negocio</button></div>
+  <div class="funnel">${DEAL_STAGES.map(s => `<div><span class="label">${s.nombre}</span><b class="${s.cls}">${counts[s.key]}</b></div>`).join('')}</div>
+  ${UI.newDeal ? newDealForm() : ''}
+  <div class="split">
+    <div class="panel">
+      <div class="ph"><div class="tabs" role="group" aria-label="Filtrar negocios">${filters.map(([k, n]) => `<button data-act="dfilter" data-id="${k}" aria-pressed="${UI.dealFilter === k}">${n}</button>`).join('')}</div></div>
+      ${list.length ? `<ul class="inbox">${list.map(x => { const st = DEAL_STAGES.find(s => s.key === x.etapa);
+        return `<li><button data-act="deal" data-id="${x.id}" aria-current="${x.id === UI.deal}"><span class="t">${esc(x.cliente)}</span><span class="pill ${st.cls}">${st.nombre}</span>
+        <span class="s">${esc(x.ciudad)} · ${x.canchas} × ${esc(model(x.modelo).nombre)} · <span class="mono">${fmt(x.actualizado)}</span></span></button></li>`; }).join('')}</ul>`
+        : `<div class="empty">No hay negocios en este filtro.</div>`}
+    </div>
+    <div class="panel">${d ? dealDetail(d) : '<div class="empty">Selecciona un negocio.</div>'}</div>
+  </div>`;
+}
+function dealDetail(d) {
+  const st = DEAL_STAGES.find(s => s.key === d.etapa), open = !['cerrada', 'perdida'].includes(d.etapa);
+  const idx = DEAL_STAGES.findIndex(s => s.key === d.etapa);
+  return `<div class="ph"><div><h2>${esc(d.cliente)}</h2><span class="muted small">Contacto: ${esc(d.contacto)} · Origen: ${esc(d.origen)}</span></div><span class="pill ${st.cls}">${st.nombre}</span></div>
+  <div class="pb" style="display:grid;gap:16px">
+    <dl class="kv"><dt>Ubicación</dt><dd>${esc(d.ciudad)}, ${esc(d.prov)} · ${esc(d.comuna)}</dd>
+      <dt>Modelo</dt><dd>${d.canchas} × ${esc(model(d.modelo).nombre)} <span class="muted">(${TIPOS[model(d.modelo).tipo]})</span></dd>
+      <dt>Última actividad</dt><dd class="mono">${fmtY(d.actualizado)}</dd></dl>
+    ${open ? `<div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${idx < 3 ? `<button class="btn" data-act="advance" data-id="${d.id}">Avanzar a «${DEAL_STAGES[idx + 1].nombre}»</button>` : ''}
+        <button class="btn primary" data-act="closeopen">Cerrar venta y crear proyecto</button>
+        <button class="btn ghost danger" data-act="lose" data-id="${d.id}">Marcar como perdida</button></div>` : ''}
+    ${open && UI.closing ? closeForm(d) : ''}
+    ${d.proyectoId ? `<div class="closebox"><span>Venta cerrada. Este negocio se gestiona ahora en Proyectos.</span><div><button class="btn primary sm" data-act="openproj" data-id="${d.proyectoId}">Ver proyecto y línea de tiempo →</button></div></div>` : ''}
+    <div><h3 style="margin-bottom:8px">Trazabilidad</h3><ul class="log">${[...d.hist].reverse().map(h => `<li><span class="d">${fmtY(h.f).slice(0, 5)}</span><span>${esc(h.t)}</span></li>`).join('')}</ul></div>
+    ${open ? `<form class="check" data-form="note" data-id="${d.id}"><input type="text" id="note-${d.id}" name="t" placeholder="Agregar nota al historial…" required><button class="btn">Agregar</button></form>` : ''}
+  </div>`;
+}
+function closeForm(d) {
+  const m = model(d.modelo);
+  return `<form class="closebox" data-form="close" data-id="${d.id}">
+    <b>Cerrar venta</b>
+    <div class="form">
+      <label class="field full"><span>Nombre del proyecto</span><input type="text" name="nombre" id="cf-nombre" value="${esc(d.cliente)} — ${d.canchas > 1 ? d.canchas + ' canchas' : 'Cancha 1'}" required></label>
+      <label class="field"><span>Fecha de cierre</span><input type="date" name="fecha" id="cf-fecha" value="${TODAY}" required></label>
+      <label class="field"><span>Modelo</span><select name="modelo" id="cf-modelo">${S.models.map(x => `<option value="${x.id}" ${x.id === m.id ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select></label>
+      <label class="check full"><input type="checkbox" name="pers" id="cf-pers"> Cancha personalizada (logo y colores)</label>
+    </div>
+    <span class="muted small">Se programan las etapas: construcción (20 días), salida y transporte, entrega, instalación y habilitación. Las fechas se ajustan después en el proyecto.</span>
+    <div style="display:flex;gap:8px"><button class="btn primary">Confirmar cierre</button><button type="button" class="btn ghost" data-act="closecancel">Cancelar</button></div>
+  </form>`;
+}
+function newDealForm() {
+  return `<form class="panel" data-form="newdeal"><div class="ph"><h2>Nuevo negocio</h2><button type="button" class="btn ghost sm" data-act="newdeal">Cancelar</button></div>
+  <div class="pb form">
+    <label class="field"><span>Cliente / club</span><input type="text" name="cliente" id="nd-cliente" required></label>
+    <label class="field"><span>Contacto</span><input type="text" name="contacto" id="nd-contacto"></label>
+    <label class="field"><span>Ciudad</span><select name="ciudad" id="nd-ciudad">${CITIES.map(c => `<option>${esc(c.ciudad)}</option>`).join('')}</select></label>
+    <label class="field"><span>Comuna / partido / barrio</span><input type="text" name="comuna" id="nd-comuna"></label>
+    <label class="field"><span>Modelo de interés</span><select name="modelo" id="nd-modelo">${S.models.map(x => `<option value="${x.id}">${esc(x.nombre)}</option>`).join('')}</select></label>
+    <label class="field"><span>Cantidad de canchas</span><input type="number" min="1" value="1" name="canchas" id="nd-canchas"></label>
+    <label class="field"><span>Origen</span><select name="origen" id="nd-origen"><option>Web</option><option>Instagram</option><option>WhatsApp</option><option>Referido</option><option>Feria</option></select></label>
+    <div class="field" style="align-self:end"><button class="btn primary">Guardar en la bandeja</button></div>
+  </div></form>`;
+}
+
+/* ---------- Proyectos ---------- */
+function vProyectos() {
+  if (!project(UI.project)) UI.project = S.projects[0]?.id;
+  const p = project(UI.project);
+  const byStage = k => S.projects.filter(x => (current(x)?.key || 'fin') === k).length;
+  const late = S.projects.filter(x => x.etapas.some(isLate)).length;
+  const kpis = [['En construcción', byStage('construccion'), ''], ['Saliendo / en tránsito', byStage('salida'), ''], ['Por entregar', byStage('entrega'), ''],
+    ['En instalación', byStage('instalacion'), ''], ['Habilitadas', S.projects.filter(x => !current(x)).length, 'st-ok'], ['Con atraso', late, late ? 'st-bad' : '']];
+  return `<div class="head"><div><h1>Proyectos y entregas</h1><p>Cada venta cerrada se convierte en un proyecto con nombre, fechas y ubicación. Marca las etapas a medida que se cumplen.</p></div></div>
+  <div class="kpis">${kpis.map(([n, v, c]) => `<div class="kpi"><span class="label">${n}</span><b class="${c}">${v}</b></div>`).join('')}</div>
+  <div class="split">
+    <div class="plist">${S.projects.map(x => { const st = pStatus(x);
+      return `<button class="pcard" data-act="proj" data-id="${x.id}" aria-current="${x.id === UI.project}">
+        <div class="top"><span class="t">${esc(x.nombre)}</span></div>
+        <span class="muted small">${esc(x.ciudad)} · ${esc(x.comuna)} · ${esc(model(x.modelo).nombre)}</span>
+        <div class="bar">${x.etapas.map(e => `<i class="${e.estado === 'completada' ? 'done' : isLate(e) ? 'late' : e.estado === 'en_curso' ? 'cur' : ''}"></i>`).join('')}</div>
+        <span class="pill ${st.cls}">${st.txt}</span></button>`; }).join('')}</div>
+    ${p ? projectDetail(p) : '<div class="panel"><div class="empty">Aún no hay proyectos. Cierra una venta en la bandeja.</div></div>'}
+  </div>`;
+}
+function gantt(p) {
+  let a = p.etapas[0].inicio, b = p.etapas[p.etapas.length - 1].fin;
+  if (TODAY < a) a = TODAY; if (TODAY > b) b = TODAY;
+  a = addDays(a, -2); b = addDays(b, 3);
+  const span = diffDays(a, b) + 1, pct = iso => (diffDays(a, iso) / span * 100);
+  const ticks = []; for (let i = 0; i <= span; i += Math.max(7, Math.round(span / 6))) ticks.push(addDays(a, i));
+  const todayL = pct(TODAY) + (0.5 / span * 100);
+  return `<div class="gantt">
+    ${p.etapas.map(e => { const cls = e.estado === 'completada' ? 'done' : isLate(e) ? 'late' : e.estado === 'en_curso' ? 'cur' : '';
+      const w = Math.max((diffDays(e.inicio, e.fin) + 1) / span * 100, 1.2);
+      return `<div class="grow"><span class="small">${stageName(e.key)}</span><div class="gtrack"><div class="gtoday" style="left:${todayL}%"></div>
+        <div class="gbar ${cls}" style="left:${pct(e.inicio)}%;width:${w}%" title="${fmtY(e.inicio)} → ${fmtY(e.fin)}">${w > 16 ? fmt(e.inicio) + ' – ' + fmt(e.fin) : ''}</div></div></div>`; }).join('')}
+    <div class="gaxis"><i></i><div>${ticks.map(t => `<span style="left:${pct(t)}%">${fmt(t)}</span>`).join('')}</div></div>
+  </div>`;
+}
+function projectDetail(p) {
+  const m = model(p.modelo), st = pStatus(p);
+  const firstOpen = p.etapas.findIndex(e => e.estado !== 'completada');
+  const d = p.personalizada ? p.diseno : { ...STD_DESIGN };
+  return `<div style="display:grid;gap:16px;min-width:0">
+  <div class="panel"><div class="ph"><div><h2>${esc(p.nombre)}</h2><span class="muted small">${esc(p.cliente)} · ${esc(p.ciudad)}, ${esc(p.prov)} · ${esc(p.comuna)}</span></div><span class="pill ${st.cls}">${st.txt}</span></div>
+    <div class="pb" style="display:grid;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Línea de tiempo</h3><span class="legend"><span><i style="background:var(--lamp)"></i>Hoy ${fmt(TODAY)}</span><span><i style="background:var(--ok)"></i>Completada</span><span><i style="background:var(--accent)"></i>En curso</span><span><i style="background:var(--bad)"></i>Atrasada</span></span></div>${gantt(p)}</div></div>
+  <div class="two">
+    <div class="panel"><div class="ph"><h3>Etapas de la entrega</h3></div><div class="pb"><ul class="stages">
+      ${p.etapas.map((e, i) => { const late = isLate(e), cls = e.estado === 'completada' ? 'done' : late ? 'late' : e.estado === 'en_curso' ? 'cur' : '';
+        let action = '';
+        if (e.estado === 'en_curso') action = `<button class="btn sm primary" data-act="stage-done" data-id="${p.id}" data-i="${i}">Completar</button>`;
+        else if (e.estado === 'pendiente' && i === firstOpen) action = `<button class="btn sm" data-act="stage-start" data-id="${p.id}" data-i="${i}">Iniciar</button>`;
+        else if (e.estado === 'completada' && i === firstOpen - 1) action = `<button class="btn sm ghost" data-act="stage-undo" data-id="${p.id}" data-i="${i}">Deshacer</button>`;
+        return `<li><span class="dot ${cls}">${e.estado === 'completada' ? '✓' : i + 1}</span><div><b>${stageName(e.key)}</b> ${late ? '<span class="pill st-bad">Atrasada</span>' : ''}
+          <div class="dates"><input type="date" id="d-${p.id}-${i}-a" value="${e.inicio}" data-field="inicio" data-id="${p.id}" data-i="${i}" aria-label="Inicio ${stageName(e.key)}"><span class="muted">→</span><input type="date" id="d-${p.id}-${i}-b" value="${e.fin}" data-field="fin" data-id="${p.id}" data-i="${i}" aria-label="Fin ${stageName(e.key)}">
+          ${e.hecho ? `<span class="muted small">hecho ${fmt(e.hecho)}</span>` : ''}</div></div>${action}</li>`; }).join('')}
+    </ul></div></div>
+    <div style="display:grid;gap:16px;min-width:0;align-content:start">
+      <div class="panel"><div class="ph"><h3>Cancha</h3><button class="btn sm" data-act="design" data-id="${p.id}">Editar diseño</button></div>
+        <div class="pb" style="display:grid;gap:10px"><div class="scene">${courtSVG(d, m.tipo)}</div>
+        <dl class="kv"><dt>Modelo</dt><dd>${esc(m.nombre)} · <span class="typebadge">${TIPOS[m.tipo]}</span></dd><dt>Canchas</dt><dd>${p.canchas}</dd><dt>Diseño</dt><dd>${p.personalizada ? 'Personalizado' : 'Estándar Atila'}</dd></dl></div></div>
+      <div class="panel"><div class="ph"><h3>Trazabilidad</h3></div><div class="pb"><ul class="log">${[...p.traza].sort((a, b) => b.f.localeCompare(a.f)).map(h => `<li><span class="d">${fmtY(h.f).slice(0, 5)}</span><span>${esc(h.t)}</span></li>`).join('')}</ul>
+        <form class="check" data-form="pnote" data-id="${p.id}" style="margin-top:10px"><input type="text" id="pn-${p.id}" name="t" placeholder="Agregar novedad…" required><button class="btn">Agregar</button></form></div></div>
+    </div>
+  </div></div>`;
+}
+
+/* ---------- Calendario ---------- */
+function vCalendario() {
+  const [y, mo] = UI.cal.split('-').map(Number);
+  const first = new Date(y, mo - 1, 1), start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+  const events = {};
+  const push = (iso, ev) => (events[iso] = events[iso] || []).push(ev);
+  S.projects.filter(p => !UI.calProject || p.id === UI.calProject).forEach(p => p.etapas.forEach(e => {
+    const short = p.nombre.split(' — ')[0];
+    if (e.inicio === e.fin) push(e.inicio, { p, e, t: `${stageName(e.key)} · ${short}` });
+    else { push(e.inicio, { p, e, t: `▶ ${stageName(e.key)} · ${short}` }); push(e.fin, { p, e, t: `■ Fin ${stageName(e.key).toLowerCase()} · ${short}` }); }
+  }));
+  const cells = [];
+  for (let i = 0; i < 42; i++) { const d = new Date(start); d.setDate(start.getDate() + i); cells.push(d); if (i >= 34 && d.getMonth() !== mo - 1 && d.getDay() === 0) break; }
+  return `<div class="head"><div><h1>Calendario</h1><p>Hitos de todas las entregas: inicio y fin de construcción, salida, entrega en obra e instalación.</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="cal-proj" data-field="calProject" aria-label="Filtrar por proyecto"><option value="">Todos los proyectos</option>${S.projects.map(p => `<option value="${p.id}" ${UI.calProject === p.id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select>
+      <button class="btn" data-act="calprev" aria-label="Mes anterior">←</button><b style="min-width:150px;text-align:center;font-family:var(--f-display);font-size:20px;text-transform:capitalize">${MESES[mo - 1]} ${y}</b><button class="btn" data-act="calnext" aria-label="Mes siguiente">→</button>
+      <button class="btn ghost" data-act="caltoday">Hoy</button></div></div>
+  <div class="legend">${STAGES.map(s => `<span><i style="background:${s.color}"></i>${s.nombre}</span>`).join('')}</div>
+  <div class="cal">${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => `<div class="dh">${d}</div>`).join('')}
+    ${cells.map(d => { const iso = isoOf(d), evs = events[iso] || [];
+      return `<div class="dc ${d.getMonth() !== mo - 1 ? 'out' : ''} ${iso === TODAY ? 'today' : ''}"><span class="n">${d.getDate()}</span>
+        ${evs.slice(0, 4).map(ev => `<button class="ev" style="background:${stageColor(ev.e.key)}${ev.e.estado === 'completada' ? ';opacity:.55' : ''}" data-act="openproj" data-id="${ev.p.id}" title="${esc(ev.t)}">${esc(ev.t)}</button>`).join('')}
+        ${evs.length > 4 ? `<span class="small muted">+${evs.length - 4} más</span>` : ''}</div>`; }).join('')}
+  </div>`;
+}
+
+/* ---------- Mapa ---------- */
+function vMapa() {
+  const list = S.projects.filter(p => !UI.mapProv || p.prov === UI.mapProv);
+  const seen = {};
+  const markers = list.map(p => { const k = p.lat.toFixed(1) + p.lon.toFixed(1), n = seen[k] = (seen[k] || 0) + 1;
+    const x = MX(p.lon) + (n - 1) * 7, y = MY(p.lat) - (n - 1) * 4, st = pStatus(p), col = st.key === 'fin' ? '#2ea86a' : stageColor(st.key);
+    return `<g class="mk ${UI.mapSel === p.id ? 'sel' : ''}" data-act="mapsel" data-id="${p.id}"><title>${esc(p.nombre)} — ${esc(st.txt)}</title>
+      <circle class="halo" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${UI.mapSel === p.id ? 11 : 8}" fill="${col}"/>
+      <circle class="core" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${col}" ${st.cls === 'st-bad' ? 'stroke="var(--bad)" stroke-width="2"' : ''}/></g>`; }).join('');
+  const cityDots = CITIES.map(c => `<circle cx="${MX(c.lon).toFixed(1)}" cy="${MY(c.lat).toFixed(1)}" r="1.3" fill="var(--muted)" opacity=".6"><title>${esc(c.ciudad)}</title></circle>`).join('');
+  const sel = project(UI.mapSel);
+  return `<div class="head"><div><h1>Mapa de Argentina</h1><p>Proyectos ubicados por provincia, ciudad y comuna. El color indica la etapa actual de la entrega.</p></div>
+    <select id="map-prov" data-field="mapProv" aria-label="Filtrar por provincia" style="width:auto"><option value="">Todas las provincias</option>${PROVINCIAS.map(p => `<option ${UI.mapProv === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
+  <div class="legend">${STAGES.slice(1).map(s => `<span><i style="background:${s.color}"></i>${s.nombre}</span>`).join('')}</div>
+  <div class="mapwrap">
+    <div class="panel map"><div class="pb"><svg viewBox="0 0 215 425" role="img" aria-label="Mapa de Argentina con proyectos">
+      <polygon class="land" points="${mpts(AR)}"/><polygon class="land" points="${mpts(TDF)}"/>${cityDots}${markers}
+      <text x="150" y="410" font-size="8" fill="var(--muted)" font-family="IBM Plex Mono, monospace">esquemático</text></svg></div></div>
+    <div style="display:grid;gap:16px;min-width:0">
+      ${sel ? `<div class="panel"><div class="ph"><div><h2>${esc(sel.nombre)}</h2><span class="muted small">${esc(sel.ciudad)}, ${esc(sel.prov)} · ${esc(sel.comuna)}</span></div><span class="pill ${pStatus(sel).cls}">${pStatus(sel).txt}</span></div>
+        <div class="pb" style="display:grid;gap:10px"><dl class="kv"><dt>Coordenadas</dt><dd class="mono">${sel.lat.toFixed(2)}, ${sel.lon.toFixed(2)}</dd><dt>Modelo</dt><dd>${sel.canchas} × ${esc(model(sel.modelo).nombre)}</dd>
+        <dt>Entrega en obra</dt><dd class="mono">${fmtY(sel.etapas.find(e => e.key === 'entrega').fin)}</dd></dl><div><button class="btn primary sm" data-act="openproj" data-id="${sel.id}">Abrir proyecto →</button></div></div></div>` : ''}
+      <div class="panel"><div class="ph"><h3>${list.length} proyecto${list.length === 1 ? '' : 's'}</h3></div><div class="maplist">
+        ${list.map(p => { const st = pStatus(p); return `<button data-act="mapsel" data-id="${p.id}" aria-current="${UI.mapSel === p.id}"><span class="sw" style="background:${st.key === 'fin' ? '#2ea86a' : stageColor(st.key)}"></span>
+          <span><b>${esc(p.nombre)}</b><br><span class="muted small">${esc(p.ciudad)} · ${esc(p.comuna)}</span></span><span class="pill ${st.cls}">${st.txt}</span></button>`; }).join('') || '<div class="empty">Sin proyectos en esta provincia.</div>'}
+      </div></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Configurador ---------- */
+function cfgInit(pid) {
+  const p = project(pid);
+  UI.cfg = p ? { pid: p.id, modelo: p.modelo, pers: p.personalizada, ...p.diseno } : { pid: '', modelo: S.models[0].id, pers: true, ...STD_DESIGN };
+}
+function swatchRow(field, list, val) {
+  return `<div class="swatches">${list.map(c => `<button type="button" style="background:${c}" data-act="sw" data-field="${field}" data-val="${c}" aria-pressed="${c.toLowerCase() === String(val).toLowerCase()}" aria-label="Color ${c}"></button>`).join('')}
+    <input type="color" id="cc-${field}" value="${val}" data-field="cfg-${field}" aria-label="Color personalizado"></div>`;
+}
+function vConfig() {
+  if (!UI.cfg) cfgInit(UI.project);
+  const c = UI.cfg, m = model(c.modelo);
+  const d = c.pers ? c : { ...STD_DESIGN };
+  return `<div class="head"><div><h1>Diseño de cancha</h1><p>Elige el modelo y, si la cancha es personalizada, define logo y colores. La vista se actualiza al instante.</p></div></div>
+  <div class="cfg">
+    <div class="panel"><div class="pb" style="display:grid;gap:16px">
+      <label class="field"><span>Proyecto</span><select id="cfg-pid" data-field="cfg-pid"><option value="">— Diseño libre (sin proyecto) —</option>${S.projects.map(p => `<option value="${p.id}" ${c.pid === p.id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></label>
+      <label class="field"><span>Modelo</span><select id="cfg-modelo" data-field="cfg-modelo">${S.models.map(x => `<option value="${x.id}" ${x.id === c.modelo ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select></label>
+      <div><span class="label">Tipo según modelo</span><div class="typebadge" style="font-size:20px">${TIPOS[m.tipo]}</div><span class="muted small">Se asigna en Modelos.</span></div>
+      <label class="check"><input type="checkbox" id="cfg-pers" data-field="cfg-pers" ${c.pers ? 'checked' : ''}> <b>Cancha personalizada</b></label>
+      <div style="display:grid;gap:14px" class="${c.pers ? '' : 'disabled'}">
+        <div class="field"><span>Logo</span><div style="display:flex;gap:10px;align-items:center"><div class="logo-prev">${c.logo ? `<img src="${esc(c.logo)}" alt="Logo">` : '<span class="small muted">sin logo</span>'}</div>
+          <div style="display:grid;gap:6px"><input type="file" id="cfg-logo" accept="image/*" data-field="cfg-logo" style="font-size:12px;max-width:200px">${c.logo ? '<button type="button" class="btn sm ghost" data-act="nologo">Quitar logo</button>' : ''}</div></div></div>
+        <div class="field"><span>Color de pasto</span>${swatchRow('pasto', SW_PASTO, c.pasto)}</div>
+        <div class="field"><span>Color de postes de luz</span>${swatchRow('postes', SW_POSTE, c.postes)}</div>
+        <div class="field"><span>Amortiguadores de perfiles</span>${swatchRow('amort', SW_AMORT, c.amort)}</div>
+        <div class="field"><span>Estructura (montantes)</span>${swatchRow('estructura', SW_POSTE, c.estructura)}</div>
+      </div>
+      ${c.pid ? `<button class="btn primary" data-act="cfgsave">Guardar diseño en el proyecto</button>` : '<span class="muted small">Elige un proyecto para guardar este diseño.</span>'}
+    </div></div>
+    <div style="display:grid;gap:10px;min-width:0">
+      <div class="scene" id="scene">${courtSVG(d, m.tipo, { label: `${m.nombre.toUpperCase()} · ${TIPOS[m.tipo].toUpperCase()}` })}</div>
+      <div class="legend"><span><i style="background:${d.pasto}"></i>Pasto</span><span><i style="background:${d.postes}"></i>Postes de luz</span><span><i style="background:${d.amort}"></i>Amortiguadores</span><span><i style="background:${d.estructura}"></i>Estructura</span><span>Panorámica: cristal sin montantes · Semi: montantes en laterales · Estándar: montantes cada 2 m</span></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Modelos ---------- */
+function vModelos() {
+  return `<div class="head"><div><h1>Modelos</h1><p>Edita los nombres de los modelos y asigna a cada uno su tipo de cancha. El tipo define cómo se dibuja la estructura.</p></div>
+    <button class="btn primary" data-act="addmodel">+ Agregar modelo</button></div>
+  <div class="panel tablewrap"><table class="models"><thead><tr><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Proyectos</th><th></th></tr></thead><tbody>
+  ${S.models.map(m => { const used = S.projects.filter(p => p.modelo === m.id).length + S.deals.filter(d => d.modelo === m.id).length;
+    return `<tr><td><input type="text" id="mn-${m.id}" value="${esc(m.nombre)}" data-field="m-nombre" data-id="${m.id}" aria-label="Nombre del modelo"></td>
+    <td><select id="mt-${m.id}" data-field="m-tipo" data-id="${m.id}" aria-label="Tipo">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}" ${m.tipo === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+    <td><input type="text" id="md-${m.id}" value="${esc(m.desc || '')}" data-field="m-desc" data-id="${m.id}" aria-label="Descripción"></td>
+    <td class="mono">${S.projects.filter(p => p.modelo === m.id).length}</td>
+    <td>${used ? '' : `<button class="btn sm ghost danger" data-act="delmodel" data-id="${m.id}">Eliminar</button>`}</td></tr>`; }).join('')}
+  </tbody></table></div>
+  <div class="two">${S.models.slice(0, 4).map(m => `<div class="panel"><div class="ph"><b>${esc(m.nombre)}</b><span class="typebadge">${TIPOS[m.tipo]}</span></div><div class="pb"><div class="scene">${courtSVG(STD_DESIGN, m.tipo)}</div></div></div>`).join('')}</div>`;
+}
+
+/* ===================== Acciones ===================== */
+function logP(p, t, f = TODAY) { p.traza.push({ f, t }); }
+function commit(msg) { save(); render(); if (msg) toast(msg); }
+
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-act]'); if (!b) return;
+  const id = b.dataset.id, act = b.dataset.act;
+  const deal = () => S.deals.find(d => d.id === id);
+  switch (act) {
+    case 'profile': UI.profile = id; if (id === 'atila' && !UI.view) UI.view = 'bandeja'; saveUI(); render(); break;
+    case 'view': UI.view = id; UI.cfg = null; saveUI(); render(); window.scrollTo(0, 0); break;
+    case 'reset': S = seed(); UI.deal = null; UI.project = 'p1'; UI.cfg = null; commit('Datos de ejemplo restablecidos'); break;
+    case 'dfilter': UI.dealFilter = id; UI.deal = null; UI.closing = false; render(); break;
+    case 'deal': UI.deal = id; UI.closing = false; render(); break;
+    case 'newdeal': UI.newDeal = !UI.newDeal; render(); break;
+    case 'advance': { const d = deal(), i = DEAL_STAGES.findIndex(s => s.key === d.etapa); d.etapa = DEAL_STAGES[i + 1].key; d.actualizado = TODAY;
+      d.hist.push({ f: TODAY, t: `Etapa cambiada a «${DEAL_STAGES[i + 1].nombre}».` }); commit('Negocio actualizado'); break; }
+    case 'lose': { const d = deal(); d.etapa = 'perdida'; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: 'Negocio marcado como perdido.' }); commit('Negocio marcado como perdido'); break; }
+    case 'closeopen': UI.closing = true; render(); break;
+    case 'closecancel': UI.closing = false; render(); break;
+    case 'openproj': UI.profile = 'atila'; UI.view = 'proyectos'; UI.project = id; saveUI(); render(); window.scrollTo(0, 0); break;
+    case 'proj': UI.project = id; render(); break;
+    case 'design': UI.view = 'configurador'; cfgInit(id); saveUI(); render(); window.scrollTo(0, 0); break;
+    case 'stage-start': case 'stage-done': case 'stage-undo': {
+      const p = project(id), e = p.etapas[+b.dataset.i];
+      if (act === 'stage-start') { e.estado = 'en_curso'; logP(p, `Etapa iniciada: ${stageName(e.key)}.`); }
+      if (act === 'stage-done') { e.estado = 'completada'; e.hecho = TODAY; logP(p, `Etapa completada: ${stageName(e.key)}.`);
+        const nx = p.etapas[+b.dataset.i + 1]; if (nx && nx.inicio <= TODAY) { nx.estado = 'en_curso'; logP(p, `Etapa iniciada: ${stageName(nx.key)}.`); } }
+      if (act === 'stage-undo') { e.estado = 'en_curso'; e.hecho = ''; p.etapas.slice(+b.dataset.i + 1).forEach(n => n.estado = 'pendiente'); logP(p, `Etapa reabierta: ${stageName(e.key)}.`); }
+      commit(act === 'stage-done' ? `${stageName(e.key)}: completada` : null); break; }
+    case 'calprev': case 'calnext': { const [y, m] = UI.cal.split('-').map(Number); const d = new Date(y, m - 1 + (act === 'calnext' ? 1 : -1), 1); UI.cal = isoOf(d).slice(0, 7); render(); break; }
+    case 'caltoday': UI.cal = TODAY.slice(0, 7); render(); break;
+    case 'mapsel': UI.mapSel = id; render(); break;
+    case 'sw': UI.cfg[b.dataset.field] = b.dataset.val; render(); break;
+    case 'nologo': UI.cfg.logo = ''; render(); break;
+    case 'cfgsave': { const c = UI.cfg, p = project(c.pid);
+      p.modelo = c.modelo; p.personalizada = c.pers; p.diseno = { pasto: c.pasto, postes: c.postes, estructura: c.estructura, amort: c.amort, logo: c.logo };
+      logP(p, `Diseño actualizado (${model(c.modelo).nombre}, ${c.pers ? 'personalizado' : 'estándar'}).`); commit('Diseño guardado en el proyecto'); break; }
+    case 'addmodel': S.models.push({ id: uid('m'), nombre: 'Nuevo modelo', tipo: 'estandar', desc: '' }); commit('Modelo agregado'); break;
+    case 'delmodel': S.models = S.models.filter(m => m.id !== id); commit('Modelo eliminado'); break;
+  }
+});
+
+document.addEventListener('change', ev => {
+  const t = ev.target, f = t.dataset.field; if (!f) return;
+  if (f === 'inicio' || f === 'fin') {
+    const p = project(t.dataset.id), e = p.etapas[+t.dataset.i]; if (!t.value) return;
+    const old = e[f]; e[f] = t.value; if (e.fin < e.inicio) e[f === 'inicio' ? 'fin' : 'inicio'] = t.value;
+    logP(p, `Reprogramada ${stageName(e.key).toLowerCase()}: ${f} ${fmtY(old)} → ${fmtY(t.value)}.`); commit('Fecha actualizada'); return;
+  }
+  if (f === 'calProject') { UI.calProject = t.value; render(); return; }
+  if (f === 'mapProv') { UI.mapProv = t.value; UI.mapSel = null; render(); return; }
+  if (f === 'cfg-pid') { if (t.value) cfgInit(t.value); else UI.cfg.pid = ''; render(); return; }
+  if (f === 'cfg-modelo') { UI.cfg.modelo = t.value; render(); return; }
+  if (f === 'cfg-pers') { UI.cfg.pers = t.checked; render(); return; }
+  if (f.startsWith('cfg-') && t.type === 'color') { UI.cfg[f.slice(4)] = t.value; render(); return; }
+  if (f === 'cfg-logo') { const file = t.files[0]; if (!file) return;
+    if (file.size > 600 * 1024) { toast('El logo pesa más de 600 KB. Usa una imagen más liviana.'); return; }
+    const r = new FileReader(); r.onload = () => { UI.cfg.logo = r.result; render(); }; r.readAsDataURL(file); return; }
+  if (f.startsWith('m-')) { const m = S.models.find(x => x.id === t.dataset.id); m[f.slice(2)] = t.value; commit(f === 'm-tipo' ? 'Tipo asignado al modelo' : 'Modelo actualizado'); }
+});
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.type === 'color' && t.dataset.field?.startsWith('cfg-')) { UI.cfg[t.dataset.field.slice(4)] = t.value;
+    const c = UI.cfg, d = c.pers ? c : STD_DESIGN, m = model(c.modelo);
+    $('#scene').innerHTML = courtSVG(d, m.tipo, { label: `${m.nombre.toUpperCase()} · ${TIPOS[m.tipo].toUpperCase()}` }); }
+});
+
+document.addEventListener('submit', ev => {
+  const f = ev.target, kind = f.dataset.form; if (!kind) return;
+  ev.preventDefault();
+  const fd = Object.fromEntries(new FormData(f));
+  if (kind === 'note') { const d = S.deals.find(x => x.id === f.dataset.id); d.hist.push({ f: TODAY, t: fd.t }); d.actualizado = TODAY; commit('Nota agregada'); }
+  if (kind === 'pnote') { logP(project(f.dataset.id), fd.t); commit('Novedad registrada'); }
+  if (kind === 'newdeal') { const c = cityOf(fd.ciudad);
+    const d = { id: uid('d'), cliente: fd.cliente, contacto: fd.contacto || '—', prov: c.prov, ciudad: c.ciudad, comuna: fd.comuna || '—', modelo: fd.modelo, canchas: +fd.canchas || 1,
+      origen: fd.origen, etapa: 'nuevo', actualizado: TODAY, proyectoId: null, hist: [{ f: TODAY, t: 'Negocio ingresado a la bandeja.' }] };
+    S.deals.push(d); UI.newDeal = false; UI.deal = d.id; UI.dealFilter = 'activos'; commit('Negocio agregado a la bandeja'); }
+  if (kind === 'close') { const d = S.deals.find(x => x.id === f.dataset.id), c = cityOf(d.ciudad);
+    const p = { id: uid('p'), dealId: d.id, nombre: fd.nombre, cliente: d.cliente, prov: c.prov, ciudad: c.ciudad, comuna: d.comuna, lat: c.lat, lon: c.lon,
+      modelo: fd.modelo, canchas: d.canchas, personalizada: !!fd.pers, diseno: { ...STD_DESIGN }, etapas: schedule(fd.fecha), traza: [] };
+    p.etapas[0].estado = 'completada'; p.etapas[0].hecho = fd.fecha;
+    d.hist.forEach(h => p.traza.push({ f: h.f, t: `[Bandeja] ${h.t}` }));
+    p.traza.push({ f: fd.fecha, t: 'Venta cerrada. Proyecto creado desde la bandeja de negocios.' });
+    d.etapa = 'cerrada'; d.actualizado = TODAY; d.proyectoId = p.id; d.hist.push({ f: TODAY, t: `Venta cerrada; pasa a Proyectos como «${fd.nombre}».` });
+    S.projects.unshift(p); UI.closing = false; UI.view = 'proyectos'; UI.project = p.id; saveUI(); commit('Venta cerrada. Proyecto creado con su línea de tiempo'); window.scrollTo(0, 0); }
+});
+
+render();
+</script>
