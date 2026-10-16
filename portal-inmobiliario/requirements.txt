@@ -1,0 +1,7 @@
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+click>=8.1.7
+python-dotenv>=1.0.0
+# Opcional, para --navegador y `pi.py login`:
+# playwright>=1.56.0

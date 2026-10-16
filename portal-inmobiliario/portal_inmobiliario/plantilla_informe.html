@@ -1,0 +1,626 @@
+<title>{{TITULO}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ficha de mercado en una columna — búsqueda, filtros del informe, cifras, gráfico y tabla */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --ink: #13202c;
+  --ink-2: #485664;
+  --muted: #5f6b77;
+  --line: #dde2e7;
+  --line-strong: #c3cbd3;
+  --accent: #1d5c99;
+  --accent-wash: #e6eef8;
+  --dot: #2a78d6;
+  --good: #0b7a35;
+  --notice-bg: #fff3d4;
+  --notice-ink: #5a4000;
+  --notice-line: #ecd08a;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1318; --surface: #151c23; --ink: #e6ebf0; --ink-2: #aab5c0; --muted: #8d98a4;
+    --line: #26303a; --line-strong: #3a4754; --accent: #82b5ea; --accent-wash: #1a2a3b;
+    --dot: #3987e5; --good: #4cc479; --notice-bg: #2b2310; --notice-ink: #f1d488; --notice-line: #5a4716;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1318; --surface: #151c23; --ink: #e6ebf0; --ink-2: #aab5c0; --muted: #8d98a4;
+  --line: #26303a; --line-strong: #3a4754; --accent: #82b5ea; --accent-wash: #1a2a3b;
+  --dot: #3987e5; --good: #4cc479; --notice-bg: #2b2310; --notice-ink: #f1d488; --notice-line: #5a4716;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 15px/1.5 var(--font-body);
+}
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.envoltura {
+  max-width: 1160px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.cabecera { background: var(--surface); border-bottom: 1px solid var(--line); }
+.cabecera .envoltura { padding-block: 28px 22px; display: grid; gap: 10px; }
+.ceja {
+  margin: 0; font: 500 12px/1.2 var(--font-data); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+h1 {
+  margin: 0; font: 700 clamp(26px, 4vw, 38px)/1.08 var(--font-display);
+  letter-spacing: -.01em; text-wrap: balance;
+}
+h2 { margin: 0; font: 600 20px/1.2 var(--font-display); text-wrap: balance; }
+.meta { margin: 0; color: var(--ink-2); font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.meta a { overflow-wrap: anywhere; }
+.chips { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chips li {
+  font-size: 13px; padding: 3px 10px; border-radius: 999px;
+  background: var(--accent-wash); color: var(--ink);
+}
+.chips .rotulo { background: none; padding-left: 0; color: var(--muted); }
+main.envoltura { padding-block: 20px 40px; display: grid; gap: 20px; }
+.aviso {
+  border: 1px solid var(--notice-line); background: var(--notice-bg); color: var(--notice-ink);
+  border-radius: 8px; padding: 12px 14px; font-size: 14px; display: grid; gap: 4px;
+}
+.aviso strong { font-weight: 600; }
+.controles {
+  display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px;
+  padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+}
+.campo { display: grid; gap: 4px; min-width: 0; }
+.campo label, .campo .etq { font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+.campo input[type="search"], .campo input[type="number"], .campo select {
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 9px; min-height: 36px;
+}
+.campo input[type="search"] { width: min(280px, 100%); }
+.campo input[type="number"] { width: 140px; }
+.casilla { display: flex; align-items: center; gap: 8px; font-size: 14px; min-height: 36px; }
+.casilla input { width: 18px; height: 18px; accent-color: var(--accent); }
+.contador { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.cifra {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; display: grid; gap: 2px; min-width: 0;
+}
+.cifra .etq { font-size: 13px; color: var(--muted); }
+.cifra .valor { font: 600 28px/1.15 var(--font-body); overflow-wrap: anywhere; }
+.cifra .sub { font-size: 13px; color: var(--ink-2); }
+.panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px; display: grid; gap: 10px; min-width: 0;
+}
+.panel-cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.nota { margin: 0; font-size: 13px; color: var(--muted); }
+.grafico { position: relative; min-width: 0; }
+.grafico svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grafico text { fill: var(--muted); font: 400 12px var(--font-body); font-variant-numeric: tabular-nums; }
+.grafico .eje-titulo { fill: var(--ink-2); font-weight: 500; }
+.grafico .grid { stroke: var(--line); stroke-width: 1; }
+.grafico .base { stroke: var(--line-strong); stroke-width: 1; }
+.grafico .punto { fill: var(--dot); stroke: var(--surface); stroke-width: 2; }
+.grafico .punto.activo { stroke: var(--ink); stroke-width: 2; }
+.grafico .golpe { fill: transparent; }
+.grafico a:focus { outline: none; }
+.grafico a:focus-visible .punto { stroke: var(--accent); stroke-width: 3; }
+.vacio { padding: 28px 0; text-align: center; color: var(--muted); font-size: 14px; }
+.tooltip {
+  position: absolute; pointer-events: none; z-index: 2; max-width: 260px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
+  border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.35;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+}
+.tooltip .t-valor { font-weight: 600; font-size: 15px; }
+.tooltip .t-titulo { color: var(--ink-2); }
+.tooltip .t-det { color: var(--muted); }
+.boton {
+  font: inherit; font-size: 14px; color: var(--accent); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 12px; cursor: pointer;
+}
+.boton:hover { background: var(--accent-wash); }
+.estado-copia { font-size: 13px; color: var(--muted); }
+.tabla-scroll { overflow-x: auto; min-width: 0; border-top: 1px solid var(--line); }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12px; letter-spacing: .03em; white-space: nowrap; }
+th button {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  display: inline-flex; gap: 4px; align-items: center; letter-spacing: inherit;
+}
+th[aria-sort] button { color: var(--ink); }
+th .flecha { font-size: 10px; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.aviso { min-width: 300px; }
+td.ubic { min-width: 200px; max-width: 300px; }
+.sub-aviso .id { font: 400 12px var(--font-data); }
+tbody tr:hover, tbody tr.activo { background: var(--accent-wash); }
+.titulo-aviso { font-weight: 500; }
+.sub-aviso { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.rebaja { display: block; font-size: 12px; color: var(--good); }
+.desde { font-size: 12px; color: var(--muted); }
+textarea.respaldo { width: 100%; min-height: 120px; font: 12px var(--font-data); }
+.pie { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
+.pie p { margin: 0; max-width: 80ch; }
+.pie ol { margin: 0; padding-left: 20px; }
+.pie li { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cifra .valor { font-size: 23px; }
+  .contador { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .grafico .punto { transition: r .12s ease; }
+}
+</style>
+<!--CUERPO-->
+<header class="cabecera">
+  <div class="envoltura">
+    <p class="ceja">Portal Inmobiliario · extracción por filtros</p>
+    <h1 id="titulo"></h1>
+    <p class="meta" id="meta"></p>
+    <ul class="chips" id="chips" aria-label="Filtros aplicados por el sitio"></ul>
+  </div>
+</header>
+<main class="envoltura">
+  <div class="aviso" id="aviso" hidden></div>
+
+  <section class="controles" aria-label="Filtrar este informe">
+    <div class="campo">
+      <label for="f-texto">Buscar en título, ubicación o corredora</label>
+      <input type="search" id="f-texto" placeholder="p. ej. El Golf, remodelado">
+    </div>
+    <div class="campo">
+      <label for="f-dorm">Dormitorios</label>
+      <select id="f-dorm">
+        <option value="">Todos</option>
+        <option value="1">1 o más</option>
+        <option value="2">2 o más</option>
+        <option value="3">3 o más</option>
+        <option value="4">4 o más</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="f-precio" id="f-precio-etq">Precio máximo</label>
+      <input type="number" id="f-precio" min="0" step="any" inputmode="decimal">
+    </div>
+    <label class="casilla" for="f-rebaja"><input type="checkbox" id="f-rebaja"> Solo con rebaja de precio</label>
+    <span class="contador" id="contador" aria-live="polite"></span>
+  </section>
+
+  <section class="cifras" id="cifras" aria-label="Resumen"></section>
+
+  <section class="panel" aria-labelledby="g-titulo">
+    <div class="panel-cab">
+      <h2 id="g-titulo">Precio y superficie útil</h2>
+      <p class="nota" id="g-nota"></p>
+    </div>
+    <div class="grafico" id="grafico"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="t-titulo">
+    <div class="panel-cab">
+      <h2 id="t-titulo">Avisos</h2>
+      <div class="casilla">
+        <button type="button" class="boton" id="copiar">Copiar tabla para Excel</button>
+        <span class="estado-copia" id="estado-copia" aria-live="polite"></span>
+      </div>
+    </div>
+    <div id="respaldo-copia"></div>
+    <div class="tabla-scroll">
+      <table id="tabla">
+        <caption hidden>Avisos extraídos</caption>
+        <thead><tr id="tabla-cab"></tr></thead>
+        <tbody id="tabla-cuerpo"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="pie" id="pie"></footer>
+</main>
+
+<script type="application/json" id="datos-informe">{{DATOS_JSON}}</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById("datos-informe").textContent);
+  var MON = D.moneda;  // moneda de análisis: UF o CLP
+  var nf0 = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 0 });
+  var nf1 = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 1 });
+  var nf2 = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 2 });
+  var compacto = new Intl.NumberFormat("es-CL", { notation: "compact", maximumFractionDigits: 1 });
+
+  function el(tag, cls, txt) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt != null) e.textContent = txt;
+    return e;
+  }
+  function svg(tag, attrs) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function dinero(v, moneda) {
+    if (v == null) return "—";
+    if (moneda === "UF") return "UF " + (v >= 100 ? nf0 : nf2).format(v);
+    if (moneda === "CLP") return "$ " + nf0.format(v);
+    return (moneda ? moneda + " " : "") + nf0.format(v);
+  }
+  function porM2(v) {
+    if (v == null) return "—";
+    return MON === "UF" ? "UF " + nf1.format(v) : "$ " + nf0.format(v);
+  }
+  function rango(a, b, fmt) {
+    if (a == null && b == null) return "—";
+    if (a === b || b == null) return fmt(a);
+    return fmt(a) + "–" + fmt(b);
+  }
+  function mediana(xs) {
+    if (!xs.length) return null;
+    var s = xs.slice().sort(function (a, b) { return a - b; });
+    var m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
+  function fechaLarga(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  // ---------------------------------------------------------------- cabecera
+  document.getElementById("titulo").textContent = D.titulo;
+  var meta = document.getElementById("meta");
+  var fuente = el("span");
+  fuente.appendChild(document.createTextNode("Búsqueda: "));
+  var a = el("a", null, D.url.replace(/^https?:\/\/(www\.)?/, ""));
+  a.href = D.url; a.target = "_blank"; a.rel = "noopener";
+  fuente.appendChild(a);
+  meta.appendChild(fuente);
+  meta.appendChild(el("span", null, "Datos del " + D.fecha_datos_texto));
+  if (D.valor_uf) meta.appendChild(el("span", null, "UF " + nf2.format(D.valor_uf) + " (" + fechaLarga(D.fecha_uf + "T12:00:00") + ")"));
+
+  var chips = document.getElementById("chips");
+  var lista = D.filtros_sitio && D.filtros_sitio.length ? D.filtros_sitio : D.filtros_pedidos;
+  chips.appendChild(el("li", "rotulo", D.filtros_sitio && D.filtros_sitio.length ? "Filtros confirmados por el sitio:" : "Filtros pedidos:"));
+  lista.forEach(function (f) { chips.appendChild(el("li", null, f)); });
+
+  var avisoBox = document.getElementById("aviso");
+  var notas = [];
+  if (D.aviso) notas.push(D.aviso);
+  (D.advertencias || []).forEach(function (t) { notas.push(t); });
+  if (notas.length) {
+    avisoBox.hidden = false;
+    notas.forEach(function (t, i) {
+      var p = el("div");
+      if (i === 0 && D.aviso) { p.appendChild(el("strong", null, "Atención: ")); }
+      p.appendChild(document.createTextNode(t));
+      avisoBox.appendChild(p);
+    });
+  }
+  document.getElementById("f-precio-etq").textContent = "Precio máximo (" + (MON === "UF" ? "UF" : "$") + ")";
+
+  // ---------------------------------------------------------------- estado
+  var estado = { texto: "", dorm: 0, precioMax: null, rebaja: false, orden: "posicion", dir: 1, activo: null };
+  var AV = D.avisos;
+  // El tipo ("Departamento en venta") solo se muestra por fila si varía entre avisos.
+  var VARIOS_TIPOS = new Set(AV.map(function (x) { return x.encabezado; })).size > 1;
+
+  function filtrados() {
+    var q = estado.texto.trim().toLowerCase();
+    return AV.filter(function (x) {
+      if (q && [x.titulo, x.ubicacion, x.publicador, x.encabezado].join(" ").toLowerCase().indexOf(q) < 0) return false;
+      if (estado.dorm && (x.dormitorios_max == null || x.dormitorios_max < estado.dorm)) return false;
+      if (estado.precioMax != null && x.precio_a != null && x.precio_a > estado.precioMax) return false;
+      if (estado.rebaja && !x.precio_anterior) return false;
+      return true;
+    });
+  }
+
+  // ---------------------------------------------------------------- cifras
+  function cifra(etq, valor, sub) {
+    var c = el("div", "cifra");
+    c.appendChild(el("span", "etq", etq));
+    c.appendChild(el("span", "valor", valor));
+    if (sub) c.appendChild(el("span", "sub", sub));
+    return c;
+  }
+  function renderCifras(xs) {
+    var box = document.getElementById("cifras");
+    box.textContent = "";
+    var unicos = xs.filter(function (x) { return !x.es_proyecto; });
+    var precios = xs.map(function (x) { return x.precio_a; }).filter(function (v) { return v != null; });
+    var m2 = unicos.map(function (x) { return x.m2; }).filter(function (v) { return v != null; });
+    var pm2 = unicos.map(function (x) { return x.precio_m2; }).filter(function (v) { return v != null; });
+    var sitio = D.total_sitio != null ? nf0.format(D.total_sitio) + " en el sitio" : null;
+    box.appendChild(cifra("Avisos en el informe", nf0.format(xs.length),
+      (xs.length !== AV.length ? "de " + nf0.format(AV.length) + " extraídos" : "extraídos") + (sitio ? " · " + sitio : "")));
+    box.appendChild(cifra("Precio mediano", dinero(mediana(precios), MON), precios.length + " con precio"));
+    box.appendChild(cifra("Superficie útil mediana", m2.length ? nf0.format(mediana(m2)) + " m²" : "—", m2.length + " con superficie"));
+    box.appendChild(cifra("Precio por m² útil", porM2(mediana(pm2)), "mediana de " + pm2.length + " avisos"));
+    document.getElementById("contador").textContent = nf0.format(xs.length) + " de " + nf0.format(AV.length) + " avisos";
+  }
+
+  // ---------------------------------------------------------------- gráfico
+  function ticks(max) {
+    if (!(max > 0)) return [0, 1];
+    var bruto = max / 5, p = Math.pow(10, Math.floor(Math.log10(bruto))), m = bruto / p;
+    var paso = (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+    var t = [];
+    for (var v = 0; v <= Math.ceil(max / paso) * paso + 1e-9; v += paso) t.push(+v.toFixed(6));
+    return t;
+  }
+  var puntos = [];
+  var tip = null;
+  function mostrarTip(p, caja) {
+    if (!tip) tip = el("div", "tooltip");
+    var x = p.x;
+    tip.textContent = "";
+    tip.appendChild(el("div", "t-valor", dinero(x.d.precio_a, MON)));
+    tip.appendChild(el("div", "t-titulo", x.d.titulo));
+    var det = [nf0.format(x.d.m2) + " m² útiles"];
+    if (x.d.dormitorios_min != null) det.push(rango(x.d.dormitorios_min, x.d.dormitorios_max, String) + " dorm.");
+    if (x.d.banos_min != null) det.push(rango(x.d.banos_min, x.d.banos_max, String) + " baños");
+    if (x.d.precio_m2 != null) det.push(porM2(x.d.precio_m2) + "/m²");
+    tip.appendChild(el("div", "t-det", det.join(" · ")));
+    if (x.d.ubicacion) tip.appendChild(el("div", "t-det", x.d.ubicacion));
+    caja.appendChild(tip);
+    var w = caja.clientWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
+    var left = p.cx + 14, top = p.cy - th - 10;
+    if (left + tw > w) left = p.cx - tw - 14;
+    if (left < 0) left = 0;
+    if (top < 0) top = p.cy + 14;
+    tip.style.left = left + "px"; tip.style.top = top + "px";
+  }
+  function ocultarTip() { if (tip && tip.parentNode) tip.parentNode.removeChild(tip); }
+  function marcar(id) {
+    estado.activo = id;
+    puntos.forEach(function (p) {
+      var on = p.x.d.id === id;
+      p.c.classList.toggle("activo", on);
+      p.c.setAttribute("r", on ? 7 : 4.5);
+    });
+    document.querySelectorAll("#tabla-cuerpo tr").forEach(function (tr) {
+      tr.classList.toggle("activo", tr.dataset.id === id);
+    });
+  }
+
+  function renderGrafico(xs) {
+    var caja = document.getElementById("grafico");
+    caja.textContent = ""; puntos = [];
+    var datos = xs.filter(function (x) { return !x.es_proyecto && x.m2 != null && x.precio_a != null; });
+    document.getElementById("g-nota").textContent = datos.length
+      ? datos.length + " avisos con precio y superficie útil únicos. Pasa el cursor para ver el detalle; clic abre el aviso."
+      : "";
+    if (!datos.length) { caja.appendChild(el("p", "vacio", "No hay avisos con precio y superficie útil para graficar con estos filtros.")); return; }
+    var W = Math.max(caja.clientWidth, 280), H = W < 520 ? 260 : 320;
+    var m = { t: 12, r: 16, b: 46, l: W < 520 ? 58 : 76 };
+    var tx = ticks(Math.max.apply(null, datos.map(function (d) { return d.m2; })));
+    var ty = ticks(Math.max.apply(null, datos.map(function (d) { return d.precio_a; })));
+    var xMax = tx[tx.length - 1], yMax = ty[ty.length - 1];
+    function X(v) { return m.l + (v / xMax) * (W - m.l - m.r); }
+    function Y(v) { return H - m.b - (v / yMax) * (H - m.t - m.b); }
+    var s = svg("svg", { viewBox: "0 0 " + W + " " + H, width: W, height: H, role: "img",
+      "aria-label": "Dispersión de precio (" + MON + ") según superficie útil (m²) de " + datos.length + " avisos" });
+    ty.forEach(function (v) {
+      s.appendChild(svg("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), "class": v === 0 ? "base" : "grid" }));
+      var t = svg("text", { x: m.l - 8, y: Y(v) + 4, "text-anchor": "end" });
+      t.textContent = v >= 100000 ? compacto.format(v) : nf0.format(v);
+      s.appendChild(t);
+    });
+    tx.forEach(function (v) {
+      var t = svg("text", { x: X(v), y: H - m.b + 18, "text-anchor": "middle" });
+      t.textContent = nf0.format(v);
+      s.appendChild(t);
+    });
+    s.appendChild(svg("line", { x1: m.l, x2: m.l, y1: m.t, y2: H - m.b, "class": "base" }));
+    var tX = svg("text", { x: m.l + (W - m.l - m.r) / 2, y: H - 6, "text-anchor": "middle", "class": "eje-titulo" });
+    tX.textContent = "Superficie útil (m²)";
+    s.appendChild(tX);
+    var tY = svg("text", { x: 14, y: m.t + (H - m.t - m.b) / 2, "text-anchor": "middle", "class": "eje-titulo",
+      transform: "rotate(-90 14 " + (m.t + (H - m.t - m.b) / 2) + ")" });
+    tY.textContent = "Precio (" + (MON === "UF" ? "UF" : "$") + ")";
+    s.appendChild(tY);
+
+    datos.forEach(function (d) {
+      var cx = X(d.m2), cy = Y(d.precio_a);
+      var enlace = svg("a", { href: d.url, target: "_blank", rel: "noopener",
+        "aria-label": d.titulo + ", " + dinero(d.precio_a, MON) + ", " + nf0.format(d.m2) + " m²" });
+      enlace.appendChild(svg("circle", { cx: cx, cy: cy, r: 12, "class": "golpe" }));
+      var c = svg("circle", { cx: cx, cy: cy, r: 4.5, "class": "punto" });
+      enlace.appendChild(c);
+      var p = { x: { d: d }, cx: cx, cy: cy, c: c };
+      enlace.addEventListener("focus", function () { marcar(d.id); mostrarTip(p, caja); });
+      enlace.addEventListener("blur", function () { marcar(null); ocultarTip(); });
+      s.appendChild(enlace);
+      puntos.push(p);
+    });
+    s.addEventListener("pointermove", function (ev) {
+      var r = s.getBoundingClientRect(), px = (ev.clientX - r.left) * (W / r.width), py = (ev.clientY - r.top) * (H / r.height);
+      var mejor = null, dist = 24 * 24;
+      puntos.forEach(function (p) {
+        var dd = (p.cx - px) * (p.cx - px) + (p.cy - py) * (p.cy - py);
+        if (dd < dist) { dist = dd; mejor = p; }
+      });
+      if (mejor) { marcar(mejor.x.d.id); mostrarTip(mejor, caja); } else { marcar(null); ocultarTip(); }
+    });
+    s.addEventListener("pointerleave", function () { marcar(null); ocultarTip(); });
+    caja.appendChild(s);
+  }
+
+  // ---------------------------------------------------------------- tabla
+  var COLS = [
+    { k: "posicion", t: "N°", num: true },
+    { k: "titulo", t: "Aviso" },
+    { k: "precio_a", t: "Precio", num: true },
+    { k: "m2", t: "m² útiles", num: true },
+    { k: "dormitorios_min", t: "Dorm.", num: true },
+    { k: "banos_min", t: "Baños", num: true },
+    { k: "precio_m2", t: (MON === "UF" ? "UF" : "$") + "/m²", num: true },
+    { k: "ubicacion", t: "Ubicación" },
+    { k: "publicador", t: "Publica" }
+  ];
+  function renderCabecera() {
+    var tr = document.getElementById("tabla-cab");
+    tr.textContent = "";
+    COLS.forEach(function (c) {
+      var th = el("th", c.num ? "num" : null);
+      th.scope = "col";
+      if (estado.orden === c.k) th.setAttribute("aria-sort", estado.dir > 0 ? "ascending" : "descending");
+      var b = el("button");
+      b.type = "button";
+      b.appendChild(document.createTextNode(c.t));
+      b.appendChild(el("span", "flecha", estado.orden === c.k ? (estado.dir > 0 ? "▲" : "▼") : ""));
+      b.addEventListener("click", function () {
+        if (estado.orden === c.k) estado.dir = -estado.dir; else { estado.orden = c.k; estado.dir = 1; }
+        render();
+      });
+      th.appendChild(b);
+      tr.appendChild(th);
+    });
+  }
+  function valorOrden(x, k) {
+    var v = x[k];
+    if (k === "m2" && v == null) v = x.superficie_util_min;
+    return v;
+  }
+  function renderTabla(xs) {
+    var cuerpo = document.getElementById("tabla-cuerpo");
+    cuerpo.textContent = "";
+    var k = estado.orden, dir = estado.dir;
+    var orden = xs.slice().sort(function (a, b) {
+      var va = valorOrden(a, k), vb = valorOrden(b, k);
+      if (va == null && vb == null) return a.posicion - b.posicion;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === "string") return dir * va.localeCompare(vb, "es");
+      return dir * (va - vb);
+    });
+    if (!orden.length) {
+      var tr0 = el("tr"); var td0 = el("td", "vacio", "Ningún aviso cumple los filtros de este informe.");
+      td0.colSpan = COLS.length; tr0.appendChild(td0); cuerpo.appendChild(tr0); return;
+    }
+    orden.forEach(function (x) {
+      var tr = el("tr");
+      tr.dataset.id = x.id;
+      tr.addEventListener("mouseenter", function () { marcar(x.id); });
+      tr.addEventListener("mouseleave", function () { marcar(null); });
+      tr.appendChild(el("td", "num", String(x.posicion)));
+      var tdA = el("td", "aviso");
+      var link = el("a", "titulo-aviso", x.titulo || x.id);
+      link.href = x.url; link.target = "_blank"; link.rel = "noopener";
+      tdA.appendChild(link);
+      var sub = el("div", "sub-aviso");
+      sub.appendChild(el("span", "id", x.id));
+      if (x.encabezado && VARIOS_TIPOS) sub.appendChild(el("span", null, x.encabezado));
+      if (x.etiqueta) sub.appendChild(el("span", null, x.etiqueta.charAt(0) + x.etiqueta.slice(1).toLowerCase()));
+      tdA.appendChild(sub);
+      tr.appendChild(tdA);
+      var tdP = el("td", "num");
+      if (x.precio_desde) tdP.appendChild(el("span", "desde", "Desde "));
+      tdP.appendChild(document.createTextNode(dinero(x.precio, x.moneda)));
+      if (x.precio_anterior) {
+        var baja = x.precio_anterior > 0 ? Math.round((1 - x.precio / x.precio_anterior) * 100) : null;
+        tdP.appendChild(el("span", "rebaja", "▼ " + (baja != null ? baja + "% · " : "") + "antes " + dinero(x.precio_anterior, x.moneda)));
+      }
+      tr.appendChild(tdP);
+      tr.appendChild(el("td", "num", rango(x.superficie_util_min, x.superficie_util_max, function (v) { return nf1.format(v); })));
+      tr.appendChild(el("td", "num", rango(x.dormitorios_min, x.dormitorios_max, String)));
+      tr.appendChild(el("td", "num", rango(x.banos_min, x.banos_max, String)));
+      tr.appendChild(el("td", "num", porM2(x.precio_m2)));
+      tr.appendChild(el("td", "ubic", x.ubicacion || "—"));
+      tr.appendChild(el("td", null, x.publicador || "—"));
+      cuerpo.appendChild(tr);
+    });
+  }
+
+  // ---------------------------------------------------------------- copiar
+  function csv(xs) {
+    var cab = ["posicion", "id", "titulo", "tipo", "precio", "moneda", "precio_desde", "precio_anterior",
+      "precio_" + MON.toLowerCase(), "m2_utiles", "dormitorios", "banos", "precio_m2_" + MON.toLowerCase(),
+      "ubicacion", "publica", "url"];
+    function c(v) {
+      if (v == null) return "";
+      if (typeof v === "number") return String(Math.round(v * 100) / 100).replace(".", ",");
+      v = String(v);
+      return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    }
+    var filas = xs.map(function (x) {
+      return [x.posicion, x.id, x.titulo, x.encabezado, x.precio, x.moneda, x.precio_desde ? "sí" : "",
+        x.precio_anterior, x.precio_a, x.m2 != null ? x.m2 : x.superficie_util_min,
+        rango(x.dormitorios_min, x.dormitorios_max, String).replace("—", ""),
+        rango(x.banos_min, x.banos_max, String).replace("—", ""), x.precio_m2,
+        x.ubicacion, x.publicador, x.url].map(c).join(";");
+    });
+    return [cab.join(";")].concat(filas).join("\n");
+  }
+  document.getElementById("copiar").addEventListener("click", function () {
+    var texto = csv(filtrados());
+    var estadoCopia = document.getElementById("estado-copia");
+    var respaldo = document.getElementById("respaldo-copia");
+    function manual() {
+      respaldo.textContent = "";
+      var ta = el("textarea", "respaldo");
+      ta.value = texto; ta.setAttribute("aria-label", "Tabla en formato CSV");
+      respaldo.appendChild(ta); ta.focus(); ta.select();
+      estadoCopia.textContent = "Selecciona el texto y cópialo con Ctrl+C.";
+    }
+    try {
+      navigator.clipboard.writeText(texto).then(function () {
+        estadoCopia.textContent = "Copiado: pégalo en Excel (separador ;).";
+      }, manual);
+    } catch (e) { manual(); }
+  });
+
+  // ---------------------------------------------------------------- pie
+  var pie = document.getElementById("pie");
+  pie.appendChild(el("p", null, "Fuente: resultados públicos de portalinmobiliario.com, tal como aparecen en cada tarjeta de la búsqueda. " +
+    "El precio por m² usa la superficie útil publicada. Los proyectos nuevos (precio “Desde”) quedan fuera del gráfico y de las medianas por m². " +
+    (D.valor_uf ? "Las conversiones entre UF y pesos usan UF " + nf2.format(D.valor_uf) + " (mindicador.cl)." : "")));
+  if (D.descartados) pie.appendChild(el("p", null, D.descartados + " avisos se descartaron al verificar localmente los filtros numéricos."));
+  if (D.paginas && D.paginas.length) {
+    pie.appendChild(el("p", null, "Páginas leídas:"));
+    var ol = el("ol");
+    D.paginas.forEach(function (u) { ol.appendChild(el("li", null, u)); });
+    pie.appendChild(ol);
+  }
+
+  // ---------------------------------------------------------------- render
+  function render() {
+    var xs = filtrados();
+    renderCifras(xs);
+    renderGrafico(xs);
+    renderCabecera();
+    renderTabla(xs);
+    if (estado.activo) marcar(estado.activo);
+  }
+  document.getElementById("f-texto").addEventListener("input", function (e) { estado.texto = e.target.value; render(); });
+  document.getElementById("f-dorm").addEventListener("change", function (e) { estado.dorm = +e.target.value || 0; render(); });
+  document.getElementById("f-precio").addEventListener("input", function (e) {
+    var v = parseFloat(String(e.target.value).replace(",", "."));
+    estado.precioMax = isFinite(v) && v > 0 ? v : null; render();
+  });
+  document.getElementById("f-rebaja").addEventListener("change", function (e) { estado.rebaja = e.target.checked; render(); });
+  var ancho = 0;
+  if (window.ResizeObserver) {
+    new ResizeObserver(function (entradas) {
+      var w = Math.round(entradas[0].contentRect.width);
+      if (w && Math.abs(w - ancho) > 4) { ancho = w; renderGrafico(filtrados()); }
+    }).observe(document.getElementById("grafico"));
+  }
+  render();
+})();
+</script>
