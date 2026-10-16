@@ -11,9 +11,8 @@ sin dependencias de compilación). Los datos son de ejemplo y se guardan en el
 | --- | --- |
 | Perfiles | Selector Atila Argentina / Padel Europa (Europa queda vacío hasta definir sus módulos). |
 | Bandeja de negocios | Negocios en gestión comercial (nuevo → calificado → propuesta → negociación). Al **cerrar la venta** se crea el proyecto y se copia el historial (trazabilidad). |
-| Proyectos y entregas | Línea de tiempo (Gantt) por proyecto con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
-| Calendario | Vista mensual con los hitos de todas las entregas, filtrable por proyecto. |
-| Mapa de Argentina | Proyectos ubicados por provincia / ciudad / comuna, coloreados por etapa. |
+| Proyectos y entregas | Listado de proyectos; al abrir uno se ve en página completa: línea de tiempo (Gantt) con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
+| Calendario y mapa | En una sola vista: mapa de Argentina (provincia / ciudad / comuna, color por etapa) y calendario mensual de hitos. Al tocar un proyecto en el mapa, el calendario muestra solo ese proyecto. |
 | Diseño de cancha | Renders reales de cada cancha (panorámica = Full Vision, semi panorámica = Elite Pro, estándar = Panoramic). Si es personalizada se recolorean pasto, postes de luz y amortiguadores / perfiles, y se coloca el logo sobre el vidrio. |
 | Modelos | Nombres editables (Atila Panorámica, Atila PRO, Atila Clásica, Atila Básica) y asignación del tipo. |
 
