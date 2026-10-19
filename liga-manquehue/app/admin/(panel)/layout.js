@@ -10,7 +10,7 @@ const items = [
   { href: '/admin', label: 'Inicio' },
   { href: '/admin/equipos', label: 'Equipos y Jugadores' },
   { href: '/admin/fixture', label: 'Fixture' },
-  { href: '/admin/resultados', label: 'Resultados' },
+  { href: '/admin/resultados', label: 'Resultados y Goleadores' },
   { href: '/admin/tribunal', label: 'Tribunal' },
   { href: '/admin/comunicados', label: 'Comunicados' },
   { href: '/admin/fotos', label: 'Fotos' },

@@ -73,3 +73,14 @@ CREATE TABLE IF NOT EXISTS photos (
 
 CREATE INDEX IF NOT EXISTS matches_round_idx ON matches(round_id);
 CREATE INDEX IF NOT EXISTS players_team_idx ON players(team_id);
+
+-- Goleadores
+ALTER TABLE players ADD COLUMN IF NOT EXISTS base_goals INT NOT NULL DEFAULT 0; -- goles previos al sitio
+
+CREATE TABLE IF NOT EXISTS goals (
+  id        SERIAL PRIMARY KEY,
+  match_id  INT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+  player_id INT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  count     INT NOT NULL DEFAULT 1 CHECK (count > 0)
+);
+CREATE INDEX IF NOT EXISTS goals_match_idx ON goals(match_id);

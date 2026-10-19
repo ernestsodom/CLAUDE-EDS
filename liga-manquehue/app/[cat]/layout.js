@@ -12,7 +12,7 @@ export default async function CategoryLayout({ children, params }) {
   const items = [
     { href: base, label: 'Tabla' },
     { href: `${base}/fixture`, label: 'Fixture' },
-    { href: `${base}/resultados`, label: 'Resultados' },
+    { href: `${base}/resultados`, label: 'Resultados y Goleadores' },
     { href: `${base}/tribunal`, label: 'Tribunal' },
     { href: `${base}/comunicados`, label: 'Comunicados' },
     { href: `${base}/equipos`, label: 'Equipos' },

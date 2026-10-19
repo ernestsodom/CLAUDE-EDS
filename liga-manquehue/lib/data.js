@@ -80,3 +80,31 @@ export async function getTeamsWithPlayers(cat) {
   ]);
   return teams.map((t) => ({ ...t, players: players.filter((p) => p.team_id === t.id) }));
 }
+
+// Tabla de goleadores: goles previos + goles cargados en partidos
+export async function getScorers(cat, limit = 50) {
+  return sql`SELECT p.id, p.name, t.name AS team_name,
+                    (p.base_goals + COALESCE(SUM(g.count), 0))::int AS goals
+             FROM players p
+             JOIN teams t ON t.id = p.team_id
+             LEFT JOIN goals g ON g.player_id = p.id
+             WHERE t.category = ${cat}
+             GROUP BY p.id, t.name
+             HAVING p.base_goals + COALESCE(SUM(g.count), 0) > 0
+             ORDER BY goals DESC, p.name
+             LIMIT ${limit}`;
+}
+
+// Goles por partido: { [match_id]: [{ id, player_id, name, team_id, count }] }
+export async function getGoalsByMatch(cat) {
+  const rows = await sql`SELECT g.id, g.match_id, g.count, p.id AS player_id, p.name, p.team_id
+                         FROM goals g
+                         JOIN players p ON p.id = g.player_id
+                         JOIN matches m ON m.id = g.match_id
+                         JOIN rounds r ON r.id = m.round_id
+                         WHERE r.category = ${cat}
+                         ORDER BY g.id`;
+  const map = {};
+  for (const g of rows) (map[g.match_id] ??= []).push(g);
+  return map;
+}

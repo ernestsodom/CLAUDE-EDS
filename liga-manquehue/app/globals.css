@@ -189,3 +189,25 @@ details.sub summary { cursor: pointer; color: var(--muted); font-weight: 600; fo
 .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--navy); }
 .login .card { width: 100%; max-width: 380px; }
 .login h1 { color: var(--navy); margin: 0; }
+
+/* Resultados + goleadores */
+.jump { display: flex; gap: 8px; margin-bottom: 4px; }
+.jump a { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: .9rem; text-decoration: none; color: var(--navy); }
+.grid-results { display: grid; gap: 0 20px; }
+.grid-results section { scroll-margin-top: 64px; }
+@media (min-width: 860px) {
+  .grid-results { grid-template-columns: 3fr 2fr; }
+  .grid-results #goleadores { order: 2; }
+  .jump { display: none; }
+}
+.scorers td.team { white-space: normal; }
+.scorers-line { font-size: .78rem; font-weight: 500; color: var(--muted); margin-top: -4px; }
+.scorers-line.home { text-align: right; }
+.goal-box { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 0 0 4px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; background: #eef2ff; color: var(--navy); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: .82rem; font-weight: 600; }
+.chip form { display: inline; }
+.goal-form { display: grid; grid-template-columns: 1fr 64px auto; gap: 6px; width: 100%; }
+.goal-form select, .goal-form input { padding: 8px; font-size: 15px; }
+.match-block { border-top: 1px solid var(--line); }
+.match-block .result-form { border-top: 0; }
+.chip .btn-danger { border: 0; background: #fff; border-radius: 999px; width: 22px; height: 22px; padding: 0; font-weight: 700; line-height: 1; }

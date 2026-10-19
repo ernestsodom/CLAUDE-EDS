@@ -4,7 +4,7 @@ import { byKey } from '@/lib/categories';
 import { getRounds, getTeams } from '@/lib/data';
 
 const tiles = [
-  { href: '/admin/resultados', icon: '📝', title: 'Cargar resultados', text: 'Anota los goles de cada partido. La tabla se actualiza sola.' },
+  { href: '/admin/resultados', icon: '📝', title: 'Resultados y goleadores', text: 'Anota el marcador y quién hizo los goles. Las tablas se actualizan solas.' },
   { href: '/admin/fixture', icon: '📅', title: 'Armar fixture', text: 'Crea las fechas y los partidos, o genéralo automático.' },
   { href: '/admin/tribunal', icon: '⚖️', title: 'Tribunal', text: 'Registra suspensiones y descuentos de puntos.' },
   { href: '/admin/comunicados', icon: '📢', title: 'Comunicados', text: 'Publica avisos para todos.' },

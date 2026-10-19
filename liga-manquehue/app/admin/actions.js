@@ -211,3 +211,27 @@ export async function deletePhoto(form) {
   await sql`DELETE FROM photos WHERE id = ${int(form.get('id'))}`;
   done();
 }
+
+// ---------- Goleadores ----------
+export async function addGoal(form) {
+  await requireAdmin();
+  const matchId = int(form.get('match_id'));
+  const playerId = int(form.get('player_id'));
+  const count = Math.max(int(form.get('count')) ?? 1, 1);
+  if (!matchId || !playerId) return;
+  await sql`INSERT INTO goals (match_id, player_id, count) VALUES (${matchId}, ${playerId}, ${count})`;
+  done();
+}
+
+export async function deleteGoal(form) {
+  await requireAdmin();
+  await sql`DELETE FROM goals WHERE id = ${int(form.get('id'))}`;
+  done();
+}
+
+export async function setBaseGoals(form) {
+  await requireAdmin();
+  await sql`UPDATE players SET base_goals = ${Math.max(int(form.get('base_goals')) ?? 0, 0)}
+            WHERE id = ${int(form.get('player_id'))}`;
+  done();
+}
