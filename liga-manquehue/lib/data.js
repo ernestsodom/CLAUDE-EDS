@@ -1,7 +1,11 @@
 import { sql } from './db';
+import { isoDate } from './format';
 
+// Sin las columnas pesadas (escudo y foto en base64)
 export async function getTeams(cat) {
-  return sql`SELECT * FROM teams WHERE category = ${cat} ORDER BY name`;
+  return sql`SELECT id, category, name, info, base_pj, base_pg, base_pe, base_pp, base_gf, base_gc,
+                    fp_ta, fp_tr, fp_pts, logo IS NOT NULL AS has_logo, photo IS NOT NULL AS has_photo
+             FROM teams WHERE category = ${cat} ORDER BY name`;
 }
 
 export async function getStandings(cat) {
@@ -17,7 +21,7 @@ export async function getStandings(cat) {
   const rows = new Map(
     teams.map((t) => [
       t.id,
-      { id: t.id, name: t.name, pj: t.base_pj, pg: t.base_pg, pe: t.base_pe, pp: t.base_pp, gf: t.base_gf, gc: t.base_gc, desc: 0 },
+      { id: t.id, name: t.name, has_logo: t.has_logo, pj: t.base_pj, pg: t.base_pg, pe: t.base_pe, pp: t.base_pp, gf: t.base_gf, gc: t.base_gc, desc: 0 },
     ])
   );
 
@@ -44,14 +48,16 @@ export async function getStandings(cat) {
 // Fechas con sus partidos, ordenadas por número de fecha
 export async function getRounds(cat) {
   const [rounds, matches] = await Promise.all([
-    sql`SELECT * FROM rounds WHERE category = ${cat} ORDER BY number`,
-    sql`SELECT m.*, h.name AS home_name, a.name AS away_name
+    sql`SELECT * FROM rounds WHERE category = ${cat} ORDER BY date NULLS LAST, number, id`,
+    sql`SELECT m.*, COALESCE(h.name, m.home_label, 'Por definir') AS home_name,
+               COALESCE(a.name, m.away_label, 'Por definir') AS away_name,
+               h.logo IS NOT NULL AS home_logo, a.logo IS NOT NULL AS away_logo
         FROM matches m
         JOIN rounds r ON r.id = m.round_id
-        JOIN teams h ON h.id = m.home_team_id
-        JOIN teams a ON a.id = m.away_team_id
+        LEFT JOIN teams h ON h.id = m.home_team_id
+        LEFT JOIN teams a ON a.id = m.away_team_id
         WHERE r.category = ${cat}
-        ORDER BY m.time NULLS LAST, m.id`,
+        ORDER BY m.id`,
   ]);
   return rounds.map((r) => ({ ...r, matches: matches.filter((m) => m.round_id === r.id) }));
 }
@@ -107,4 +113,27 @@ export async function getGoalsByMatch(cat) {
   const map = {};
   for (const g of rows) (map[g.match_id] ??= []).push(g);
   return map;
+}
+
+// Próxima fecha: la primera desde hoy (hora de Chile)
+export function nextRound(rounds) {
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+  return rounds.find((r) => r.date && isoDate(r.date) >= today) ?? rounds.find((r) => !r.date);
+}
+
+export async function getFairPlay(cat) {
+  return sql`SELECT id, name, fp_ta, fp_tr, fp_pts FROM teams WHERE category = ${cat} ORDER BY fp_pts, fp_tr, fp_ta, name`;
+}
+
+export async function getDocuments() {
+  return sql`SELECT id, section, title, position FROM documents ORDER BY position, id`;
+}
+
+export async function getPage(slug) {
+  const [page] = await sql`SELECT * FROM pages WHERE slug = ${slug}`;
+  return page ?? { slug, title: slug, body: '' };
+}
+
+export async function getPages() {
+  return sql`SELECT * FROM pages ORDER BY slug`;
 }

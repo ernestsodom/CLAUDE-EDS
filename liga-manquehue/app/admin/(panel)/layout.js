@@ -14,6 +14,8 @@ const items = [
   { href: '/admin/tribunal', label: 'Tribunal' },
   { href: '/admin/comunicados', label: 'Comunicados' },
   { href: '/admin/fotos', label: 'Fotos' },
+  { href: '/admin/documentos', label: 'Documentos' },
+  { href: '/admin/paginas', label: 'Historia y textos' },
 ];
 
 export default async function AdminLayout({ children }) {

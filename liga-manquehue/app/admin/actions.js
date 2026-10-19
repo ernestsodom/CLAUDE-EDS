@@ -11,6 +11,14 @@ const txt = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const cat = (v) => (CATS.includes(v) ? v : 'tc');
 const catOrAll = (v) => (CATS.includes(v) ? v : null);
 const done = () => revalidatePath('/', 'layout');
+const dataUrl = (v) => {
+  const m = /^data:([\w/+.-]+);base64,(.+)$/.exec(typeof v === 'string' ? v : '');
+  return m && { mime: m[1], data: m[2] };
+};
+const matchSide = (form, side) => {
+  const team = int(form.get(side));
+  return [team || null, team ? null : txt(form.get(`${side}_label`))];
+};
 
 // ---------- Sesión ----------
 export async function login(_prev, form) {
@@ -45,10 +53,16 @@ export async function addTeam(form) {
 export async function updateTeam(form) {
   await requireAdmin();
   const f = (k) => int(form.get(k)) ?? 0;
-  await sql`UPDATE teams SET name = ${txt(form.get('name'))?.toUpperCase()},
+  const id = int(form.get('id'));
+  await sql`UPDATE teams SET name = ${txt(form.get('name'))?.toUpperCase()}, info = ${txt(form.get('info'))},
               base_pj = ${f('base_pj')}, base_pg = ${f('base_pg')}, base_pe = ${f('base_pe')},
-              base_pp = ${f('base_pp')}, base_gf = ${f('base_gf')}, base_gc = ${f('base_gc')}
-            WHERE id = ${int(form.get('id'))}`;
+              base_pp = ${f('base_pp')}, base_gf = ${f('base_gf')}, base_gc = ${f('base_gc')},
+              fp_ta = ${f('fp_ta')}, fp_tr = ${f('fp_tr')}, fp_pts = ${f('fp_pts')}
+            WHERE id = ${id}`;
+  const logo = dataUrl(form.get('logo'));
+  if (logo) await sql`UPDATE teams SET logo = ${logo.data}, logo_mime = ${logo.mime} WHERE id = ${id}`;
+  const photo = dataUrl(form.get('photo'));
+  if (photo) await sql`UPDATE teams SET photo = ${photo.data}, photo_mime = ${photo.mime} WHERE id = ${id}`;
   done();
 }
 
@@ -87,15 +101,16 @@ export async function addRound(form) {
     const [{ next }] = await sql`SELECT COALESCE(MAX(number), 0)::int + 1 AS next FROM rounds WHERE category = ${c}`;
     number = next;
   }
-  await sql`INSERT INTO rounds (category, number, date)
-            VALUES (${c}, ${number}, ${txt(form.get('date'))})
-            ON CONFLICT (category, number) DO UPDATE SET date = EXCLUDED.date`;
+  await sql`INSERT INTO rounds (category, number, name, date, notes)
+            VALUES (${c}, ${number}, ${txt(form.get('name'))}, ${txt(form.get('date'))}, ${txt(form.get('notes'))})`;
   done();
 }
 
 export async function updateRound(form) {
   await requireAdmin();
-  await sql`UPDATE rounds SET date = ${txt(form.get('date'))} WHERE id = ${int(form.get('id'))}`;
+  await sql`UPDATE rounds SET number = ${int(form.get('number')) ?? 0}, name = ${txt(form.get('name'))},
+              date = ${txt(form.get('date'))}, date_label = ${txt(form.get('date_label'))}, notes = ${txt(form.get('notes'))}
+            WHERE id = ${int(form.get('id'))}`;
   done();
 }
 
@@ -107,11 +122,22 @@ export async function deleteRound(form) {
 
 export async function addMatch(form) {
   await requireAdmin();
-  const home = int(form.get('home'));
-  const away = int(form.get('away'));
-  if (!home || !away || home === away) return;
-  await sql`INSERT INTO matches (round_id, home_team_id, away_team_id, time, field)
-            VALUES (${int(form.get('round_id'))}, ${home}, ${away}, ${txt(form.get('time'))}, ${txt(form.get('field'))})`;
+  const [home, homeLabel] = matchSide(form, 'home');
+  const [away, awayLabel] = matchSide(form, 'away');
+  if ((!home && !homeLabel) || (!away && !awayLabel) || (home && home === away)) return;
+  await sql`INSERT INTO matches (round_id, home_team_id, away_team_id, home_label, away_label, time, field, note)
+            VALUES (${int(form.get('round_id'))}, ${home}, ${away}, ${homeLabel}, ${awayLabel},
+                    ${txt(form.get('time'))}, ${txt(form.get('field'))}, ${txt(form.get('note'))})`;
+  done();
+}
+
+export async function updateMatch(form) {
+  await requireAdmin();
+  const [home, homeLabel] = matchSide(form, 'home');
+  const [away, awayLabel] = matchSide(form, 'away');
+  await sql`UPDATE matches SET home_team_id = ${home}, away_team_id = ${away}, home_label = ${homeLabel}, away_label = ${awayLabel},
+              time = ${txt(form.get('time'))}, field = ${txt(form.get('field'))}, note = ${txt(form.get('note'))}
+            WHERE id = ${int(form.get('id'))}`;
   done();
 }
 
@@ -233,5 +259,32 @@ export async function setBaseGoals(form) {
   await requireAdmin();
   await sql`UPDATE players SET base_goals = ${Math.max(int(form.get('base_goals')) ?? 0, 0)}
             WHERE id = ${int(form.get('player_id'))}`;
+  done();
+}
+
+// ---------- Documentos y páginas ----------
+export async function addDocument(form) {
+  await requireAdmin();
+  const file = dataUrl(form.get('file'));
+  const title = txt(form.get('title'));
+  if (!file || !title) return;
+  const section = form.get('section') === 'anexos' ? 'anexos' : 'reglamentos';
+  await sql`INSERT INTO documents (section, title, mime, data, position)
+            VALUES (${section}, ${title}, ${file.mime}, ${file.data}, (SELECT COALESCE(MAX(position), 0) + 1 FROM documents))`;
+  done();
+}
+
+export async function deleteDocument(form) {
+  await requireAdmin();
+  await sql`DELETE FROM documents WHERE id = ${int(form.get('id'))}`;
+  done();
+}
+
+export async function savePage(form) {
+  await requireAdmin();
+  const slug = txt(form.get('slug'));
+  if (!slug) return;
+  await sql`INSERT INTO pages (slug, title, body) VALUES (${slug}, ${txt(form.get('title')) ?? slug}, ${form.get('body') ?? ''})
+            ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title, body = EXCLUDED.body, updated_at = now()`;
   done();
 }

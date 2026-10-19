@@ -1,8 +1,10 @@
 import { adminCat } from '@/lib/auth';
 import { byKey } from '@/lib/categories';
 import { getTeamsWithPlayers } from '@/lib/data';
-import { Submit, Delete } from '@/components/admin';
+import { Submit, Delete, FileField } from '@/components/admin';
 import { addTeam, updateTeam, deleteTeam, addPlayers, deletePlayer } from '../../actions';
+
+const FAIR = [['fp_ta', 'Amarillas'], ['fp_tr', 'Rojas'], ['fp_pts', 'Puntos']];
 
 const BASE = [
   ['base_pj', 'PJ'], ['base_pg', 'PG'], ['base_pe', 'PE'],
@@ -28,7 +30,10 @@ export default async function AdminTeams() {
       {teams.map((t) => (
         <details key={t.id} className="card team-card">
           <summary>
-            <strong>{t.name}</strong>
+            <strong>
+              {t.has_logo && <img className="crest" src={`/api/equipo/${t.id}/escudo`} alt="" />}
+              {t.name}
+            </strong>
             <span className="muted">{t.players.length} jugadores</span>
           </summary>
 
@@ -55,13 +60,31 @@ export default async function AdminTeams() {
           </form>
 
           <details className="sub">
-            <summary>Editar nombre y puntaje de arrastre</summary>
+            <summary>Editar equipo: escudo, foto, fair play y arrastre</summary>
             <form action={updateTeam} className="stack">
               <input type="hidden" name="id" value={t.id} />
               <label>
                 Nombre
                 <input name="name" defaultValue={t.name} required />
               </label>
+              <label>
+                Descripción (opcional)
+                <textarea name="info" rows={2} defaultValue={t.info ?? ''} placeholder="Ej: Fundado en 2002. Capitán: ..." />
+              </label>
+              <div className="row">
+                <FileField name="logo" label={t.has_logo ? 'Cambiar escudo' : 'Subir escudo'} max={256} type="image/png" />
+                <FileField name="photo" label={t.has_photo ? 'Cambiar foto del equipo' : 'Subir foto del equipo'} />
+              </div>
+              {t.has_photo && <img className="admin-thumb" src={`/api/equipo/${t.id}/foto`} alt="" />}
+              <p className="muted small">Fair Play (menos puntos = más juego limpio)</p>
+              <div className="base-grid">
+                {FAIR.map(([k, label]) => (
+                  <label key={k}>
+                    {label}
+                    <input type="number" name={k} defaultValue={t[k]} min={0} inputMode="numeric" />
+                  </label>
+                ))}
+              </div>
               <p className="muted small">
                 Arrastre: partidos jugados antes de usar este sitio. Se suman a los resultados que cargues.
               </p>

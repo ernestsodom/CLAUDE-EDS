@@ -1,14 +1,15 @@
 import { bySlug } from '@/lib/categories';
-import { getSanctions } from '@/lib/data';
+import { getSanctions, getFairPlay } from '@/lib/data';
 import { fmtShort } from '@/lib/format';
 
 export default async function TribunalPage({ params }) {
   const { cat } = await params;
   const category = bySlug(cat);
-  const sanctions = await getSanctions(category.key);
+  const [sanctions, fairPlay] = await Promise.all([getSanctions(category.key), getFairPlay(category.key)]);
   return (
     <>
       <h1 className="page-title">Tribunal y Sanciones · {category.name}</h1>
+      <h2>Sanciones</h2>
       {sanctions.length ? (
         sanctions.map((s) => (
           <article key={s.id} className="card sanction">
@@ -32,6 +33,27 @@ export default async function TribunalPage({ params }) {
       ) : (
         <p className="empty">No hay sanciones registradas. ¡Juego limpio! 👏</p>
       )}
+
+      <h2>Tabla Fair Play</h2>
+      <p className="muted small">TA: tarjetas amarillas · TR: tarjetas rojas · Menos puntos = más juego limpio.</p>
+      <div className="table-wrap">
+        <table className="standings">
+          <thead>
+            <tr><th>#</th><th className="left">Equipo</th><th>TA</th><th>TR</th><th>Puntos</th></tr>
+          </thead>
+          <tbody>
+            {fairPlay.map((t, i) => (
+              <tr key={t.id}>
+                <td>{i > 0 && fairPlay[i - 1].fp_pts === t.fp_pts ? '' : i + 1}</td>
+                <td className="left team">{t.name}</td>
+                <td>{t.fp_ta}</td>
+                <td>{t.fp_tr}</td>
+                <td className="pts">{t.fp_pts}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }

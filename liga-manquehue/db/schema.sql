@@ -84,3 +84,43 @@ CREATE TABLE IF NOT EXISTS goals (
   count     INT NOT NULL DEFAULT 1 CHECK (count > 0)
 );
 CREATE INDEX IF NOT EXISTS goals_match_idx ON goals(match_id);
+
+-- Fixture flexible: nombre de fecha, texto de días, equipos libres y partidos por definir (play off)
+ALTER TABLE rounds DROP CONSTRAINT IF EXISTS rounds_category_number_key;
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS name TEXT;        -- ej: "Fecha recuperativa", "Fecha 11 (Play off)"
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS date_label TEXT;  -- ej: "Lunes 5 / Jueves 8 oct"
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS notes TEXT;       -- ej: "Libres: Santa Fe, Santos"
+ALTER TABLE matches ALTER COLUMN home_team_id DROP NOT NULL;
+ALTER TABLE matches ALTER COLUMN away_team_id DROP NOT NULL;
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS home_label TEXT; -- cuando aún no hay equipo: "1° lugar"
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS away_label TEXT;
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS note TEXT;       -- ej: "Suspendido", "Semifinal Oro"
+
+-- Escudo, foto, descripción y fair play de cada equipo
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo TEXT;         -- base64
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo_mime TEXT;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS photo TEXT;        -- base64
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS photo_mime TEXT;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS info TEXT;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS fp_ta INT NOT NULL DEFAULT 0;  -- tarjetas amarillas
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS fp_tr INT NOT NULL DEFAULT 0;  -- tarjetas rojas
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS fp_pts INT NOT NULL DEFAULT 0; -- puntaje fair play (menos es mejor)
+
+-- Documentos PDF (reglamentos, anexos)
+CREATE TABLE IF NOT EXISTS documents (
+  id         SERIAL PRIMARY KEY,
+  section    TEXT NOT NULL DEFAULT 'reglamentos',
+  title      TEXT NOT NULL,
+  mime       TEXT NOT NULL,
+  data       TEXT NOT NULL, -- base64
+  position   INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Páginas de texto editables: historia, directiva, administracion, contacto
+CREATE TABLE IF NOT EXISTS pages (
+  slug       TEXT PRIMARY KEY,
+  title      TEXT NOT NULL,
+  body       TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

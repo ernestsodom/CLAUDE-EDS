@@ -18,7 +18,7 @@ export default async function AdminPhotos() {
           <figure key={p.id}>
             <img src={`/api/foto/${p.id}`} alt={p.caption || ''} loading="lazy" />
             <figcaption>
-              <span>{p.caption}</span>
+              <span>#{p.id} {p.caption}</span>
               <Delete action={deletePhoto} id={p.id} label="Borrar" question="¿Borrar esta foto?" />
             </figcaption>
           </figure>

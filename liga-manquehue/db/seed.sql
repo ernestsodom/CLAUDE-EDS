@@ -11,3 +11,16 @@ INSERT INTO teams (category, name, base_pj, base_pg, base_pe, base_pp, base_gf, 
   ('tc','SANTOS',      6,2,1,3,11,18),
   ('tc','H DE NEGRO',  6,0,0,6, 8,27)
 ON CONFLICT (category, name) DO NOTHING;
+
+-- Tabla Senior, Clausura 2026
+INSERT INTO teams (category, name, base_pj, base_pg, base_pe, base_pp, base_gf, base_gc) VALUES
+  ('senior','H DE NEGRO',  6,4,2,0,16, 5),
+  ('senior','SANTOS',      6,4,1,1,24,11),
+  ('senior','MATTA',       6,4,1,1,15,12),
+  ('senior','CONDORES',    5,3,0,2,10, 9),
+  ('senior','AMARELLO',    7,2,2,3,17,16),
+  ('senior','SANTA FE',    6,1,2,3,13,15),
+  ('senior','PUMAS',       5,1,1,3, 9,13),
+  ('senior','SAN ESTEBAN', 5,1,0,4, 5,19),
+  ('senior','MOLOKAI',     4,0,1,3, 3,12)
+ON CONFLICT (category, name) DO NOTHING;

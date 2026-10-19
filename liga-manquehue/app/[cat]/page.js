@@ -3,7 +3,7 @@ import StandingsTable from '@/components/StandingsTable';
 import RoundCard from '@/components/MatchList';
 import Announcement from '@/components/Announcement';
 import { bySlug } from '@/lib/categories';
-import { getStandings, getRounds, getAnnouncements } from '@/lib/data';
+import { getStandings, getRounds, getAnnouncements, nextRound } from '@/lib/data';
 
 export default async function TablePage({ params }) {
   const { cat } = await params;
@@ -13,10 +13,20 @@ export default async function TablePage({ params }) {
     getRounds(category.key),
     getAnnouncements(category.key, 3),
   ]);
-  const next = rounds.find((r) => !r.matches.length || r.matches.some((m) => m.home_goals == null));
+  const next = nextRound(rounds);
 
   return (
     <>
+      <section className="hero">
+        <video autoPlay muted loop playsInline poster="/video/inicio.jpg" preload="metadata">
+          <source src="/video/inicio.mp4" type="video/mp4" />
+        </video>
+        <div className="hero-text">
+          <h1>Te damos la bienvenida a la Liga SSCC Manquehue</h1>
+          <p>Anímate a participar en nuestra liga que durante dos décadas ha convocado a gran cantidad de papás en torno al futbolito y la práctica deportiva.</p>
+        </div>
+      </section>
+
       <h1 className="page-title">Tabla de Posiciones · {category.name}</h1>
       <StandingsTable rows={rows} />
 

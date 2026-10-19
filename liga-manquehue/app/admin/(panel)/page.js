@@ -10,6 +10,8 @@ const tiles = [
   { href: '/admin/comunicados', icon: '📢', title: 'Comunicados', text: 'Publica avisos para todos.' },
   { href: '/admin/equipos', icon: '👥', title: 'Equipos y jugadores', text: 'Agrega equipos y sus planteles.' },
   { href: '/admin/fotos', icon: '📷', title: 'Fotos', text: 'Sube las fotos de cada fecha.' },
+  { href: '/admin/documentos', icon: '📄', title: 'Documentos', text: 'Reglamentos, anexos y otros PDF.' },
+  { href: '/admin/paginas', icon: '📜', title: 'Historia y textos', text: 'Historia, directiva, tesorería y contacto.' },
 ];
 
 export default async function AdminHome() {

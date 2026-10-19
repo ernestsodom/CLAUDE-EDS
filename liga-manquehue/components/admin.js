@@ -45,18 +45,18 @@ export function LoginForm() {
   );
 }
 
-// Reduce la foto en el navegador antes de subirla (máx. 1600 px, JPEG)
-function compress(file) {
+// Reduce la imagen en el navegador antes de subirla
+function compress(file, max = 1600, type = 'image/jpeg') {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(img.src);
-      resolve(canvas.toDataURL('image/jpeg', 0.82));
+      resolve(canvas.toDataURL(type, 0.82));
     };
     img.onerror = () => reject(new Error(`No se pudo leer ${file.name}`));
     img.src = URL.createObjectURL(file);
@@ -108,5 +108,49 @@ export function PhotoUpload({ defaultCategory }) {
       <button className="btn" disabled={busy}>{busy ? 'Subiendo…' : 'Subir fotos'}</button>
       {status && <p className="muted">{status}</p>}
     </form>
+  );
+}
+
+const readDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+// Campo de archivo dentro de un formulario normal: deja el archivo listo (y reducido si es imagen)
+// en un campo oculto para la acción del servidor.
+export function FileField({ name, label, accept = 'image/*', max = 1600, type = 'image/jpeg', required = false }) {
+  const [value, setValue] = useState('');
+  const [msg, setMsg] = useState('');
+
+  async function onChange(e) {
+    const file = e.target.files[0];
+    setValue('');
+    if (!file) return setMsg('');
+    try {
+      if (file.type.startsWith('image/')) {
+        setValue(await compress(file, max, type));
+        setMsg('✔ Lista para guardar');
+      } else if (file.size > 3 * 1024 * 1024) {
+        setMsg('El archivo pesa más de 3 MB. Intenta con uno más liviano.');
+        e.target.value = '';
+      } else {
+        setValue(await readDataUrl(file));
+        setMsg('✔ Listo para guardar');
+      }
+    } catch (err) {
+      setMsg(`Error: ${err.message}`);
+    }
+  }
+
+  return (
+    <label>
+      {label}
+      <input type="file" accept={accept} onChange={onChange} required={required} />
+      <input type="hidden" name={name} value={value} />
+      {msg && <span className="muted small">{msg}</span>}
+    </label>
   );
 }

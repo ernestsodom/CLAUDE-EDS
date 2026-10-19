@@ -17,6 +17,7 @@ export default async function CategoryLayout({ children, params }) {
     { href: `${base}/comunicados`, label: 'Comunicados' },
     { href: `${base}/equipos`, label: 'Equipos' },
     { href: `${base}/fotos`, label: 'Fotos' },
+    { href: `${base}/liga`, label: 'La Liga' },
   ];
 
   return (
@@ -24,10 +25,10 @@ export default async function CategoryLayout({ children, params }) {
       <header className="header">
         <div className="container">
           <Link href="/" className="brand">
-            <span className="ball">⚽</span>
+            <img className="logo" src="/logo.png" alt="Liga de Futbolito SSCC Manquehue" />
             <span>
               <strong>Liga Manquehue</strong>
-              <small>Ex Alumnos y Apoderados · Clausura 2026</small>
+              <small>Papás, Apoderados y Ex Alumnos · Clausura 2026</small>
             </span>
           </Link>
           <div className="cats">
@@ -47,7 +48,13 @@ export default async function CategoryLayout({ children, params }) {
       <main className="container">{children}</main>
       <footer className="footer">
         <div className="container">
-          Colegio Sagrados Corazones de Manquehue · <Link href="/admin">Administrador</Link>
+          <p>Liga de Futbolito SSCC Manquehue · Padre Damián de Veuster #2215, Vitacura, Santiago</p>
+          <p>
+            <a href="https://www.instagram.com/ligassccmanquehue/" target="_blank" rel="noreferrer">Instagram</a> ·{' '}
+            <a href="https://www.facebook.com/ligassccmanquehue" target="_blank" rel="noreferrer">Facebook</a> ·{' '}
+            <a href="mailto:liga.sscc.manquehue@gmail.com">liga.sscc.manquehue@gmail.com</a> ·{' '}
+            <Link href="/admin">Administrador</Link>
+          </p>
         </div>
       </footer>
     </>

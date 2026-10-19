@@ -1,7 +1,8 @@
 import { adminCat } from '@/lib/auth';
 import { byKey } from '@/lib/categories';
 import { getRounds, getTeamsWithPlayers, getGoalsByMatch } from '@/lib/data';
-import { fmtDate } from '@/lib/format';
+import { fmtDate, isoDate } from '@/lib/format';
+import { roundTitle } from '@/components/MatchList';
 import { Submit, Delete } from '@/components/admin';
 import { saveResult, addGoal, deleteGoal, setBaseGoals } from '../../actions';
 
@@ -20,10 +21,12 @@ export default async function AdminResults() {
   const [rounds, teams, goals] = await Promise.all([getRounds(cat), getTeamsWithPlayers(cat), getGoalsByMatch(cat)]);
   const teamById = Object.fromEntries(teams.map((t) => [t.id, t]));
   const withPrevious = teams.flatMap((t) => t.players.filter((p) => p.base_goals > 0).map((p) => ({ ...p, team: t.name })));
-  // Primero las fechas con partidos pendientes
+  // Primero la fecha más reciente que ya se jugó, luego hacia atrás; al final las futuras
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+  const withMatches = rounds.filter((r) => r.matches.length);
   const sorted = [
-    ...rounds.filter((r) => r.matches.some((m) => m.home_goals == null)),
-    ...rounds.filter((r) => r.matches.length && r.matches.every((m) => m.home_goals != null)).reverse(),
+    ...withMatches.filter((r) => !r.date || isoDate(r.date) <= today).reverse(),
+    ...withMatches.filter((r) => r.date && isoDate(r.date) > today),
   ];
 
   return (
@@ -37,8 +40,8 @@ export default async function AdminResults() {
       {sorted.map((r) => (
         <section key={r.id} className="card">
           <h3 className="round-title">
-            Fecha {r.number}
-            {r.date && <small>{fmtDate(r.date)}</small>}
+            {roundTitle(r)}
+            {(r.date_label || r.date) && <small>{r.date_label || fmtDate(r.date)}</small>}
           </h3>
           {r.matches.map((m) => {
             const matchTeams = [teamById[m.home_team_id], teamById[m.away_team_id]].filter(Boolean);
@@ -55,7 +58,8 @@ export default async function AdminResults() {
                   <span className="away">{m.away_name}</span>
                   <Submit className="btn btn-small">✔</Submit>
                 </form>
-                <div className="goal-box">
+                {m.note && <p className="muted small center-text">{m.note}</p>}
+                {matchTeams.length > 0 && <div className="goal-box">
                   {(goals[m.id] ?? []).map((g) => (
                     <span key={g.id} className="chip">
                       ⚽ {g.name}{g.count > 1 && ` ×${g.count}`}
@@ -75,7 +79,7 @@ export default async function AdminResults() {
                   ) : (
                     <span className="muted small">Agrega jugadores en &quot;Equipos y Jugadores&quot; para anotar goleadores.</span>
                   )}
-                </div>
+                </div>}
               </div>
             );
           })}
