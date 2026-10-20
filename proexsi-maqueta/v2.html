@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proexsi Home v2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout v2: producto antes que folleto. Nav flotante en cápsula; hero con buscador de módulos
+   y collage; grilla bento asimétrica (4x3); buscador de módulos filtrable; data center con
+   selector Hosting/Housing; clientes en un eje norte–sur por región; contacto en tarjeta única. */
+:root {
+  --bg: #F3F6FB;
+  --surface: #FFFFFF;
+  --soft: #EAF0FA;
+  --ink: #0A1433;
+  --muted: #56607A;
+  --line: #DFE5F0;
+  --blue: #0035A9;
+  --blue-ink: #FFFFFF;
+  --sky: #2F6BFF;
+  --orange: #F29400;
+  --night: #050C24;
+  --night-2: #0B1638;
+  --night-ink: #E8EDF8;
+  --night-muted: #9BA7C6;
+  --night-line: #1C2A55;
+  --logo-filter: none;
+  --shadow: 0 1px 2px rgb(10 20 51 / .06), 0 12px 32px -12px rgb(10 20 51 / .18);
+  --font: "Onest", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --lane: 1240px;
+  --r-lg: 28px;
+  --r: 18px;
+  --r-sm: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #060B1C; --surface: #0D1530; --soft: #121D3E; --ink: #E8EDF8; --muted: #9AA5C2; --line: #1E2A4D;
+    --blue: #7EA2FF; --blue-ink: #04102F; --sky: #8FB0FF; --orange: #FFAA2B;
+    --night: #030714; --night-2: #0A1230; --logo-filter: brightness(0) invert(1);
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 16px 40px -16px rgb(0 0 0 / .7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #060B1C; --surface: #0D1530; --soft: #121D3E; --ink: #E8EDF8; --muted: #9AA5C2; --line: #1E2A4D;
+  --blue: #7EA2FF; --blue-ink: #04102F; --sky: #8FB0FF; --orange: #FFAA2B;
+  --night: #030714; --night-2: #0A1230; --logo-filter: brightness(0) invert(1);
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 16px 40px -16px rgb(0 0 0 / .7);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 50; background: var(--bg); }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.08; letter-spacing: -0.03em; text-wrap: balance; font-weight: 700; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { max-width: var(--lane); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 760px) { .wrap { padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); } }
+.sec { padding-block: clamp(64px, 8vw, 104px); }
+.kicker { display: inline-flex; align-items: center; gap: 8px; font: 500 12.5px var(--mono); letter-spacing: .04em; color: var(--blue); }
+.kicker i { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+.h2 { font-size: clamp(30px, 4.2vw, 48px); }
+.lead { color: var(--muted); font-size: 17.5px; max-width: 58ch; }
+.head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 36px; }
+.head > div { display: grid; gap: 12px; max-width: 640px; }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 20px; border-radius: 999px; border: 1px solid transparent; font: 600 15px/1 var(--font); text-decoration: none; cursor: pointer; transition: transform .15s, background .15s, border-color .15s; white-space: nowrap; }
+.btn:hover { transform: translateY(-1px); }
+.btn-blue { background: var(--blue); color: var(--blue-ink); }
+.btn-line { border-color: var(--line); background: var(--surface); }
+.btn-line:hover { border-color: var(--blue); }
+.btn-orange { background: var(--orange); color: #1E1200; }
+.arrow { width: 16px; height: 16px; }
+
+/* ---------- Nav flotante ---------- */
+.navbar { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); z-index: 40; margin-top: 12px; }
+.pill {
+  display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 20px; border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent); border: 1px solid var(--line);
+  backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); box-shadow: var(--shadow);
+}
+.pill .brand img { height: 26px; width: auto; filter: var(--logo-filter); }
+.pill nav { display: flex; gap: 2px; margin-inline: auto; }
+.pill nav a { padding: 9px 14px; border-radius: 999px; text-decoration: none; font-weight: 500; font-size: 15px; color: var(--muted); }
+.pill nav a:hover, .pill nav a.on { background: var(--soft); color: var(--ink); }
+.searchbtn { display: inline-flex; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); cursor: pointer; font-size: 14px; }
+.searchbtn kbd { font: 500 11.5px var(--mono); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; background: var(--surface); }
+.menubtn { display: none; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); cursor: pointer; place-items: center; }
+.drawer { margin-top: 8px; padding: 10px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); display: grid; gap: 2px; }
+.drawer a { padding: 12px 14px; border-radius: 12px; text-decoration: none; font-weight: 500; }
+.drawer a:hover { background: var(--soft); }
+@media (max-width: 1000px) { .pill nav { display: none; } .pill .brand { margin-right: auto; } }
+@media (max-width: 680px) { .searchbtn span, .searchbtn kbd, .pill .btn-blue { display: none; } .menubtn { display: grid; } }
+
+/* ---------- Hero ---------- */
+.hero { padding-block: clamp(40px, 6vw, 72px) clamp(48px, 6vw, 80px); }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
+.hero-copy { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; }
+.badge { justify-self: start; display: inline-flex; flex-wrap: wrap; max-width: 100%; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+.badge b { background: var(--blue); color: var(--blue-ink); font: 600 12px var(--mono); padding: 4px 9px; border-radius: 999px; }
+.hero h1 { font-size: clamp(40px, 5vw, 64px); font-weight: 800; letter-spacing: -0.045em; }
+.hero h1 span { background: linear-gradient(90deg, var(--blue), var(--sky)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.finder-mini { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 18px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.finder-mini svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+.finder-mini input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font: 500 16px var(--font); color: var(--ink); padding-block: 8px; }
+.finder-mini input::placeholder { color: var(--muted); }
+.suggest { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.suggest button { border: 1px solid var(--line); background: transparent; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-size: 13.5px; color: var(--ink); }
+.suggest button:hover { border-color: var(--blue); color: var(--blue); }
+
+.collage { position: relative; min-width: 0; display: grid; grid-template-columns: 1.25fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px; aspect-ratio: 1.08; }
+.collage figure { margin: 0; border-radius: var(--r-lg); overflow: hidden; position: relative; }
+.collage figure img { width: 100%; height: 100%; object-fit: cover; }
+.collage .c1 { grid-row: 1 / 3; }
+.float {
+  position: absolute; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: var(--shadow);
+  font-size: 13.5px; line-height: 1.3;
+}
+.float b { display: block; font-size: 17px; letter-spacing: -0.02em; }
+.float span { color: var(--muted); }
+.f1 { left: -18px; bottom: 28px; }
+.f2 { right: 18px; top: calc(50% - 32px); }
+.avatars { display: flex; }
+.avatars i { width: 34px; height: 34px; border-radius: 50%; background: #FFFFFF; border: 2px solid var(--surface); display: grid; place-items: center; overflow: hidden; margin-left: -10px; }
+.avatars i:first-child { margin-left: 0; }
+.avatars img { width: 26px; height: 26px; object-fit: contain; }
+.live { width: 10px; height: 10px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 4px rgb(34 197 94 / .2); flex: none; }
+@media (max-width: 940px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } .collage { aspect-ratio: 1.4; } .f1 { left: 12px; } }
+@media (max-width: 520px) { .collage { aspect-ratio: 1; } .f2 { display: none; } .float { padding: 10px 12px; } }
+
+/* ---------- Bento ---------- */
+.bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(250px, auto); gap: 16px;
+  grid-template-areas: "grp grp sis sis" "grp grp dc iso" "esc esc anos rel"; }
+.tile { position: relative; border-radius: var(--r-lg); overflow: hidden; min-width: 0; background: var(--surface); border: 1px solid var(--line); isolation: isolate; text-decoration: none; display: flex; flex-direction: column; }
+.tile.photo { color: #FFFFFF; border: 0; justify-content: flex-end; }
+.tile.photo > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform .7s ease, opacity .5s ease; }
+.tile.photo > img.hv { opacity: 0; }
+.tile.photo:hover > img.hv { opacity: 1; }
+.tile.photo:hover > img.bg { transform: scale(1.04); }
+.tile.photo::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(5 12 36 / 0) 25%, rgb(5 12 36 / .88) 100%); }
+.tile .in { padding: 26px; display: grid; gap: 10px; }
+.tile .ic { width: 48px; height: 48px; }
+.tile h3 { font-size: 24px; }
+.tile p { font-size: 15px; opacity: .88; }
+.tile.photo p { color: rgb(232 237 248 / .9); opacity: 1; }
+.tile .go { position: absolute; top: 18px; right: 18px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgb(255 255 255 / .16); backdrop-filter: blur(6px); border: 1px solid rgb(255 255 255 / .3); color: #FFFFFF; transition: background .2s, transform .2s; }
+.tile:hover .go { background: var(--orange); border-color: var(--orange); color: #1E1200; transform: rotate(-45deg); }
+.t-grp { grid-area: grp; }
+.t-grp h3 { font-size: clamp(28px, 3vw, 38px); }
+.t-grp .prods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.t-grp .prods div { padding: 12px 14px; border-radius: 14px; background: rgb(255 255 255 / .1); border: 1px solid rgb(255 255 255 / .2); backdrop-filter: blur(8px); font-size: 13.5px; line-height: 1.35; }
+.t-grp .prods b { display: block; font-size: 15px; }
+.t-sis { grid-area: sis; }
+.t-dc { grid-area: dc; background: var(--night); color: var(--night-ink); border-color: var(--night-line); justify-content: space-between; }
+.t-dc .in:first-child { padding-bottom: 0; }
+.t-iso { grid-area: iso; justify-content: space-between; }
+.t-iso figure { margin: 0; height: 120px; overflow: hidden; }
+.t-iso figure img { width: 100%; height: 100%; object-fit: cover; }
+.t-iso .seal { background: #FFFFFF; border-radius: 10px; padding: 6px 8px; justify-self: start; }
+.t-iso .seal img { width: 150px; }
+.t-iso h3 { font-size: 20px; color: var(--ink); }
+.t-esc { grid-area: esc; padding: 26px; display: grid; gap: 16px; align-content: start; }
+.t-esc h3 { font-size: 22px; }
+.scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; list-style: none; margin: 0; padding: 0; }
+.scale li { display: grid; gap: 8px; align-content: start; padding: 14px 12px; border-radius: 14px; background: var(--soft); min-width: 0; }
+.scale .ico { width: 38px; height: 38px; border-radius: 10px; background: #FFFFFF; display: grid; place-items: center; }
+.scale .ico img { width: 24px; height: 24px; }
+.scale b { font-size: 15px; line-height: 1.2; color: var(--blue); }
+.scale span { font-size: 12.5px; line-height: 1.35; color: var(--muted); }
+.t-anos { grid-area: anos; }
+.t-anos .big { font-size: 64px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; }
+.t-rel { grid-area: rel; }
+@media (max-width: 1080px) {
+  .bento { grid-template-columns: repeat(2, 1fr); grid-template-areas: "grp grp" "grp grp" "sis sis" "dc iso" "esc esc" "anos rel"; }
+  .scale { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .bento { grid-template-columns: 1fr; grid-template-areas: "grp" "sis" "dc" "iso" "esc" "anos" "rel"; grid-auto-rows: auto; }
+  .t-grp { min-height: 460px; } .t-sis, .t-anos, .t-rel { min-height: 280px; }
+  .scale { grid-template-columns: 1fr 1fr; }
+  .t-grp .prods { grid-template-columns: 1fr; }
+}
+
+/* ---------- Buscador de módulos ---------- */
+.finder { background: var(--surface); border-block: 1px solid var(--line); }
+.fbar { display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); z-index: 5; padding-block: 12px; background: var(--surface); }
+.fsearch { display: flex; align-items: center; gap: 10px; padding: 4px 6px 4px 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--bg); }
+.fsearch:focus-within { border-color: var(--blue); box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 15%, transparent); }
+.fsearch svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+.fsearch input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font: 500 17px var(--font); color: var(--ink); padding-block: 14px; }
+.fsearch .clear { border: 0; background: var(--soft); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.chiprow { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); }
+.chip em { font: 500 11.5px var(--mono); font-style: normal; opacity: .75; }
+.chip[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: var(--blue-ink); }
+.fmeta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--muted); margin-top: 10px; }
+.fmeta b { color: var(--ink); }
+.results { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 18px; }
+.mod { display: grid; gap: 6px; align-content: start; padding: 16px 18px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg); min-width: 0; transition: border-color .15s, transform .15s; }
+.mod:hover { border-color: var(--blue); transform: translateY(-2px); }
+.mod small { font: 500 11.5px var(--mono); color: var(--blue); letter-spacing: .02em; }
+.mod b { font-weight: 600; font-size: 15.5px; line-height: 1.3; }
+.mod mark { background: color-mix(in srgb, var(--orange) 35%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.areacard { grid-column: 1 / -1; display: grid; grid-template-columns: 220px 1fr; gap: 0; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line); background: var(--soft); }
+.areacard img { width: 100%; height: 100%; object-fit: cover; min-height: 120px; }
+.areacard div { padding: 18px 22px; display: grid; gap: 4px; align-content: center; }
+.areacard h3 { font-size: 22px; }
+.areacard p { color: var(--muted); font-size: 15px; }
+.showall { grid-column: 1 / -1; justify-self: center; margin-top: 8px; }
+.empty { grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r); }
+@media (max-width: 600px) { .areacard { grid-template-columns: 1fr; } .areacard img { height: 120px; } .fbar { top: calc(env(safe-area-inset-top, 0px) + 76px); } }
+
+/* ---------- Data center ---------- */
+.dc { background: var(--night); color: var(--night-ink); }
+.dc .kicker { color: #FFC266; }
+.dc .lead { color: var(--night-muted); }
+.dc-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(28px, 4vw, 56px); align-items: stretch; }
+.dc-media { position: relative; border-radius: var(--r-lg); overflow: hidden; min-height: 460px; }
+.dc-media img.main { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .5s; }
+.dc-media .inset { position: absolute; right: 18px; bottom: 18px; width: 38%; aspect-ratio: 1; border-radius: 20px; overflow: hidden; border: 3px solid var(--night); }
+.dc-media .inset img { width: 100%; height: 100%; object-fit: cover; }
+.dc-media .tagline { position: absolute; left: 18px; top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgb(3 7 20 / .7); backdrop-filter: blur(8px); font: 500 12.5px var(--mono); }
+.dc-body { display: grid; gap: 22px; align-content: center; min-width: 0; }
+.seg { display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: var(--night-2); border: 1px solid var(--night-line); justify-self: start; }
+.seg button { border: 0; background: none; padding: 10px 26px; border-radius: 999px; cursor: pointer; font-weight: 600; color: var(--night-muted); }
+.seg button[aria-selected="true"] { background: var(--night-ink); color: var(--night); }
+.dc-panel { display: grid; gap: 16px; }
+.dc-panel h3 { font-size: clamp(26px, 3vw, 34px); }
+.dc-panel p { color: var(--night-muted); font-size: 17px; }
+.checks { list-style: none; padding: 0; margin: 4px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.checks li { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--night-2); border: 1px solid var(--night-line); font-weight: 500; }
+.checks svg { width: 18px; height: 18px; color: #FFB240; flex: none; }
+.isoline { display: flex; align-items: center; gap: 16px; padding-top: 18px; border-top: 1px solid var(--night-line); flex-wrap: wrap; }
+.isoline .seal { background: #FFFFFF; border-radius: 10px; padding: 6px 8px; }
+.isoline .seal img { width: 170px; }
+.isoline span { color: var(--night-muted); font-size: 14.5px; flex: 1; min-width: 200px; }
+@media (max-width: 900px) { .dc-grid { grid-template-columns: 1fr; } .dc-media { min-height: 320px; } }
+@media (max-width: 460px) { .checks { grid-template-columns: 1fr; } }
+
+/* ---------- Clientes norte–sur ---------- */
+.ns { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
+.ns-intro { position: sticky; top: 110px; display: grid; gap: 16px; }
+.ns-intro .count { display: flex; gap: 28px; margin-top: 8px; }
+.ns-intro .count div { display: grid; }
+.ns-intro .count b { font-size: 40px; font-weight: 800; letter-spacing: -0.04em; color: var(--blue); line-height: 1.1; }
+.ns-intro .count span { font-size: 13.5px; color: var(--muted); }
+.axis { position: relative; display: grid; gap: 18px; padding-left: 92px; min-width: 0; }
+.axis::before { content: ""; position: absolute; left: 70px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--blue), var(--sky), var(--orange)); border-radius: 2px; }
+.region { position: relative; display: grid; gap: 10px; }
+.region::before { content: ""; position: absolute; left: -28px; top: 7px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); border: 3px solid var(--blue); }
+.region .lat { position: absolute; left: -92px; top: 3px; width: 54px; text-align: right; font: 500 12px var(--mono); color: var(--muted); }
+.region h3 { font-size: 17px; letter-spacing: -0.01em; display: flex; gap: 10px; align-items: baseline; }
+.region h3 small { font-weight: 500; font-size: 13px; color: var(--muted); }
+.logos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.logos div { height: 78px; display: grid; place-items: center; padding: 12px 16px; border-radius: 14px; background: #FFFFFF; border: 1px solid var(--line); transition: transform .2s, box-shadow .2s; }
+.logos div:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.logos img { max-height: 48px; max-width: 100%; width: auto; height: auto; object-fit: contain; }
+@media (max-width: 860px) { .ns { grid-template-columns: 1fr; } .ns-intro { position: static; } }
+@media (max-width: 460px) { .axis { padding-left: 34px; } .axis::before { left: 12px; } .region::before { left: -28px; } .region .lat { position: static; width: auto; text-align: left; } .logos { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- Contacto ---------- */
+.contact { display: grid; grid-template-columns: 0.9fr 1.1fr; border-radius: var(--r-lg); overflow: hidden; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.contact .side { position: relative; padding: clamp(28px, 4vw, 44px); color: #FFFFFF; display: grid; align-content: space-between; gap: 32px; isolation: isolate; min-height: 420px; }
+.contact .side > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.contact .side::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(160deg, rgb(0 53 169 / .92), rgb(5 12 36 / .82)); }
+.contact .side h2 { font-size: clamp(30px, 3.6vw, 42px); }
+.contact .side p { color: rgb(232 237 248 / .85); }
+.cdata { display: grid; gap: 14px; }
+.cdata div { display: grid; gap: 2px; }
+.cdata small { font: 500 11.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: #FFC266; }
+.cdata span { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-weight: 600; font-size: 18px; }
+.cdata button { border: 1px solid rgb(255 255 255 / .35); background: rgb(255 255 255 / .08); color: #FFFFFF; border-radius: 999px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+.cform { padding: clamp(28px, 4vw, 44px); display: grid; gap: 18px; min-width: 0; }
+.cform h3 { font-size: 20px; }
+.interest { display: flex; flex-wrap: wrap; gap: 8px; }
+.interest label { cursor: pointer; }
+.interest input { position: absolute; opacity: 0; pointer-events: none; }
+.interest span { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); font-weight: 500; font-size: 14.5px; }
+.interest img { width: 22px; height: 22px; border-radius: 6px; object-fit: cover; }
+.interest input:checked + span { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 10%, transparent); color: var(--blue); }
+.interest input:focus-visible + span { outline: 2px solid var(--orange); outline-offset: 2px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fld { display: grid; gap: 6px; min-width: 0; }
+.fld label { font-size: 13.5px; font-weight: 500; color: var(--muted); }
+.fld input, .fld textarea { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font: 400 15.5px var(--font); color: var(--ink); }
+.fld input:focus, .fld textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 15%, transparent); }
+.fld textarea { min-height: 110px; resize: vertical; }
+.fmsg { font-weight: 500; color: var(--blue); font-size: 14.5px; }
+@media (max-width: 900px) { .contact { grid-template-columns: 1fr; } .contact .side { min-height: 0; } }
+@media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
+
+/* ---------- Footer ---------- */
+.foot { padding-block: 40px 48px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+.foot img { height: 24px; width: auto; filter: var(--logo-filter); }
+.foot nav { display: flex; gap: 18px; flex-wrap: wrap; }
+.foot a { text-decoration: none; }
+.foot a:hover { color: var(--ink); }
+
+/* ---------- Notas ---------- */
+.notes-btn { position: fixed; z-index: 45; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 600 12.5px var(--mono); padding: 10px 14px; border-radius: 999px; cursor: pointer; background: var(--ink); color: var(--bg); border: 0; box-shadow: var(--shadow); }
+.notes { position: fixed; z-index: 46; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(66px + env(safe-area-inset-bottom, 0px)); width: min(380px, calc(100vw - 32px)); max-height: 70vh; overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; box-shadow: var(--shadow); font-size: 14px; display: grid; gap: 10px; }
+.notes h4 { font-size: 16px; letter-spacing: -0.01em; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); }
+.notes b { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .tile.photo > img.bg, .btn, .mod, .logos div, .tile .go { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="navbar wrap" id="top">
+  <div class="pill">
+    <a class="brand" href="#top"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"></a>
+    <nav aria-label="Principal">
+      <a href="#plataforma">Plataforma</a>
+      <a href="#modulos">Módulos</a>
+      <a href="#datacenter">Data Center</a>
+      <a href="#clientes">Clientes</a>
+    </nav>
+    <button class="searchbtn" type="button" id="openSearch" aria-label="Buscar módulo">
+      <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m14 14 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>Buscar módulo</span><kbd>/</kbd>
+    </button>
+    <a class="btn btn-blue" href="#contacto">Hablemos</a>
+    <button class="menubtn" type="button" id="menuBtn" aria-expanded="false" aria-controls="drawer" aria-label="Abrir menú">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer" id="drawer" hidden>
+    <a href="#plataforma">Plataforma</a><a href="#modulos">Módulos</a><a href="#datacenter">Data Center</a><a href="#clientes">Clientes</a><a href="#contacto">Contacto</a>
+  </div>
+</div>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="badge"><b>ISO 9001:2015</b> Más de 45 años en el sector público</span>
+        <h1>La plataforma que hace funcionar a los <span>municipios de Chile</span>.</h1>
+        <p class="lead">Sistemas de gestión municipal, desarrollo a la medida y data center propio, integrados en un solo proveedor.</p>
+        <form class="finder-mini" id="heroSearch" role="search">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m14 14 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="heroQ" type="search" placeholder="¿Qué proceso quiere digitalizar?" aria-label="Buscar un proceso o módulo">
+          <button class="btn btn-blue" type="submit">Buscar</button>
+        </form>
+        <div class="suggest"><span>Populares:</span>
+          <button type="button" data-q="Permisos de Circulación">Permisos de circulación</button>
+          <button type="button" data-q="Patentes">Patentes</button>
+          <button type="button" data-q="Remuneraciones">Remuneraciones</button>
+          <button type="button" data-q="E-Ticket">E-Ticket</button>
+        </div>
+      </div>
+      <div class="collage">
+        <figure class="c1"><img src="img/slide-experiencia.jpg" alt="Equipo de trabajo en reunión" fetchpriority="high"></figure>
+        <figure><img src="img/slide-calidad.jpg" alt="Especialistas en el data center"></figure>
+        <figure><img src="img/slide-conectados.jpg" alt="Personas conectadas desde sus teléfonos"></figure>
+        <div class="float f1">
+          <div class="avatars"><i><img src="img/clientes/las-condes.png" alt=""></i><i><img src="img/clientes/providencia.png" alt=""></i><i><img src="img/clientes/vina-del-mar.png" alt=""></i><i><img src="img/clientes/iquique.png" alt=""></i></div>
+          <div><b>20 municipios</b><span>de Iquique a Puerto Montt</span></div>
+        </div>
+        <div class="float f2"><i class="live"></i><div><b>Data center</b><span>Operación propia</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENTO -->
+  <section class="sec" id="plataforma" style="padding-top:0">
+    <div class="wrap">
+      <div class="head">
+        <div><span class="kicker"><i></i>Plataforma</span><h2 class="h2">Todo lo que una institución pública necesita, en un solo lugar.</h2></div>
+        <a class="btn btn-line" href="#contacto">Agendar una conversación</a>
+      </div>
+      <div class="bento">
+        <a class="tile photo t-grp" href="#modulos">
+          <img class="bg" src="img/area-grp.jpg" alt="">
+          <img class="bg hv" src="img/area-grp-hover.jpg" alt="">
+          <span class="go"><svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div class="in">
+            <img class="ic" src="img/icon-grp.png" alt="">
+            <h3>Soluciones GRP</h3>
+            <p>Plataformas modulares e integradas para administrar y gestionar la institución completa.</p>
+            <div class="prods">
+              <div><b>Proexsi AGM</b>Administración y Gestión Municipal</div>
+              <div><b>Proexsi AGCM</b>Administración y Gestión de Corporaciones</div>
+            </div>
+          </div>
+        </a>
+        <a class="tile photo t-sis" href="#contacto">
+          <img class="bg" src="img/area-sistemas.jpg" alt="">
+          <img class="bg hv" src="img/area-sistemas-hover.jpg" alt="">
+          <span class="go"><svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div class="in">
+            <img class="ic" src="img/icon-sistemas.png" alt="">
+            <h3>Sistemas de Gestión</h3>
+            <p>Diseñamos y desarrollamos sistemas a la medida que mejoran los resultados de nuestros clientes.</p>
+          </div>
+        </a>
+        <a class="tile t-dc" href="#datacenter">
+          <div class="in"><img class="ic" src="img/icon-datacenter.png" alt=""></div>
+          <div class="in"><h3>Data Center</h3><p>Hosting y housing con continuidad operacional.</p></div>
+          <span class="go"><svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a>
+        <div class="tile t-iso">
+          <figure><img src="img/pilar-iso.jpg" alt="Firma de un certificado"></figure>
+          <div class="in"><h3>Calidad certificada</h3><span class="seal"><img src="img/sello-iso-mercadopublico.png" alt="Sellos de Mercado Público e ISO 9001"></span></div>
+        </div>
+        <div class="tile t-esc">
+          <h3>Escala de operación</h3>
+          <ul class="scale">
+            <li><span class="ico"><img src="img/icon-permisos.png" alt=""></span><b>Millones</b><span>de permisos de circulación gestionados</span></li>
+            <li><span class="ico"><img src="img/icon-recaudacion.png" alt=""></span><b>Miles de millones $</b><span>recaudados al año</span></li>
+            <li><span class="ico"><img src="img/icon-liquidaciones.png" alt=""></span><b>Miles</b><span>de liquidaciones de sueldo al mes</span></li>
+            <li><span class="ico"><img src="img/icon-causas.png" alt=""></span><b>Millones</b><span>de causas judiciales al año</span></li>
+            <li><span class="ico"><img src="img/icon-personas.png" alt=""></span><b>Millones</b><span>de personas conectadas al mes</span></li>
+          </ul>
+        </div>
+        <div class="tile photo t-anos">
+          <img class="bg" src="img/pilar-trayectoria.jpg" alt="">
+          <div class="in"><span class="big">+45</span><p>años sosteniendo procesos de misión crítica. Únicos en Chile.</p></div>
+        </div>
+        <div class="tile photo t-rel">
+          <img class="bg" src="img/pilar-relaciones.jpg" alt="">
+          <div class="in"><h3>Relaciones de largo plazo</h3><p>Calidad, servicio integral e innovación.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUSCADOR DE MÓDULOS -->
+  <section class="sec finder" id="modulos">
+    <div class="wrap">
+      <div class="head">
+        <div><span class="kicker"><i></i>Proexsi AGM · Módulos</span><h2 class="h2">Encuentre el módulo que su municipio necesita.</h2></div>
+        <p class="lead">12 áreas integradas con tesorería, contabilidad y servicios en línea.</p>
+      </div>
+      <div class="fbar">
+        <label class="fsearch" for="q">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m14 14 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="q" type="search" placeholder="Buscar: patentes, licencias, remuneraciones…" autocomplete="off" aria-label="Buscar módulos">
+          <button class="clear" type="button" id="clearQ" hidden>Limpiar</button>
+        </label>
+        <div class="chiprow" id="chips" role="group" aria-label="Filtrar por área"></div>
+      </div>
+      <div class="fmeta"><span id="fcount"></span><span>Atajo: tecla <b>/</b> para buscar</span></div>
+      <div class="results" id="results" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- DATA CENTER -->
+  <section class="sec dc" id="datacenter">
+    <div class="wrap">
+      <div class="head">
+        <div><span class="kicker"><i></i>Data Center</span><h2 class="h2">Infraestructura propia para servicios que no pueden detenerse.</h2></div>
+        <p class="lead">Seguridad, confiabilidad y rapidez en los millones de datos que procesamos cada día.</p>
+      </div>
+      <div class="dc-grid">
+        <div class="dc-media">
+          <img class="main" id="dcImg" src="img/area-datacenter-hover.jpg" alt="Racks de servidores del data center">
+          <span class="tagline"><i class="live"></i>Operación continua</span>
+          <div class="inset"><img src="img/pilar-tecnologia.jpg" alt="Red global de datos"></div>
+        </div>
+        <div class="dc-body">
+          <div class="seg" role="tablist" aria-label="Servicio">
+            <button type="button" role="tab" id="t-host" aria-selected="true" aria-controls="dcPanel">Hosting</button>
+            <button type="button" role="tab" id="t-hous" aria-selected="false" aria-controls="dcPanel">Housing</button>
+          </div>
+          <div class="dc-panel" id="dcPanel" role="tabpanel" aria-labelledby="t-host"></div>
+          <div class="isoline">
+            <span class="seal"><img src="img/sello-iso-mercadopublico.png" alt="Sellos de Mercado Público e ISO 9001"></span>
+            <span>ISO 9001:2015 en la operación del data center y en el desarrollo y mantención de sistemas.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLIENTES NORTE–SUR -->
+  <section class="sec" id="clientes">
+    <div class="wrap ns">
+      <div class="ns-intro">
+        <span class="kicker"><i></i>Clientes</span>
+        <h2 class="h2">De norte a sur, Chile funciona con Proexsi.</h2>
+        <p class="lead">Municipalidades de seis regiones confían su operación diaria a nuestras plataformas.</p>
+        <div class="count"><div><b>20</b><span>municipios</span></div><div><b>6</b><span>regiones</span></div><div><b>20°–41°S</b><span>de Iquique a Puerto Montt</span></div></div>
+      </div>
+      <div class="axis" id="axis"></div>
+    </div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section class="sec" id="contacto" style="padding-top:0">
+    <div class="wrap">
+      <div class="contact">
+        <div class="side">
+          <img src="img/slide-innovacion.jpg" alt="">
+          <div style="display:grid;gap:14px">
+            <span class="kicker" style="color:#FFC266"><i></i>Contacto</span>
+            <h2>Conversemos sobre su institución.</h2>
+            <p>Un especialista le responderá con una propuesta a la medida.</p>
+          </div>
+          <div class="cdata">
+            <div><small>Correo</small><span>hablemos@proexsi.cl <button type="button" data-copy="hablemos@proexsi.cl">Copiar</button></span></div>
+            <div><small>Teléfono</small><span>+56 2 2489 1900 <button type="button" data-copy="+56224891900">Copiar</button></span></div>
+            <div><small>Oficina</small><span>Moneda 1040, piso 10, Santiago</span></div>
+          </div>
+        </div>
+        <form class="cform" id="cform" novalidate>
+          <h3>¿Qué le interesa?</h3>
+          <div class="interest">
+            <label><input type="radio" name="topic" value="GRP" checked><span><img src="img/area-grp.jpg" alt="">Soluciones GRP</span></label>
+            <label><input type="radio" name="topic" value="Sistemas"><span><img src="img/area-sistemas.jpg" alt="">Sistemas de Gestión</span></label>
+            <label><input type="radio" name="topic" value="DC"><span><img src="img/area-datacenter.jpg" alt="">Data Center</span></label>
+          </div>
+          <div class="two">
+            <div class="fld"><label for="c-name">Nombre</label><input id="c-name" name="name" autocomplete="name" placeholder="María Pérez"></div>
+            <div class="fld"><label for="c-org">Institución</label><input id="c-org" name="org" autocomplete="organization" placeholder="Municipalidad de…"></div>
+          </div>
+          <div class="fld"><label for="c-email">Correo</label><input id="c-email" name="email" type="email" autocomplete="email" placeholder="nombre@institucion.cl"></div>
+          <div class="fld"><label for="c-msg">Mensaje</label><textarea id="c-msg" name="msg" placeholder="Cuéntenos brevemente qué necesita"></textarea></div>
+          <button class="btn btn-blue" type="submit" style="justify-self:start">Enviar consulta
+            <svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <p class="fmsg" id="fmsg" hidden></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35">
+    <nav aria-label="Pie"><a href="#plataforma">Plataforma</a><a href="#modulos">Módulos</a><a href="#datacenter">Data Center</a><a href="#clientes">Clientes</a><a href="#contacto">Contacto</a></nav>
+    <span>© Proexsi · Moneda 1040, Santiago</span>
+  </div>
+</footer>
+
+<button class="notes-btn" id="notesBtn" type="button" aria-expanded="false" aria-controls="notes">Notas v2</button>
+<aside class="notes" id="notes" hidden aria-label="Notas de la versión 2">
+  <h4>Versión 2: qué cambia</h4>
+  <ul>
+    <li><b>Buscador primero:</b> el hero invita a buscar un proceso y lleva al buscador de los módulos.</li>
+    <li><b>Grilla bento:</b> soluciones, calidad, escala y trayectoria en una sola vista.</li>
+    <li><b>Data center:</b> selector Hosting / Housing en vez de dos bloques.</li>
+    <li><b>Clientes por región,</b> ordenados de norte a sur.</li>
+    <li><b>Mismas imágenes</b> que la versión 1. Las cifras siguen indicando solo la magnitud hasta tener los valores reales.</li>
+    <li><b>Formulario:</b> solo demostrativo, no envía datos.</li>
+  </ul>
+</aside>
+
+<script>
+const AREAS = [
+  { name: "Finanzas", img: "area-sistemas.jpg", desc: "Operaciones financieras, contables y presupuestarias bajo control.",
+    mods: ["Contabilidad Gubernamental","Contabilidad Financiera","Control de Presupuestos","Tesorería (Ingresos / Egresos)","Giro Directo","Conciliación Bancaria","Convenios de Pago","Cobranzas"] },
+  { name: "Administración", img: "area-grp.jpg", desc: "Compras y bienes institucionales, desde el stock hasta las órdenes de compra.",
+    mods: ["Adquisiciones y Control de Bodega","Control de Inventario","Activo Fijo"] },
+  { name: "RR.HH.", img: "pilar-relaciones.jpg", desc: "Gestión del personal: remuneraciones, permisos, asistencia y bienestar.",
+    mods: ["Personal","Remuneraciones","Bienestar","Intranet de Recursos Humanos"] },
+  { name: "Rentas Municipales", img: "area-sistemas-hover.jpg", desc: "Procesos que generan ingresos y facilitan los pagos de la comunidad.",
+    mods: ["Patentes Municipales","Declaración de Trabajadores y Capitales","Certificados de Inversión y de Capital","Permisos","Aseo Domiciliario","Permisos Precarios","Control de Morosidad","Cobranzas","Concesiones Municipales"] },
+  { name: "Tránsito", img: "slide-conectados.jpg", desc: "Dirección de Tránsito integrada con juzgados, tesorería y contabilidad.",
+    mods: ["Permisos de Circulación","Licencias de Conducir","Reserva de Hora por Internet","Registro de Multas no Pagadas","Multas TAG"] },
+  { name: "Inspección", img: "pilar-tecnologia.jpg", desc: "Fiscalización y seguridad en el territorio.",
+    mods: ["SIG · Información Geográfica","Seguridad Ciudadana","Inspección Digital"] },
+  { name: "Juzgados de Policía Local", img: "pilar-iso.jpg", desc: "Seguimiento e información de causas y procesos.",
+    mods: ["Seguimiento de Causas","Partes Empadronados","Partes de Ordenanza","Multas TAG"] },
+  { name: "Gobierno Digital", img: "pilar-trayectoria.jpg", desc: "Información y servicios en línea para una gestión transparente.",
+    mods: ["Gestión Documental","Banco Comunal de Proyectos","Control Electrónico de Decretos","Vigilancia Domiciliaria","OIRS","Biblioteca Digital","Tabla Concejo","Tramitación Electrónica","Participación Ciudadana"] },
+  { name: "Desarrollo Comunitario", img: "slide-conectados.jpg", desc: "Servicios sociales que el municipio entrega a su comunidad.",
+    mods: ["Atención Social","Grupo Familiar","Acción Social","Adulto Mayor","Organizaciones Comunitarias","Talleres, Clubes y Cursos","Tarjeta Vecino","Deportes","Subsidios","Asistencia Judicial","Becas","Higiene Ambiental","Atención Mascotas","OMIL","Desarrollo Comunal","Condominios Sociales"] },
+  { name: "Obras Municipales", img: "slide-experiencia.jpg", desc: "Procesos de la DOM con servicios web e integración SIG.",
+    mods: ["Obras Municipales","Certificados y Permisos","Control Ley de Ascensores","Ocupación de Espacio Público"] },
+  { name: "Gestión Cultural", img: "slide-innovacion.jpg", desc: "Venta de entradas y eventos con facturación electrónica y Webpay.",
+    mods: ["E-Ticket","Teatros","Cines","Museos","Casinos","Ferias y Eventos","Cursos y Talleres","Productos Complementarios"] },
+  { name: "Servicios por Internet", img: "area-grp-hover.jpg", desc: "Pagos, trámites y permisos en línea para vecinos y funcionarios.",
+    mods: ["Pagos en Línea","Permisos de Circulación","Patentes Municipales","Aseo Domiciliario","Obras","Declaración de Capital","Licencias de Conducir","E-Ticket"] }
+];
+const REGIONS = [
+  { lat: "20°S", name: "Tarapacá", items: [["iquique","Iquique"],["alto-hospicio","Alto Hospicio"]] },
+  { lat: "27°S", name: "Atacama", items: [["copiapo","Copiapó"]] },
+  { lat: "33°S", name: "Valparaíso", items: [["zapallar","Zapallar"],["quillota","Quillota"],["vina-del-mar","Viña del Mar"],["valparaiso","Valparaíso"],["algarrobo","Algarrobo"]] },
+  { lat: "33°S", name: "Metropolitana", items: [["colina","Colina"],["independencia","Independencia"],["providencia","Providencia"],["las-condes","Las Condes"],["la-reina","La Reina"],["nunoa","Ñuñoa"],["macul","Macul"],["penalolen","Peñalolén"],["san-joaquin","San Joaquín"],["puente-alto","Puente Alto"]] },
+  { lat: "35°S", name: "Maule", items: [["constitucion","Constitución"]] },
+  { lat: "41°S", name: "Los Lagos", items: [["puerto-montt","Puerto Montt"]] }
+];
+const DC = {
+  host: { img: "area-datacenter-hover.jpg", title: "Hosting", text: "Alojamos y operamos sus sistemas con seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos diariamente.",
+    checks: ["Seguridad","Confiabilidad","Rapidez","Estabilidad"] },
+  hous: { img: "slide-calidad.jpg", title: "Housing", text: "Ubique sus propios equipos en un data center certificado, con la conectividad y escalabilidad que su institución necesita.",
+    checks: ["Seguridad","Conectividad","Estabilidad","Escalabilidad"] }
+};
+
+const $ = (s) => document.querySelector(s);
+const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const esc = (s) => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ALL = AREAS.flatMap((a, ai) => a.mods.map(m => ({ m, ai })));
+
+// Buscador de módulos
+let area = -1, query = "", expanded = false;
+const LIMIT = 12;
+const chips = $("#chips");
+chips.innerHTML = `<button class="chip" type="button" data-a="-1" aria-pressed="true">Todas <em>${ALL.length}</em></button>` +
+  AREAS.map((a, i) => `<button class="chip" type="button" data-a="${i}" aria-pressed="false">${a.name} <em>${a.mods.length}</em></button>`).join("");
+chips.addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; area = +c.dataset.a; expanded = false; render(); });
+function highlight(text, q) {
+  if (!q) return esc(text);
+  const i = norm(text).indexOf(norm(q));
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+}
+function render() {
+  chips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", +c.dataset.a === area));
+  const q = query.trim();
+  const list = ALL.filter(x => (area < 0 || x.ai === area) && (!q || norm(x.m).includes(norm(q)) || norm(AREAS[x.ai].name).includes(norm(q))));
+  let html = "";
+  if (area >= 0 && !q) {
+    const a = AREAS[area];
+    html += `<div class="areacard"><img src="img/${a.img}" alt=""><div><h3>${a.name}</h3><p>${a.desc}</p></div></div>`;
+  }
+  const capped = area < 0 && !q && !expanded;
+  const shown = capped ? list.slice(0, LIMIT) : list;
+  html += shown.map(x => `<div class="mod"><small>${AREAS[x.ai].name}</small><b>${highlight(x.m, q)}</b></div>`).join("");
+  if (capped) html += `<button class="btn btn-line showall" type="button" id="showAll">Ver los ${list.length} módulos</button>`;
+  if (!list.length) html = `<div class="empty">No encontramos módulos para “${esc(q)}”. Pruebe con otra palabra o <a href="#contacto">consúltenos directamente</a>.</div>`;
+  $("#results").innerHTML = html;
+  $("#fcount").innerHTML = `Mostrando <b>${shown.length}</b> de ${ALL.length} módulos`;
+  $("#clearQ").hidden = !q;
+}
+$("#results").addEventListener("click", (e) => { if (e.target.id === "showAll") { expanded = true; render(); } });
+$("#q").addEventListener("input", (e) => { query = e.target.value; render(); });
+$("#clearQ").addEventListener("click", () => { query = ""; $("#q").value = ""; render(); $("#q").focus(); });
+function searchFor(q) {
+  query = q; area = -1; $("#q").value = q; render();
+  document.getElementById("modulos").scrollIntoView();
+}
+$("#heroSearch").addEventListener("submit", (e) => { e.preventDefault(); searchFor($("#heroQ").value); });
+document.querySelectorAll(".suggest button").forEach(b => b.addEventListener("click", () => searchFor(b.dataset.q)));
+$("#openSearch").addEventListener("click", () => { document.getElementById("modulos").scrollIntoView(); $("#q").focus({ preventScroll: true }); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/" && !/input|textarea|select/i.test(document.activeElement.tagName)) {
+    e.preventDefault(); document.getElementById("modulos").scrollIntoView(); $("#q").focus({ preventScroll: true });
+  }
+});
+render();
+
+// Data center
+const check = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3L15 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function dc(key) {
+  const d = DC[key];
+  $("#t-host").setAttribute("aria-selected", key === "host");
+  $("#t-hous").setAttribute("aria-selected", key === "hous");
+  $("#dcPanel").setAttribute("aria-labelledby", key === "host" ? "t-host" : "t-hous");
+  $("#dcPanel").innerHTML = `<h3>${d.title}</h3><p>${d.text}</p><ul class="checks">${d.checks.map(c => `<li>${check}${c}</li>`).join("")}</ul>`;
+  $("#dcImg").src = "img/" + d.img;
+}
+$("#t-host").addEventListener("click", () => dc("host"));
+$("#t-hous").addEventListener("click", () => dc("hous"));
+dc("host");
+
+// Clientes por región
+$("#axis").innerHTML = REGIONS.map(r => `
+  <div class="region">
+    <span class="lat">${r.lat}</span>
+    <h3>${r.name} <small>${r.items.length} ${r.items.length === 1 ? "municipio" : "municipios"}</small></h3>
+    <div class="logos">${r.items.map(([f, n]) => `<div><img src="img/clientes/${f}.png" alt="Municipalidad de ${n}"></div>`).join("")}</div>
+  </div>`).join("");
+
+// Menú móvil
+const mb = $("#menuBtn"), dr = $("#drawer");
+mb.addEventListener("click", () => { dr.hidden = !dr.hidden; mb.setAttribute("aria-expanded", !dr.hidden); });
+dr.addEventListener("click", (e) => { if (e.target.closest("a")) { dr.hidden = true; mb.setAttribute("aria-expanded", false); } });
+
+// Enlace activo
+const links = [...document.querySelectorAll(".pill nav a")];
+const io = new IntersectionObserver((es) => es.forEach(en => {
+  if (en.isIntersecting) links.forEach(l => l.classList.toggle("on", l.getAttribute("href") === "#" + en.target.id));
+}), { rootMargin: "-45% 0px -50% 0px" });
+["plataforma","modulos","datacenter","clientes"].forEach(id => io.observe(document.getElementById(id)));
+
+// Copiar
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+  navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = "Copiado"; setTimeout(() => b.textContent = "Copiar", 1600); }).catch(() => {
+    const r = document.createRange(); r.selectNodeContents(b.parentElement); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+}));
+
+// Formulario demostrativo
+$("#cform").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const el = e.target.elements, msg = $("#fmsg");
+  if (!el.name.value.trim() || !el.email.value || !el.email.checkValidity()) { msg.textContent = "Ingrese su nombre y un correo válido para continuar."; msg.hidden = false; return; }
+  msg.textContent = "Maqueta: en el sitio final esta consulta se enviará a hablemos@proexsi.cl."; msg.hidden = false;
+});
+
+// Notas
+const nb = $("#notesBtn"), notes = $("#notes");
+nb.addEventListener("click", () => { notes.hidden = !notes.hidden; nb.setAttribute("aria-expanded", !notes.hidden); });
+</script>
+
+</body>
+</html>

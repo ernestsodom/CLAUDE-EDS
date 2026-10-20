@@ -42,3 +42,17 @@ Incluye modo claro y oscuro (según el sistema) y un botón "Notas de maqueta" c
 - **Crédito del webmaster**: retirado del pie de página.
 - **Formulario**: solo demostrativo, no envía datos.
 - **Imagen no incluida**: `servicios-proexsi-slider.jpg` está referenciada en el CSS desde un servidor de pruebas antiguo del webmaster y no se muestra en el home.
+
+## Versión 2 (`v2.html`)
+
+Una diagramación distinta con las mismas imágenes de `img/`, pensada más como producto que como folleto:
+
+1. **Menú flotante en cápsula** con botón "Buscar módulo" (atajo: tecla `/`).
+2. **Hero con buscador**: "¿Qué proceso quiere digitalizar?", con sugerencias populares y un collage de 3 fotos con tarjetas flotantes (municipios, data center).
+3. **Grilla bento** (4×3): Soluciones GRP, Sistemas de Gestión, Data Center, calidad ISO, escala de operación con los 5 íconos, +45 años y relaciones de largo plazo.
+4. **Buscador de módulos**: búsqueda en vivo (sin importar tildes) sobre los 85 módulos, filtros por área y resaltado del texto encontrado.
+5. **Data Center** con selector Hosting / Housing que cambia el texto y la foto.
+6. **Clientes de norte a sur**: los 20 logos agrupados por región (Tarapacá a Los Lagos) sobre un eje de latitud.
+7. **Contacto** en una tarjeta: foto con los datos de contacto y un formulario con selección de interés.
+
+La versión 1 (`index.html`) queda intacta para comparar.
