@@ -6,6 +6,7 @@ CREATE TABLE vehicles (
   trans text NOT NULL DEFAULT 'Manual', comb text NOT NULL DEFAULT 'Bencina', precio bigint NOT NULL, tipo text NOT NULL DEFAULT 'SUV', trac text NOT NULL DEFAULT '4x2',
   color text NOT NULL DEFAULT '', descripcion text NOT NULL DEFAULT '', equipamiento jsonb NOT NULL DEFAULT '[]', fotos jsonb NOT NULL DEFAULT '[]',
   estado text NOT NULL DEFAULT 'disponible' CHECK (estado IN ('disponible','reservado','vendido')), destacado boolean NOT NULL DEFAULT false, orden int NOT NULL DEFAULT 0,
+  tag jsonb NOT NULL DEFAULT '{"text":"","visible":true}', discount jsonb NOT NULL DEFAULT '{"active":false,"original_price":null,"message":"Precio rebajado"}',
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE leads (
   id serial PRIMARY KEY, tipo text NOT NULL, nombre text NOT NULL DEFAULT '', telefono text NOT NULL DEFAULT '', email text NOT NULL DEFAULT '',

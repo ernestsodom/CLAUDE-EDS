@@ -5,6 +5,12 @@
   "regions": [
     "gru1"
   ],
+  "rewrites": [
+    {
+      "source": "/auto/:id",
+      "destination": "/api/car?id=:id"
+    }
+  ],
   "headers": [
     {
       "source": "/admin",
