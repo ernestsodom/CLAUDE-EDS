@@ -202,7 +202,7 @@ button { font: inherit; color: inherit; }
 .fsearch svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
 .fsearch input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font: 500 17px var(--font); color: var(--ink); padding-block: 14px; }
 .fsearch .clear { border: 0; background: var(--soft); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--muted); }
-.chiprow { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); }
 .chip em { font: 500 11.5px var(--mono); font-style: normal; opacity: .75; }
 .chip[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: var(--blue-ink); }
@@ -221,7 +221,8 @@ button { font: inherit; color: inherit; }
 .areacard p { color: var(--muted); font-size: 15px; }
 .showall { grid-column: 1 / -1; justify-self: center; margin-top: 8px; }
 .empty { grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r); }
-@media (max-width: 600px) { .areacard { grid-template-columns: 1fr; } .areacard img { height: 120px; } .fbar { top: calc(env(safe-area-inset-top, 0px) + 76px); } }
+@media (max-width: 760px) { .fbar { position: static; } }
+@media (max-width: 600px) { .areacard { grid-template-columns: 1fr; } .areacard img { height: 120px; } }
 
 /* ---------- Data center ---------- */
 .dc { background: var(--night); color: var(--night-ink); }
