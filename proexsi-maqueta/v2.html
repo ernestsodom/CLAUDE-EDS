@@ -231,8 +231,6 @@ button { font: inherit; color: inherit; }
 .dc-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(28px, 4vw, 56px); align-items: stretch; }
 .dc-media { position: relative; border-radius: var(--r-lg); overflow: hidden; min-height: 460px; }
 .dc-media img.main { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .5s; }
-.dc-media .inset { position: absolute; right: 18px; bottom: 18px; width: 38%; aspect-ratio: 1; border-radius: 20px; overflow: hidden; border: 3px solid var(--night); }
-.dc-media .inset img { width: 100%; height: 100%; object-fit: cover; }
 .dc-media .tagline { position: absolute; left: 18px; top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgb(3 7 20 / .7); backdrop-filter: blur(8px); font: 500 12.5px var(--mono); }
 .dc-body { display: grid; gap: 22px; align-content: center; min-width: 0; }
 .seg { display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: var(--night-2); border: 1px solid var(--night-line); justify-self: start; }
@@ -475,7 +473,6 @@ button { font: inherit; color: inherit; }
         <div class="dc-media">
           <img class="main" id="dcImg" src="img/area-datacenter-hover.jpg" alt="Racks de servidores del data center">
           <span class="tagline"><i class="live"></i>Operación continua</span>
-          <div class="inset"><img src="img/pilar-tecnologia.jpg" alt="Red global de datos"></div>
         </div>
         <div class="dc-body">
           <div class="seg" role="tablist" aria-label="Servicio">
