@@ -2,8 +2,11 @@
 
 Plataforma para controlar dos negocios con perfiles separados. Esta carpeta contiene,
 por ahora, **solo la maqueta navegable** (`maqueta/index.html`, un único archivo HTML
-sin dependencias de compilación). Los datos son de ejemplo y se guardan en el
-`localStorage` del navegador.
+sin dependencias de compilación). Los datos de proyectos vienen de la hoja CRONOGRAMA de
+`ATILA_Padel_Planificacion_2026.xlsx` (9 proyectos, 29 canchas); los cambios se guardan en el
+`localStorage` del navegador. El cronograma indica solo meses, así que los días de cada etapa
+son estimados (producción = mes completo; salida 1–5, entrega 6, instalación 7–20 y habilitación 21
+del mes de logística + instalación).
 
 ## Qué cubre la maqueta
 

@@ -171,6 +171,8 @@ textarea { resize: vertical; min-height: 60px }
 .mapctl { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; align-items: center; z-index: 2; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px }
 .mapctl .btn.sm { min-width: 28px }
 .maphint { padding: 8px 12px; border-top: 1px solid var(--line) }
+.land.uru { opacity: .6 }
+.country { font: 600 6px var(--f-body); letter-spacing: .1em; fill: var(--muted); text-anchor: middle; pointer-events: none }
 .land { fill: var(--surface2); stroke: var(--muted); stroke-width: 1; vector-effect: non-scaling-stroke }
 .city circle { fill: var(--muted); opacity: .6 }
 .city text { display: none; font: 400 7px var(--f-body); fill: var(--muted) }
@@ -252,8 +254,8 @@ table.models th { font-size: 11px; text-transform: uppercase; letter-spacing: .0
     </div>
     <nav class="nav" id="nav" aria-label="Módulos"></nav>
     <div class="side-foot">
-      <span>Maqueta navegable. Los datos son de ejemplo y se guardan solo en este navegador.</span>
-      <button class="btn sm ghost" data-act="reset">Restablecer datos de ejemplo</button>
+      <span>Maqueta navegable con los datos de ATILA_Padel_Planificacion_2026.xlsx. Los cambios se guardan solo en este navegador.</span>
+      <button class="btn sm ghost" data-act="reset">Volver a cargar datos del Excel</button>
     </div>
   </aside>
   <main class="main" id="main"></main>
@@ -310,7 +312,9 @@ const CITIES = [
   ['Tierra del Fuego', 'Ushuaia', -54.80, -68.30], ['San Juan', 'San Juan', -31.54, -68.53],
   ['San Luis', 'San Luis', -33.30, -66.34], ['Entre Ríos', 'Paraná', -31.73, -60.53],
   ['Corrientes', 'Corrientes', -27.47, -58.83], ['Misiones', 'Posadas', -27.37, -55.90],
-  ['Chaco', 'Resistencia', -27.45, -58.99], ['Santiago del Estero', 'Santiago del Estero', -27.79, -64.26]
+  ['Chaco', 'Resistencia', -27.45, -58.99], ['Santiago del Estero', 'Santiago del Estero', -27.79, -64.26],
+  ['Buenos Aires', 'Chascomús', -35.58, -58.01], ['Buenos Aires', 'Balcarce', -37.85, -58.26], ['Buenos Aires', 'Tortuguita', -34.47, -58.75],
+  ['Mendoza', 'Luján de Cuyo', -33.04, -68.88], ['Uruguay', 'Montevideo (a confirmar)', -34.90, -56.16]
 ].map(([prov, ciudad, lat, lon]) => ({ prov, ciudad, lat, lon }));
 const cityOf = name => CITIES.find(c => c.ciudad === name) || CITIES[0];
 const PROVINCIAS = [...new Set(CITIES.map(c => c.prov))].sort();
@@ -320,10 +324,7 @@ const SW_PASTO = ['#1f86d6', '#8fb59b', '#b8bec4', '#2e7d4f', '#c4553a', '#6b4fb
 const SW_POSTE = ['#1b2127', '#f2f4f6', '#3d9bff', '#d4a23a', '#c4372d', '#2e7d4f'];
 const SW_AMORT = ['#1b2127', '#7ec3f0', '#f2f4f6', '#ffcf3f', '#e5564b', '#3fbf7f'];
 
-const logoSvg = (txt, bg, fg) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
-  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 150'><rect width='300' height='150' rx='18' fill='${bg}'/><text x='150' y='98' font-family='Arial,Helvetica,sans-serif' font-weight='700' font-size='64' fill='${fg}' text-anchor='middle'>${txt}</text></svg>`);
-
-/* ===================== Datos de ejemplo ===================== */
+/* ===================== Datos reales (ATILA_Padel_Planificacion_2026.xlsx, hoja CRONOGRAMA) ===================== */
 function schedule(venta) {
   return STAGES.map(s => ({ key: s.key, inicio: addDays(venta, s.off), fin: addDays(venta, s.off + s.len - 1), estado: 'pendiente', hecho: '' }));
 }
@@ -333,69 +334,74 @@ function autoState(p) {
     else if (e.inicio <= TODAY) e.estado = 'en_curso';
   });
 }
+// El cronograma indica solo el mes de producción y el de logística + instalación; los días se estiman así:
+// producción = todo el mes; salida y transporte = días 1–5 del mes siguiente; entrega = día 6; instalación = días 7–20; habilitada = día 21.
+function scheduleFromMonths(prod, log) {
+  const end = ym => { const [y, m] = ym.split('-').map(Number); return isoOf(new Date(y, m, 0)); };
+  const d = (ym, day) => `${ym}-${pad(day)}`;
+  const s = { venta: [addDays(d(prod, 1), -1), addDays(d(prod, 1), -1)], construccion: [d(prod, 1), end(prod)], salida: [d(log, 1), d(log, 5)],
+    entrega: [d(log, 6), d(log, 6)], instalacion: [d(log, 7), d(log, 20)], habilitada: [d(log, 21), d(log, 21)] };
+  return STAGES.map(st => ({ key: st.key, inicio: s[st.key][0], fin: s[st.key][1], estado: 'pendiente', hecho: '' }));
+}
+const CESPED = { AZUL: '#1f6fd1', GRIS: '#8e949a', NEGRO: '#26292d', ROJO: '#b8362c' };
+const OBS_CPRO = 'Modelo Atila Competition PRO: amortiguadores, vidrio de repuesto, personalizaciones Atila + logo.';
 function seed() {
   const models = [
-    { id: 'm1', nombre: 'Atila Panorámica', tipo: 'panoramica', desc: 'Full glass, sin postes en las esquinas. Visión 360°.' },
-    { id: 'm2', nombre: 'Atila PRO', tipo: 'semi', desc: 'Esquinas tubulares, diseño elegante.' },
-    { id: 'm3', nombre: 'Atila Clásica', tipo: 'estandar', desc: 'Esquinas reforzadas, gran resistencia al viento.' },
-    { id: 'm4', nombre: 'Atila Básica', tipo: 'estandar', desc: 'Versión de entrada, estructura estándar.' }
+    { id: 'm1', nombre: 'Atila Competition PRO', tipo: 'panoramica', desc: 'Amortiguadores, vidrio de repuesto, personalizaciones Atila + logo.' },
+    { id: 'm2', nombre: 'Atila Club', tipo: 'estandar', desc: 'Amortiguadores, sin vidrio de repuesto, solo logo Atila.' },
+    { id: 'm3', nombre: 'Atila Panorámica', tipo: 'panoramica', desc: '' },
+    { id: 'm4', nombre: 'Atila PRO', tipo: 'semi', desc: '' },
+    { id: 'm5', nombre: 'Atila Clásica', tipo: 'estandar', desc: '' },
+    { id: 'm6', nombre: 'Atila Básica', tipo: 'estandar', desc: '' }
   ];
-  const P = [
-    { nombre: 'Club Náutico Delta — Cancha 3', cliente: 'Club Náutico Delta', ciudad: 'Tigre', comuna: 'Partido de Tigre', modelo: 'm1', canchas: 1, venta: -30,
-      pers: true, dis: { pasto: '#1f86d6', postes: '#f2f4f6', amort: '#7ec3f0', logo: logoSvg('CND', '#0c2340', '#ffffff') } },
-    { nombre: 'Córdoba Padel Center — Canchas 1 y 2', cliente: 'Córdoba Padel Center', ciudad: 'Córdoba', comuna: 'Nueva Córdoba', modelo: 'm2', canchas: 2, venta: -12,
-      pers: true, dis: { pasto: '#8fb59b', postes: '#1b2127', amort: '#ffcf3f', logo: logoSvg('CPC', '#ffcf3f', '#1b2127') } },
-    { nombre: 'Godoy Cruz Padel', cliente: 'Godoy Cruz Padel SRL', ciudad: 'Mendoza', comuna: 'Godoy Cruz', modelo: 'm3', canchas: 1, venta: -2, pers: false },
-    { nombre: 'Bariloche Sport Club', cliente: 'Bariloche Sport Club', ciudad: 'San Carlos de Bariloche', comuna: 'Centro', modelo: 'm1', canchas: 2, venta: -28, late: 'salida',
-      pers: true, dis: { pasto: '#b8bec4', postes: '#1b2127', amort: '#7ec3f0', logo: logoSvg('BSC', '#1b2127', '#7ec3f0') } },
-    { nombre: 'Palermo Padel — Cancha central', cliente: 'Palermo Padel', ciudad: 'Buenos Aires (CABA)', comuna: 'Comuna 14 · Palermo', modelo: 'm4', canchas: 1, venta: -70, pers: false },
-    { nombre: 'Rosario Padel Norte', cliente: 'Rosario Padel Norte', ciudad: 'Rosario', comuna: 'Distrito Norte', modelo: 'm2', canchas: 3, venta: -24, pers: false }
+  // [nombre, ubicación (Excel), ciudad, comuna, modelo, indoor/outdoor, color césped (Excel), canchas, status (Excel), observación (Excel), producción, logística + instalación, lat/lon opcional]
+  const R = [
+    ['Casa Propia', 'Laguna de Chascomús', 'Chascomús', 'Laguna de Chascomús', 'm2', 'Outdoor', 'AZUL', 1, 'Listo instalado',
+      'Modelo Atila Club (césped azul, con amortiguadores, sin vidrio de repuesto, solo con logo Atila).', '2026-06', '2026-07', null, '2026-07-15'],
+    ['P1 Padel', 'Balcarce', 'Balcarce', 'Partido de Balcarce', 'm1', 'Indoor', 'GRIS', 3, 'Listo instalado',
+      'Modelo Atila Competition PRO (césped negro, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo).', '2026-06', '2026-07', null, '2026-07-15'],
+    ['Black Padel', 'Tucumán', 'San Miguel de Tucumán', 'Comuna sin informar', 'm1', 'Indoor', 'NEGRO', 6, 'En ejecución de obra civil',
+      'Modelo Atila Competition PRO (césped negro, amortiguadores, vidrio de repuesto, pintura negra + personalizaciones Atila + logo).', '2026-12', '2027-01'],
+    ['Nexo', 'San Juan', 'San Juan', 'Comuna sin informar', 'm1', 'Indoor', 'AZUL', 4, 'En ejecución de obra civil',
+      'Modelo Atila Competition PRO (césped azul, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo).', '2026-11', '2026-12'],
+    ['Caballito', 'Caballito', 'Buenos Aires (CABA)', 'Comuna 6 · Caballito', 'm1', 'Indoor', 'AZUL', 6, 'En ejecución de obra civil',
+      'Modelo Atila Competition PRO (césped azul en dos rollos, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo). Césped azul en dos piezas.', '2026-12', '2027-01', [-34.62, -58.44]],
+    ['Neurona Padel — Indoor', 'Luján de Cuyo - Mendoza', 'Luján de Cuyo', 'Luján de Cuyo', 'm1', 'Indoor', 'ROJO', 4, 'En ejecución de obra civil',
+      'Modelo Atila Competition PRO (césped azul en dos rollos, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo).', '2026-11', '2026-12'],
+    ['Neurona Padel — Outdoor', 'Luján de Cuyo - Mendoza', 'Luján de Cuyo', 'Luján de Cuyo', 'm1', 'Outdoor', 'ROJO', 1, 'En ejecución de obra civil',
+      'Modelo Atila Competition PRO (césped azul en dos rollos, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo).', '2026-11', '2026-12'],
+    ['Melo', 'Tortuguita', 'Tortuguita', 'Partido de Malvinas Argentinas', 'm1', 'Outdoor', 'AZUL', 2, 'En ejecución de obra civil',
+      'Modelo Atila Competition PRO (césped azul, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo).', '2026-11', '2026-12'],
+    ['Level', 'Uruguay', 'Montevideo (a confirmar)', 'Ciudad a confirmar', 'm1', 'Indoor', 'AZUL', 2, 'En ejecución de obra civil',
+      'Modelo Atila Competition PRO (césped azul, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo).', '2026-12', '2027-01']
   ];
-  const projects = [], deals = [];
-  P.forEach((x, i) => {
-    const c = cityOf(x.ciudad), venta = addDays(TODAY, x.venta);
-    const dealId = 'd' + (100 + i), id = 'p' + (i + 1);
-    const p = { id, dealId, nombre: x.nombre, cliente: x.cliente, prov: c.prov, ciudad: c.ciudad, comuna: x.comuna, lat: c.lat, lon: c.lon,
-      modelo: x.modelo, canchas: x.canchas, personalizada: x.pers, diseno: { ...STD_DESIGN, ...(x.dis || {}) }, etapas: schedule(venta), traza: [] };
+  const projects = R.map((x, i) => {
+    const [nombre, ubic, ciudad, comuna, modelo, instal, cesped, canchas, status, obs, prod, log, ll, instHecha] = x;
+    const c = cityOf(ciudad);
+    const p = { id: 'p' + (i + 1), dealId: null, nombre, cliente: nombre.split(' — ')[0], prov: c.prov, ciudad: c.ciudad, comuna, ubicExcel: ubic,
+      lat: ll ? ll[0] : c.lat, lon: ll ? ll[1] : c.lon, modelo, canchas, instal, cesped, estadoObra: status, obs,
+      personalizada: true, diseno: { pasto: CESPED[cesped], logo: '' }, etapas: scheduleFromMonths(prod, log), traza: [] };
+    if (instHecha) { // instalaciones ya terminadas: logística + instalación el 15/07/2026
+      const set = (k, a, b) => { const e = p.etapas.find(e => e.key === k); e.inicio = a; e.fin = b; };
+      set('salida', '2026-07-01', '2026-07-05'); set('entrega', '2026-07-06', '2026-07-06'); set('instalacion', '2026-07-07', instHecha); set('habilitada', instHecha, instHecha);
+    }
+    if (!instHecha) { const v = p.etapas[0]; v.inicio = v.fin = TODAY; } // el Excel no trae la fecha de venta: se usa la fecha de importación
     autoState(p);
-    if (x.late) { const e = p.etapas.find(e => e.key === x.late); e.estado = 'en_curso'; e.hecho = '';
-      p.etapas.slice(p.etapas.indexOf(e) + 1).forEach(n => { n.estado = 'pendiente'; n.hecho = ''; }); }
-    p.traza.push({ f: addDays(venta, -21), t: 'Primer contacto registrado en la bandeja.' });
-    p.traza.push({ f: addDays(venta, -9), t: 'Propuesta enviada al cliente.' });
-    p.traza.push({ f: venta, t: 'Venta cerrada. Proyecto creado desde la bandeja de negocios.' });
-    p.etapas.forEach(e => { if (e.key !== 'venta' && e.estado === 'completada') p.traza.push({ f: e.hecho, t: `Etapa completada: ${stageName(e.key)}.` });
-      if (e.estado === 'en_curso' && e.key !== 'venta') p.traza.push({ f: e.inicio, t: `Etapa iniciada: ${stageName(e.key)}.` }); });
-    if (x.late) p.traza.push({ f: addDays(TODAY, -1), t: 'Camión retenido en ruta por clima. Nueva fecha a confirmar con el transportista.' });
-    projects.push(p);
-    deals.push({ id: dealId, cliente: x.cliente, contacto: '—', prov: c.prov, ciudad: c.ciudad, comuna: x.comuna, modelo: x.modelo, canchas: x.canchas,
-      origen: 'Referido', etapa: 'cerrada', actualizado: venta, proyectoId: id,
-      hist: [{ f: addDays(venta, -21), t: 'Primer contacto.' }, { f: addDays(venta, -9), t: 'Propuesta enviada.' }, { f: venta, t: 'Venta cerrada; pasa a Proyectos.' }] });
+    p.etapas[0].estado = 'completada'; p.etapas[0].hecho = p.etapas[0].fin;
+    p.traza.push({ f: TODAY, t: 'Importado desde ATILA_Padel_Planificacion_2026.xlsx (hoja CRONOGRAMA).' });
+    p.traza.push({ f: TODAY, t: `Status informado: ${status}.` });
+    p.traza.push({ f: TODAY, t: instHecha ? `Cronograma: logística + instalación ${fmtY(instHecha)}.` : `Cronograma: producción en ${MESES[+prod.slice(5) - 1]} ${prod.slice(0, 4)}, logística + instalación en ${MESES[+log.slice(5) - 1]} ${log.slice(0, 4)}. Días estimados.` });
+    if (!instHecha) p.traza.push({ f: TODAY, t: 'Venta cerrada: el Excel no informa la fecha de venta; se registra la fecha de importación.' });
+    return p;
   });
-  const open = [
-    ['Club Atlético San Isidro', 'Martín Ferreyra', 'San Isidro', 'San Isidro centro', 'm2', 2, 'Referido', 'negociacion', -1,
-      [[-18, 'Consulta por 2 canchas techadas.'], [-11, 'Visita a terreno, medidas 25 × 30 m.'], [-6, 'Propuesta enviada (Atila PRO).'], [-1, 'Piden ajustar plazo de entrega a 45 días.']]],
-    ['Costa Padel', 'Lucía Benítez', 'Mar del Plata', 'General Pueyrredón', 'm4', 2, 'Feria', 'calificado', -3,
-      [[-9, 'Contacto en feria Expo Deportes.'], [-3, 'Confirma presupuesto disponible para 2 canchas.']]],
-    ['Complejo Los Andes', 'Diego Arancibia', 'Salta', 'Capital', 'm3', 1, 'Instagram', 'propuesta', -4,
-      [[-12, 'Mensaje por Instagram.'], [-4, 'Propuesta enviada (Atila Clásica).']]],
-    ['Padel Point Neuquén', 'Florencia Rossi', 'Neuquén', 'Confluencia', 'm1', 3, 'Web', 'nuevo', 0,
-      [[0, 'Formulario web: interesada en 3 panorámicas.']]],
-    ['Tucumán Padel Club', 'Ramiro Paz', 'San Miguel de Tucumán', 'Yerba Buena', 'm2', 1, 'WhatsApp', 'negociacion', -2,
-      [[-15, 'Contacto por WhatsApp.'], [-8, 'Propuesta enviada.'], [-2, 'Solicita personalizar con colores del club.']]],
-    ['Quilmes Padel Arena', 'Sergio Molina', 'Quilmes', 'Bernal', 'm4', 1, 'Referido', 'perdida', -20,
-      [[-40, 'Primer contacto.'], [-20, 'Eligió otro proveedor por precio.']]]
-  ];
-  open.forEach((o, i) => { const c = cityOf(o[2]);
-    deals.push({ id: 'd' + (200 + i), cliente: o[0], contacto: o[1], prov: c.prov, ciudad: c.ciudad, comuna: o[3], modelo: o[4], canchas: o[5], origen: o[6],
-      etapa: o[7], actualizado: addDays(TODAY, o[8]), proyectoId: null, hist: o[9].map(([d, t]) => ({ f: addDays(TODAY, d), t })) }); });
-  return { v: 1, models, deals, projects };
+  return { v: 3, models, deals: [], projects };
 }
 function stageName(k) { return (STAGES.find(s => s.key === k) || {}).nombre || k; }
 
-const KEY = 'atila-maqueta-v2';
+const KEY = 'atila-maqueta-v3';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
-if (!S || S.v !== 1) S = seed();
+if (!S || S.v !== 3) S = seed();
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
 const UI = { profile: 'atila', view: 'bandeja', dealFilter: 'activos', deal: null, closing: false, newDeal: false, project: 'p1',
@@ -417,7 +423,8 @@ function pStatus(p) {
   const c = current(p);
   if (!c) return { txt: 'Cancha habilitada', cls: 'st-ok', key: 'fin' };
   if (p.etapas.some(isLate)) return { txt: `${stageName(c.key)} · atrasada`, cls: 'st-bad', key: c.key };
-  return { txt: stageName(c.key), cls: c.estado === 'en_curso' ? 'st-acc' : 'st-mut', key: c.key };
+  if (c.estado === 'pendiente') return { txt: `${stageName(c.key)} desde ${fmt(c.inicio)}`, cls: 'st-mut', key: c.key };
+  return { txt: stageName(c.key), cls: 'st-acc', key: c.key };
 }
 function stageColor(k) { return (STAGES.find(s => s.key === k) || { color: '#2ea86a' }).color; }
 
@@ -482,6 +489,7 @@ const designFor = (tipo, pers, d) => pers ? { ...COURTS[tipo].orig, ...d } : nul
 
 /* ===================== Mapa de Argentina ===================== */
 const AR = [[-65.75,-22.1],[-64.3,-22.8],[-62.8,-22.0],[-62.3,-22.4],[-61.0,-23.8],[-59.0,-24.9],[-57.8,-25.1],[-57.6,-25.6],[-58.6,-27.2],[-56.5,-27.5],[-55.6,-27.3],[-54.6,-25.6],[-53.65,-26.25],[-53.8,-27.1],[-55.7,-28.4],[-57.6,-30.2],[-58.1,-32.0],[-58.2,-33.1],[-58.4,-34.0],[-57.2,-35.3],[-57.4,-35.9],[-56.7,-36.4],[-57.7,-38.2],[-59.2,-38.7],[-61.3,-38.9],[-62.3,-38.8],[-62.1,-39.9],[-62.3,-40.6],[-64.9,-40.8],[-65.1,-42.0],[-64.3,-42.4],[-63.7,-42.8],[-64.9,-43.0],[-65.3,-44.5],[-66.6,-45.0],[-67.6,-46.3],[-66.6,-47.0],[-65.6,-47.9],[-67.8,-49.9],[-68.9,-51.6],[-68.4,-52.3],[-71.9,-52.0],[-72.3,-51.4],[-73.2,-50.7],[-73.4,-49.3],[-72.4,-47.7],[-71.7,-46.7],[-71.8,-45.0],[-71.3,-44.4],[-71.9,-43.4],[-71.7,-42.2],[-71.9,-40.4],[-71.4,-38.9],[-70.9,-37.0],[-70.4,-36.1],[-70.0,-33.9],[-70.5,-32.0],[-69.8,-30.1],[-69.0,-28.0],[-68.3,-26.9],[-68.6,-25.2],[-67.3,-24.0],[-67.0,-23.0],[-66.2,-21.8]];
+const URU = [[-57.6,-30.2],[-56.0,-30.1],[-55.0,-31.0],[-53.4,-32.6],[-53.2,-33.9],[-53.8,-34.4],[-54.9,-34.9],[-56.2,-34.9],[-57.8,-34.4],[-58.4,-33.9],[-58.1,-32.0]];
 const TDF = [[-68.6,-52.6],[-68.6,-54.9],[-67.3,-54.9],[-65.1,-55.0],[-66.4,-54.5],[-67.6,-53.9],[-68.3,-53.3]];
 const MX = lon => (lon + 74.5) * 12 * 0.8, MY = lat => (-lat - 20.5) * 12;
 const mpts = a => a.map(([lo, la]) => MX(lo).toFixed(1) + ',' + MY(la).toFixed(1)).join(' ');
@@ -599,7 +607,7 @@ function newDealForm() {
 function vProyectos() {
   const open = UI.projOpen && project(UI.project);
   if (open) return `<div><button class="btn ghost sm" data-act="projback">← Todos los proyectos</button></div>${projectDetail(open)}`;
-  const byStage = k => S.projects.filter(x => (current(x)?.key || 'fin') === k).length;
+  const byStage = k => S.projects.filter(x => current(x)?.key === k && current(x).estado === 'en_curso').length;
   const late = S.projects.filter(x => x.etapas.some(isLate)).length;
   const kpis = [['En construcción', byStage('construccion'), ''], ['Saliendo / en tránsito', byStage('salida'), ''], ['Por entregar', byStage('entrega'), ''],
     ['En instalación', byStage('instalacion'), ''], ['Habilitadas', S.projects.filter(x => !current(x)).length, 'st-ok'], ['Con atraso', late, late ? 'st-bad' : '']];
@@ -608,7 +616,7 @@ function vProyectos() {
   ${S.projects.length ? `<div class="pgrid">${S.projects.map(x => { const st = pStatus(x), c = current(x), ent = x.etapas.find(e => e.key === 'entrega');
     return `<button class="pcard" data-act="openproj" data-id="${x.id}">
       <div class="top"><span class="t">${esc(x.nombre)}</span><span class="muted small">Abrir →</span></div>
-      <span class="muted small">${esc(x.ciudad)} · ${esc(x.comuna)} · ${x.canchas} × ${esc(model(x.modelo).nombre)}</span>
+      <span class="muted small">${esc(x.ciudad)} · ${esc(x.comuna)} · ${x.canchas} × ${esc(model(x.modelo).nombre)}${x.instal ? ' · ' + esc(x.instal) : ''}</span>
       <div class="bar">${x.etapas.map(e => `<i class="${e.estado === 'completada' ? 'done' : isLate(e) ? 'late' : e.estado === 'en_curso' ? 'cur' : ''}"></i>`).join('')}</div>
       <div class="top"><span class="pill ${st.cls}">${st.txt}</span><span class="small muted">${c ? `Entrega en obra <span class="mono">${fmt(ent.fin)}</span>` : 'Entregada'}</span></div></button>`; }).join('')}</div>`
     : '<div class="panel"><div class="empty">Aún no hay proyectos. Cierra una venta en la bandeja.</div></div>'}`;
@@ -649,7 +657,7 @@ function projectDetail(p) {
     <div style="display:grid;gap:16px;min-width:0;align-content:start">
       <div class="panel"><div class="ph"><h3>Cancha</h3><button class="btn sm" data-act="design" data-id="${p.id}">Editar diseño</button></div>
         <div class="pb" style="display:grid;gap:10px">${courtView(d, m.tipo)}
-        <dl class="kv"><dt>Modelo</dt><dd>${esc(m.nombre)} · <span class="typebadge">${TIPOS[m.tipo]}</span></dd><dt>Canchas</dt><dd>${p.canchas}</dd><dt>Diseño</dt><dd>${p.personalizada ? 'Personalizado' : 'Estándar Atila'}</dd></dl></div></div>
+        <dl class="kv"><dt>Modelo</dt><dd>${esc(m.nombre)} · <span class="typebadge">${TIPOS[m.tipo]}</span></dd><dt>Canchas</dt><dd>${p.canchas}</dd>${p.instal ? `<dt>Instalación</dt><dd>${esc(p.instal)}</dd>` : ''}${p.cesped ? `<dt>Color césped</dt><dd>${esc(p.cesped)}</dd>` : ''}<dt>Diseño</dt><dd>${p.personalizada ? 'Personalizado' : 'Estándar Atila'}</dd>${p.estadoObra ? `<dt>Status</dt><dd>${esc(p.estadoObra)}</dd>` : ''}${p.obs ? `<dt>Observaciones</dt><dd class="small">${esc(p.obs)}</dd>` : ''}</dl></div></div>
       <div class="panel"><div class="ph"><h3>Trazabilidad</h3></div><div class="pb"><ul class="log">${[...p.traza].sort((a, b) => b.f.localeCompare(a.f)).map(h => `<li><span class="d">${fmtY(h.f).slice(0, 5)}</span><span>${esc(h.t)}</span></li>`).join('')}</ul>
         <form class="check" data-form="pnote" data-id="${p.id}" style="margin-top:10px"><input type="text" id="pn-${p.id}" name="t" placeholder="Agregar novedad…" required><button class="btn">Agregar</button></form></div></div>
     </div>
@@ -744,7 +752,7 @@ function vAgenda() {
 
   return `<div class="head"><div><h1>Calendario y mapa</h1><p>Dónde y cuándo: todos los proyectos en el mapa de Argentina y sus hitos de entrega en el calendario. Haz zoom en el mapa para leer cada proyecto con su cantidad de canchas.</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <select id="ag-prov" data-field="mapProv" aria-label="Filtrar por provincia" style="width:auto"><option value="">Todas las provincias</option>${PROVINCIAS.map(p => `<option ${UI.mapProv === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
+      <select id="ag-prov" data-field="mapProv" aria-label="Filtrar por provincia" style="width:auto"><option value="">Todas las provincias / países</option>${PROVINCIAS.map(p => `<option ${UI.mapProv === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
       <select id="ag-proj" data-field="calProject" aria-label="Filtrar por proyecto" style="width:auto"><option value="">Todos los proyectos</option>${inProv.map(p => `<option value="${p.id}" ${UI.calProject === p.id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select>
     </div></div>
   <div class="legend">${STAGES.map(s => `<span><i style="background:${s.color}"></i>${s.nombre}</span>`).join('')}</div>
@@ -756,7 +764,7 @@ function vAgenda() {
           <button class="btn sm" data-act="mapzoom" data-id="all">Ver todo</button>
           <span class="mono small muted" id="mapzl">1.0×</span></div>
         <svg id="agmap" viewBox="0 0 ${MAPW} ${MAPH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de Argentina con proyectos">
-          <polygon class="land" points="${mpts(AR)}"/><polygon class="land" points="${mpts(TDF)}"/>${cityDots}${markers}</svg>
+          <polygon class="land" points="${mpts(AR)}"/><polygon class="land" points="${mpts(TDF)}"/><polygon class="land uru" points="${mpts(URU)}"/><text class="country" x="${MX(-56).toFixed(1)}" y="${MY(-32.4).toFixed(1)}">URUGUAY</text>${cityDots}${markers}</svg>
         <div class="maphint small muted">Rueda del mouse, doble clic o pellizco para hacer zoom · arrastra para moverte · mapa esquemático</div></div>
       ${sel ? `<div class="panel"><div class="ph"><div><b>${esc(sel.nombre)}</b><br><span class="muted small">${esc(sel.ciudad)}, ${esc(sel.prov)} · ${esc(sel.comuna)}</span></div></div>
         <div class="pb" style="display:grid;gap:10px"><dl class="kv"><dt>Canchas</dt><dd>${sel.canchas} × ${esc(model(sel.modelo).nombre)}</dd><dt>Etapa</dt><dd><span class="pill ${pStatus(sel).cls}">${pStatus(sel).txt}</span></dd><dt>Entrega en obra</dt><dd class="mono">${fmtY(sel.etapas.find(e => e.key === 'entrega').fin)}</dd></dl>
@@ -842,7 +850,7 @@ document.addEventListener('click', ev => {
     case 'profile': UI.profile = id; if (id === 'atila' && !UI.view) UI.view = 'bandeja'; saveUI(); render(); break;
     case 'view': UI.view = id; UI.cfg = null; UI.projOpen = false; saveUI(); render(); window.scrollTo(0, 0); break;
     case 'theme': document.documentElement.dataset.theme = id; try { localStorage.setItem(KEY + '-theme', id); } catch (e) {} renderNav(); break;
-    case 'reset': S = seed(); UI.deal = null; UI.project = 'p1'; UI.cfg = null; commit('Datos de ejemplo restablecidos'); break;
+    case 'reset': S = seed(); UI.deal = null; UI.project = 'p1'; UI.cfg = null; commit('Datos del Excel cargados de nuevo'); break;
     case 'dfilter': UI.dealFilter = id; UI.deal = null; UI.closing = false; render(); break;
     case 'deal': UI.deal = id; UI.closing = false; render(); break;
     case 'newdeal': UI.newDeal = !UI.newDeal; render(); break;
