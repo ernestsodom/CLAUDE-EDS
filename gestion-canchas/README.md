@@ -18,7 +18,7 @@ del mes de logística + instalación).
 | Bandeja de negocios | Negocios en gestión comercial (nuevo → calificado → propuesta → negociación). Al **cerrar la venta** se crea el proyecto y se copia el historial (trazabilidad). |
 | Proyectos y entregas | Listado de proyectos en tarjetas coloreadas por estado (por iniciar, en construcción, saliendo / en tránsito, en instalación, habilitada, con atraso); al abrir uno se ve en página completa: línea de tiempo (Gantt) con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
 | Calendario y mapa | En una sola vista: mapa de Argentina con todos los proyectos (zoom con rueda, doble clic, pellizco o botones; arrastre para moverse; al acercarse se lee cada proyecto con su cantidad de canchas, modelo y etapa) y calendario mensual de hitos. Al tocar un proyecto, el mapa se acerca a él y el calendario muestra solo ese proyecto. |
-| Diseño de cancha | Renders reales de los tres tipos de cancha ATILA (Competition PRO = Full Vision, Atila PRO = Elite Pro, Atila Estándar = Panoramic). Solo se cambia el color del césped. Debajo: **amortiguadores** (ilustración del amortiguador ATILA que se pinta con la carta RAL Classic completa, con búsqueda por código o nombre y color libre) y **archivos del proyecto**: logo para la cancha (indicando si va en los amortiguadores y/o sobre las puertas) y mapa del proyecto (imagen, PDF o DWG/DXF, hasta 2 MB). Todo se guarda en el proyecto y se ve en su ficha. |
+| Diseño de cancha | Renders reales de los tres tipos de cancha ATILA (Competition PRO = Full Vision, Atila PRO = Elite Pro, Atila Estándar = Panoramic). Solo se cambia el color del césped. Debajo: **amortiguadores** (foto real del amortiguador ATILA, cuyas piezas amarillas se recolorean con la carta RAL Classic completa, con búsqueda por código o nombre y color libre) y **archivos del proyecto**: logo para la cancha (indicando si va en los amortiguadores y/o sobre las puertas) y mapa del proyecto (imagen, PDF o DWG/DXF, hasta 2 MB). Todo se guarda en el proyecto y se ve en su ficha. |
 | Tipos de cancha | Los tres tipos ATILA (Competition PRO, Atila PRO, Atila Estándar) con nombre y descripción editables. |
 
 ## Línea gráfica ATILA
@@ -34,6 +34,12 @@ comercial); la maqueta usa Saira de Google Fonts como alternativa libre. Logos e
 y una máscara por imagen (canal R = pasto, G = amortiguadores / perfiles, B = poste de luz), generadas con
 `generar_mascaras.py`. La maqueta las lleva incrustadas en `index.html` y recolorea en el navegador
 conservando la luminancia original (luces y sombras).
+
+## Foto del amortiguador
+
+`maqueta/amortiguador/` contiene la foto original, el recorte usado y la máscara de las piezas amarillas
+de los amortiguadores (generada con `generar_mascara.py`). Igual que las canchas, se recolorea en el navegador
+conservando la luminancia; el poste amarillo del fondo queda fuera de la máscara.
 
 ## Usuarios iniciales de la maqueta
 
