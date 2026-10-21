@@ -14,10 +14,17 @@ del mes de logística + instalación).
 | --- | --- |
 | Perfiles | Selector Atila Argentina / Padel Europa (Europa queda vacío hasta definir sus módulos). |
 | Bandeja de negocios | Negocios en gestión comercial (nuevo → calificado → propuesta → negociación). Al **cerrar la venta** se crea el proyecto y se copia el historial (trazabilidad). |
-| Proyectos y entregas | Listado de proyectos; al abrir uno se ve en página completa: línea de tiempo (Gantt) con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
+| Proyectos y entregas | Listado de proyectos en tarjetas coloreadas por estado (por iniciar, en construcción, saliendo / en tránsito, en instalación, habilitada, con atraso); al abrir uno se ve en página completa: línea de tiempo (Gantt) con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
 | Calendario y mapa | En una sola vista: mapa de Argentina con todos los proyectos (zoom con rueda, doble clic, pellizco o botones; arrastre para moverse; al acercarse se lee cada proyecto con su cantidad de canchas, modelo y etapa) y calendario mensual de hitos. Al tocar un proyecto, el mapa se acerca a él y el calendario muestra solo ese proyecto. |
-| Diseño de cancha | Renders reales de cada cancha (panorámica = Full Vision, semi panorámica = Elite Pro, estándar = Panoramic). Si es personalizada se recolorean pasto, postes de luz y amortiguadores / perfiles, y se coloca el logo sobre el vidrio. |
-| Modelos | Nombres editables (Atila Panorámica, Atila PRO, Atila Clásica, Atila Básica) y asignación del tipo. |
+| Diseño de cancha | Renders reales de los tres tipos de cancha ATILA (Competition PRO = Full Vision, Atila PRO = Elite Pro, Atila Estándar = Panoramic). Solo se cambia el color del césped. |
+| Tipos de cancha | Los tres tipos ATILA (Competition PRO, Atila PRO, Atila Estándar) con nombre y descripción editables. |
+
+## Línea gráfica ATILA
+
+El perfil Atila Argentina sigue la línea de atilapadel.com: fondo #0d0d0d, texto #f2f2f2, acento menta
+#41d7a7, títulos livianos en mayúsculas, bordes finos y esquinas rectas. La web usa Praktika (tipografía
+comercial); la maqueta usa Saira de Google Fonts como alternativa libre. Logos en `maqueta/marca/`
+(versión blanca para fondo negro y versión oscura para fondo blanco).
 
 ## Imágenes de las canchas
 
