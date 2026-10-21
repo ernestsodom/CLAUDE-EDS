@@ -62,6 +62,7 @@ button { cursor: pointer }
 .nav { display: flex; flex-direction: column; gap: 2px }
 .nav button { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; padding: 9px 10px; border-radius: 7px; text-align: left; color: var(--muted); font-weight: 500 }
 .nav button:hover { background: var(--surface2); color: var(--fg) }
+.nav button svg { flex: none }
 .nav button[aria-current="page"] { background: var(--surface2); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent) }
 .nav .count { margin-left: auto; font-family: var(--f-mono); font-size: 11px; background: var(--line); color: var(--fg); border-radius: 10px; padding: 0 7px }
 .side-foot { margin-top: auto; font-size: 11px; color: var(--muted); display: grid; gap: 8px }
@@ -299,6 +300,22 @@ body.no-session .app { grid-template-columns: minmax(0, 1fr) }
 .login-card { width: min(400px, 100%) }
 .userbox { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px }
 table.users td { vertical-align: top }
+
+/* Amortiguadores y archivos */
+.amortwrap { display: grid; grid-template-columns: minmax(240px, 380px) 1fr; gap: 20px }
+.amortwrap > * { min-width: 0 }
+.amortbox { background: linear-gradient(180deg, #ebe8e1, #c8c3b8); border-radius: var(--r, 8px); border: 1px solid var(--line) }
+.amortbox svg { display: block; width: 100%; height: auto }
+.ralsel { display: flex; gap: 10px; align-items: center }
+.ralsel i { width: 40px; height: 40px; border-radius: var(--r, 6px); border: 1px solid var(--line); flex: none }
+.ralgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 5px; max-height: 420px; overflow-y: auto; padding: 2px }
+.ralsw { aspect-ratio: 1; border: 2px solid transparent; border-radius: var(--r, 5px); padding: 0; display: flex; align-items: flex-end; justify-content: center; position: relative }
+.ralsw span { font: 500 9px var(--f-mono); background: rgb(0 0 0 / .45); color: #fff; padding: 0 3px; margin-bottom: 3px; border-radius: 2px }
+.ralsw[aria-pressed="true"] { border-color: var(--fg); box-shadow: 0 0 0 2px var(--accent) }
+.filebox { display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px dashed var(--line); border-radius: var(--r, 6px) }
+.filebox img { width: 96px; height: 64px; object-fit: contain; background: var(--bg) }
+.fileic { width: 56px; height: 64px; display: grid; place-items: center; background: var(--surface2); font: 600 12px var(--f-mono); border-radius: var(--r, 4px) }
+@media (max-width: 860px) { .amortwrap { grid-template-columns: 1fr } }
 </style>
 
 <div class="app">
@@ -467,7 +484,7 @@ const KEY = 'atila-maqueta-v4';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
 if (!S || S.v !== 4) S = seed();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch (e) { toast('No se pudo guardar: el navegador no tiene espacio. Usa archivos más livianos.'); return false; } };
 
 const UI = { profile: 'atila', view: 'bandeja', dealFilter: 'activos', deal: null, closing: false, newDeal: false, project: 'p1',
   cal: TODAY.slice(0, 7), calProject: '', mapProv: '', projOpen: false, cfg: null };
@@ -820,6 +837,16 @@ function gantt(p) {
     <div class="gaxis"><i></i><div>${ticks.map(t => `<span style="left:${pct(t)}%">${fmt(t)}</span>`).join('')}</div></div>
   </div>`;
 }
+function projFiles(p) {
+  const a = (p.diseno && p.diseno.amort) || null, ar = p.archivos || {};
+  const donde = [ar.logoAmort && 'En los amortiguadores', ar.logoPuertas && 'Sobre las puertas'].filter(Boolean).join(' · ') || 'Ubicación sin indicar';
+  return `<div class="panel"><div class="ph"><h3>Amortiguadores y archivos</h3><button class="btn sm" data-act="design" data-id="${p.id}">Editar</button></div>
+    <div class="pb" style="display:grid;gap:12px">
+      <div class="ralsel">${a ? `<i style="background:${a.hex}"></i><div><b>Amortiguadores ${esc(a.ral)}</b><br><span class="muted small">${esc(a.nombre)}</span></div>` : '<span class="muted small">Color de amortiguadores sin definir.</span>'}</div>
+      <div class="field"><span>Logo para la cancha${ar.logo ? ' · ' + donde : ''}</span>${fileBox('logo', ar.logo)}</div>
+      <div class="field"><span>Mapa del proyecto</span>${fileBox('mapa', ar.mapa)}</div>
+    </div></div>`;
+}
 function projectDetail(p) {
   const m = model(p.modelo), st = pStatus(p);
   const firstOpen = p.etapas.findIndex(e => e.estado !== 'completada');
@@ -842,6 +869,7 @@ function projectDetail(p) {
       <div class="panel"><div class="ph"><h3>Cancha</h3><button class="btn sm" data-act="design" data-id="${p.id}">Cambiar césped</button></div>
         <div class="pb" style="display:grid;gap:10px">${courtView(d, m.tipo)}
         <dl class="kv"><dt>Modelo</dt><dd>${esc(m.nombre)} · <span class="typebadge">${TIPOS[m.tipo]}</span></dd><dt>Canchas</dt><dd>${p.canchas}</dd>${p.instal ? `<dt>Instalación</dt><dd>${esc(p.instal)}</dd>` : ''}${p.cesped ? `<dt>Color césped</dt><dd>${esc(p.cesped)}</dd>` : ''}${p.estadoObra ? `<dt>Status</dt><dd>${esc(p.estadoObra)}</dd>` : ''}${p.obs ? `<dt>Observaciones</dt><dd class="small">${esc(p.obs)}</dd>` : ''}</dl></div></div>
+      ${projFiles(p)}
       <div class="panel"><div class="ph"><h3>Trazabilidad</h3></div><div class="pb"><ul class="log">${[...p.traza].sort((a, b) => b.f.localeCompare(a.f)).map(h => `<li><span class="d">${fmtY(h.f).slice(0, 5)}</span><span>${esc(h.t)}</span></li>`).join('')}</ul>
         <form class="check" data-form="pnote" data-id="${p.id}" style="margin-top:10px"><input type="text" id="pn-${p.id}" name="t" placeholder="Agregar novedad…" required><button class="btn">Agregar</button></form></div></div>
     </div>
@@ -971,15 +999,105 @@ function vAgenda() {
 }
 
 /* ---------- Configurador ---------- */
+/* ---------- Amortiguador y paleta RAL ---------- */
+// Carta RAL Classic (pintura electrostática). Los colores en pantalla son aproximados.
+const RAL_FAM = { 1: 'Amarillos y beiges', 2: 'Naranjas', 3: 'Rojos', 4: 'Violetas', 5: 'Azules', 6: 'Verdes', 7: 'Grises', 8: 'Pardos', 9: 'Blancos y negros' };
+const RAL = `1000 BEBD7F Beige verdoso|1001 C2B078 Beige|1002 C6A664 Amarillo arena|1003 E5BE01 Amarillo señales|1004 CDA434 Amarillo oro|1005 A98307 Amarillo miel|1006 E4A010 Amarillo maíz|1007 DC9D00 Amarillo narciso|1011 8A6642 Beige pardo|1012 C7B446 Amarillo limón|1013 EAE6CA Blanco perla|1014 E1CC4F Marfil|1015 E6D690 Marfil claro|1016 EDFF21 Amarillo azufre|1017 F5D033 Amarillo azafrán|1018 F8F32B Amarillo zinc|1019 9E9764 Beige agrisado|1020 999950 Amarillo oliva|1021 F3DA0B Amarillo colza|1023 FAD201 Amarillo tráfico|1024 AEA04B Amarillo ocre|1026 FFFF00 Amarillo brillante|1027 9D9101 Amarillo curry|1028 F4A900 Amarillo melón|1032 D6AE01 Amarillo retama|1033 F3A505 Amarillo dalia|1034 EFA94A Amarillo pastel|1037 F09200 Amarillo sol|2000 ED760E Naranja amarillento|2001 C93C20 Rojo anaranjado|2002 CB2821 Naranja sangre|2003 FF7514 Naranja pastel|2004 F44611 Naranja puro|2005 FF2301 Naranja brillante|2008 F75E25 Rojo claro anaranjado|2009 F54021 Naranja tráfico|2010 D84B20 Naranja señales|2011 EC7C26 Naranja intenso|2012 E55137 Naranja salmón|3000 AF2B1E Rojo vivo|3001 A52019 Rojo señales|3002 A2231D Rojo carmín|3003 9B111E Rojo rubí|3004 75151E Rojo púrpura|3005 5E2129 Rojo vino|3007 412227 Rojo negruzco|3009 642424 Rojo óxido|3011 781F19 Rojo pardo|3012 C1876B Rojo beige|3013 A12312 Rojo tomate|3014 D36E70 Rojo viejo|3015 EA899A Rosa claro|3016 B32821 Rojo coral|3017 E63244 Rosa|3018 D53032 Rojo fresa|3020 CC0605 Rojo tráfico|3022 D95030 Rojo salmón|3024 F80000 Rojo brillante|3027 C51D34 Rojo frambuesa|3031 B32428 Rojo oriente|4001 6D3F5B Rojo lila|4002 922B3E Rojo violeta|4003 DE4C8A Violeta érica|4004 641C34 Burdeos|4005 6C4675 Lila azulado|4006 A03472 Púrpura tráfico|4007 4A192C Violeta púrpura|4008 924E7D Violeta señales|4009 A18594 Violeta pastel|4010 CF3476 Telemagenta|5000 354D73 Azul violeta|5001 1F3438 Azul verdoso|5002 20214F Azul ultramar|5003 1D1E33 Azul zafiro|5004 18171C Azul negruzco|5005 1E2460 Azul señales|5007 3E5F8A Azul brillante|5008 26252D Azul grisáceo|5009 025669 Azul azur|5010 0E294B Azul genciana|5011 231A24 Azul acero|5012 3B83BD Azul luminoso|5013 1E213D Azul cobalto|5014 606E8C Azul colombino|5015 2271B3 Azul celeste|5017 063971 Azul tráfico|5018 3F888F Azul turquesa|5019 1B5583 Azul capri|5020 1D334A Azul océano|5021 256D7B Azul agua|5022 252850 Azul noche|5023 49678D Azul lejanía|5024 5D9B9B Azul pastel|6000 316650 Verde patina|6001 287233 Verde esmeralda|6002 2D572C Verde hoja|6003 424632 Verde oliva|6004 1F3A3D Verde azulado|6005 2F4538 Verde musgo|6006 3E3B32 Oliva grisáceo|6007 343B29 Verde botella|6008 39352A Verde parduzco|6009 31372B Verde abeto|6010 35682D Verde hierba|6011 587246 Verde reseda|6012 343E40 Verde negruzco|6013 6C7156 Verde caña|6014 47402E Amarillo oliva|6015 3B3C36 Oliva negruzco|6016 1E5945 Verde turquesa|6017 4C9141 Verde mayo|6018 57A639 Verde amarillento|6019 BDECB6 Verde blanquecino|6020 2E3A23 Verde cromo|6021 89AC76 Verde pálido|6022 25221B Oliva parduzco|6024 308446 Verde tráfico|6025 3D642D Verde helecho|6026 015D52 Verde ópalo|6027 84C3BE Verde luminoso|6028 2C5545 Verde pino|6029 20603D Verde menta|6032 317F43 Verde señales|6033 497E76 Turquesa menta|6034 7FB5B5 Turquesa pastel|6037 008F39 Verde puro|6038 00BB2D Verde brillante|7000 78858B Gris ardilla|7001 8A9597 Gris plata|7002 7E7B52 Gris oliva|7003 6C7059 Gris musgo|7004 969992 Gris señales|7005 646B63 Gris ratón|7006 6D6552 Gris beige|7008 6A5F31 Gris caqui|7009 4D5645 Gris verdoso|7010 4C514A Gris lona|7011 434B4D Gris hierro|7012 4E5754 Gris basalto|7013 464531 Gris parduzco|7015 434750 Gris pizarra|7016 293133 Gris antracita|7021 23282B Gris negruzco|7022 332F2C Gris sombra|7023 686C5E Gris hormigón|7024 474A51 Gris grafito|7026 2F353B Gris granito|7030 8B8C7A Gris piedra|7031 474B4E Gris azulado|7032 B8B799 Gris guijarro|7033 7D8471 Gris cemento|7034 8F8B66 Gris amarillento|7035 D7D7D7 Gris luminoso|7036 7F7679 Gris platino|7037 7D7F7D Gris polvo|7038 B5B8B1 Gris ágata|7039 6C6960 Gris cuarzo|7040 9DA1AA Gris ventana|7042 8D948D Gris tráfico A|7043 4E5452 Gris tráfico B|7044 CAC4B0 Gris seda|7045 909090 Telegris 1|7046 82898F Telegris 2|7047 D0D0D0 Telegris 4|8000 826C34 Pardo verdoso|8001 955F20 Pardo ocre|8002 6C3B2A Marrón señales|8003 734222 Pardo arcilla|8004 8E402A Pardo cobre|8007 59351F Pardo corzo|8008 6F4F28 Pardo oliva|8011 5B3A29 Pardo nuez|8012 592321 Pardo rojo|8014 382C1E Sepia|8015 633A34 Castaño|8016 4C2F27 Caoba|8017 45322E Chocolate|8019 403A3A Pardo grisáceo|8022 212121 Pardo negruzco|8023 A65E2E Pardo anaranjado|8024 79553D Pardo beige|8025 755C48 Pardo pálido|8028 4E3B31 Marrón tierra|9001 FDF4E3 Blanco crema|9002 E7EBDA Blanco grisáceo|9003 F4F4F4 Blanco señales|9004 282828 Negro señales|9005 0A0A0A Negro intenso|9006 A5A5A5 Aluminio blanco|9007 8F8F8F Aluminio gris|9010 FFFFFF Blanco puro|9011 1C1C1C Negro grafito|9016 F6F6F6 Blanco tráfico|9017 1E1E1E Negro tráfico|9018 D7D7D7 Blanco papiro`
+  .split('|').map(r => { const [code, hex, ...n] = r.split(' '); return { ral: 'RAL ' + code, fam: code[0], hex: '#' + hex.toLowerCase(), nombre: n.join(' ') }; });
+const AMORT_DEF = { ral: 'RAL 1016', hex: '#edff21', nombre: 'Amarillo azufre' };
+function shade(hex, f) { const [r, g, b] = hexRgb(hex); const m = v => Math.round(f <= 1 ? v * f : v + (255 - v) * (f - 1)); return `rgb(${m(r)},${m(g)},${m(b)})`; }
+const lum = hex => { const [r, g, b] = hexRgb(hex); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+// Ilustración del amortiguador ATILA como en la foto: placa base con pernos, tubo cuadrado inclinado con perforaciones y pieza superior.
+function amortSVG(hex, logo) {
+  const front = shade(hex, 1), side = shade(hex, 0.74), inner = shade(hex, 0.38), plate = shade(hex, 0.92), plateEdge = shade(hex, 0.6);
+  const ink = lum(hex) > 0.55 ? '#1b1b1b' : '#f4f4f4';
+  const ang = -56.5;
+  return `<svg viewBox="0 0 420 400" role="img" aria-label="Amortiguador ATILA">
+    <defs><linearGradient id="amg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient></defs>
+    <ellipse cx="200" cy="356" rx="175" ry="18" fill="#000" opacity=".25"/>
+    <!-- placa base -->
+    <polygon points="30,338 262,352 322,320 98,307" fill="${plate}"/>
+    <polygon points="30,338 262,352 262,361 30,347" fill="${plateEdge}"/>
+    <polygon points="262,352 322,320 322,329 262,361" fill="${shade(hex, 0.5)}"/>
+    <!-- pernos -->
+    <g fill="#2a2a2a"><ellipse cx="72" cy="327" rx="15" ry="8"/><path d="M57 327a15 13 0 0 1 30 0z"/><ellipse cx="278" cy="327" rx="14" ry="7"/><path d="M264 327a14 12 0 0 1 28 0z"/></g>
+    <!-- tubo: cara lateral con perforaciones -->
+    <polygon points="118,322 158,334 300,118 262,103" fill="${side}"/>
+    <g fill="#1a1a1a" opacity=".85">${[0.2, 0.4, 0.6, 0.8].map(t => { const x = 138 + (281 - 138) * t, y = 328 + (110 - 328) * t; return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="10" ry="14" transform="rotate(34 ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }).join('')}</g>
+    <!-- tubo: cara frontal -->
+    <polygon points="158,334 222,338 360,128 300,118" fill="${front}"/>
+    <polygon points="158,334 222,338 360,128 300,118" fill="url(#amg)"/>
+    <!-- boca superior -->
+    <polygon points="262,103 300,118 360,128 322,112" fill="${inner}"/>
+    <!-- pieza superior (tope + vástago) -->
+    <polygon points="300,96 344,104 352,124 306,116" fill="#e9e4da"/><polygon points="306,116 352,124 352,132 306,124" fill="#c9c2b4"/>
+    <polygon points="330,92 344,104 352,124 340,112" fill="#d8a46a"/>
+    <path d="M340 100 L404 44" stroke="#2b2b2b" stroke-width="10" stroke-linecap="round"/><circle cx="404" cy="44" r="9" fill="#3a3a3a"/>
+    <!-- marca -->
+    ${logo ? `<image href="${esc(logo)}" x="-60" y="-24" width="120" height="48" preserveAspectRatio="xMidYMid meet" transform="translate(262 230) rotate(${ang})"/>`
+      : `<g transform="translate(262 232) rotate(${ang})" fill="${ink}" opacity=".9"><text x="0" y="12" text-anchor="middle" font-family="Saira, Arial Black, sans-serif" font-weight="800" font-style="italic" font-size="34" letter-spacing="2">ATILA</text>
+        <path transform="translate(70 -10) scale(.55)" d="M8 0h18a14 14 0 0 1 0 22H-6zM-14 28h16l-12 14H-26zM8 28h20a14 14 0 0 1-14 14H-4z"/></g>`}
+  </svg>`;
+}
+function ralGrid() {
+  const q = (UI.ralQ || '').trim().toLowerCase(), fam = UI.ralFam || '';
+  const list = RAL.filter(c => (!fam || c.fam === fam) && (!q || c.ral.toLowerCase().includes(q) || c.nombre.toLowerCase().includes(q)));
+  const sel = (UI.cfg.amort || AMORT_DEF).hex.toLowerCase();
+  return list.length ? list.map(c => `<button type="button" class="ralsw" style="background:${c.hex}" data-act="amort" data-ral="${c.ral}" aria-pressed="${c.hex === sel}" title="${c.ral} · ${c.nombre}" aria-label="${c.ral} ${c.nombre}"><span>${c.ral.slice(4)}</span></button>`).join('')
+    : '<span class="muted small">No hay colores con ese código o nombre.</span>';
+}
+function amortSection(c) {
+  const a = c.amort || AMORT_DEF;
+  return `<div class="panel"><div class="ph"><h3>Amortiguadores</h3><span class="small muted">Carta RAL · pintura electrostática</span></div>
+    <div class="pb amortwrap">
+      <div style="display:grid;gap:10px;align-content:start">
+        <div class="amortbox" id="amortbox">${amortSVG(a.hex, c.logoAmort && c.logo && c.logo.type.startsWith('image/') ? c.logo.data : '')}</div>
+        <div class="ralsel" id="ralsel"><i style="background:${a.hex}"></i><div><b>${esc(a.ral)}</b><br><span class="muted small">${esc(a.nombre)} · ${a.hex.toUpperCase()}</span></div></div>
+        <span class="muted small">Los colores en pantalla son aproximados; para producción se usa el código RAL.</span>
+      </div>
+      <div style="display:grid;gap:10px;min-width:0;align-content:start">
+        <div class="tabs" role="group" aria-label="Familia de color"><button data-act="ralfam" data-id="" aria-pressed="${!UI.ralFam}">Todos</button>${Object.entries(RAL_FAM).map(([k, n]) => `<button data-act="ralfam" data-id="${k}" aria-pressed="${UI.ralFam === k}">${n}</button>`).join('')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="text" id="ral-q" data-field="ralq" value="${esc(UI.ralQ || '')}" placeholder="Buscar por código o nombre (ej.: 5015, verde)" style="flex:1;min-width:180px" aria-label="Buscar color">
+          <label class="check small">Otro color <input type="color" id="amort-libre" data-field="amort-libre" value="${a.hex}" aria-label="Elegir otro color"></label></div>
+        <div class="ralgrid" id="ralgrid">${ralGrid()}</div>
+      </div>
+    </div></div>`;
+}
+function fileBox(kind, f) {
+  if (!f) return '<span class="muted small">Sin archivo</span>';
+  return f.type.startsWith('image/') ? `<div class="filebox"><img src="${esc(f.data)}" alt="${esc(f.name)}"><span class="small">${esc(f.name)}</span></div>`
+    : `<div class="filebox"><span class="fileic">${esc((f.name.split('.').pop() || 'archivo').toUpperCase())}</span><span class="small">${esc(f.name)} · ${Math.round(f.size / 1024)} KB</span></div>`;
+}
+function filesSection(c) {
+  const dis = c.pid ? '' : 'disabled';
+  return `<div class="panel"><div class="ph"><h3>Archivos del proyecto</h3>${c.pid ? '' : '<span class="small muted">Elige un proyecto para adjuntar archivos.</span>'}</div>
+    <div class="pb two">
+      <div class="field"><span>Logo para la cancha</span>
+        ${fileBox('logo', c.logo)}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="file" id="f-logo" data-field="cfg-file" data-kind="logo" accept="image/*,.pdf,.ai,.eps,.svg" ${dis} style="font-size:12px;max-width:240px">${c.logo ? '<button type="button" class="btn sm ghost danger" data-act="filedel" data-id="logo">Quitar</button>' : ''}</div>
+        <span class="small muted">¿Dónde va el logo?</span>
+        <label class="check"><input type="checkbox" id="lg-amort" data-field="cfg-logoAmort" ${c.logoAmort ? 'checked' : ''} ${dis}> En los amortiguadores</label>
+        <label class="check"><input type="checkbox" id="lg-puertas" data-field="cfg-logoPuertas" ${c.logoPuertas ? 'checked' : ''} ${dis}> Sobre las puertas</label>
+      </div>
+      <div class="field"><span>Mapa del proyecto</span>
+        ${fileBox('mapa', c.mapa)}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="file" id="f-mapa" data-field="cfg-file" data-kind="mapa" accept="image/*,.pdf,.dwg,.dxf" ${dis} style="font-size:12px;max-width:240px">${c.mapa ? '<button type="button" class="btn sm ghost danger" data-act="filedel" data-id="mapa">Quitar</button>' : ''}</div>
+        <span class="small muted">Plano o ubicación de la obra: imagen, PDF o plano (DWG/DXF). Máximo 2 MB por archivo.</span>
+      </div>
+    </div></div>`;
+}
+
 function cfgInit(pid) {
   const p = project(pid), mid = p ? p.modelo : S.models[0].id;
-  UI.cfg = { pid: p ? p.id : '', modelo: mid, pasto: (p && p.diseno && p.diseno.pasto) || COURTS[model(mid).tipo].orig.pasto };
+  const ar = (p && p.archivos) || {};
+  UI.cfg = { pid: p ? p.id : '', modelo: mid, pasto: (p && p.diseno && p.diseno.pasto) || COURTS[model(mid).tipo].orig.pasto,
+    amort: (p && p.diseno && p.diseno.amort) || { ...AMORT_DEF }, logo: ar.logo || null, logoAmort: !!ar.logoAmort, logoPuertas: !!ar.logoPuertas, mapa: ar.mapa || null };
 }
 const cespedName = hex => (CESPED_OPC.find(([, h]) => h.toLowerCase() === String(hex).toLowerCase()) || ['Personalizado'])[0];
 function vConfig() {
   if (!UI.cfg) cfgInit(UI.project);
   const c = UI.cfg, m = model(c.modelo);
-  return `<div class="head"><div><h1>Diseño de <em>cancha</em></h1><p>Elige el tipo de cancha y el color del césped. La vista se actualiza al instante.</p></div></div>
+  return `<div class="head"><div><h1>Diseño de <em>cancha</em></h1><p>Elige el tipo de cancha, el color del césped y el de los amortiguadores, y adjunta el logo y el mapa del proyecto.</p></div></div>
   <div class="cfg">
     <div class="panel"><div class="pb" style="display:grid;gap:18px">
       <label class="field"><span>Proyecto</span><select id="cfg-pid" data-field="cfg-pid"><option value="">— Sin proyecto —</option>${S.projects.map(p => `<option value="${p.id}" ${c.pid === p.id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></label>
@@ -988,13 +1106,16 @@ function vConfig() {
       <div class="field"><span>Color del césped · <b>${esc(cespedName(c.pasto))}</b></span><div class="swatches">
         ${CESPED_OPC.map(([n, h]) => `<button type="button" style="background:${h}" data-act="sw" data-field="pasto" data-val="${h}" aria-pressed="${h.toLowerCase() === c.pasto.toLowerCase()}" aria-label="Césped ${n}" title="${n}"></button>`).join('')}
         <input type="color" id="cc-pasto" value="${c.pasto}" data-field="cfg-pasto" aria-label="Otro color de césped"></div></div>
-      ${c.pid ? `<button class="btn primary" data-act="cfgsave">Guardar en el proyecto</button>` : '<span class="muted small">Elige un proyecto para guardar el diseño.</span>'}
+      ${c.pid ? '' : '<span class="muted small">Elige un proyecto para guardar el diseño.</span>'}
     </div></div>
     <div style="display:grid;gap:10px;min-width:0">
       <div id="scene">${courtView({ pasto: c.pasto }, m.tipo, `${m.nombre} · ${TIPOS[m.tipo]}`)}</div>
       <div class="legend"><span><i style="background:${c.pasto}"></i>Césped ${esc(cespedName(c.pasto).toLowerCase())}</span><span>Solo se modifica el color del césped; la estructura mantiene los colores de cada tipo de cancha.</span></div>
     </div>
-  </div>`;
+  </div>
+  ${amortSection(c)}
+  ${filesSection(c)}
+  ${c.pid ? `<div><button class="btn primary" data-act="cfgsave">Guardar todo en el proyecto</button></div>` : ''}`;
 }
 
 /* ---------- Tipos de cancha ---------- */
@@ -1055,8 +1176,13 @@ document.addEventListener('click', ev => {
     case 'sw': UI.cfg[b.dataset.field] = b.dataset.val; render(); break;
     case 'cfgmodel': UI.cfg.modelo = id; render(); break;
     case 'cfgsave': { const c = UI.cfg, p = project(c.pid);
-      p.modelo = c.modelo; p.diseno = { pasto: c.pasto }; p.cesped = cespedName(c.pasto);
-      logP(p, `Diseño actualizado: ${model(c.modelo).nombre}, césped ${cespedName(c.pasto).toLowerCase()}.`); commit('Guardado en el proyecto'); break; }
+      p.modelo = c.modelo; p.diseno = { pasto: c.pasto, amort: c.amort }; p.cesped = cespedName(c.pasto);
+      p.archivos = { logo: c.logo, logoAmort: c.logoAmort, logoPuertas: c.logoPuertas, mapa: c.mapa };
+      logP(p, `Diseño actualizado: ${model(c.modelo).nombre}, césped ${cespedName(c.pasto).toLowerCase()}, amortiguadores ${c.amort.ral} ${c.amort.nombre}${c.logo ? ', logo ' + [c.logoAmort && 'en amortiguadores', c.logoPuertas && 'sobre puertas'].filter(Boolean).join(' y ') : ''}${c.mapa ? ', mapa adjunto' : ''}.`);
+      commit(save() ? 'Guardado en el proyecto' : null); break; }
+    case 'ralfam': UI.ralFam = id; render(); break;
+    case 'amort': { const r = RAL.find(x => x.ral === b.dataset.ral); UI.cfg.amort = { ral: r.ral, hex: r.hex, nombre: r.nombre }; updAmort(); break; }
+    case 'filedel': UI.cfg[id] = null; if (id === 'logo') { UI.cfg.logoAmort = UI.cfg.logoPuertas = false; } render(); break;
   }
 });
 
@@ -1074,14 +1200,27 @@ document.addEventListener('change', ev => {
     if (f === 'u-activo') { if (!t.checked && u.rol === 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.activo = t.checked; }
     saveUsers(); render(); toast('Permisos actualizados'); return;
   }
+  if (f === 'cfg-logoAmort' || f === 'cfg-logoPuertas') { UI.cfg[f.slice(4)] = t.checked; render(); return; }
+  if (f === 'cfg-file') { const file = t.files[0], kind = t.dataset.kind; if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast(`«${file.name}» pesa más de 2 MB. Usa un archivo más liviano.`); t.value = ''; return; }
+    const r = new FileReader(); r.onload = () => { UI.cfg[kind] = { name: file.name, type: file.type || 'application/octet-stream', size: file.size, data: r.result };
+      if (kind === 'logo' && !UI.cfg.logoAmort && !UI.cfg.logoPuertas) UI.cfg.logoAmort = true; render(); toast('Archivo listo. Guarda para dejarlo en el proyecto.'); }; r.readAsDataURL(file); return; }
   if (f === 'calProject') { UI.calProject = t.value; render(); return; }
   if (f === 'mapProv') { UI.mapProv = t.value; UI.calProject = ''; render(); return; }
   if (f === 'cfg-pid') { if (t.value) cfgInit(t.value); else UI.cfg.pid = ''; render(); return; }
   if (f.startsWith('cfg-') && t.type === 'color') { UI.cfg[f.slice(4)] = t.value; render(); return; }
   if (f.startsWith('m-')) { const m = S.models.find(x => x.id === t.dataset.id); m[f.slice(2)] = t.value; commit('Tipo de cancha actualizado'); }
 });
+function updAmort() {
+  const c = UI.cfg, a = c.amort;
+  $('#amortbox').innerHTML = amortSVG(a.hex, c.logoAmort && c.logo && c.logo.type.startsWith('image/') ? c.logo.data : '');
+  $('#ralsel').innerHTML = `<i style="background:${a.hex}"></i><div><b>${esc(a.ral)}</b><br><span class="muted small">${esc(a.nombre)} · ${a.hex.toUpperCase()}</span></div>`;
+  $('#ralgrid').innerHTML = ralGrid();
+}
 document.addEventListener('input', ev => {
   const t = ev.target;
+  if (t.dataset.field === 'ralq') { UI.ralQ = t.value; $('#ralgrid').innerHTML = ralGrid(); return; }
+  if (t.dataset.field === 'amort-libre') { UI.cfg.amort = { ral: 'Color libre', hex: t.value, nombre: 'Fuera de carta RAL' }; updAmort(); return; }
   if (t.type === 'color' && t.dataset.field?.startsWith('cfg-')) { UI.cfg[t.dataset.field.slice(4)] = t.value;
     const c = UI.cfg, m = model(c.modelo), cv = $('#scene canvas');
     clearTimeout(paintCourt.t); paintCourt.t = setTimeout(() => cv && paintCourt(cv, designFor(c), m.tipo), 30); }
