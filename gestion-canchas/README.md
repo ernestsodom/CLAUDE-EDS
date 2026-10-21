@@ -37,9 +37,9 @@ conservando la luminancia original (luces y sombras).
 
 ## Foto del amortiguador
 
-`maqueta/amortiguador/` contiene la foto original, el recorte usado y la máscara de las piezas amarillas
-de los amortiguadores (generada con `generar_mascara.py`). Igual que las canchas, se recolorea en el navegador
-conservando la luminancia; el poste amarillo del fondo queda fuera de la máscara.
+`maqueta/amortiguador/` contiene la foto original, el recorte cuadrado usado (solo el amortiguador
+principal) y la máscara de sus piezas amarillas (generada con `generar_mascara.py`). Igual que las canchas,
+se recolorea en el navegador conservando la luminancia; la tuerca dorada del resorte queda fuera de la máscara.
 
 ## Usuarios iniciales de la maqueta
 
