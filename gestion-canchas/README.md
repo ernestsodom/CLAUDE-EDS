@@ -12,7 +12,9 @@ del mes de logística + instalación).
 
 | Módulo | Qué muestra |
 | --- | --- |
-| Perfiles | Selector Atila Argentina / Padel Europa (Europa queda vacío hasta definir sus módulos). |
+| Ingreso | Usuario y contraseña. Cada usuario ve solo los negocios que tiene asignados (Atila Argentina, Padel Europa o ambos). |
+| Usuarios y permisos | Solo para el super administrador: crear usuarios, asignar negocios, cambiar rol, activar/desactivar, poner nueva contraseña y eliminar. Siempre queda al menos un super administrador activo. Cada usuario puede cambiar su propia contraseña. |
+| Perfiles | Selector Atila Argentina / Padel Europa, visible solo si el usuario tiene acceso a ambos (Europa queda vacío hasta definir sus módulos). |
 | Bandeja de negocios | Negocios en gestión comercial (nuevo → calificado → propuesta → negociación). Al **cerrar la venta** se crea el proyecto y se copia el historial (trazabilidad). |
 | Proyectos y entregas | Listado de proyectos en tarjetas coloreadas por estado (por iniciar, en construcción, saliendo / en tránsito, en instalación, habilitada, con atraso); al abrir uno se ve en página completa: línea de tiempo (Gantt) con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
 | Calendario y mapa | En una sola vista: mapa de Argentina con todos los proyectos (zoom con rueda, doble clic, pellizco o botones; arrastre para moverse; al acercarse se lee cada proyecto con su cantidad de canchas, modelo y etapa) y calendario mensual de hitos. Al tocar un proyecto, el mapa se acerca a él y el calendario muestra solo ese proyecto. |
@@ -33,11 +35,24 @@ y una máscara por imagen (canal R = pasto, G = amortiguadores / perfiles, B = p
 `generar_mascaras.py`. La maqueta las lleva incrustadas en `index.html` y recolorea en el navegador
 conservando la luminancia original (luces y sombras).
 
+## Usuarios iniciales de la maqueta
+
+| Usuario | Contraseña | Rol | Negocios |
+| --- | --- | --- | --- |
+| admin | Admin2026! | Super administrador | Todos |
+| atila | Atila2026! | Usuario | Atila Argentina |
+| europa | Europa2026! | Usuario | Padel Europa |
+
+En la maqueta los usuarios y la sesión se guardan en el navegador (contraseñas con hash SHA-256), así que
+**no es seguridad real**: sirve para validar el flujo. En la versión real la autenticación va en el backend
+.NET (ASP.NET Core Identity o equivalente, contraseñas con hash en Neon, sesión emitida por el servidor y
+permisos validados en cada llamada a la API).
+
 ## Arquitectura prevista (no implementada todavía)
 
 - **Backend:** .NET 10 (ASP.NET Core Minimal API) + EF Core con Npgsql.
 - **Frontend:** Blazor WebAssembly (o el front que se defina).
-- **Base de datos:** Neon (PostgreSQL serverless). Tablas base: `perfiles`, `modelos`,
+- **Base de datos:** Neon (PostgreSQL serverless). Tablas base: `usuarios`, `usuario_negocios`, `perfiles`, `modelos`,
   `negocios`, `negocio_eventos`, `proyectos`, `proyecto_etapas`, `proyecto_eventos`,
   `disenos_cancha`, `ubicaciones`.
 - **Despliegue:** Vercel. Vercel no tiene un runtime nativo para .NET; la opción
