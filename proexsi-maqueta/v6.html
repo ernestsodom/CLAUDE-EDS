@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proexsi Home v6</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Inter+Tight:wght@400;500;600&display=swap">
+<style>
+/* Layout v6 = v3 + v5. Lenguaje visual de v5 (Sora + Inter Tight, azul noche, cuerpo claro) con las
+   piezas interactivas de v3: mapa de Chile en el hero, header que cambia al bajar con "Hablemos" y
+   "Menú", capítulos con scroll horizontal e índice de soluciones con miniatura. Áreas AGM como en
+   portal.proexsi.cl (foto + Objetivo / Sistemas). Clientes en una franja continua de un solo color. */
+:root {
+  --night: #0E1330;
+  --night-2: #161C42;
+  --night-ink: #F1F3FB;
+  --night-muted: #A7AFCB;
+  --bg: #F5F7FC;
+  --card: #FFFFFF;
+  --ink: #111735;
+  --muted: #5D6684;
+  --line: #E0E5F0;
+  --blue: #0035A9;
+  --violet: #5B5BF6;
+  --orange: #F29400;
+  --on-accent: #FFFFFF;
+  --logo-filter: none;
+  --display: "Sora", "Segoe UI", Helvetica, Arial, sans-serif;
+  --body: "Inter Tight", "Segoe UI", Roboto, Arial, sans-serif;
+  --lane: 1200px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A0F26; --card: #121A3A; --ink: #EDF0FA; --muted: #9EA7C5; --line: #222C55;
+    --blue: #86A6FF; --violet: #9C9CFF; --orange: #FFAA2B; --on-accent: #0A0F26;
+    --logo-filter: brightness(0) invert(1);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A0F26; --card: #121A3A; --ink: #EDF0FA; --muted: #9EA7C5; --line: #222C55;
+  --blue: #86A6FF; --violet: #9C9CFF; --orange: #FFAA2B; --on-accent: #0A0F26;
+  --logo-filter: brightness(0) invert(1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--night); }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+h1, h2, h3, h4 { margin: 0; font-family: var(--display); letter-spacing: -0.02em; line-height: 1.18; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: var(--lane); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 760px) { .wrap { padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); } }
+.sec { padding-block: clamp(64px, 8vw, 104px); }
+.line-label { display: grid; gap: 14px; }
+.line-label::before { content: ""; width: 44px; height: 2px; background: var(--violet); }
+.h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 400; }
+.h2 b { font-weight: 700; }
+.sub { color: var(--muted); font-size: 17px; max-width: 58ch; }
+.head { display: flex; justify-content: space-between; gap: 24px; align-items: end; flex-wrap: wrap; margin-bottom: 36px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 8px; font-weight: 600; font-size: 15px; text-decoration: none; cursor: pointer; border: 1px solid transparent; transition: transform .15s, background .15s, border-color .15s; white-space: nowrap; }
+.btn:hover { transform: translateY(-1px); }
+.btn-violet { background: #5B5BF6; color: #FFFFFF; }
+.btn-line-w { border-color: rgb(241 243 251 / .35); color: #F1F3FB; }
+.btn-line-w:hover { border-color: #F1F3FB; }
+.btn-orange { background: var(--orange); color: #1A0F00; }
+.btn-white { background: #FFFFFF; color: #0035A9; }
+
+/* ---------- Header (v3: Hablemos + Menú; cambia de color al bajar) ---------- */
+.top { position: fixed; z-index: 50; top: env(safe-area-inset-top, 0px); left: 0; right: 0; transition: background .3s, box-shadow .3s, border-color .3s; border-bottom: 1px solid transparent; }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 76px; transition: height .3s; }
+.top .brand img { height: 28px; width: auto; filter: brightness(0) invert(1); transition: filter .3s; }
+.top-r { display: flex; gap: 10px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 999px; border: 1px solid rgb(241 243 251 / .35); background: rgb(14 19 48 / .35); color: #F1F3FB; cursor: pointer; font: 500 14.5px var(--body); text-decoration: none; transition: background .3s, color .3s, border-color .3s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.pill:hover { border-color: #F1F3FB; }
+.pill.solid { background: var(--orange); border-color: var(--orange); color: #1A0F00; font-weight: 600; }
+.burger { display: grid; gap: 4px; width: 16px; }
+.burger i { display: block; height: 1.5px; background: currentColor; }
+.top.scrolled { background: var(--card); border-bottom-color: var(--line); box-shadow: 0 10px 30px -18px rgb(14 19 48 / .35); }
+.top.scrolled .wrap { height: 64px; }
+.top.scrolled .brand img { filter: var(--logo-filter); }
+.top.scrolled .pill:not(.solid) { background: transparent; color: var(--ink); border-color: var(--line); }
+.top.scrolled .pill:not(.solid):hover { border-color: var(--ink); }
+@media (max-width: 480px) { .top .pill.solid { display: none; } }
+
+.menu { position: fixed; inset: 0; z-index: 70; background: var(--night); color: #F1F3FB; display: grid; grid-template-rows: auto 1fr auto; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); overflow: auto; }
+.menu .wrap { width: 100%; }
+.menu-head { display: flex; justify-content: space-between; align-items: center; height: 76px; }
+.menu-head img { height: 28px; width: auto; filter: brightness(0) invert(1); }
+.menu-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; align-items: center; padding-block: 24px; }
+.menu nav { display: grid; gap: 2px; }
+.menu nav a { display: flex; align-items: baseline; gap: 16px; padding: 8px 0; text-decoration: none; font-family: var(--display); font-weight: 600; font-size: clamp(26px, 3.6vw, 42px); letter-spacing: -0.02em; color: rgb(241 243 251 / .55); border-bottom: 1px solid rgb(167 175 203 / .14); transition: color .2s, padding .2s; }
+.menu nav a small { font: 500 12.5px var(--body); color: #FFB240; min-width: 70px; }
+.menu nav a:hover { color: #FFFFFF; padding-left: 8px; }
+.menu-side { display: grid; gap: 18px; color: #A7AFCB; }
+.menu-side img { border-radius: 16px; aspect-ratio: 4 / 3; object-fit: cover; }
+.menu-side b { color: #F1F3FB; }
+.menu-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding-block: 20px 28px; border-top: 1px solid rgb(167 175 203 / .14); color: #A7AFCB; font-size: 14px; }
+@media (max-width: 860px) { .menu-grid { grid-template-columns: 1fr; } .menu-side img { display: none; } }
+
+/* ---------- Hero con mapa de Chile ---------- */
+.hero { position: relative; background: radial-gradient(70% 70% at 78% 45%, #1B2366 0%, var(--night) 70%); color: #F1F3FB; overflow: hidden; isolation: isolate; }
+.hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: clamp(600px, 88svh, 820px); padding-block: 110px 56px; }
+.hero-copy { display: grid; gap: 22px; position: relative; z-index: 2; }
+.hero-copy small { color: #A7AFCB; font-size: 14px; }
+.hero-copy .line-label::before { background: #8C8CFF; }
+.hero h1 { font-size: clamp(32px, 4.2vw, 52px); font-weight: 300; letter-spacing: -0.03em; }
+.hero h1 b { font-weight: 700; }
+.hero p { color: #C8CEE3; font-size: 17px; max-width: 48ch; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: #A7AFCB; }
+.legend span { display: inline-flex; gap: 8px; align-items: center; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; }
+.map-box { position: relative; height: 100%; min-height: 560px; }
+#map { position: absolute; inset: 0; width: 100%; height: 100%; }
+@media (max-width: 900px) {
+  .hero .wrap { grid-template-columns: minmax(0, 1fr); min-height: 0; padding-block: 100px 32px; }
+  .map-box { min-height: 520px; }
+}
+
+/* ---------- Cifras (v5) ---------- */
+.stats { background: var(--card); border-bottom: 1px solid var(--line); }
+.stats .wrap { display: grid; grid-template-columns: repeat(4, 1fr); padding-block: 36px; }
+.stat { padding: 6px 24px; display: grid; gap: 4px; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat b { font-family: var(--display); font-size: clamp(28px, 3.2vw, 40px); font-weight: 700; color: var(--blue); letter-spacing: -0.03em; line-height: 1.1; }
+.stat span { color: var(--muted); font-size: 14.5px; }
+@media (max-width: 760px) { .stats .wrap { grid-template-columns: 1fr 1fr; row-gap: 24px; } .stat:nth-child(3) { border-left: 0; } .stat { padding-inline: 14px; } }
+
+/* ---------- Índice de soluciones (v3, tamaños moderados) ---------- */
+.index { border-top: 1px solid var(--line); }
+.row { border-bottom: 1px solid var(--line); }
+.row > button { width: 100%; display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 26px 0; background: none; border: 0; cursor: pointer; text-align: left; }
+.row .tag { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.row .name { font-family: var(--display); font-weight: 600; font-size: clamp(22px, 2.8vw, 34px); letter-spacing: -0.02em; transition: color .2s, transform .25s; }
+.row:hover .name, .row.open .name { color: var(--violet); transform: translateX(6px); }
+.row .plus { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; transition: transform .3s, background .2s, color .2s; }
+.row.open .plus { transform: rotate(45deg); background: var(--ink); color: var(--bg); }
+.row .body { display: grid; grid-template-columns: 200px minmax(0, 1fr) minmax(0, 1fr); gap: 24px; padding: 0 0 30px; }
+.row .body > img { grid-column: 2; border-radius: 14px; aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
+.row .txt { display: grid; gap: 12px; align-content: start; color: var(--muted); }
+.row .txt strong { color: var(--ink); }
+.row .txt ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; color: var(--ink); }
+.row .txt li { display: flex; gap: 10px; align-items: baseline; }
+.row .txt li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); flex: none; transform: translateY(-2px); }
+.row .ic { width: 50px; height: 50px; border-radius: 12px; background: #0035A9; display: grid; place-items: center; }
+.row .ic img { width: 32px; height: 32px; }
+.follow { position: fixed; z-index: 30; left: 0; top: 0; width: 280px; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(.85); transition: opacity .25s, transform .25s; box-shadow: 0 30px 60px -20px rgb(14 19 48 / .5); }
+.follow.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.follow img { width: 100%; height: 100%; object-fit: cover; }
+@media (hover: none), (max-width: 860px) { .follow { display: none; } }
+@media (max-width: 860px) { .row > button { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; } .row .tag { grid-column: 1 / -1; } .row .body { grid-template-columns: 1fr; } .row .body > img { grid-column: auto; } }
+
+/* ---------- Capítulos con scroll horizontal (v3, textos moderados) ---------- */
+.chapters { position: relative; height: calc(var(--n, 4) * 100svh); background: var(--night); }
+.chapters .pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.track { display: flex; height: 100%; width: calc(var(--n, 4) * 100vw); will-change: transform; }
+.chapter { position: relative; width: 100vw; height: 100%; flex: none; display: grid; align-items: end; isolation: isolate; overflow: hidden; color: #F1F3FB; }
+.chapter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.chapter::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgb(14 19 48 / .92) 0%, rgb(14 19 48 / .45) 45%, rgb(14 19 48 / .1) 100%), linear-gradient(90deg, rgb(14 19 48 / .55), transparent 60%); }
+.chapter .wrap { width: 100%; padding-block: 0 72px; display: grid; gap: 14px; }
+.chapter .num { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #FFB240; }
+.chapter h2 { font-size: clamp(28px, 3.8vw, 48px); font-weight: 600; max-width: 18ch; }
+.chapter p { max-width: 48ch; font-size: 17px; color: rgb(241 243 251 / .85); }
+.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(241 243 251 / .12); z-index: 3; }
+.progress i { display: block; height: 100%; width: 0; background: var(--orange); }
+.chap-count { position: absolute; z-index: 3; right: max(28px, env(safe-area-inset-right, 0px)); top: 96px; font-size: 13.5px; color: #A7AFCB; font-variant-numeric: tabular-nums; }
+.chap-count b { color: #FFFFFF; }
+@media (max-width: 800px), (prefers-reduced-motion: reduce) {
+  .chapters { height: auto; }
+  .chapters .pin { position: static; height: auto; }
+  .track { display: grid; width: auto; transform: none !important; }
+  .chapter { width: auto; min-height: 70svh; }
+  .progress, .chap-count { display: none; }
+}
+
+/* ---------- Áreas AGM (como portal.proexsi.cl) ---------- */
+.areas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; align-items: start; }
+.acard { background: var(--card); border-top: 5px solid #0035A9; box-shadow: 0 2px 6px rgb(14 19 48 / .08), 0 12px 28px -18px rgb(14 19 48 / .3); border-radius: 4px; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.acard:hover { transform: translateY(-3px); box-shadow: 0 2px 6px rgb(14 19 48 / .08), 0 24px 40px -20px rgb(14 19 48 / .4); }
+.acard figure { margin: 0; aspect-ratio: 3 / 2; overflow: hidden; }
+.acard figure img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
+.acard:hover figure img { transform: scale(1.04); }
+.acard .in { padding: 22px 24px 20px; display: grid; gap: 4px; }
+.acard h3 { font-size: 19px; font-weight: 600; text-align: center; margin-bottom: 10px; min-height: 2.36em; display: grid; place-items: center; }
+.tog { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 4px; background: none; border: 0; cursor: pointer; text-align: left; font-size: 15px; letter-spacing: .02em; color: var(--ink); }
+.tog::before { content: "+"; font-size: 20px; font-weight: 600; width: 14px; line-height: 1; transition: transform .2s; }
+.tog[aria-expanded="true"] { color: #0035A9; font-weight: 600; }
+.tog[aria-expanded="true"]::before { content: "–"; }
+.tog-body { padding: 2px 4px 10px 30px; color: var(--muted); font-size: 14.5px; }
+.tog-body ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tog[aria-expanded="true"] { color: var(--blue); } }
+:root[data-theme="dark"] .tog[aria-expanded="true"] { color: var(--blue); }
+@media (max-width: 1040px) { .areas-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) { .areas-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } .acard .in { padding: 16px; } .acard h3 { font-size: 17px; } }
+@media (max-width: 440px) { .areas-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Banda servicios en línea (v5) ---------- */
+.band { position: relative; isolation: isolate; overflow: hidden; color: #FFFFFF; }
+.band > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.band::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(8 90 100 / .92), rgb(14 143 138 / .72) 55%, rgb(14 143 138 / .35)); }
+.band .wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; padding-block: clamp(64px, 8vw, 96px); align-items: center; }
+.band h2 { font-size: clamp(28px, 3.4vw, 42px); font-weight: 700; }
+.band h2 span { color: #FFD08A; }
+.band p { color: rgb(255 255 255 / .88); font-size: 17px; max-width: 50ch; }
+.band .l { display: grid; gap: 20px; }
+.svc-list { display: grid; gap: 10px; }
+.svc-list div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 18px; border-radius: 12px; background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .25); backdrop-filter: blur(6px); font-weight: 600; }
+.svc-list small { font-weight: 500; opacity: .85; font-size: 13px; text-align: right; }
+@media (max-width: 900px) { .band .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Clientes: franja continua de un solo color ---------- */
+.strip { background: #FFFFFF; border-block: 1px solid var(--line); overflow: hidden; }
+.strip-track { display: flex; align-items: center; gap: 56px; width: max-content; padding-block: 28px; animation: move 55s linear infinite; }
+.strip:hover .strip-track { animation-play-state: paused; }
+.strip-track img { height: 58px; width: auto; max-width: 170px; object-fit: contain; }
+@keyframes move { to { transform: translateX(calc(-50% - 28px)); } }
+
+/* ---------- Historias (v5) ---------- */
+.stories { background: var(--night); color: #F1F3FB; }
+.stories .sub { color: #A7AFCB; margin-top: 14px; }
+.story-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
+.story { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 3 / 4; isolation: isolate; display: grid; align-content: end; }
+.story img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.story::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(14 19 48 / .1), rgb(14 19 48 / .9)); }
+.story .play { position: absolute; top: 50%; left: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgb(255 255 255 / .9); color: #0E1330; display: grid; place-items: center; }
+.story .in { padding: 16px; display: grid; gap: 4px; }
+.story small { font-size: 12px; color: #FFD08A; letter-spacing: .04em; text-transform: uppercase; }
+.story b { font-family: var(--display); font-weight: 600; font-size: 15.5px; line-height: 1.3; }
+@media (max-width: 900px) { .story-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- Por qué Proexsi (v5 acordeón) ---------- */
+.acc-wrap { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.acc { display: grid; gap: 10px; }
+.acc details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.acc details[open] { border-color: var(--violet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--violet) 14%, transparent); }
+.acc summary { list-style: none; cursor: pointer; padding: 18px 20px; font-weight: 600; display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.acc summary::-webkit-details-marker { display: none; }
+.acc summary::after { content: ""; width: 10px; height: 10px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .2s; flex: none; margin-top: -4px; }
+.acc details[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.acc p { padding: 0 20px 18px; color: var(--muted); }
+.acc-media { border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 4.4; position: relative; }
+.acc-media img { width: 100%; height: 100%; object-fit: cover; }
+.acc-media .seal { position: absolute; left: 16px; bottom: 16px; background: #FFFFFF; border-radius: 10px; padding: 6px 10px; }
+.acc-media .seal img { width: 180px; height: auto; }
+@media (max-width: 900px) { .acc-wrap { grid-template-columns: minmax(0, 1fr); } .acc-media { aspect-ratio: 16 / 10; } }
+
+/* ---------- Cierre (v5) ---------- */
+.cta { padding-block: 0 clamp(64px, 8vw, 104px); }
+.cta-box { border-radius: 28px; overflow: hidden; background: linear-gradient(120deg, #0035A9, #2350D9 60%, #5B5BF6); color: #FFFFFF; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+.cta-l { padding: clamp(28px, 5vw, 56px); display: grid; gap: 18px; align-content: center; }
+.cta-l h2 { font-size: clamp(26px, 3.2vw, 40px); font-weight: 300; }
+.cta-l h2 b { font-weight: 700; }
+.cta-l p { color: rgb(255 255 255 / .85); font-size: 17px; }
+.cta-data { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 15px; }
+.cta-data span { display: inline-flex; gap: 8px; align-items: center; }
+.cta-data button { border: 1px solid rgb(255 255 255 / .4); background: transparent; color: #FFFFFF; border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+.cta-r { position: relative; min-height: 300px; }
+.cta-r img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cta-r::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, #2350D9, transparent 40%); }
+form.mini { display: flex; gap: 8px; flex-wrap: wrap; }
+form.mini input { flex: 1; min-width: 200px; padding: 13px 14px; border-radius: 8px; border: 0; font: 400 15px var(--body); color: #111735; }
+.fmsg { font-weight: 600; color: #FFD08A; }
+@media (max-width: 860px) { .cta-box { grid-template-columns: minmax(0, 1fr); } .cta-r { min-height: 220px; order: -1; } .cta-r::before { background: linear-gradient(0deg, #0035A9, transparent 50%); } }
+
+footer { background: var(--night); color: #A7AFCB; font-size: 14px; }
+.foot { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 28px; padding-block: 52px 32px; }
+.foot img { height: 26px; width: auto; filter: brightness(0) invert(1); margin-bottom: 12px; }
+.foot h4 { margin: 0 0 10px; color: #F1F3FB; font-size: 14px; font-weight: 600; }
+.foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.foot a { text-decoration: none; }
+.foot a:hover { color: #FFFFFF; }
+.foot-b { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 18px 30px; border-top: 1px solid rgb(167 175 203 / .14); font-size: 13px; }
+@media (max-width: 860px) { .foot { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .foot { grid-template-columns: 1fr; } }
+
+.notes-btn { position: fixed; z-index: 45; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 600 12.5px var(--body); padding: 10px 14px; border-radius: 999px; cursor: pointer; background: var(--ink); color: var(--bg); border: 0; box-shadow: 0 10px 30px -10px rgb(0 0 0 / .4); }
+.notes { position: fixed; z-index: 46; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); width: min(410px, calc(100vw - 32px)); max-height: 70vh; overflow: auto; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; font-size: 14px; display: grid; gap: 10px; box-shadow: 0 24px 60px -20px rgb(0 0 0 / .4); }
+.notes h4 { font-size: 16px; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); }
+.notes b { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .strip-track { animation: none; flex-wrap: wrap; width: auto; justify-content: center; } .strip-track img[aria-hidden="true"] { display: none; } .acard, .acard figure img, .btn, .row .name { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"></a>
+    <div class="top-r">
+      <a class="pill solid" href="#contacto">Hablemos</a>
+      <button class="pill" type="button" id="openMenu" aria-expanded="false" aria-controls="menu"><span class="burger" aria-hidden="true"><i></i><i></i></span>Menú</button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" hidden role="dialog" aria-modal="true" aria-label="Menú">
+  <div class="wrap menu-head"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"><button class="pill" type="button" id="closeMenu">Cerrar</button></div>
+  <div class="wrap menu-grid">
+    <nav aria-label="Principal">
+      <a href="#soluciones"><small>Oferta</small>Soluciones</a>
+      <a href="#capitulos"><small>Nosotros</small>Quiénes somos</a>
+      <a href="#agm"><small>AGM</small>Áreas y sistemas</a>
+      <a href="#clientes"><small>20</small>Clientes</a>
+      <a href="#porque"><small>ISO</small>Por qué Proexsi</a>
+      <a href="#contacto"><small>Contacto</small>Hablemos</a>
+    </nav>
+    <div class="menu-side">
+      <img src="img/area-grp.jpg" alt="">
+      <p><b>¿Ya es cliente?</b> Ingrese al <a href="#acceso">portal de clientes</a> (enlace por definir).</p>
+    </div>
+  </div>
+  <div class="wrap menu-foot"><span>hablemos@proexsi.cl · +56 2 2489 1900</span><span>Moneda 1040, piso 10, Santiago</span></div>
+</div>
+
+<main>
+  <!-- HERO con mapa -->
+  <section class="hero" id="inicio">
+    <div class="wrap">
+      <div class="hero-copy">
+        <div class="line-label"><small>Proexsi · Tecnologías de información para misión crítica</small></div>
+        <h1>Tecnología pública que se <b>nota en la vida de las personas.</b></h1>
+        <p>Hace más de 45 años desarrollamos las plataformas con que municipios de norte a sur atienden a millones de chilenos, operadas desde nuestro propio data center.</p>
+        <div class="hero-cta">
+          <a class="btn btn-violet" href="#contacto">Hablar con ventas</a>
+          <a class="btn btn-line-w" href="#soluciones">Conocer soluciones</a>
+        </div>
+        <div class="legend"><span><i style="background:#F29400"></i>Data center Proexsi, Santiago</span><span><i style="background:#FFFFFF"></i>Municipios clientes</span></div>
+      </div>
+      <div class="map-box"><canvas id="map" role="img" aria-label="Mapa de Chile con las regiones donde Proexsi tiene municipios clientes: Tarapacá 2, Atacama 1, Valparaíso 5, Metropolitana 10, Maule 1 y Los Lagos 1, conectados al data center en Santiago"></canvas></div>
+    </div>
+  </section>
+
+  <!-- CIFRAS -->
+  <section class="stats" aria-label="Cifras">
+    <div class="wrap">
+      <div class="stat"><b>+45</b><span>años de trayectoria</span></div>
+      <div class="stat"><b>20</b><span>municipios en 6 regiones</span></div>
+      <div class="stat"><b>81</b><span>sistemas en 12 áreas</span></div>
+      <div class="stat"><b>ISO 9001</b><span>calidad certificada</span></div>
+    </div>
+  </section>
+
+  <!-- SOLUCIONES -->
+  <section class="sec" id="soluciones">
+    <div class="wrap">
+      <div class="head">
+        <div class="line-label"><h2 class="h2">Conozca nuestras <b>soluciones</b></h2></div>
+        <p class="sub">Tres líneas de trabajo integradas. Abra cada una para ver el detalle.</p>
+      </div>
+      <div class="index" id="index">
+        <div class="row" data-img="area-grp.jpg">
+          <button type="button" aria-expanded="false"><span class="tag">GRP · Plataforma</span><span class="name">Soluciones GRP</span><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 18 18"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
+          <div class="body" hidden>
+            <img src="img/area-grp-hover.jpg" alt="Equipo revisando la planificación de un proyecto">
+            <div class="txt"><span class="ic"><img src="img/icon-grp.png" alt=""></span><p>Plataformas modulares e integradas bajo el concepto <strong>GRP</strong> (Government Resource Planning).</p><ul><li>Proexsi AGM: Administración y Gestión Municipal</li><li>Proexsi AGCM: Administración y Gestión de Corporaciones</li></ul></div>
+          </div>
+        </div>
+        <div class="row" data-img="area-sistemas.jpg">
+          <button type="button" aria-expanded="false"><span class="tag">Desarrollo a la medida</span><span class="name">Sistemas de Gestión</span><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 18 18"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
+          <div class="body" hidden>
+            <img src="img/area-sistemas-hover.jpg" alt="Analista revisando reportes en un computador">
+            <div class="txt"><span class="ic"><img src="img/icon-sistemas.png" alt=""></span><p>Diseñamos y desarrollamos sistemas que <strong>mejoran significativamente</strong> los resultados de nuestros clientes.</p><ul><li>Diseño de sistemas</li><li>Desarrollo a la medida</li><li>Mantención de sistemas</li></ul></div>
+          </div>
+        </div>
+        <div class="row" data-img="area-datacenter.jpg">
+          <button type="button" aria-expanded="false"><span class="tag">Infraestructura</span><span class="name">Data Center</span><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 18 18"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
+          <div class="body" hidden>
+            <img src="img/area-datacenter-hover.jpg" alt="Racks de servidores del data center">
+            <div class="txt"><span class="ic"><img src="img/icon-datacenter.png" alt=""></span><p><strong>Hosting:</strong> seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos diariamente.</p><p><strong>Housing:</strong> infraestructura certificada con seguridad, conectividad, estabilidad y escalabilidad.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="follow" id="follow" aria-hidden="true"><img id="followImg" src="img/area-grp.jpg" alt=""></div>
+  </section>
+
+  <!-- CAPÍTULOS -->
+  <section class="chapters" id="capitulos" style="--n:4" aria-label="Quiénes somos">
+    <div class="pin">
+      <div class="chap-count" aria-hidden="true"><b id="chapNow">01</b> / 04</div>
+      <div class="track" id="track">
+        <article class="chapter"><img src="img/slide-experiencia.jpg" alt=""><div class="wrap"><span class="num">01 · Sólida experiencia</span><h2>Más de 45 años en el sector público.</h2><p>Acompañamos la transformación digital con plataformas de misión crítica.</p></div></article>
+        <article class="chapter"><img src="img/slide-innovacion.jpg" alt=""><div class="wrap"><span class="num">02 · Innovación, servicio y eficiencia</span><h2>Procesos de gestión más simples.</h2><p>Soluciones innovadoras, flexibles e integradas para cada área del municipio.</p></div></article>
+        <article class="chapter"><img src="img/slide-calidad.jpg" alt=""><div class="wrap"><span class="num">03 · Calidad y seguridad</span><h2>Continuidad operacional garantizada.</h2><p>Infraestructura robusta y data center propio con seguridad de la información.</p></div></article>
+        <article class="chapter"><img src="img/slide-conectados.jpg" alt=""><div class="wrap"><span class="num">04 · Siempre conectados</span><h2>Tecnología, procesos y personas.</h2><p>Mejoramos la calidad de vida de millones de chilenos con servicios en línea.</p></div></article>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+    </div>
+  </section>
+
+  <!-- ÁREAS AGM -->
+  <section class="sec" id="agm">
+    <div class="wrap">
+      <div class="head">
+        <div class="line-label"><h2 class="h2">Proexsi AGM: <b>conozca nuestros sistemas</b></h2></div>
+        <p class="sub">Doce áreas del municipio en una sola plataforma. Abra el objetivo y los sistemas de cada una.</p>
+      </div>
+      <div class="areas-grid" id="areas"></div>
+    </div>
+  </section>
+
+  <!-- BANDA SERVICIOS EN LÍNEA -->
+  <section class="band">
+    <img src="img/pilar-trayectoria.jpg" alt="">
+    <div class="wrap">
+      <div class="l">
+        <h2>Del mesón <span>al celular del vecino.</span></h2>
+        <p>Simplificamos el acceso a los procesos que requiere la comunidad, con servicios más expeditos, oportunos y transparentes.</p>
+        <a class="btn btn-orange" href="#contacto" style="justify-self:start">Digitalice su municipio</a>
+      </div>
+      <div class="svc-list">
+        <div>Permisos de circulación <small>Pago en línea</small></div>
+        <div>Patentes municipales <small>Pago en línea</small></div>
+        <div>Licencias de conducir <small>Toma de hora y examen teórico</small></div>
+        <div>Juzgados de Policía Local <small>Seguimiento de causas</small></div>
+        <div>E-Ticket <small>Teatros y eventos</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLIENTES -->
+  <section class="sec" id="clientes" style="padding-bottom:0">
+    <div class="wrap head"><div class="line-label"><h2 class="h2">Municipios que <b>confían en Proexsi</b></h2></div><p class="sub">De Iquique a Puerto Montt.</p></div>
+  </section>
+  <div class="strip" aria-label="Municipios clientes"><div class="strip-track" id="strip"></div></div>
+
+  <!-- HISTORIAS -->
+  <section class="sec stories" style="margin-top:clamp(64px,8vw,104px)">
+    <div class="wrap">
+      <div class="line-label"><h2 class="h2">Historias de <b>transformación digital</b></h2></div>
+      <p class="sub">Espacio para una serie de videos con municipios clientes. Placeholder: reemplazar por testimonios reales.</p>
+      <div class="story-grid">
+        <div class="story"><img src="img/slide-conectados.jpg" alt=""><span class="play" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 1 · Próximamente</small><b>Vecinos que pagan sus permisos sin hacer fila</b></div></div>
+        <div class="story"><img src="img/pilar-relaciones.jpg" alt=""><span class="play" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 2 · Próximamente</small><b>Equipos municipales con una sola plataforma</b></div></div>
+        <div class="story"><img src="img/pilar-iso.jpg" alt=""><span class="play" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 3 · Próximamente</small><b>Del papel al decreto electrónico</b></div></div>
+        <div class="story"><img src="img/area-datacenter.jpg" alt=""><span class="play" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 4 · Próximamente</small><b>El data center que nunca se detiene</b></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POR QUÉ -->
+  <section class="sec" id="porque">
+    <div class="wrap acc-wrap">
+      <div class="acc-media"><img src="img/area-datacenter-hover.jpg" alt="Racks de servidores del data center de Proexsi"><span class="seal"><img src="img/sello-iso-mercadopublico.png" alt="Sellos de Mercado Público e ISO 9001"></span></div>
+      <div style="display:grid;gap:22px">
+        <div class="line-label"><h2 class="h2">Procesos más simples, <b>de principio a fin.</b></h2></div>
+        <div class="acc">
+          <details open><summary>Una sola plataforma para todo el municipio</summary><p>Proexsi AGM integra 12 áreas y 81 sistemas, conectados con tesorería y contabilidad.</p></details>
+          <details><summary>Data center propio</summary><p>Hosting y housing con seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos diariamente.</p></details>
+          <details><summary>Calidad certificada ISO 9001:2015</summary><p>La certificación cubre la operación del data center y el desarrollo y mantención de sistemas.</p></details>
+          <details><summary>Más de 45 años en el sector público</summary><p>Únicos en Chile sosteniendo procesos de misión crítica, con relaciones de largo plazo con nuestros clientes.</p></details>
+          <details><summary>Sistemas a la medida</summary><p>Cuando una necesidad no está cubierta, diseñamos y desarrollamos el sistema que la institución requiere.</p></details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIERRE -->
+  <section class="cta" id="contacto">
+    <div class="wrap">
+      <div class="cta-box">
+        <div class="cta-l">
+          <h2>Inspire el próximo paso <b>de su gestión.</b></h2>
+          <p>Déjenos su correo y un especialista le contactará para conocer su institución.</p>
+          <form class="mini" id="mini" novalidate>
+            <input id="em" type="email" autocomplete="email" placeholder="nombre@institucion.cl" aria-label="Correo institucional">
+            <button class="btn btn-white" type="submit">Quiero que me contacten</button>
+          </form>
+          <p class="fmsg" id="fmsg" hidden></p>
+          <div class="cta-data">
+            <span>hablemos@proexsi.cl <button type="button" data-copy="hablemos@proexsi.cl">Copiar</button></span>
+            <span>+56 2 2489 1900 <button type="button" data-copy="+56224891900">Copiar</button></span>
+          </div>
+        </div>
+        <div class="cta-r"><img src="img/area-grp.jpg" alt="Equipo de trabajo en reunión"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"><p>Moneda 1040, piso 10<br>Santiago de Chile</p></div>
+    <div><h4>Soluciones</h4><ul><li><a href="#soluciones">Soluciones GRP</a></li><li><a href="#soluciones">Sistemas de Gestión</a></li><li><a href="#soluciones">Data Center</a></li></ul></div>
+    <div><h4>Proexsi</h4><ul><li><a href="#capitulos">Quiénes somos</a></li><li><a href="#agm">Áreas y sistemas</a></li><li><a href="#clientes">Clientes</a></li></ul></div>
+    <div><h4>Contacto</h4><ul><li>hablemos@proexsi.cl</li><li>+56 2 2489 1900</li><li><a href="#acceso">Acceso clientes</a></li></ul></div>
+  </div>
+  <div class="wrap foot-b"><span>© Proexsi. Todos los derechos reservados.</span><a href="#inicio">Volver arriba ↑</a></div>
+</footer>
+
+<button class="notes-btn" id="notesBtn" type="button" aria-expanded="false" aria-controls="notes">Notas v6</button>
+<aside class="notes" id="notes" hidden aria-label="Notas de la versión 6">
+  <h4>Versión 6: fusión de v3 y v5</h4>
+  <ul>
+    <li><b>Base visual de v5:</b> tipografías, azul noche, cuerpo claro, cifras, banda de servicios, historias, acordeón y cierre azul.</li>
+    <li><b>De v3:</b> mapa de Chile en el hero (con rótulos y colores nuevos), header que cambia al bajar con "Hablemos" y "Menú", capítulos con scroll horizontal e índice de soluciones con miniatura.</li>
+    <li><b>Textos</b> de tamaño moderado en toda la página.</li>
+    <li><b>Proexsi AGM</b> con las fotos y textos de portal.proexsi.cl/productos (Objetivo / Sistemas).</li>
+    <li><b>Clientes</b> en una franja blanca continua, sin cuadros de distinto color.</li>
+  </ul>
+</aside>
+
+<script>
+// Áreas AGM: textos de portal.proexsi.cl/productos
+const AREAS = [
+  { name: "Finanzas", img: "finanzas", obj: "Simplificar, ordenar, gestionar y controlar eficientemente toda la operación financiero-contable y presupuestaria de las distintas áreas del Municipio.",
+    sys: ["Contabilidad Gubernamental","Contabilidad Financiera","Control de Presupuestos","Tesorería (Ingresos/Egresos)","Giro Directo","Conciliación Bancaria","Convenios de Pago","Cobranzas"] },
+  { name: "Administración", img: "administracion", obj: "Facilitar el registro, control y gestión del flujo de compras y de los bienes institucionales, a través de un manejo integral de existencias, control de stocks, órdenes de compra, entre otros.",
+    sys: ["Adquisiciones y Control de Bodega","Control de Inventario","Activo Fijo"] },
+  { name: "RR.HH.", img: "rrhh", obj: "Gestionar, automatizar y controlar todas las actividades relacionadas con los colaboradores de la institución. Optimiza tiempos y recursos en movimientos de personal, liquidación y pago de remuneraciones, licencias médicas, control de asistencia y mejora el control de servicios del Bienestar.",
+    sys: ["Personal","Remuneraciones","Bienestar","Intranet de Recursos Humanos"] },
+  { name: "Rentas Municipales", img: "rentas", obj: "Optimizar la gestión y facilitar el control de todos los procesos que generan ingresos para el municipio, mejorando la oportunidad y el alcance, simplificando el proceso de pago que realiza la comunidad.",
+    sys: ["Patentes Municipales","Declaración de Trabajadores y Capitales","Certificados de Inversión y de Capital","Permisos","Aseo Domiciliario","Permisos Precarios","Control de Morosidad","Cobranzas","Concesiones Municipales"] },
+  { name: "Dirección de Tránsito", img: "transito", obj: "Optimizar, agilizar y controlar todos los procesos que realiza la Dirección de Tránsito Municipal. Gracias a la completa integración con Juzgados, Tesorería y Contabilidad se logra una gestión expedita de información, tanto para la municipalidad como para su comunidad.",
+    sys: ["Permisos de Circulación (Contribuyente y Empresas)","Licencias de Conducir","Reserva de Hora por Internet","Registro de multas no pagadas","Multas Tag"] },
+  { name: "Inspección y Operaciones", img: "inspeccion", obj: null,
+    sys: ["SIG (Sistemas de Información Geográficos)","Seguridad Ciudadana","Inspección Digital"] },
+  { name: "Juzgados de Policía Local", img: "jpl", obj: "Facilitar la gestión y mejorar la oportunidad de información de los procesos que ejecuta el Juzgado, teniendo claridad y orden respecto a identificación de causas, denunciantes, multas de tránsito, exhortos, envío automático de citaciones, entre otros.",
+    sys: ["Seguimiento de Causas","Partes Empadronados","Partes de Ordenanza","Multas Tag"] },
+  { name: "Gobierno Digital", img: "gobierno-digital", obj: "Simplificar los procesos de gestión y acceso a información centralizada, digital y en línea para una mayor transparencia y servicios más oportunos.",
+    sys: ["Gestión Documental","Banco Comunal de Proyectos","Control Electrónico de Decretos","Vigilancia Domiciliaria","OIRS","Biblioteca Digital","Tabla Concejo","Tramitación Electrónica de Documentos y Decretos","Consultas / Participación Ciudadana"] },
+  { name: "Desarrollo Comunitario/Social", img: "desarrollo-comunitario", obj: "Gestionar eficientemente todas las actividades que permiten proveer el servicio social que se entrega a la comunidad.",
+    sys: ["Atención Social (ATS)","Administración Grupo Familiar","Acción Social","Adulto Mayor","Organizaciones Comunitarias","Talleres/Clubes/Cursos","Tarjeta Vecino","Deportes","Subsidios","Asistencia Judicial","Becas","Higiene Ambiental","Atención Mascotas","OMIL: Oficina Municipal de Intermediación Laboral","Desarrollo Comunal","Condominios Sociales"] },
+  { name: "Obras Municipales", img: "obras", obj: "Optimizar los procesos que ejecuta la Dirección de Obras Municipales mediante la automatización de flujos de gestión, servicios web e integración con plataformas GIS.",
+    sys: ["Obras Municipales","Tramitación y obtención de Certificados y Permisos","Control Ley de Ascensores","Ocupación Espacio Público (BNUP)"] },
+  { name: "Gestión Cultural", img: "cultura", obj: "Planificar y optimizar la gestión de venta de actividades culturales; tickets, abonos, promociones y venta de productos complementarios. Sistema simple y versátil, integrado con Facturación Electrónica, Webpay y una completa reportería.",
+    sys: ["E-Ticket","Gestión de Teatros","Cines","Museos","Casinos","Ferias y Eventos","Cursos y Talleres","Productos Complementarios"] },
+  { name: "Servicios por Internet", img: "servicios-internet", obj: "Simplificamos el acceso y gestión de diferentes procesos que requiere la comunidad, tanto interna como externa, de manera de proveer servicios más expeditos, libres de errores, más oportunos y transparentes.",
+    sys: ["Pagos en línea","Consultas y Trámites","Permisos de Circulación","Patentes Municipales","Aseo Domiciliario","Juzgados de Policía Local: seguimiento de causas, pago de partes empadronados","Obras","Declaración de Capital","Gestión Documental","Licencias de Conducir: toma de hora y examen teórico","E-Ticket: venta de tickets para teatros o eventos","Fonoverano: inscripción y seguimiento"] }
+];
+const CLIENTS = [
+  ["iquique","Iquique",-20.21,-70.15],["alto-hospicio","Alto Hospicio",-20.27,-70.10],["copiapo","Copiapó",-27.37,-70.33],
+  ["zapallar","Zapallar",-32.55,-71.46],["quillota","Quillota",-32.88,-71.25],["vina-del-mar","Viña del Mar",-33.02,-71.55],["valparaiso","Valparaíso",-33.05,-71.62],["algarrobo","Algarrobo",-33.36,-71.67],
+  ["colina","Colina",-33.20,-70.67],["independencia","Independencia",-33.42,-70.66],["providencia","Providencia",-33.43,-70.61],["las-condes","Las Condes",-33.41,-70.57],["la-reina","La Reina",-33.45,-70.54],
+  ["nunoa","Ñuñoa",-33.46,-70.60],["macul","Macul",-33.49,-70.60],["penalolen","Peñalolén",-33.49,-70.51],["san-joaquin","San Joaquín",-33.50,-70.63],["puente-alto","Puente Alto",-33.61,-70.58],
+  ["constitucion","Constitución",-35.33,-72.41],["puerto-montt","Puerto Montt",-41.47,-72.94]
+];
+const REGION_LABELS = [["Tarapacá", 2, -20.2], ["Atacama", 1, -27.4], ["Valparaíso", 5, -32.7], ["Metropolitana", 10, -33.9], ["Maule", 1, -35.3], ["Los Lagos", 1, -41.5]];
+const DC = [-33.44, -70.65];
+const WEST = [[-18.3,-70.35],[-20,-70.15],[-23.6,-70.4],[-26.3,-70.65],[-29.9,-71.35],[-32,-71.5],[-33.6,-71.65],[-35.3,-72.45],[-36.8,-73.15],[-37.6,-73.65],[-39.5,-73.25],[-41.5,-73.8],[-42,-73.6]];
+const EAST = [[-42,-71.8],[-40,-71.6],[-37.5,-71.1],[-35,-70.4],[-33,-69.95],[-31,-70.3],[-29,-69.8],[-27,-68.5],[-25,-68.4],[-23,-67.2],[-21.5,-68.2],[-19.5,-68.6],[-18.3,-69.3]];
+const $ = (s) => document.querySelector(s);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- Mapa ----------
+(() => {
+  const cv = $("#map"), ctx = cv.getContext("2d");
+  let W = 0, H = 0, proj, dots = [], nodes = [], hub, packets = [], running = false, raf = 0;
+  const poly = [...WEST, ...EAST];
+  const inside = (lat, lon) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [ya, xa] = poly[i], [yb, xb] = poly[j]; if ((ya > lat) !== (yb > lat) && lon < (xb - xa) * (lat - ya) / (yb - ya) + xa) c = !c; } return c; };
+  function layout() {
+    const r = cv.getBoundingClientRect(); W = r.width; H = r.height; const dpr = Math.min(devicePixelRatio || 1, 2);
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const top = 12, bottom = H - 12, k = (bottom - top) / 24, cx = W * 0.36;
+    proj = (lat, lon) => [cx + (lon + 70.6) * k, top + (-18 - lat) * k];
+    dots = []; const step = Math.max(6, k * 0.24);
+    for (let y = top; y <= bottom; y += step) for (let x = cx - k * 4; x <= cx + k * 4; x += step) { const lat = -18 - (y - top) / k, lon = (x - cx) / k - 70.6; if (inside(lat, lon)) dots.push([x, y]); }
+    hub = proj(...DC);
+    nodes = CLIENTS.map(c => { const p = proj(c[2], c[3]); return { x: p[0], y: p[1], phase: Math.random() * 6.28 }; });
+    packets = nodes.map(n => ({ n, t: Math.random(), s: 0.1 + Math.random() * 0.1 }));
+    draw(performance.now());
+  }
+  const curve = (a, b) => [(a[0] + b[0]) / 2 - Math.min(70, Math.abs(a[1] - b[1]) * 0.16) - 10, (a[1] + b[1]) / 2];
+  const q = (a, c, b, t) => { const u = 1 - t; return [u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]; };
+  function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function draw(now) {
+    const time = now / 1000;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(199,204,255,.26)";
+    for (const [x, y] of dots) { ctx.beginPath(); ctx.arc(x, y, 1.2, 0, 6.283); ctx.fill(); }
+    for (const n of nodes) { const c = curve(hub, [n.x, n.y]); ctx.strokeStyle = "rgba(140,140,255,.32)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hub[0], hub[1]); ctx.quadraticCurveTo(c[0], c[1], n.x, n.y); ctx.stroke(); }
+    for (const p of packets) { if (running) p.t = (p.t + p.s / 60) % 1; const c = curve(hub, [p.n.x, p.n.y]); const [x, y] = q(hub, c, [p.n.x, p.n.y], p.t); ctx.fillStyle = "rgba(255,178,64,.95)"; ctx.beginPath(); ctx.arc(x, y, 2, 0, 6.283); ctx.fill(); }
+    for (const n of nodes) { const pu = reduce ? .5 : (Math.sin(time * 2 + n.phase) + 1) / 2; ctx.fillStyle = `rgba(160,160,255,${.12 + pu * .2})`; ctx.beginPath(); ctx.arc(n.x, n.y, 5 + pu * 4, 0, 6.283); ctx.fill(); ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.arc(n.x, n.y, 2.8, 0, 6.283); ctx.fill(); }
+    const g = ctx.createRadialGradient(hub[0], hub[1], 0, hub[0], hub[1], 30); g.addColorStop(0, "rgba(242,148,0,.55)"); g.addColorStop(1, "rgba(242,148,0,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hub[0], hub[1], 30, 0, 6.283); ctx.fill();
+    ctx.fillStyle = "#F29400"; ctx.beginPath(); ctx.arc(hub[0], hub[1], 5, 0, 6.283); ctx.fill();
+    // Rótulos de región: Inter Tight, blanco suave, contador en cápsula violeta
+    const lx = proj(-30, -66.4)[0];
+    let lastY = -99;
+    for (const [name, count, lat] of REGION_LABELS) {
+      let y = proj(lat, -70)[1]; if (y - lastY < 30) y = lastY + 30; lastY = y;
+      const ax = proj(lat, -70.2)[0] + 14, ay = proj(lat, -70)[1];
+      ctx.strokeStyle = "rgba(199,204,255,.28)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx - 8, y); ctx.stroke();
+      ctx.font = "600 13.5px 'Inter Tight', sans-serif"; ctx.textBaseline = "middle"; ctx.fillStyle = "#EEF0FB"; ctx.textAlign = "left";
+      ctx.fillText(name, lx, y);
+      const tw = ctx.measureText(name).width, txt = String(count);
+      ctx.font = "600 12px 'Inter Tight', sans-serif"; const cw = Math.max(22, ctx.measureText(txt).width + 14);
+      ctx.fillStyle = "#5B5BF6"; rr(lx + tw + 8, y - 10, cw, 20, 10); ctx.fill();
+      ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "center"; ctx.fillText(txt, lx + tw + 8 + cw / 2, y + .5);
+    }
+  }
+  function loop(now) { draw(now); if (running) raf = requestAnimationFrame(loop); }
+  new ResizeObserver(layout).observe(cv);
+  if (!reduce) new IntersectionObserver(([e]) => { running = e.isIntersecting; cancelAnimationFrame(raf); if (running) raf = requestAnimationFrame(loop); }).observe(cv);
+  document.fonts?.ready.then(() => draw(performance.now()));
+})();
+
+// ---------- Header que cambia al bajar ----------
+(() => { const top = $("#top"); const f = () => top.classList.toggle("scrolled", scrollY > 40); addEventListener("scroll", f, { passive: true }); f(); })();
+
+// ---------- Menú ----------
+(() => {
+  const menu = $("#menu"), open = $("#openMenu"), close = $("#closeMenu");
+  const set = (v) => { menu.hidden = !v; open.setAttribute("aria-expanded", v); document.body.style.overflow = v ? "hidden" : ""; (v ? close : open).focus(); };
+  open.addEventListener("click", () => set(true)); close.addEventListener("click", () => set(false));
+  menu.addEventListener("click", (e) => { if (e.target.closest("a")) set(false); });
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) set(false); });
+})();
+
+// ---------- Índice de soluciones con miniatura ----------
+(() => {
+  const follow = $("#follow"), fimg = $("#followImg");
+  document.querySelectorAll("#index .row").forEach(row => {
+    const btn = row.querySelector("button"), body = row.querySelector(".body");
+    btn.addEventListener("click", () => { const o = body.hidden; body.hidden = !o; row.classList.toggle("open", o); btn.setAttribute("aria-expanded", o); if (o) follow.classList.remove("show"); });
+    row.addEventListener("mouseenter", () => { if (!row.classList.contains("open")) { fimg.src = "img/" + row.dataset.img; follow.classList.add("show"); } });
+    row.addEventListener("mouseleave", () => follow.classList.remove("show"));
+  });
+  let x = 0, y = 0, fx = 0, fy = 0;
+  addEventListener("pointermove", (e) => { x = e.clientX; y = e.clientY; });
+  (function tick() { fx += (x - fx) * .15; fy += (y - fy) * .15; follow.style.left = fx + "px"; follow.style.top = fy + "px"; requestAnimationFrame(tick); })();
+})();
+
+// ---------- Capítulos horizontales ----------
+(() => {
+  const sec = $("#capitulos"), track = $("#track"), prog = $("#prog"), now = $("#chapNow"), n = 4;
+  const horizontal = () => !reduce && matchMedia("(min-width: 801px)").matches;
+  function update() {
+    if (!horizontal()) { track.style.transform = ""; return; }
+    const r = sec.getBoundingClientRect(), total = sec.offsetHeight - innerHeight;
+    const p = Math.min(1, Math.max(0, -r.top / total));
+    track.style.transform = `translate3d(${-p * (n - 1) * innerWidth}px,0,0)`;
+    prog.style.width = p * 100 + "%";
+    now.textContent = String(Math.min(n, Math.round(p * (n - 1)) + 1)).padStart(2, "0");
+  }
+  addEventListener("scroll", update, { passive: true }); addEventListener("resize", update); update();
+})();
+
+// ---------- Áreas AGM ----------
+$("#areas").innerHTML = AREAS.map((a, i) => `
+  <article class="acard">
+    <figure><img src="img/areas/${a.img}.jpg" alt="" loading="lazy"></figure>
+    <div class="in">
+      <h3>${a.name}</h3>
+      ${a.obj ? `<button class="tog" type="button" aria-expanded="false" aria-controls="o${i}">Objetivo</button><div class="tog-body" id="o${i}" hidden><p>${a.obj}</p></div>` : ""}
+      <button class="tog" type="button" aria-expanded="false" aria-controls="s${i}">Sistemas</button>
+      <div class="tog-body" id="s${i}" hidden><ul>${a.sys.map(s => `<li>${s}</li>`).join("")}</ul></div>
+    </div>
+  </article>`).join("");
+$("#areas").addEventListener("click", (e) => {
+  const b = e.target.closest(".tog"); if (!b) return;
+  const body = document.getElementById(b.getAttribute("aria-controls")), open = body.hidden;
+  body.hidden = !open; b.setAttribute("aria-expanded", open);
+});
+
+// ---------- Clientes ----------
+const logos = CLIENTS.map(([f, n]) => `<img src="img/clientes/${f}.png" alt="Municipalidad de ${n}">`).join("");
+$("#strip").innerHTML = logos + logos.replace(/alt="[^"]*"/g, 'alt="" aria-hidden="true"');
+
+// ---------- Formulario, copiar, notas ----------
+$("#mini").addEventListener("submit", (e) => {
+  e.preventDefault(); const i = $("#em"), m = $("#fmsg");
+  m.textContent = (!i.value || !i.checkValidity()) ? "Ingrese un correo válido para continuar." : "Maqueta: en el sitio final este correo se enviará al equipo comercial."; m.hidden = false;
+});
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+  navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = "Copiado"; setTimeout(() => b.textContent = "Copiar", 1600); }).catch(() => {
+    const r = document.createRange(); r.selectNodeContents(b.parentElement); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+}));
+const nb = $("#notesBtn"), notes = $("#notes");
+nb.addEventListener("click", () => { notes.hidden = !notes.hidden; nb.setAttribute("aria-expanded", !notes.hidden); });
+</script>
+
+</body>
+</html>
