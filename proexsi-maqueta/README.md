@@ -95,10 +95,10 @@ Sitio claro, tipo producto, orientado a pedir una demostración:
 
 ## Versión 6 (`v6.html`): fusión de v3 y v5
 
-Base visual de v5 (tipografías Sora e Inter Tight, azul noche, cuerpo claro) con las piezas interactivas de v3 que se pidieron conservar:
+Una sola línea gráfica en toda la página: azul noche para los fondos oscuros, violeta como único color de acento (botones, cápsulas, rótulos, mapa) y fondos claros para el contenido, con botones en cápsula y tarjetas de esquinas iguales. Tipografías Sora e Inter Tight.
 
 1. **Header** con "Hablemos" y "Menú" (menú a pantalla completa). Es transparente sobre el hero y se vuelve blanco al bajar.
-2. **Hero con el mapa de Chile** de v3, con nuevos rótulos de región (Inter Tight, blanco) y contador en cápsula violeta.
-3. **Cifras**, **índice de soluciones** con miniatura que sigue al cursor y **capítulos con scroll horizontal**, todos con textos de tamaño moderado.
-4. **Proexsi AGM** como en portal.proexsi.cl/productos: tarjeta con foto, borde azul y desplegables "Objetivo" y "Sistemas", con los textos originales. Fotos en `img/areas/`.
-5. **Banda de servicios en línea**, **clientes en una franja blanca continua**, **historias** (placeholder), **acordeón** "Por qué Proexsi" y **cierre azul** de v5.
+2. **Hero con el mapa de Chile** de v3: regiones con su número de clientes, conectadas al data center en Santiago.
+3. **Cifras**, **índice de soluciones** con miniatura que sigue al cursor y **capítulos con scroll horizontal**, con textos de tamaño moderado.
+4. **Proexsi AGM**: tarjetas con las fotos y textos de portal.proexsi.cl/productos. Cada una muestra el área y su número de sistemas sobre la foto, el objetivo, y un botón "Ver sistemas" que despliega la lista. Fotos en `img/areas/`.
+5. **Clientes** en una franja blanca continua, **historias** (placeholder), **acordeón** "Por qué Proexsi" y **cierre** con captura de correo.
