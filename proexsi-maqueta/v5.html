@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proexsi Home v5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Inter+Tight:wght@400;500;600&display=swap">
+<style>
+/* Layout v5 (Softplan + 1Doc + MuniDigital): hero oscuro y editorial con collage de retratos;
+   tres tarjetas altas de soluciones; franja de cifras; sección clara "adiós al papel" con módulos;
+   mapa esquemático de las 16 regiones con cobertura; banda fotográfica con capa de color;
+   serie de historias (placeholder de video); acordeón de diferenciales; cierre en banda azul. */
+:root {
+  --night: #0E1330;
+  --night-2: #161C42;
+  --night-ink: #F1F3FB;
+  --night-muted: #A7AFCB;
+  --bg: #F5F7FC;
+  --card: #FFFFFF;
+  --ink: #111735;
+  --muted: #5D6684;
+  --line: #E0E5F0;
+  --blue: #0035A9;
+  --violet: #5B5BF6;
+  --on-accent: #FFFFFF;
+  --orange: #F29400;
+  --teal: #0E8F8A;
+  --logo-filter: none;
+  --display: "Sora", "Segoe UI", Helvetica, Arial, sans-serif;
+  --body: "Inter Tight", "Segoe UI", Roboto, Arial, sans-serif;
+  --lane: 1200px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A0F26; --card: #121A3A; --ink: #EDF0FA; --muted: #9EA7C5; --line: #222C55;
+    --blue: #86A6FF; --violet: #9C9CFF; --on-accent: #0A0F26; --orange: #FFAA2B; --teal: #3CC9C2;
+    --logo-filter: brightness(0) invert(1);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A0F26; --card: #121A3A; --ink: #EDF0FA; --muted: #9EA7C5; --line: #222C55;
+  --blue: #86A6FF; --violet: #9C9CFF; --on-accent: #0A0F26; --orange: #FFAA2B; --teal: #3CC9C2;
+  --logo-filter: brightness(0) invert(1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--night); }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+h1, h2, h3 { margin: 0; font-family: var(--display); letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: var(--lane); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 760px) { .wrap { padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); } }
+.sec { padding-block: clamp(64px, 8vw, 110px); }
+.line-label { display: grid; gap: 14px; }
+.line-label::before { content: ""; width: 44px; height: 2px; background: var(--violet); }
+.h2 { font-size: clamp(28px, 3.6vw, 42px); font-weight: 400; }
+.h2 b { font-weight: 700; }
+.sub { color: var(--muted); font-size: 17px; max-width: 58ch; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 8px; font-weight: 600; font-size: 15px; text-decoration: none; cursor: pointer; border: 1px solid transparent; transition: transform .15s, background .15s, border-color .15s; white-space: nowrap; }
+.btn:hover { transform: translateY(-1px); }
+.btn-violet { background: #5B5BF6; color: #FFFFFF; }
+.btn-line-w { border-color: rgb(241 243 251 / .35); color: #F1F3FB; background: transparent; }
+.btn-line-w:hover { border-color: #F1F3FB; }
+.btn-orange { background: var(--orange); color: #1A0F00; }
+.btn-white { background: #FFFFFF; color: #0035A9; }
+
+/* Header sobre fondo oscuro */
+.hdr { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; background: rgb(14 19 48 / .92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #F1F3FB; border-bottom: 1px solid rgb(167 175 203 / .14); }
+.hdr .wrap { display: flex; align-items: center; gap: 18px; height: 72px; }
+.hdr .brand img { height: 28px; width: auto; filter: brightness(0) invert(1); }
+.hdr nav { display: flex; gap: 2px; margin-left: 24px; }
+.hdr nav a { padding: 8px 12px; text-decoration: none; font-size: 15px; color: #C8CEE3; border-radius: 6px; }
+.hdr nav a:hover { color: #FFFFFF; background: rgb(255 255 255 / .06); }
+.hdr .act { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.hdr .act .btn { padding: 10px 16px; font-size: 14px; }
+.burger { display: none; width: 42px; height: 42px; border-radius: 8px; border: 1px solid rgb(241 243 251 / .3); background: transparent; color: #F1F3FB; cursor: pointer; place-items: center; }
+.mnav { background: #0E1330; border-top: 1px solid rgb(167 175 203 / .14); }
+.mnav .wrap { display: grid; padding-block: 8px 18px; }
+.mnav a { padding: 12px 0; border-bottom: 1px solid rgb(167 175 203 / .14); text-decoration: none; color: #F1F3FB; }
+@media (max-width: 1000px) { .hdr nav { display: none; } .burger { display: grid; } }
+@media (max-width: 600px) { .hdr .act .btn-line-w { display: none; } }
+@media (max-width: 420px) { .hdr .act .btn-violet { display: none; } }
+
+/* Hero oscuro (Softplan) */
+.hero { background: #0E1330; color: #F1F3FB; overflow: hidden; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(28px, 5vw, 64px); align-items: center; padding-block: clamp(48px, 7vw, 96px); }
+.hero-copy { display: grid; gap: 24px; }
+.hero-copy .line-label::before { background: #8C8CFF; }
+.hero-copy small { color: #A7AFCB; font-size: 14px; letter-spacing: .02em; }
+.hero h1 { font-size: clamp(36px, 4.8vw, 58px); font-weight: 300; letter-spacing: -0.03em; }
+.hero h1 b { font-weight: 700; }
+.hero p { color: #C8CEE3; font-size: 17.5px; max-width: 50ch; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.portraits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; height: clamp(380px, 42vw, 520px); }
+.portraits .col { display: grid; gap: 12px; }
+.portraits .col:nth-child(1) { padding-top: 40px; grid-template-rows: 1.2fr 1fr; }
+.portraits .col:nth-child(2) { grid-template-rows: 1fr 1.3fr; }
+.portraits .col:nth-child(3) { padding-top: 80px; grid-template-rows: 1fr; }
+.portraits figure { margin: 0; border-radius: 18px; overflow: hidden; min-height: 0; }
+.portraits img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); } .portraits { height: 360px; } }
+@media (max-width: 480px) { .portraits { height: 280px; gap: 8px; } .portraits .col { gap: 8px; } }
+
+/* Tarjetas de solución (Softplan) */
+.sols { background: var(--bg); }
+.sols-head { display: flex; justify-content: space-between; gap: 24px; align-items: end; flex-wrap: wrap; margin-bottom: 36px; }
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.scard { position: relative; aspect-ratio: 3 / 3.6; border-radius: 22px; overflow: hidden; isolation: isolate; color: #FFFFFF; text-decoration: none; display: grid; align-content: end; }
+.scard img.ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform .6s ease; }
+.scard:hover img.ph { transform: scale(1.05); }
+.scard::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(14 19 48 / 0) 35%, rgb(14 19 48 / .92)); }
+.scard .in { padding: 24px; display: grid; gap: 8px; }
+.scard h3 { font-size: 24px; font-weight: 600; }
+.scard p { color: rgb(241 243 251 / .82); font-size: 15px; }
+.scard .go { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; font-size: 14.5px; color: #C9C9FF; margin-top: 6px; }
+@media (max-width: 900px) { .cards3 { grid-template-columns: 1fr; } .scard { aspect-ratio: 16 / 11; } }
+
+/* Cifras */
+.stats { background: var(--card); border-block: 1px solid var(--line); }
+.stats .wrap { display: grid; grid-template-columns: repeat(4, 1fr); padding-block: 40px; }
+.stat { padding: 6px 24px; display: grid; gap: 4px; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat b { font-family: var(--display); font-size: clamp(30px, 3.6vw, 44px); font-weight: 700; color: var(--blue); letter-spacing: -0.03em; line-height: 1.1; }
+.stat span { color: var(--muted); font-size: 14.5px; }
+@media (max-width: 760px) { .stats .wrap { grid-template-columns: 1fr 1fr; row-gap: 24px; } .stat:nth-child(3) { border-left: 0; } }
+
+/* Adiós al papel (1Doc) */
+.paper { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.paper-l { display: grid; gap: 18px; position: sticky; top: 100px; }
+.feat { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.feat article { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; gap: 10px; align-content: start; }
+.feat .ic { width: 46px; height: 46px; border-radius: 12px; background: #EEF2FF; display: grid; place-items: center; }
+.feat .ic img { width: 28px; height: 28px; }
+.feat h3 { font-size: 17px; font-weight: 600; }
+.feat p { color: var(--muted); font-size: 14.5px; }
+@media (max-width: 900px) { .paper { grid-template-columns: minmax(0, 1fr); } .paper-l { position: static; } }
+@media (max-width: 520px) { .feat { grid-template-columns: 1fr; } }
+
+/* Mapa esquemático de regiones (1Doc) */
+.coverage { background: linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--blue) 7%, var(--bg))); }
+.cov { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
+.cov-l { display: grid; gap: 22px; }
+.cov-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cov-stats div { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 2px; }
+.cov-stats b { font-family: var(--display); font-size: 28px; color: var(--blue); letter-spacing: -0.02em; }
+.cov-stats span { color: var(--muted); font-size: 14px; }
+.chile { justify-self: center; display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; width: min(440px, 100%); }
+.reg-bar { width: 46px; border-radius: 4px; background: color-mix(in srgb, var(--blue) 14%, var(--card)); border: 1px solid var(--line); transition: transform .2s; }
+.reg-bar.has { background: var(--blue); border-color: var(--blue); }
+.reg-name { font-size: 13.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.reg-name b { color: var(--ink); font-weight: 600; }
+.reg-name em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--on-accent); background: var(--blue); border-radius: 999px; padding: 1px 8px; }
+.chile .cap { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+@media (max-width: 900px) { .cov { grid-template-columns: minmax(0, 1fr); } }
+
+/* Banda fotográfica (MuniDigital) */
+.band { position: relative; isolation: isolate; overflow: hidden; color: #FFFFFF; }
+.band > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.band::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(8 90 100 / .92), rgb(14 143 138 / .72) 55%, rgb(14 143 138 / .35)); }
+.band .wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; padding-block: clamp(64px, 8vw, 104px); align-items: center; }
+.band h2 { font-size: clamp(32px, 4.4vw, 54px); font-weight: 700; letter-spacing: -0.03em; }
+.band h2 span { color: #FFD08A; }
+.band p { color: rgb(255 255 255 / .88); font-size: 17.5px; max-width: 50ch; }
+.band .l { display: grid; gap: 20px; }
+.svc-list { display: grid; gap: 10px; }
+.svc-list div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .25); backdrop-filter: blur(6px); font-weight: 600; }
+.svc-list small { font-weight: 500; opacity: .8; font-size: 13px; }
+@media (max-width: 900px) { .band .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* Historias (Softplan) */
+.stories { background: #0E1330; color: #F1F3FB; }
+.stories .h2 { color: #F1F3FB; }
+.stories .sub { color: #A7AFCB; }
+.story-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 36px; }
+.story { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 3 / 4; isolation: isolate; display: grid; align-content: end; }
+.story img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; filter: saturate(.85); }
+.story::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(14 19 48 / .1), rgb(14 19 48 / .9)); }
+.story .play { position: absolute; top: 50%; left: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: rgb(255 255 255 / .9); color: #0E1330; display: grid; place-items: center; }
+.story .in { padding: 16px; display: grid; gap: 4px; }
+.story small { font-size: 12px; color: #FFD08A; letter-spacing: .04em; text-transform: uppercase; }
+.story b { font-family: var(--display); font-weight: 600; font-size: 16px; line-height: 1.3; }
+@media (max-width: 900px) { .story-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Acordeón (1Doc) */
+.acc-wrap { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.acc { display: grid; gap: 10px; }
+.acc details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; transition: border-color .2s; }
+.acc details[open] { border-color: var(--violet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--violet) 14%, transparent); }
+.acc summary { list-style: none; cursor: pointer; padding: 18px 20px; font-weight: 600; display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.acc summary::-webkit-details-marker { display: none; }
+.acc summary::after { content: ""; width: 10px; height: 10px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .2s; flex: none; margin-top: -4px; }
+.acc details[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.acc p { padding: 0 20px 18px; color: var(--muted); }
+.acc-media { border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 4.4; position: relative; }
+.acc-media img { width: 100%; height: 100%; object-fit: cover; }
+.acc-media .seal { position: absolute; left: 16px; bottom: 16px; background: #FFFFFF; border-radius: 10px; padding: 6px 10px; }
+.acc-media .seal img { width: 180px; height: auto; }
+@media (max-width: 900px) { .acc-wrap { grid-template-columns: minmax(0, 1fr); } .acc-media { aspect-ratio: 16 / 10; } }
+
+/* Cierre azul (1Doc) */
+.cta { padding-block: 0 clamp(64px, 8vw, 104px); }
+.cta-box { position: relative; border-radius: 28px; overflow: hidden; background: linear-gradient(120deg, #0035A9, #2350D9 60%, #5B5BF6); color: #FFFFFF; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+.cta-l { padding: clamp(28px, 5vw, 56px); display: grid; gap: 18px; align-content: center; }
+.cta-l h2 { font-size: clamp(28px, 3.6vw, 44px); font-weight: 300; }
+.cta-l h2 b { font-weight: 700; }
+.cta-l p { color: rgb(255 255 255 / .85); font-size: 17px; }
+.cta-data { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 15px; }
+.cta-data span { display: inline-flex; gap: 8px; align-items: center; }
+.cta-data button { border: 1px solid rgb(255 255 255 / .4); background: transparent; color: #FFFFFF; border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+.cta-r { position: relative; min-height: 300px; }
+.cta-r img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cta-r::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, #2350D9, transparent 40%); }
+form.mini { display: flex; gap: 8px; flex-wrap: wrap; }
+form.mini input { flex: 1; min-width: 200px; padding: 13px 14px; border-radius: 8px; border: 0; font: 400 15px var(--body); color: #111735; }
+.fmsg { font-weight: 600; color: #FFD08A; }
+@media (max-width: 860px) { .cta-box { grid-template-columns: minmax(0, 1fr); } .cta-r { min-height: 220px; order: -1; } .cta-r::before { background: linear-gradient(0deg, #0035A9, transparent 50%); } }
+
+footer { background: #0E1330; color: #A7AFCB; font-size: 14px; }
+.foot { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 28px; padding-block: 52px 32px; }
+.foot img { height: 26px; width: auto; filter: brightness(0) invert(1); margin-bottom: 12px; }
+.foot h4 { margin: 0 0 10px; color: #F1F3FB; font: 600 14px var(--display); }
+.foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.foot a { text-decoration: none; }
+.foot a:hover { color: #FFFFFF; }
+.foot-b { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 18px 30px; border-top: 1px solid rgb(167 175 203 / .14); font-size: 13px; }
+@media (max-width: 860px) { .foot { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .foot { grid-template-columns: 1fr; } }
+
+.notes-btn { position: fixed; z-index: 45; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 600 12.5px var(--body); padding: 10px 14px; border-radius: 999px; cursor: pointer; background: var(--orange); color: #1A0F00; border: 0; box-shadow: 0 10px 30px -10px rgb(0 0 0 / .4); }
+.notes { position: fixed; z-index: 46; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); width: min(400px, calc(100vw - 32px)); max-height: 70vh; overflow: auto; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; font-size: 14px; display: grid; gap: 10px; box-shadow: 0 24px 60px -20px rgb(0 0 0 / .4); }
+.notes h4 { margin: 0; font-family: var(--display); font-size: 16px; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); }
+.notes b { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .scard img.ph, .btn { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"></a>
+    <nav aria-label="Principal"><a href="#soluciones">Soluciones</a><a href="#modulos">Módulos</a><a href="#cobertura">Clientes</a><a href="#historias">Historias</a><a href="#nosotros">Nosotros</a></nav>
+    <div class="act">
+      <a class="btn btn-line-w" href="#acceso" title="Enlace al portal de clientes (por definir)">Acceso clientes</a>
+      <a class="btn btn-violet" href="#contacto">Hablar con ventas</a>
+      <button class="burger" type="button" id="burger" aria-expanded="false" aria-controls="mnav" aria-label="Abrir menú"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+  <div class="mnav" id="mnav" hidden><div class="wrap"><a href="#soluciones">Soluciones</a><a href="#modulos">Módulos</a><a href="#cobertura">Clientes</a><a href="#historias">Historias</a><a href="#nosotros">Nosotros</a><a href="#acceso">Acceso clientes</a><a href="#contacto">Hablar con ventas</a></div></div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <div class="line-label"><small>Proexsi · Tecnologías de información para misión crítica</small></div>
+        <h1>Tecnología pública que se <b>nota en la vida de las personas.</b></h1>
+        <p>Hace más de 45 años desarrollamos las plataformas que usan municipios y corporaciones para atender a millones de chilenos con agilidad, transparencia y eficiencia.</p>
+        <div class="hero-cta">
+          <a class="btn btn-violet" href="#contacto">Hablar con ventas</a>
+          <a class="btn btn-line-w" href="#soluciones">Conocer soluciones</a>
+        </div>
+      </div>
+      <div class="portraits" aria-hidden="true">
+        <div class="col"><figure><img src="img/slide-conectados.jpg" alt="" style="object-position:30% 50%"></figure><figure><img src="img/pilar-relaciones.jpg" alt=""></figure></div>
+        <div class="col"><figure><img src="img/area-sistemas-hover.jpg" alt=""></figure><figure><img src="img/slide-experiencia.jpg" alt="" style="object-position:70% 50%"></figure></div>
+        <div class="col"><figure><img src="img/slide-innovacion.jpg" alt="" style="object-position:40% 50%"></figure></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOLUCIONES -->
+  <section class="sec sols" id="soluciones">
+    <div class="wrap">
+      <div class="sols-head">
+        <div class="line-label"><h2 class="h2">Conozca nuestras <b>soluciones</b></h2></div>
+        <p class="sub">Más agilidad, transparencia y eficiencia para la gestión pública.</p>
+      </div>
+      <div class="cards3">
+        <a class="scard" href="#modulos"><img class="ph" src="img/area-grp-hover.jpg" alt=""><div class="in"><h3>Soluciones GRP</h3><p>Proexsi AGM y AGCM: la gestión completa de municipios y corporaciones.</p><span class="go">Ver módulos →</span></div></a>
+        <a class="scard" href="#contacto"><img class="ph" src="img/area-sistemas.jpg" alt=""><div class="in"><h3>Sistemas de Gestión</h3><p>Sistemas a la medida que mejoran los resultados de cada institución.</p><span class="go">Conversemos →</span></div></a>
+        <a class="scard" href="#nosotros"><img class="ph" src="img/slide-calidad.jpg" alt=""><div class="in"><h3>Data Center</h3><p>Hosting y housing con continuidad operacional y certificación ISO.</p><span class="go">Conocer más →</span></div></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIFRAS -->
+  <section class="stats" aria-label="Cifras">
+    <div class="wrap">
+      <div class="stat"><b>+45</b><span>años de trayectoria</span></div>
+      <div class="stat"><b>20</b><span>municipios clientes</span></div>
+      <div class="stat"><b>81</b><span>módulos integrados</span></div>
+      <div class="stat"><b>ISO 9001</b><span>calidad certificada</span></div>
+    </div>
+  </section>
+
+  <!-- ADIÓS AL PAPEL -->
+  <section class="sec" id="modulos">
+    <div class="wrap paper">
+      <div class="paper-l">
+        <div class="line-label"><h2 class="h2">Diga adiós al papel. <b>Gestione en línea.</b></h2></div>
+        <p class="sub">Doce áreas del municipio en una sola plataforma: del decreto al pago del vecino, sin trámites duplicados.</p>
+        <a class="btn btn-violet" href="#contacto" style="justify-self:start">Solicitar una demostración</a>
+      </div>
+      <div class="feat">
+        <article><span class="ic" style="background:#0035A9"><img src="img/icon-grp.png" alt=""></span><h3>Gestión documental y decretos</h3><p>Tramitación electrónica de documentos, control de decretos y tabla del concejo.</p></article>
+        <article><span class="ic"><img src="img/icon-recaudacion.png" alt=""></span><h3>Rentas y pagos en línea</h3><p>Patentes, aseo domiciliario, convenios y cobranzas, con pago desde internet.</p></article>
+        <article><span class="ic"><img src="img/icon-permisos.png" alt=""></span><h3>Tránsito</h3><p>Permisos de circulación, licencias de conducir y reserva de hora por internet.</p></article>
+        <article><span class="ic"><img src="img/icon-liquidaciones.png" alt=""></span><h3>Personas</h3><p>Personal, remuneraciones, bienestar e intranet de recursos humanos.</p></article>
+        <article><span class="ic"><img src="img/icon-causas.png" alt=""></span><h3>Juzgados de Policía Local</h3><p>Seguimiento de causas, partes empadronados y de ordenanza, multas TAG.</p></article>
+        <article><span class="ic"><img src="img/icon-personas.png" alt=""></span><h3>Comunidad</h3><p>Atención social, organizaciones comunitarias, OMIL, becas y tarjeta vecino.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- COBERTURA -->
+  <section class="sec coverage" id="cobertura">
+    <div class="wrap cov">
+      <div class="cov-l">
+        <div class="line-label"><h2 class="h2">Presentes de <b>norte a sur.</b></h2></div>
+        <p class="sub">Municipalidades de seis regiones de Chile confían su operación diaria a las plataformas de Proexsi.</p>
+        <div class="cov-stats">
+          <div><b>20</b><span>municipios clientes</span></div>
+          <div><b>6</b><span>de 16 regiones</span></div>
+          <div><b>10</b><span>comunas en la Región Metropolitana</span></div>
+          <div><b>+45</b><span>años en el sector público</span></div>
+        </div>
+      </div>
+      <div class="chile" id="chile" role="img" aria-label="Esquema de las 16 regiones de Chile de norte a sur, con las 6 regiones donde Proexsi tiene clientes destacadas"></div>
+    </div>
+  </section>
+
+  <!-- BANDA SERVICIOS EN LÍNEA -->
+  <section class="band">
+    <img src="img/pilar-trayectoria.jpg" alt="">
+    <div class="wrap">
+      <div class="l">
+        <h2>Del mesón <span>al celular del vecino.</span></h2>
+        <p>Los servicios por internet conectan a los vecinos con las áreas internas del municipio: pagan, reservan y tramitan desde cualquier lugar.</p>
+        <a class="btn btn-orange" href="#contacto" style="justify-self:start">Digitalice su municipio</a>
+      </div>
+      <div class="svc-list">
+        <div>Permisos de circulación <small>Pago en línea</small></div>
+        <div>Patentes municipales <small>Pago en línea</small></div>
+        <div>Licencias de conducir <small>Reserva de hora</small></div>
+        <div>Obras municipales <small>Certificados y permisos</small></div>
+        <div>Gestión cultural <small>E-Ticket</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORIAS -->
+  <section class="sec stories" id="historias">
+    <div class="wrap">
+      <div class="line-label"><h2 class="h2">Historias de <b>transformación digital</b></h2></div>
+      <p class="sub" style="margin-top:14px">Espacio para una serie de videos con municipios clientes. Placeholder: reemplazar por testimonios reales.</p>
+      <div class="story-grid">
+        <div class="story"><img src="img/slide-conectados.jpg" alt=""><span class="play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 1 · Próximamente</small><b>Vecinos que pagan sus permisos sin hacer fila</b></div></div>
+        <div class="story"><img src="img/pilar-relaciones.jpg" alt=""><span class="play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 2 · Próximamente</small><b>Equipos municipales con una sola plataforma</b></div></div>
+        <div class="story"><img src="img/pilar-iso.jpg" alt=""><span class="play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 3 · Próximamente</small><b>Del papel al decreto electrónico</b></div></div>
+        <div class="story"><img src="img/slide-calidad.jpg" alt=""><span class="play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg></span><div class="in"><small>Episodio 4 · Próximamente</small><b>El data center que nunca se detiene</b></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACORDEÓN -->
+  <section class="sec" id="nosotros">
+    <div class="wrap acc-wrap">
+      <div class="acc-media"><img src="img/area-datacenter-hover.jpg" alt="Racks de servidores del data center de Proexsi"><span class="seal"><img src="img/sello-iso-mercadopublico.png" alt="Sellos de Mercado Público e ISO 9001"></span></div>
+      <div style="display:grid;gap:22px">
+        <div class="line-label"><h2 class="h2">Procesos más simples, <b>de principio a fin.</b></h2></div>
+        <div class="acc">
+          <details open><summary>Una sola plataforma para todo el municipio</summary><p>Proexsi AGM integra 12 áreas y 81 módulos sobre la misma base, conectados con tesorería y contabilidad.</p></details>
+          <details><summary>Data center propio</summary><p>Hosting y housing con seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos diariamente.</p></details>
+          <details><summary>Calidad certificada ISO 9001:2015</summary><p>La certificación cubre la operación del data center y el desarrollo y mantención de sistemas.</p></details>
+          <details><summary>Más de 45 años en el sector público</summary><p>Únicos en Chile sosteniendo procesos de misión crítica, con relaciones de largo plazo con nuestros clientes.</p></details>
+          <details><summary>Sistemas a la medida</summary><p>Cuando una necesidad no está cubierta, diseñamos y desarrollamos el sistema que la institución requiere.</p></details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIERRE -->
+  <section class="cta" id="contacto">
+    <div class="wrap">
+      <div class="cta-box">
+        <div class="cta-l">
+          <h2>Inspire el próximo paso <b>de su gestión.</b></h2>
+          <p>Déjenos su correo y un especialista le contactará para conocer su institución.</p>
+          <form class="mini" id="mini" novalidate>
+            <label for="em" hidden>Correo institucional</label>
+            <input id="em" type="email" autocomplete="email" placeholder="nombre@institucion.cl" aria-label="Correo institucional">
+            <button class="btn btn-white" type="submit">Quiero que me contacten</button>
+          </form>
+          <p class="fmsg" id="fmsg" hidden></p>
+          <div class="cta-data">
+            <span>hablemos@proexsi.cl <button type="button" data-copy="hablemos@proexsi.cl">Copiar</button></span>
+            <span>+56 2 2489 1900 <button type="button" data-copy="+56224891900">Copiar</button></span>
+          </div>
+        </div>
+        <div class="cta-r"><img src="img/area-grp.jpg" alt="Equipo de Proexsi en reunión de trabajo"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"><p>Moneda 1040, piso 10<br>Santiago de Chile</p></div>
+    <div><h4>Soluciones</h4><ul><li><a href="#soluciones">Soluciones GRP</a></li><li><a href="#soluciones">Sistemas de Gestión</a></li><li><a href="#soluciones">Data Center</a></li></ul></div>
+    <div><h4>Proexsi</h4><ul><li><a href="#nosotros">Nosotros</a></li><li><a href="#cobertura">Clientes</a></li><li><a href="#historias">Historias</a></li></ul></div>
+    <div><h4>Contacto</h4><ul><li>hablemos@proexsi.cl</li><li>+56 2 2489 1900</li><li><a href="#acceso">Acceso clientes</a></li></ul></div>
+  </div>
+  <div class="wrap foot-b"><span>© Proexsi. Todos los derechos reservados.</span><a href="#top">Volver arriba ↑</a></div>
+</footer>
+
+<button class="notes-btn" id="notesBtn" type="button" aria-expanded="false" aria-controls="notes">Notas v5</button>
+<aside class="notes" id="notes" hidden aria-label="Notas de la versión 5">
+  <h4>Versión 5: Softplan + 1Doc + MuniDigital</h4>
+  <ul>
+    <li><b>Softplan:</b> hero oscuro con collage de personas, tres tarjetas altas de soluciones y serie de historias.</li>
+    <li><b>1Doc:</b> secciones claras "adiós al papel", mapa de cobertura con cifras, acordeón de diferenciales y cierre en banda azul.</li>
+    <li><b>MuniDigital:</b> banda fotográfica con capa de color y botón "Acceso clientes" en el menú (enlace por definir).</li>
+    <li><b>Historias:</b> placeholder para videos reales con municipios.</li>
+    <li><b>Formulario:</b> solo demostrativo, no envía datos.</li>
+  </ul>
+</aside>
+
+<script>
+const $ = (s) => document.querySelector(s);
+// Regiones de Chile de norte a sur; clientes por región
+const REGIONS = [
+  ["Arica y Parinacota", 0], ["Tarapacá", 2], ["Antofagasta", 0], ["Atacama", 1], ["Coquimbo", 0], ["Valparaíso", 5],
+  ["Metropolitana", 10], ["O'Higgins", 0], ["Maule", 1], ["Ñuble", 0], ["Biobío", 0], ["La Araucanía", 0],
+  ["Los Ríos", 0], ["Los Lagos", 1], ["Aysén", 0], ["Magallanes", 0]
+];
+// Alto proporcional aproximado a la extensión norte–sur de cada región (sólo para el esquema)
+const SPAN = [1.6, 2.4, 4.2, 3.2, 2.6, 1.6, 1.0, 1.0, 1.6, 1.0, 1.6, 1.6, 1.0, 2.6, 4.0, 5.2];
+$("#chile").innerHTML = REGIONS.map(([n, c], i) =>
+  `<span class="reg-bar${c ? " has" : ""}" style="height:${Math.round(SPAN[i] * 12)}px"></span><span class="reg-name">${c ? `<b>${n}</b><em>${c}</em>` : n}</span>`).join("") +
+  `<span class="cap">Esquema de las 16 regiones, de norte a sur. En azul, regiones con municipios clientes.</span>`;
+
+$("#mini").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const i = $("#em"), m = $("#fmsg");
+  m.textContent = (!i.value || !i.checkValidity()) ? "Ingrese un correo válido para continuar." : "Maqueta: en el sitio final este correo se enviará al equipo comercial.";
+  m.hidden = false;
+});
+const bg = $("#burger"), mn = $("#mnav");
+bg.addEventListener("click", () => { mn.hidden = !mn.hidden; bg.setAttribute("aria-expanded", !mn.hidden); });
+mn.addEventListener("click", (e) => { if (e.target.closest("a")) { mn.hidden = true; bg.setAttribute("aria-expanded", false); } });
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+  navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = "Copiado"; setTimeout(() => b.textContent = "Copiar", 1600); }).catch(() => {
+    const r = document.createRange(); r.selectNodeContents(b.parentElement); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+}));
+const nb = $("#notesBtn"), notes = $("#notes");
+nb.addEventListener("click", () => { notes.hidden = !notes.hidden; nb.setAttribute("aria-expanded", !notes.hidden); });
+</script>
+
+</body>
+</html>

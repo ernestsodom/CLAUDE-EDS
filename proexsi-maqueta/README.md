@@ -69,3 +69,26 @@ Inspirada en sitios premiados de estudios de desarrollo (Lusion, Active Theory, 
 6. **Escala**, **calidad** (+45 años e ISO) y **muro de 20 logos** con su región.
 7. **Cierre "Hablemos."** en tipografía gigante, con los datos de contacto y el formulario.
 8. **Menú** a pantalla completa.
+
+## Versión 4 (`v4.html`): inspirada en Aprova, IPM y Gove
+
+Sitio claro, tipo producto, orientado a pedir una demostración:
+
+1. **Barra de aviso** (ISO, Mercado Público, data center) y menú con botón "Agendar demostración".
+2. **Hero** con titular que escribe procesos concretos ("Modernice los permisos de circulación / las patentes…"), foto y tarjetas flotantes de módulos (IPM + Gove).
+3. **Logos de clientes** justo bajo el hero (Gove) y **cifras** verificables.
+4. **Recorrido por la plataforma** (Aprova): pestañas con una interfaz ilustrativa de 5 módulos. Los datos son de ejemplo; los nombres de módulos son reales.
+5. **Soluciones** en bloques alternados con beneficios y cifras (IPM).
+6. **Caso de éxito** como plantilla con campos punteados para completar con datos reales (Gove).
+7. **Servicios para el vecino** en un teléfono con los pasos de un pago en línea (Gove).
+8. **Data center**, **preguntas frecuentes** (Aprova) y **contacto**.
+
+## Versión 5 (`v5.html`): inspirada en Softplan, 1Doc y MuniDigital
+
+1. **Hero oscuro** con collage de personas y botón "Acceso clientes" en el menú (Softplan + MuniDigital). El enlace al portal de clientes queda por definir.
+2. **Tres tarjetas altas** de soluciones (Softplan) y franja de cifras.
+3. **"Diga adiós al papel"** con 6 grupos de módulos (1Doc).
+4. **Presentes de norte a sur**: esquema de las 16 regiones con las 6 que tienen clientes (1Doc).
+5. **Banda fotográfica** "Del mesón al celular del vecino" con servicios en línea (MuniDigital).
+6. **Historias**: placeholder para una serie de videos con municipios (Softplan).
+7. **Acordeón** de diferenciales y **cierre** en banda azul con captura de correo (1Doc).
