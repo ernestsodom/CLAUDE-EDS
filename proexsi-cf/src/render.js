@@ -299,6 +299,7 @@ ${body}
 </footer>
 ${preview ? '<div class="preview-bar">Vista previa · los cambios aún no están publicados</div>' : ''}
 <script src="/site.js?v=${content.__assetVersion || 1}" defer></script>
+${preview ? '' : '<script src="https://chatbot-widget-chi-ten.vercel.app/chat.js" defer></script>'}
 </body>
 </html>`;
 }
