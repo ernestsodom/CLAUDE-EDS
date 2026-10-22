@@ -95,10 +95,12 @@ Sitio claro, tipo producto, orientado a pedir una demostración:
 
 ## Versión 6 (`v6.html`): fusión de v3 y v5
 
-Una sola línea gráfica en toda la página: azul noche para los fondos oscuros, violeta como único color de acento (botones, cápsulas, rótulos, mapa) y fondos claros para el contenido, con botones en cápsula y tarjetas de esquinas iguales. Tipografías Sora e Inter Tight.
+Una sola línea gráfica en toda la página: colores principales en tonos azules (azul noche para fondos oscuros, azul Proexsi y azul brillante para acentos) y detalles secundarios en naranjo (líneas de título, botón "Hablemos", mapa, viñetas). Botones en cápsula y tarjetas de esquinas iguales. Tipografías Sora e Inter Tight.
 
-1. **Header** con "Hablemos" y "Menú" (menú a pantalla completa). Es transparente sobre el hero y se vuelve blanco al bajar.
+1. **Header** con "Hablemos" y "Menú" (menú a pantalla completa). Es transparente sobre el hero y al bajar pasa a un azul noche translúcido, un cambio sutil.
 2. **Hero con el mapa de Chile** de v3: regiones con su número de clientes, conectadas al data center en Santiago.
 3. **Cifras**, **índice de soluciones** con miniatura que sigue al cursor y **capítulos con scroll horizontal**, con textos de tamaño moderado.
 4. **Proexsi AGM**: tarjetas con las fotos y textos de portal.proexsi.cl/productos. Cada una muestra el área y su número de sistemas sobre la foto, el objetivo, y un botón "Ver sistemas" que despliega la lista. Fotos en `img/areas/`.
-5. **Clientes** en una franja blanca continua, **historias** (placeholder), **acordeón** "Por qué Proexsi" y **cierre** con captura de correo.
+5. **Clientes** en una franja blanca continua e **historias** (placeholder).
+6. **Por qué Proexsi** en pantalla dividida de borde a borde: foto del data center con el sello ISO a la izquierda y lista desplegable a la derecha.
+7. **Cierre** en una banda azul noche de borde a borde, continua con el pie: titular, captura de correo y datos de contacto en tres columnas, sin foto.
