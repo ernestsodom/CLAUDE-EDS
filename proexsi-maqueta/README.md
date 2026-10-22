@@ -56,3 +56,16 @@ Una diagramación distinta con las mismas imágenes de `img/`, pensada más como
 7. **Contacto** en una tarjeta: foto con los datos de contacto y un formulario con selección de interés.
 
 La versión 1 (`index.html`) queda intacta para comparar.
+
+## Versión 3 (`v3.html`)
+
+Inspirada en sitios premiados de estudios de desarrollo (Lusion, Active Theory, Immersive Garden, basement.studio y Dropbox Brand). Usa las mismas imágenes de `img/` y un solo tema oscuro, por decisión de diseño.
+
+1. **Portada animada**: mapa de Chile dibujado en canvas, con los 20 municipios clientes en su ubicación aproximada, conectados al data center en Santiago. Los datos viajan por las conexiones en tiempo real.
+2. **Manifiesto** con tipografía gigante: los procesos que pasan por los sistemas de Proexsi se encienden al hacer scroll.
+3. **Capítulos horizontales**: las 4 fotos del slider original avanzan de lado al bajar (en celular se apilan en vertical).
+4. **Índice de soluciones**: filas grandes que muestran una foto siguiendo al cursor y se abren con el detalle.
+5. **Bloques de color** para las 12 áreas, cada uno con su número de módulos; al hacer clic se abre una ficha con la lista.
+6. **Escala**, **calidad** (+45 años e ISO) y **muro de 20 logos** con su región.
+7. **Cierre "Hablemos."** en tipografía gigante, con los datos de contacto y el formulario.
+8. **Menú** a pantalla completa.

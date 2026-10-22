@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proexsi Home v3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout v3: un solo mundo visual oscuro y cinematográfico (decisión deliberada, sin modo claro).
+   Portada con mapa de Chile en canvas (20 municipios reales + data center); manifiesto de tipografía
+   gigante; capítulos fotográficos con scroll horizontal; índice de soluciones con imagen que sigue
+   al cursor; bloques de color por área; escala; calidad; muro de clientes; cierre "Hablemos". */
+:root {
+  --void: #03081A;
+  --deep: #071233;
+  --panel: #0B1840;
+  --ink: #EEF2FB;
+  --dim: #8E9AB9;
+  --line: rgb(142 154 185 / .18);
+  --blue: #0035A9;
+  --electric: #4C86FF;
+  --orange: #F29400;
+  --sky: #9CC0FF;
+  --display: "Bricolage Grotesque", "Arial Black", Helvetica, sans-serif;
+  --body: "Hanken Grotesk", "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  --lane: 1320px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--void); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--void); }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 800; letter-spacing: -0.035em; line-height: .95; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 4px; }
+::selection { background: var(--orange); color: var(--void); }
+
+.wrap { max-width: var(--lane); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 760px) { .wrap { padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); } }
+.label { font: 500 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); display: inline-flex; align-items: center; gap: 10px; }
+.label b { color: var(--orange); font-weight: 500; }
+.sec { padding-block: clamp(80px, 11vw, 160px); }
+
+/* ---------- Header ---------- */
+.top { position: fixed; z-index: 50; top: env(safe-area-inset-top, 0px); left: 0; right: 0; mix-blend-mode: normal; }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+.top .brand img { height: 26px; width: auto; filter: brightness(0) invert(1); }
+.top-r { display: flex; gap: 10px; align-items: center; }
+.chip-btn { display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px; border-radius: 999px; border: 1px solid rgb(238 242 251 / .25); background: rgb(3 8 26 / .45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); cursor: pointer; font: 500 14px var(--body); text-decoration: none; color: var(--ink); transition: background .2s, border-color .2s, color .2s; }
+.chip-btn:hover { border-color: var(--ink); }
+.chip-btn.solid { background: var(--orange); border-color: var(--orange); color: #1A0F00; font-weight: 600; }
+.burger { display: grid; gap: 4px; width: 16px; }
+.burger i { height: 1.5px; background: currentColor; display: block; }
+@media (max-width: 520px) { .top .chip-btn.solid { display: none; } }
+
+.menu { position: fixed; inset: 0; z-index: 70; background: var(--deep); display: grid; grid-template-rows: auto 1fr auto; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); overflow: auto; }
+.menu .wrap { width: 100%; }
+.menu-head { display: flex; justify-content: space-between; align-items: center; height: 76px; }
+.menu nav { display: grid; align-content: center; gap: 4px; padding-block: 24px; }
+.menu nav a { display: flex; align-items: baseline; gap: 18px; text-decoration: none; font-family: var(--display); font-weight: 800; font-size: clamp(42px, 8vw, 104px); letter-spacing: -0.04em; line-height: 1.02; color: rgb(238 242 251 / .35); transition: color .25s, transform .25s; }
+.menu nav a small { font: 500 13px var(--mono); letter-spacing: .08em; color: var(--orange); }
+.menu nav a:hover { color: var(--ink); transform: translateX(10px); }
+.menu-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-block: 24px 32px; border-top: 1px solid var(--line); color: var(--dim); font-size: 14px; }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; min-height: clamp(640px, 100svh, 980px); display: grid; align-items: end; overflow: hidden; isolation: isolate; background: radial-gradient(80% 60% at 72% 40%, #0A1E5C 0%, var(--void) 70%); }
+#map { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.hero .wrap { width: 100%; padding-block: 130px 48px; display: grid; gap: 34px; }
+.hero h1 { font-size: clamp(56px, 11.5vw, 184px); max-width: 9.5ch; }
+.hero h1 span { color: var(--orange); }
+.hero-foot { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto; gap: 28px; align-items: end; padding-top: 26px; border-top: 1px solid var(--line); }
+.hero-foot p { color: var(--dim); font-size: 17px; max-width: 46ch; }
+.hero-foot p strong { color: var(--ink); font-weight: 600; }
+.legend { display: grid; gap: 8px; font: 400 12.5px var(--mono); color: var(--dim); }
+.legend span { display: flex; align-items: center; gap: 10px; }
+.legend i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.scroll-cue { font: 500 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); display: grid; justify-items: center; gap: 10px; text-decoration: none; }
+.scroll-cue i { width: 1px; height: 46px; background: linear-gradient(var(--orange), transparent); animation: cue 2.2s ease-in-out infinite; transform-origin: top; }
+@keyframes cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+@media (max-width: 860px) { .hero-foot { grid-template-columns: 1fr; } .scroll-cue { display: none; } #map { opacity: .55; } }
+
+/* ---------- Manifiesto ---------- */
+.manifesto { border-top: 1px solid var(--line); }
+.manifesto .label { margin-bottom: 40px; }
+.words { display: grid; gap: 2px; }
+.words p { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 8.4vw, 132px); letter-spacing: -0.045em; line-height: .98; color: rgb(238 242 251 / .3); transition: color .35s ease; }
+.words p.on { color: var(--ink); }
+.words p em { font-style: normal; color: var(--orange); }
+.manifesto-note { margin-top: 48px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; color: var(--dim); max-width: 960px; }
+.manifesto-note b { color: var(--ink); font-weight: 600; display: block; margin-bottom: 4px; }
+
+/* ---------- Capítulos horizontales ---------- */
+.chapters { position: relative; height: calc(var(--n, 4) * 100svh); }
+.chapters .pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.track { display: flex; height: 100%; width: calc(var(--n, 4) * 100vw); will-change: transform; }
+.chapter { position: relative; width: 100vw; height: 100%; flex: none; display: grid; align-items: end; isolation: isolate; overflow: hidden; }
+.chapter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transform: scale(1.08); }
+.chapter::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgb(3 8 26 / .95) 0%, rgb(3 8 26 / .55) 45%, rgb(3 8 26 / .15) 100%), linear-gradient(90deg, rgb(3 8 26 / .6), transparent 60%); }
+.chapter .wrap { width: 100%; padding-block: 0 72px; display: grid; gap: 18px; }
+.chapter .num { font: 500 13px var(--mono); color: var(--orange); letter-spacing: .1em; }
+.chapter h2 { font-size: clamp(44px, 7.5vw, 120px); max-width: 11ch; }
+.chapter p { max-width: 48ch; font-size: clamp(16px, 1.4vw, 19px); color: rgb(238 242 251 / .82); }
+.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(238 242 251 / .1); z-index: 3; }
+.progress i { display: block; height: 100%; width: 0; background: var(--orange); }
+.chap-count { position: absolute; z-index: 3; right: max(36px, env(safe-area-inset-right, 0px)); top: 96px; font: 500 13px var(--mono); color: var(--dim); }
+.chap-count b { color: var(--ink); font-weight: 500; }
+@media (max-width: 800px), (prefers-reduced-motion: reduce) {
+  .chapters { height: auto; }
+  .chapters .pin { position: static; height: auto; }
+  .track { display: grid; width: auto; transform: none !important; }
+  .chapter { width: auto; min-height: 78svh; }
+  .progress, .chap-count { display: none; }
+}
+
+/* ---------- Índice de soluciones ---------- */
+.solutions { position: relative; }
+.sol-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 40px; }
+.sol-head h2 { font-size: clamp(40px, 6vw, 88px); }
+.sol-head p { color: var(--dim); max-width: 40ch; }
+.index { border-top: 1px solid var(--line); }
+.row { border-bottom: 1px solid var(--line); }
+.row > button { width: 100%; display: grid; grid-template-columns: 160px minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 30px 0; background: none; border: 0; cursor: pointer; text-align: left; }
+.row .tag { font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.row .name { font-family: var(--display); font-weight: 800; font-size: clamp(34px, 5.4vw, 80px); letter-spacing: -0.04em; line-height: 1; transition: color .25s, transform .3s; }
+.row:hover .name, .row.open .name { color: var(--orange); transform: translateX(8px); }
+.row .plus { width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; transition: transform .3s, background .2s; }
+.row.open .plus { transform: rotate(45deg); background: var(--ink); color: var(--void); }
+.row .body { display: grid; grid-template-columns: 160px minmax(0, 1fr) minmax(0, 1fr); gap: 24px; padding: 0 0 36px; }
+.row .body img { grid-column: 2; border-radius: 6px; aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
+.row .body .txt { display: grid; gap: 14px; align-content: start; color: var(--dim); font-size: 17px; }
+.row .body .txt strong { color: var(--ink); font-weight: 600; }
+.row .body ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.row .body li { display: flex; gap: 10px; align-items: baseline; color: var(--ink); }
+.row .body li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); flex: none; transform: translateY(-2px); }
+.row .body .ic { width: 52px; height: 52px; }
+.follow { position: fixed; z-index: 30; left: 0; top: 0; width: 300px; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(.85); transition: opacity .25s, transform .25s; }
+.follow.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.follow img { width: 100%; height: 100%; object-fit: cover; }
+@media (hover: none), (max-width: 860px) { .follow { display: none; } }
+@media (max-width: 860px) {
+  .row > button { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; }
+  .row .tag { grid-column: 1 / -1; }
+  .row .body { grid-template-columns: 1fr; }
+  .row .body img { grid-column: auto; }
+}
+
+/* ---------- Bloques por área ---------- */
+.areas-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: end; margin-bottom: 40px; }
+.areas-head h2 { font-size: clamp(40px, 6vw, 88px); }
+.areas-head p { color: var(--dim); font-size: 17px; max-width: 46ch; }
+.blocks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.block { position: relative; min-height: 210px; padding: 22px; border-radius: 6px; border: 0; cursor: pointer; text-align: left; display: grid; align-content: space-between; gap: 18px; overflow: hidden; transition: transform .25s ease, border-radius .25s ease; }
+.block:hover { transform: translateY(-4px); border-radius: 22px; }
+.block .n { font-family: var(--display); font-weight: 800; font-size: 76px; line-height: .85; letter-spacing: -0.05em; }
+.block .t { font-weight: 600; font-size: 18px; line-height: 1.2; display: flex; justify-content: space-between; gap: 10px; align-items: end; }
+.block .t small { font: 500 11.5px var(--mono); letter-spacing: .06em; opacity: .7; white-space: nowrap; }
+.block.c0 { background: var(--blue); color: #FFFFFF; }
+.block.c1 { background: var(--orange); color: #1A0F00; }
+.block.c2 { background: var(--sky); color: #04102F; }
+.block.c3 { background: var(--ink); color: var(--void); }
+.block.c4 { background: var(--panel); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+@media (max-width: 1000px) { .blocks { grid-template-columns: repeat(3, 1fr); } .areas-head { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .blocks { grid-template-columns: 1fr 1fr; } .block { min-height: 170px; padding: 18px; } .block .n { font-size: 56px; } .block .t { font-size: 16px; flex-direction: column; align-items: start; } }
+
+dialog.sheet { width: min(760px, calc(100vw - 32px)); max-height: min(86svh, 820px); padding: 0; border: 0; border-radius: 22px; background: var(--deep); color: var(--ink); box-shadow: 0 40px 120px -20px rgb(0 0 0 / .8); overflow: auto; }
+dialog.sheet::backdrop { background: rgb(3 8 26 / .72); backdrop-filter: blur(6px); }
+.sheet-media { position: relative; height: 200px; }
+.sheet-media img { width: 100%; height: 100%; object-fit: cover; }
+.sheet-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, var(--deep), transparent 70%); }
+.sheet-in { padding: 0 clamp(22px, 4vw, 36px) clamp(26px, 4vw, 36px); margin-top: -46px; position: relative; z-index: 1; display: grid; gap: 14px; }
+.sheet-in h3 { font-size: clamp(34px, 5vw, 52px); }
+.sheet-in p { color: var(--dim); font-size: 17px; }
+.sheet-in ol { margin: 8px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.sheet-in li { padding: 12px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-weight: 500; }
+.sheet-close { position: absolute; z-index: 2; top: 14px; right: 14px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgb(3 8 26 / .7); color: var(--ink); cursor: pointer; display: grid; place-items: center; }
+
+/* ---------- Escala ---------- */
+.scale { border-top: 1px solid var(--line); }
+.scale-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 24px; align-items: center; padding-block: 22px; border-bottom: 1px solid var(--line); }
+.scale-row .ic { width: 64px; height: 64px; border-radius: 50%; background: #FFFFFF; display: grid; place-items: center; }
+.scale-row .ic img { width: 38px; height: 38px; }
+.scale-row b { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 4.6vw, 64px); letter-spacing: -0.04em; line-height: 1; }
+.scale-row b em { font-style: normal; color: var(--orange); }
+.scale-row span { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); text-align: right; max-width: 22ch; }
+@media (max-width: 700px) { .scale-row { grid-template-columns: 48px minmax(0, 1fr); } .scale-row .ic { width: 48px; height: 48px; } .scale-row .ic img { width: 28px; height: 28px; } .scale-row span { grid-column: 2; text-align: left; } }
+
+/* ---------- Calidad ---------- */
+.quality { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+.q-media { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.q-media img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 6px; }
+.q-media img:nth-child(2) { margin-top: 64px; }
+.q-big { position: absolute; left: -8px; bottom: -36px; font-family: var(--display); font-weight: 800; font-size: clamp(110px, 16vw, 220px); letter-spacing: -0.06em; line-height: .8; color: var(--orange); mix-blend-mode: normal; text-shadow: 0 10px 40px rgb(3 8 26 / .6); }
+.q-txt { display: grid; gap: 22px; }
+.q-txt h2 { font-size: clamp(40px, 5.4vw, 76px); }
+.q-txt p { color: var(--dim); font-size: 17.5px; }
+.q-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.q-list div { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding-block: 16px; border-bottom: 1px solid var(--line); }
+.q-list small { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--orange); }
+.seal { justify-self: start; background: #FFFFFF; border-radius: 8px; padding: 8px 10px; }
+.seal img { width: 200px; }
+@media (max-width: 900px) { .quality { grid-template-columns: 1fr; } .q-big { bottom: -20px; } }
+@media (max-width: 480px) { .q-list div { grid-template-columns: 1fr; gap: 4px; } }
+
+/* ---------- Clientes ---------- */
+.clients-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 40px; }
+.clients-head h2 { font-size: clamp(40px, 6vw, 88px); }
+.clients-head p { color: var(--dim); max-width: 38ch; }
+.wall { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.wall div { position: relative; background: var(--void); height: 132px; display: grid; place-items: center; padding: 20px; }
+.wall div span { position: absolute; inset: 14px; border-radius: 10px; background: #FFFFFF; opacity: .94; transition: inset .25s, opacity .25s; }
+.wall div:hover span { inset: 6px; opacity: 1; }
+.wall img { position: relative; max-height: 54px; max-width: 78%; width: auto; height: auto; object-fit: contain; }
+.wall small { position: absolute; left: 22px; bottom: 18px; font: 500 10.5px var(--mono); letter-spacing: .06em; color: #4F5B73; text-transform: uppercase; }
+@media (max-width: 1000px) { .wall { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 700px) { .wall { grid-template-columns: repeat(2, 1fr); } .wall div { height: 110px; } }
+
+/* ---------- Cierre ---------- */
+.closing { position: relative; overflow: hidden; border-top: 1px solid var(--line); background: radial-gradient(70% 80% at 50% 120%, #0D2A85 0%, var(--void) 70%); }
+.closing .wrap { display: grid; gap: 48px; padding-block: clamp(80px, 11vw, 150px) 40px; }
+.closing h2 { font-size: clamp(76px, 19vw, 300px); letter-spacing: -0.06em; line-height: .82; }
+.closing h2 span { color: var(--orange); }
+.c-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: clamp(28px, 5vw, 72px); align-items: start; }
+.c-data { display: grid; gap: 22px; }
+.c-data div { display: grid; gap: 4px; }
+.c-data small { font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.c-data .big { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-family: var(--display); font-weight: 700; font-size: clamp(24px, 3vw, 38px); letter-spacing: -0.03em; overflow-wrap: anywhere; }
+.copy { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 6px 12px; font: 500 12.5px var(--body); color: var(--dim); cursor: pointer; }
+.copy:hover { color: var(--ink); border-color: var(--ink); }
+form.cf { display: grid; gap: 18px; }
+.cf .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cf .opts label { cursor: pointer; }
+.cf .opts input { position: absolute; opacity: 0; pointer-events: none; }
+.cf .opts span { display: inline-block; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); font-weight: 500; }
+.cf .opts input:checked + span { background: var(--ink); color: var(--void); border-color: var(--ink); }
+.cf .opts input:focus-visible + span { outline: 2px solid var(--orange); outline-offset: 2px; }
+.line-f { display: grid; gap: 4px; }
+.line-f label { font: 500 11.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.line-f input, .line-f textarea { width: 100%; border: 0; border-bottom: 1px solid rgb(238 242 251 / .3); background: transparent; color: var(--ink); font: 500 20px var(--body); padding: 10px 0 12px; border-radius: 0; }
+.line-f input:focus, .line-f textarea:focus { outline: none; border-bottom-color: var(--orange); }
+.line-f textarea { min-height: 90px; resize: vertical; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.send { justify-self: start; display: inline-flex; align-items: center; gap: 12px; padding: 16px 26px; border-radius: 999px; border: 0; background: var(--orange); color: #1A0F00; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform .2s; }
+.send:hover { transform: translateY(-2px); }
+.fmsg { color: var(--orange); font-weight: 500; }
+.foot { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; padding-top: 28px; border-top: 1px solid var(--line); color: var(--dim); font-size: 14px; }
+.foot img { height: 22px; width: auto; filter: brightness(0) invert(1); }
+.foot nav { display: flex; gap: 18px; flex-wrap: wrap; }
+.foot a { text-decoration: none; }
+.foot a:hover { color: var(--ink); }
+@media (max-width: 860px) { .c-grid { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
+
+/* ---------- Notas ---------- */
+.notes-btn { position: fixed; z-index: 45; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 500 12px var(--mono); padding: 10px 14px; border-radius: 999px; cursor: pointer; background: var(--ink); color: var(--void); border: 0; }
+.notes { position: fixed; z-index: 46; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); width: min(400px, calc(100vw - 32px)); max-height: 70vh; overflow: auto; background: var(--deep); border: 1px solid var(--line); border-radius: 16px; padding: 20px; font-size: 14px; display: grid; gap: 10px; box-shadow: 0 30px 80px -20px rgb(0 0 0 / .8); }
+.notes h4 { margin: 0; font-family: var(--display); font-size: 18px; letter-spacing: -0.02em; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--dim); }
+.notes b { color: var(--ink); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .scroll-cue i { animation: none; }
+  .words p { color: var(--ink); transition: none; }
+  .block, .row .name, .menu nav a { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"></a>
+    <div class="top-r">
+      <a class="chip-btn solid" href="#hablemos">Hablemos</a>
+      <button class="chip-btn" type="button" id="openMenu" aria-expanded="false" aria-controls="menu"><span class="burger" aria-hidden="true"><i></i><i></i></span>Menú</button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" hidden role="dialog" aria-modal="true" aria-label="Menú">
+  <div class="wrap menu-head">
+    <img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35" style="height:26px;width:auto;filter:brightness(0) invert(1)">
+    <button class="chip-btn" type="button" id="closeMenu">Cerrar</button>
+  </div>
+  <div class="wrap">
+    <nav aria-label="Principal">
+      <a href="#manifiesto"><small>Nosotros</small>Misión crítica</a>
+      <a href="#soluciones"><small>Oferta</small>Soluciones</a>
+      <a href="#areas"><small>AGM</small>Áreas y módulos</a>
+      <a href="#calidad"><small>ISO</small>Calidad</a>
+      <a href="#clientes"><small>20</small>Clientes</a>
+      <a href="#hablemos"><small>Contacto</small>Hablemos</a>
+    </nav>
+  </div>
+  <div class="wrap menu-foot"><span>hablemos@proexsi.cl · +56 2 2489 1900</span><span>Moneda 1040, piso 10, Santiago</span></div>
+</div>
+
+<main>
+  <!-- HERO: mapa de Chile en canvas -->
+  <section class="hero" id="inicio">
+    <canvas id="map" aria-label="Mapa de Chile con los municipios clientes de Proexsi conectados al data center en Santiago" role="img"></canvas>
+    <div class="wrap">
+      <span class="label"><b>●</b> Tecnologías de información para misión crítica</span>
+      <h1>Chile funciona <span>en línea.</span></h1>
+      <div class="hero-foot">
+        <p><strong>Más de 45 años</strong> desarrollando las plataformas que sostienen la gestión de municipios y corporaciones, operadas desde nuestro propio data center.</p>
+        <div class="legend">
+          <span><i style="background:var(--orange)"></i>Data center Proexsi · Santiago</span>
+          <span><i style="background:var(--sky)"></i>20 municipios clientes, de Iquique a Puerto Montt</span>
+        </div>
+        <a class="scroll-cue" href="#manifiesto">Scroll<i></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFIESTO -->
+  <section class="sec manifesto" id="manifiesto">
+    <div class="wrap">
+      <span class="label"><b>01</b> Lo que pasa por nuestros sistemas</span>
+      <div class="words" id="words">
+        <p>Permisos de circulación.</p>
+        <p>Patentes.</p>
+        <p>Remuneraciones.</p>
+        <p>Causas judiciales.</p>
+        <p>Licencias de conducir.</p>
+        <p><em>Todo, sin detenerse.</em></p>
+      </div>
+      <div class="manifesto-note">
+        <p><b>Sólida experiencia</b>Únicos en Chile sosteniendo procesos de misión crítica por más de 45 años.</p>
+        <p><b>Siempre conectados</b>Tecnología, procesos y personas al servicio de millones de chilenos.</p>
+        <p><b>Calidad y seguridad</b>Continuidad operacional respaldada por infraestructura propia.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAPÍTULOS HORIZONTALES -->
+  <section class="chapters" id="capitulos" style="--n:4" aria-label="Capítulos">
+    <div class="pin">
+      <div class="chap-count" aria-hidden="true"><b id="chapNow">01</b> / 04</div>
+      <div class="track" id="track">
+        <article class="chapter">
+          <img src="img/slide-experiencia.jpg" alt="">
+          <div class="wrap"><span class="num">Capítulo 01 · Experiencia</span><h2>45 años de oficio.</h2><p>Acompañamos la transformación digital del sector público con plataformas de misión crítica.</p></div>
+        </article>
+        <article class="chapter">
+          <img src="img/slide-innovacion.jpg" alt="">
+          <div class="wrap"><span class="num">Capítulo 02 · Innovación</span><h2>Procesos más simples.</h2><p>Soluciones innovadoras, flexibles e integradas que optimizan la gestión de cada área.</p></div>
+        </article>
+        <article class="chapter">
+          <img src="img/slide-calidad.jpg" alt="">
+          <div class="wrap"><span class="num">Capítulo 03 · Seguridad</span><h2>Nada se detiene.</h2><p>Infraestructura robusta y seguridad de la información para operar sin interrupciones.</p></div>
+        </article>
+        <article class="chapter">
+          <img src="img/slide-conectados.jpg" alt="">
+          <div class="wrap"><span class="num">Capítulo 04 · Personas</span><h2>Millones conectados.</h2><p>Servicios en línea que acercan a los municipios con sus vecinos, cada día.</p></div>
+        </article>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+    </div>
+  </section>
+
+  <!-- ÍNDICE DE SOLUCIONES -->
+  <section class="sec solutions" id="soluciones">
+    <div class="wrap">
+      <div class="sol-head">
+        <div style="display:grid;gap:18px"><span class="label"><b>02</b> Soluciones</span><h2>Lo que hacemos.</h2></div>
+        <p>Tres líneas de trabajo que se integran entre sí. Abra cada una para ver el detalle.</p>
+      </div>
+      <div class="index" id="index">
+        <div class="row" data-img="area-grp.jpg">
+          <button type="button" aria-expanded="false"><span class="tag">GRP · Plataforma</span><span class="name">Soluciones GRP</span><span class="plus" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
+          <div class="body" hidden>
+            <img src="img/area-grp-hover.jpg" alt="Equipo revisando la planificación de un proyecto">
+            <div class="txt">
+              <img class="ic" src="img/icon-grp.png" alt="">
+              <p>Plataformas informáticas modulares e integradas bajo el concepto <strong>GRP</strong> (Government Resource Planning).</p>
+              <ul><li>Proexsi AGM: Administración y Gestión Municipal</li><li>Proexsi AGCM: Administración y Gestión de Corporaciones</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="row" data-img="area-sistemas.jpg">
+          <button type="button" aria-expanded="false"><span class="tag">Desarrollo a la medida</span><span class="name">Sistemas de Gestión</span><span class="plus" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
+          <div class="body" hidden>
+            <img src="img/area-sistemas-hover.jpg" alt="Analista revisando reportes en un computador">
+            <div class="txt">
+              <img class="ic" src="img/icon-sistemas.png" alt="">
+              <p>Diseñamos y desarrollamos sistemas que <strong>mejoran significativamente</strong> los resultados de nuestros clientes.</p>
+              <ul><li>Diseño de sistemas</li><li>Desarrollo a la medida</li><li>Mantención de sistemas</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="row" data-img="area-datacenter.jpg">
+          <button type="button" aria-expanded="false"><span class="tag">Infraestructura</span><span class="name">Data Center</span><span class="plus" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
+          <div class="body" hidden>
+            <img src="img/area-datacenter-hover.jpg" alt="Racks de servidores del data center">
+            <div class="txt">
+              <img class="ic" src="img/icon-datacenter.png" alt="">
+              <p><strong>Hosting:</strong> seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos diariamente.</p>
+              <p><strong>Housing:</strong> infraestructura certificada con seguridad, conectividad, estabilidad y escalabilidad.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="follow" id="follow" aria-hidden="true"><img id="followImg" src="img/area-grp.jpg" alt=""></div>
+  </section>
+
+  <!-- BLOQUES POR ÁREA -->
+  <section class="sec" id="areas" style="padding-top:0">
+    <div class="wrap">
+      <div class="areas-head">
+        <div style="display:grid;gap:18px"><span class="label"><b>03</b> Proexsi AGM</span><h2>Doce áreas. Un solo sistema.</h2></div>
+        <p>Cada bloque es un área del municipio. Ábralo para ver sus módulos, todos integrados con tesorería, contabilidad y servicios en línea.</p>
+      </div>
+      <div class="blocks" id="blocks"></div>
+    </div>
+  </section>
+
+  <dialog class="sheet" id="sheet" aria-labelledby="sheetTitle">
+    <button class="sheet-close" type="button" id="sheetClose" aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3 3 13" stroke="currentColor" stroke-width="1.6"/></svg></button>
+    <div class="sheet-media"><img id="sheetImg" src="img/area-grp.jpg" alt=""></div>
+    <div class="sheet-in">
+      <span class="label" id="sheetCount"></span>
+      <h3 id="sheetTitle"></h3>
+      <p id="sheetDesc"></p>
+      <ol id="sheetList"></ol>
+    </div>
+  </dialog>
+
+  <!-- ESCALA -->
+  <section class="sec" style="padding-top:0">
+    <div class="wrap">
+      <span class="label" style="margin-bottom:28px"><b>04</b> Escala de operación</span>
+      <div class="scale">
+        <div class="scale-row"><span class="ic"><img src="img/icon-permisos.png" alt=""></span><b><em>Millones</em> de permisos de circulación</b><span>Gestionados</span></div>
+        <div class="scale-row"><span class="ic"><img src="img/icon-recaudacion.png" alt=""></span><b><em>Miles de millones</em> de pesos</b><span>Recaudados al año en permisos</span></div>
+        <div class="scale-row"><span class="ic"><img src="img/icon-liquidaciones.png" alt=""></span><b><em>Miles</em> de liquidaciones de sueldo</b><span>Procesadas cada mes</span></div>
+        <div class="scale-row"><span class="ic"><img src="img/icon-causas.png" alt=""></span><b><em>Millones</em> de causas judiciales</b><span>Gestionadas al año</span></div>
+        <div class="scale-row"><span class="ic"><img src="img/icon-personas.png" alt=""></span><b><em>Millones</em> de personas</b><span>Conectadas cada mes</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALIDAD -->
+  <section class="sec" id="calidad" style="padding-top:0">
+    <div class="wrap quality">
+      <div class="q-media">
+        <img src="img/pilar-trayectoria.jpg" alt="Palacio de La Moneda, Santiago">
+        <img src="img/pilar-relaciones.jpg" alt="Equipo celebrando un logro">
+        <span class="q-big" aria-hidden="true">+45</span>
+      </div>
+      <div class="q-txt">
+        <span class="label"><b>05</b> Por qué Proexsi</span>
+        <h2>Confianza que se certifica.</h2>
+        <p>Relaciones de largo plazo construidas con calidad, servicio integral e innovación.</p>
+        <div class="q-list">
+          <div><small>Trayectoria</small><span>Más de 45 años con procesos de misión crítica, únicos en Chile.</span></div>
+          <div><small>ISO 9001:2015</small><span>Operación del data center y desarrollo y mantención de sistemas.</span></div>
+          <div><small>Tecnología</small><span>Infraestructura potente y segura para la continuidad operacional.</span></div>
+        </div>
+        <span class="seal"><img src="img/sello-iso-mercadopublico.png" alt="Sellos de ChileCompra Mercado Público e ISO 9001 Bureau Veritas"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLIENTES -->
+  <section class="sec" id="clientes" style="padding-top:0">
+    <div class="wrap">
+      <div class="clients-head">
+        <div style="display:grid;gap:18px"><span class="label"><b>06</b> Clientes</span><h2>20 municipios.</h2></div>
+        <p>Los mismos puntos del mapa de la portada: municipalidades de seis regiones, de Iquique a Puerto Montt.</p>
+      </div>
+      <div class="wall" id="wall"></div>
+    </div>
+  </section>
+
+  <!-- CIERRE / CONTACTO -->
+  <section class="closing" id="hablemos">
+    <div class="wrap">
+      <h2>Hable<span>mos.</span></h2>
+      <div class="c-grid">
+        <div class="c-data">
+          <div><small>Correo</small><span class="big">hablemos@proexsi.cl <button class="copy" type="button" data-copy="hablemos@proexsi.cl">Copiar</button></span></div>
+          <div><small>Teléfono</small><span class="big">+56 2 2489 1900 <button class="copy" type="button" data-copy="+56224891900">Copiar</button></span></div>
+          <div><small>Oficina</small><span class="big">Moneda 1040, piso 10, Santiago</span></div>
+        </div>
+        <form class="cf" id="cf" novalidate>
+          <div class="opts" role="radiogroup" aria-label="Interés">
+            <label><input type="radio" name="topic" value="GRP" checked><span>Soluciones GRP</span></label>
+            <label><input type="radio" name="topic" value="Sistemas"><span>Sistemas de Gestión</span></label>
+            <label><input type="radio" name="topic" value="DC"><span>Data Center</span></label>
+          </div>
+          <div class="two">
+            <div class="line-f"><label for="n">Nombre</label><input id="n" name="name" autocomplete="name"></div>
+            <div class="line-f"><label for="o">Institución</label><input id="o" name="org" autocomplete="organization"></div>
+          </div>
+          <div class="line-f"><label for="e">Correo</label><input id="e" name="email" type="email" autocomplete="email"></div>
+          <div class="line-f"><label for="m">Mensaje</label><textarea id="m" name="msg"></textarea></div>
+          <button class="send" type="submit">Enviar consulta <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <p class="fmsg" id="fmsg" hidden></p>
+        </form>
+      </div>
+      <div class="foot">
+        <img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35">
+        <nav aria-label="Pie"><a href="#soluciones">Soluciones</a><a href="#areas">Áreas</a><a href="#calidad">Calidad</a><a href="#clientes">Clientes</a></nav>
+        <span>© Proexsi</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<button class="notes-btn" id="notesBtn" type="button" aria-expanded="false" aria-controls="notes">Notas v3</button>
+<aside class="notes" id="notes" hidden aria-label="Notas de la versión 3">
+  <h4>Versión 3: de dónde viene cada idea</h4>
+  <ul>
+    <li><b>Portada animada</b> (Lusion, Active Theory): mapa de Chile en tiempo real con los 20 municipios en su ubicación real y datos que salen del data center en Santiago.</li>
+    <li><b>Capítulos horizontales</b> (Immersive Garden): las 4 fotos del slider original avanzan de lado al hacer scroll.</li>
+    <li><b>Tipografía gigante e índice con imagen que sigue al cursor</b> (basement.studio).</li>
+    <li><b>Bloques de color</b> (Dropbox Brand): cada área abre una ficha con sus módulos.</li>
+    <li><b>Un solo tema oscuro,</b> por decisión de diseño. Las cifras siguen indicando solo la magnitud.</li>
+    <li><b>Formulario:</b> solo demostrativo, no envía datos.</li>
+  </ul>
+</aside>
+
+<script>
+const AREAS = [
+  { name: "Finanzas", img: "area-sistemas.jpg", desc: "Operaciones financieras, contables y presupuestarias bajo control.",
+    mods: ["Contabilidad Gubernamental","Contabilidad Financiera","Control de Presupuestos","Tesorería (Ingresos / Egresos)","Giro Directo","Conciliación Bancaria","Convenios de Pago","Cobranzas"] },
+  { name: "Administración", img: "area-grp.jpg", desc: "Compras y bienes institucionales, desde el stock hasta las órdenes de compra.",
+    mods: ["Adquisiciones y Control de Bodega","Control de Inventario","Activo Fijo"] },
+  { name: "RR.HH.", img: "pilar-relaciones.jpg", desc: "Gestión del personal: remuneraciones, permisos, asistencia y bienestar.",
+    mods: ["Personal","Remuneraciones","Bienestar","Intranet de Recursos Humanos"] },
+  { name: "Rentas Municipales", img: "area-sistemas-hover.jpg", desc: "Procesos que generan ingresos y facilitan los pagos de la comunidad.",
+    mods: ["Patentes Municipales","Declaración de Trabajadores y Capitales","Certificados de Inversión y de Capital","Permisos","Aseo Domiciliario","Permisos Precarios","Control de Morosidad","Cobranzas","Concesiones Municipales"] },
+  { name: "Tránsito", img: "slide-conectados.jpg", desc: "Dirección de Tránsito integrada con juzgados, tesorería y contabilidad.",
+    mods: ["Permisos de Circulación","Licencias de Conducir","Reserva de Hora por Internet","Registro de Multas no Pagadas","Multas TAG"] },
+  { name: "Inspección y Operaciones", img: "pilar-tecnologia.jpg", desc: "Fiscalización y seguridad en el territorio.",
+    mods: ["SIG · Información Geográfica","Seguridad Ciudadana","Inspección Digital"] },
+  { name: "Juzgados de Policía Local", img: "pilar-iso.jpg", desc: "Seguimiento e información de causas y procesos.",
+    mods: ["Seguimiento de Causas","Partes Empadronados","Partes de Ordenanza","Multas TAG"] },
+  { name: "Gobierno Digital", img: "pilar-trayectoria.jpg", desc: "Información y servicios en línea para una gestión transparente.",
+    mods: ["Gestión Documental","Banco Comunal de Proyectos","Control Electrónico de Decretos","Vigilancia Domiciliaria","OIRS","Biblioteca Digital","Tabla Concejo","Tramitación Electrónica","Participación Ciudadana"] },
+  { name: "Desarrollo Comunitario", img: "slide-conectados.jpg", desc: "Servicios sociales que el municipio entrega a su comunidad.",
+    mods: ["Atención Social","Grupo Familiar","Acción Social","Adulto Mayor","Organizaciones Comunitarias","Talleres, Clubes y Cursos","Tarjeta Vecino","Deportes","Subsidios","Asistencia Judicial","Becas","Higiene Ambiental","Atención Mascotas","OMIL","Desarrollo Comunal","Condominios Sociales"] },
+  { name: "Obras Municipales", img: "slide-experiencia.jpg", desc: "Procesos de la DOM con servicios web e integración SIG.",
+    mods: ["Obras Municipales","Certificados y Permisos","Control Ley de Ascensores","Ocupación de Espacio Público"] },
+  { name: "Gestión Cultural", img: "slide-innovacion.jpg", desc: "Venta de entradas y eventos con facturación electrónica y Webpay.",
+    mods: ["E-Ticket","Teatros","Cines","Museos","Casinos","Ferias y Eventos","Cursos y Talleres","Productos Complementarios"] },
+  { name: "Servicios por Internet", img: "area-grp-hover.jpg", desc: "Pagos, trámites y permisos en línea para vecinos y funcionarios.",
+    mods: ["Pagos en Línea","Permisos de Circulación","Patentes Municipales","Aseo Domiciliario","Obras","Declaración de Capital","Licencias de Conducir","E-Ticket"] }
+];
+// Municipios clientes con coordenadas aproximadas (lat, lon) y región
+const CLIENTS = [
+  ["iquique","Iquique",-20.21,-70.15,"Tarapacá"],["alto-hospicio","Alto Hospicio",-20.27,-70.10,"Tarapacá"],
+  ["copiapo","Copiapó",-27.37,-70.33,"Atacama"],
+  ["zapallar","Zapallar",-32.55,-71.46,"Valparaíso"],["quillota","Quillota",-32.88,-71.25,"Valparaíso"],["vina-del-mar","Viña del Mar",-33.02,-71.55,"Valparaíso"],
+  ["valparaiso","Valparaíso",-33.05,-71.62,"Valparaíso"],["algarrobo","Algarrobo",-33.36,-71.67,"Valparaíso"],
+  ["colina","Colina",-33.20,-70.67,"Metropolitana"],["independencia","Independencia",-33.42,-70.66,"Metropolitana"],["providencia","Providencia",-33.43,-70.61,"Metropolitana"],
+  ["las-condes","Las Condes",-33.41,-70.57,"Metropolitana"],["la-reina","La Reina",-33.45,-70.54,"Metropolitana"],["nunoa","Ñuñoa",-33.46,-70.60,"Metropolitana"],
+  ["macul","Macul",-33.49,-70.60,"Metropolitana"],["penalolen","Peñalolén",-33.49,-70.51,"Metropolitana"],["san-joaquin","San Joaquín",-33.50,-70.63,"Metropolitana"],
+  ["puente-alto","Puente Alto",-33.61,-70.58,"Metropolitana"],
+  ["constitucion","Constitución",-35.33,-72.41,"Maule"],["puerto-montt","Puerto Montt",-41.47,-72.94,"Los Lagos"]
+];
+const DC = [-33.44, -70.65];
+// Silueta simplificada de Chile continental (costa oeste y límite este), 18°S a 42°S
+const WEST = [[-18.3,-70.35],[-20,-70.15],[-23.6,-70.4],[-26.3,-70.65],[-29.9,-71.35],[-32,-71.5],[-33.6,-71.65],[-35.3,-72.45],[-36.8,-73.15],[-37.6,-73.65],[-39.5,-73.25],[-41.5,-73.8],[-42,-73.6]];
+const EAST = [[-42,-71.8],[-40,-71.6],[-37.5,-71.1],[-35,-70.4],[-33,-69.95],[-31,-70.3],[-29,-69.8],[-27,-68.5],[-25,-68.4],[-23,-67.2],[-21.5,-68.2],[-19.5,-68.6],[-18.3,-69.3]];
+
+const $ = (s) => document.querySelector(s);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- Mapa en canvas ----------
+(() => {
+  const cv = $("#map"), ctx = cv.getContext("2d");
+  let W = 0, H = 0, dpr = 1, proj, dots = [], nodes = [], hub, packets = [], running = false, raf = 0, t0 = performance.now();
+  const poly = [...WEST, ...EAST];
+  function inside(lat, lon) {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [ya, xa] = poly[i], [yb, xb] = poly[j];
+      if ((ya > lat) !== (yb > lat) && lon < (xb - xa) * (lat - ya) / (yb - ya) + xa) c = !c;
+    }
+    return c;
+  }
+  function layout() {
+    const r = cv.getBoundingClientRect(); W = r.width; H = r.height; dpr = Math.min(devicePixelRatio || 1, 2);
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const narrow = W < 860;
+    const top = 90, bottom = H - (narrow ? 40 : 60);
+    const k = (bottom - top) / 24;                       // px por grado (18°S a 42°S)
+    const cx = narrow ? W * 0.72 : W * 0.74;             // centro horizontal del país
+    proj = (lat, lon) => [cx + (lon + 70.6) * k * 1.0, top + (-18 - lat) * k];
+    dots = [];
+    const step = Math.max(6, k * 0.22);
+    for (let y = top; y <= bottom; y += step) for (let x = cx - k * 4; x <= cx + k * 4; x += step) {
+      const lat = -18 - (y - top) / k, lon = (x - cx) / k - 70.6;
+      if (inside(lat, lon)) dots.push([x, y]);
+    }
+    hub = proj(...DC);
+    nodes = CLIENTS.map(c => { const p = proj(c[2], c[3]); return { x: p[0], y: p[1], name: c[1], phase: Math.random() * 6.28 }; });
+    packets = nodes.map((n, i) => ({ n, t: Math.random(), speed: 0.12 + Math.random() * 0.12 }));
+    draw(performance.now());
+  }
+  function curve(a, b) { const mx = (a[0] + b[0]) / 2 + Math.min(80, Math.abs(a[1] - b[1]) * 0.18) + 14, my = (a[1] + b[1]) / 2; return [mx, my]; }
+  function q(a, c, b, t) { const u = 1 - t; return [u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]; }
+  function draw(now) {
+    const time = (now - t0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+    // latitudes
+    ctx.font = "500 11px 'DM Mono', monospace"; ctx.textAlign = "right";
+    for (let lat = -20; lat >= -40; lat -= 5) {
+      const y = proj(lat, -70)[1];
+      ctx.strokeStyle = "rgba(142,154,185,.10)"; ctx.lineWidth = 1; ctx.setLineDash([2, 6]);
+      ctx.beginPath(); ctx.moveTo(W * 0.5, y); ctx.lineTo(W - 24, y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(142,154,185,.55)"; ctx.fillText(Math.abs(lat) + "°S", W - 24, y - 6);
+    }
+    // silueta de puntos
+    ctx.fillStyle = "rgba(156,192,255,.22)";
+    for (const [x, y] of dots) { ctx.beginPath(); ctx.arc(x, y, 1.15, 0, 6.283); ctx.fill(); }
+    // enlaces
+    for (const n of nodes) {
+      const c = curve(hub, [n.x, n.y]);
+      ctx.strokeStyle = "rgba(76,134,255,.28)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(hub[0], hub[1]); ctx.quadraticCurveTo(c[0], c[1], n.x, n.y); ctx.stroke();
+    }
+    // paquetes de datos
+    for (const p of packets) {
+      if (running) p.t = (p.t + p.speed / 60) % 1;
+      const c = curve(hub, [p.n.x, p.n.y]);
+      const [x, y] = q(hub, c, [p.n.x, p.n.y], p.t);
+      ctx.fillStyle = "rgba(242,148,0,.95)"; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 6.283); ctx.fill();
+    }
+    // municipios
+    for (const n of nodes) {
+      const pulse = reduce ? 0.5 : (Math.sin(time * 2 + n.phase) + 1) / 2;
+      ctx.fillStyle = `rgba(156,192,255,${0.12 + pulse * 0.18})`; ctx.beginPath(); ctx.arc(n.x, n.y, 6 + pulse * 4, 0, 6.283); ctx.fill();
+      ctx.fillStyle = "#9CC0FF"; ctx.beginPath(); ctx.arc(n.x, n.y, 3, 0, 6.283); ctx.fill();
+    }
+    // data center
+    const g = ctx.createRadialGradient(hub[0], hub[1], 0, hub[0], hub[1], 34);
+    g.addColorStop(0, "rgba(242,148,0,.55)"); g.addColorStop(1, "rgba(242,148,0,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hub[0], hub[1], 34, 0, 6.283); ctx.fill();
+    ctx.fillStyle = "#F29400"; ctx.beginPath(); ctx.arc(hub[0], hub[1], 5, 0, 6.283); ctx.fill();
+    // rótulos de región
+    ctx.textAlign = "left"; ctx.font = "500 11.5px 'DM Mono', monospace";
+    const labels = [["Tarapacá · 2", -20.2], ["Atacama · 1", -27.4], ["Valparaíso · 5", -32.6], ["Metropolitana · 10", -33.9], ["Maule · 1", -35.3], ["Los Lagos · 1", -41.5]];
+    for (const [txt, lat] of labels) {
+      const [x, y] = proj(lat, -66.9);
+      ctx.fillStyle = "rgba(238,242,251,.75)"; ctx.fillText(txt, x, y + 4);
+    }
+  }
+  function loop(now) { draw(now); if (running) raf = requestAnimationFrame(loop); }
+  new ResizeObserver(layout).observe(cv);
+  if (!reduce) new IntersectionObserver(([e]) => {
+    running = e.isIntersecting; cancelAnimationFrame(raf); if (running) raf = requestAnimationFrame(loop);
+  }).observe(cv);
+  document.fonts?.ready.then(() => draw(performance.now()));
+})();
+
+// ---------- Manifiesto: palabras que se encienden ----------
+(() => {
+  const ps = [...document.querySelectorAll("#words p")];
+  if (reduce) return;
+  const io = new IntersectionObserver((es) => es.forEach(e => e.target.classList.toggle("on", e.isIntersecting)), { rootMargin: "-40% 0px -40% 0px" });
+  ps.forEach(p => io.observe(p));
+})();
+
+// ---------- Capítulos horizontales ----------
+(() => {
+  const sec = $("#capitulos"), track = $("#track"), prog = $("#prog"), now = $("#chapNow");
+  const n = 4;
+  const horizontal = () => !reduce && matchMedia("(min-width: 801px)").matches;
+  function update() {
+    if (!horizontal()) { track.style.transform = ""; return; }
+    const r = sec.getBoundingClientRect(), total = sec.offsetHeight - innerHeight;
+    const p = Math.min(1, Math.max(0, -r.top / total));
+    track.style.transform = `translate3d(${-p * (n - 1) * innerWidth}px,0,0)`;
+    prog.style.width = p * 100 + "%";
+    now.textContent = String(Math.min(n, Math.round(p * (n - 1)) + 1)).padStart(2, "0");
+  }
+  addEventListener("scroll", update, { passive: true }); addEventListener("resize", update); update();
+})();
+
+// ---------- Índice de soluciones ----------
+(() => {
+  const follow = $("#follow"), fimg = $("#followImg");
+  document.querySelectorAll("#index .row").forEach(row => {
+    const btn = row.querySelector("button"), body = row.querySelector(".body");
+    btn.addEventListener("click", () => {
+      const open = body.hidden; body.hidden = !open; row.classList.toggle("open", open); btn.setAttribute("aria-expanded", open);
+      if (open) follow.classList.remove("show");
+    });
+    row.addEventListener("mouseenter", () => { if (!row.classList.contains("open")) { fimg.src = "img/" + row.dataset.img; follow.classList.add("show"); } });
+    row.addEventListener("mouseleave", () => follow.classList.remove("show"));
+    btn.addEventListener("mousemove", () => { if (row.classList.contains("open")) follow.classList.remove("show"); });
+  });
+  let x = 0, y = 0, fx = 0, fy = 0;
+  addEventListener("pointermove", (e) => { x = e.clientX; y = e.clientY; });
+  (function tick() { fx += (x - fx) * 0.15; fy += (y - fy) * 0.15; follow.style.left = fx + "px"; follow.style.top = fy + "px"; requestAnimationFrame(tick); })();
+})();
+
+// ---------- Bloques por área ----------
+(() => {
+  const order = [0, 1, 2, 3, 4, 0, 2, 1, 3, 0, 4, 2];
+  $("#blocks").innerHTML = AREAS.map((a, i) => `
+    <button class="block c${order[i]}" type="button" data-i="${i}" aria-haspopup="dialog">
+      <span class="n">${String(a.mods.length).padStart(2, "0")}</span>
+      <span class="t">${a.name}<small>módulos →</small></span>
+    </button>`).join("");
+  const sheet = $("#sheet");
+  $("#blocks").addEventListener("click", (e) => {
+    const b = e.target.closest(".block"); if (!b) return;
+    const a = AREAS[+b.dataset.i];
+    $("#sheetImg").src = "img/" + a.img;
+    $("#sheetCount").innerHTML = `<b>${a.mods.length}</b> módulos`;
+    $("#sheetTitle").textContent = a.name;
+    $("#sheetDesc").textContent = a.desc;
+    $("#sheetList").innerHTML = a.mods.map(m => `<li>${m}</li>`).join("");
+    sheet.showModal();
+  });
+  $("#sheetClose").addEventListener("click", () => sheet.close());
+  sheet.addEventListener("click", (e) => { if (e.target === sheet) sheet.close(); });
+})();
+
+// ---------- Clientes ----------
+$("#wall").innerHTML = CLIENTS.map(([f, n, , , r]) => `<div><span></span><img src="img/clientes/${f}.png" alt="Municipalidad de ${n}"><small>${r}</small></div>`).join("");
+
+// ---------- Menú ----------
+(() => {
+  const menu = $("#menu"), open = $("#openMenu"), close = $("#closeMenu");
+  const set = (v) => { menu.hidden = !v; open.setAttribute("aria-expanded", v); document.body.style.overflow = v ? "hidden" : ""; if (v) close.focus(); else open.focus(); };
+  open.addEventListener("click", () => set(true));
+  close.addEventListener("click", () => set(false));
+  menu.addEventListener("click", (e) => { if (e.target.closest("nav a")) set(false); });
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) set(false); });
+})();
+
+// ---------- Copiar ----------
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+  navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = "Copiado"; setTimeout(() => b.textContent = "Copiar", 1600); }).catch(() => {
+    const r = document.createRange(); r.selectNodeContents(b.parentElement); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+}));
+
+// ---------- Formulario demostrativo ----------
+$("#cf").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const el = e.target.elements, msg = $("#fmsg");
+  if (!el.name.value.trim() || !el.email.value || !el.email.checkValidity()) { msg.textContent = "Ingrese su nombre y un correo válido para continuar."; msg.hidden = false; return; }
+  msg.textContent = "Maqueta: en el sitio final esta consulta se enviará a hablemos@proexsi.cl."; msg.hidden = false;
+});
+
+// ---------- Notas ----------
+const nb = $("#notesBtn"), notes = $("#notes");
+nb.addEventListener("click", () => { notes.hidden = !notes.hidden; nb.setAttribute("aria-expanded", !notes.hidden); });
+</script>
+
+</body>
+</html>
