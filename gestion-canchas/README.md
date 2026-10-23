@@ -26,13 +26,14 @@ del mes de logística + instalación).
 La cancha se dibuja con Three.js (r128, desde cdnjs) con las medidas del modelo de referencia
 (padelcourtsmaster.com/elite-padel-court): 10 × 20 m; 18 vidrios templados de 2 × 3 m sin marco con pinzas
 (5 por fondo y 2 en cada extremo lateral); anillo principal blanco a 3 m; laterales de malla electrosoldada de
-3 m en módulos de 2 m con pilares de fierro y pletinas a 1 y 2 m; una puerta de acceso con marco blanco por
-lateral; reja superior de 1 m (marcos de 2 × 1 m) solo sobre los fondos y el vértice (2 m de cada lateral);
+3 m en módulos de 2 m con pilares de fierro y pletinas a 1 y 2 m; una puerta de acceso grande (≈1,9 × 2,2 m) con marco blanco en el centro de cada
+lateral, frente a la red; 4 amortiguadores por lado montados en los pilares de fierro; reja superior de 1 m (marcos de 2 × 1 m) solo sobre los fondos y el vértice (2 m de cada lateral);
 amortiguadores montados en cada pilar lateral; cuatro postes de luz que continúan los pilares de transición con
 tubo curvo y cabezal LED de 3 focos; tubo estructural inferior 80 × 40. La **Semi Panoramic** suma pilares
 de transición blancos y tubo circular de 2,5" en las cuatro esquinas. Se rota arrastrando, se acerca con la
 rueda o pellizcando y doble clic vuelve a la vista inicial de esquina. Colores editables: césped, postes de
-luz y amortiguadores.
+luz y amortiguadores. Escenario según la instalación: **Outdoor** con cielo y sol (sombras suaves) e **Indoor**
+oscuro con la luz de los cuatro focos LED y sombras leves.
 
 ## Línea gráfica ATILA
 

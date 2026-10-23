@@ -573,7 +573,7 @@ function pixels(img) { const c = document.createElement('canvas'); c.width = img
 const hexRgb = h => { const n = parseInt(h.replace('#', ''), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
 
 const POSTES_DEF = '#1b1b1b';
-const dzDefault = (modelo = 'm1') => ({ modelo, pasto: '#1f6fd1', postes: POSTES_DEF, amort: { ...AMORT_DEF }, logo: null, logoAmort: false, logoPuertas: false, mapa: null });
+const dzDefault = (modelo = 'm1') => ({ modelo, instal: 'Outdoor', pasto: '#1f6fd1', postes: POSTES_DEF, amort: { ...AMORT_DEF }, logo: null, logoAmort: false, logoPuertas: false, mapa: null });
 const VIEWERS = [];
 const pendingViews = [];
 function viewer3d(dz, opts = {}) {
@@ -597,12 +597,10 @@ function createCourt3D(el, dz, opts) {
   const T = THREE;
   const renderer = new T.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
   el.prepend(renderer.domElement);
-  const scene = new T.Scene(); scene.background = new T.Color('#000000');
+  const scene = new T.Scene();
   const camera = new T.PerspectiveCamera(42, 1.6, 0.1, 200);
-  scene.add(new T.AmbientLight(0xffffff, 0.55));
-  const key = new T.DirectionalLight(0xffffff, 0.75); key.position.set(-8, 20, 12); scene.add(key);
-  const rim = new T.DirectionalLight(0xffffff, 0.3); rim.position.set(10, 8, -14); scene.add(rim);
 
   const mats = {
     grass: new T.MeshLambertMaterial({ color: dz.pasto }),
@@ -618,12 +616,12 @@ function createCourt3D(el, dz, opts) {
   };
   const root = new T.Group(); scene.add(root);
   let built = null;
-  const box = (w, h, d, m, x, y, z, p) => { const o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.position.set(x, y, z); (p || built).add(o); return o; };
+  const box = (w, h, d, m, x, y, z, p) => { const o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; (p || built).add(o); return o; };
   const plane = (w, h, m, x, y, z, ry, p) => { const o = new T.Mesh(new T.PlaneGeometry(w, h), m); o.position.set(x, y, z); o.rotation.y = ry || 0; (p || built).add(o); return o; };
   const vbar = (x, z, y0, y1, w, m) => box(w, y1 - y0, w, m, x, (y0 + y1) / 2, z);
   // tramo de pared entre (x0,z0) y (x1,z1)
   const seg = (x0, z0, x1, z1, fn) => { const len = Math.hypot(x1 - x0, z1 - z0), cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, ry = x0 === x1 ? Math.PI / 2 : 0; fn(len, cx, cz, ry); };
-  const lineMat = new T.LineBasicMaterial({ color: '#4d4d4d' });
+  const lineMat = new T.LineBasicMaterial({ color: '#4d4d4d', transparent: true, opacity: 0.4 });
   // malla electrosoldada como grilla de líneas finas entre (x0,z0) y (x1,z1), de y0 a y1
   const grid = (x0, z0, x1, z1, y0, y1, cell) => {
     const len = Math.hypot(x1 - x0, z1 - z0), pts = [], ux = (x1 - x0) / len, uz = (z1 - z0) / len;
@@ -639,7 +637,7 @@ function createCourt3D(el, dz, opts) {
     // Medidas reales (m): vidrio 3 m de alto; anillo principal blanco a 3 m; malla lateral 3 m en módulos de 2 m;
     // reja superior de 1 m solo sobre los fondos y el vértice (2 m del lateral); puerta de acceso en cada lateral.
     const semi = model(d.modelo).tipo === 'semi', H = 3, UP = 4;
-    const floor = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); floor.rotation.x = -Math.PI / 2; built.add(floor);
+    const floor = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.002; floor.receiveShadow = true; built.add(floor);
     [-6.95, 6.95].forEach(z => box(10, 0.006, 0.05, mats.line, 0, 0.004, z));
     box(0.05, 0.006, 13.9, mats.line, 0, 0.004, 0);
     [-10, 10].forEach(z => box(0.05, 0.006, 0.2, mats.line, 0, 0.004, z - Math.sign(z) * 0.1));
@@ -660,18 +658,20 @@ function createCourt3D(el, dz, opts) {
     glassWall(-5, -10, 5, -10); glassWall(-5, 10, 5, 10);
     [-5, 5].forEach(x => { glassWall(x, -10, x, -6); glassWall(x, 6, x, 10); });
     // laterales: módulos de malla de 3 m con pilares de fierro cada 2 m, pletinas horizontales y puerta de acceso
-    const DOOR = [0.4, 1.4];
+    const DOOR = [-0.95, 0.95], DH = 2.2;
     [-5, 5].forEach(x => {
       const s = Math.sign(x);
       [[-6, DOOR[0]], [DOOR[1], 6]].forEach(([a, b]) => grid(x, a, x, b, 0.08, H, 0.1));
-      grid(x, DOOR[0], x, DOOR[1], 2.15, H, 0.1);
+      grid(x, DOOR[0], x, DOOR[1], DH, H, 0.1);
       [1.0, 2.0].forEach(y => { hbar(x, -6, x, DOOR[0], y, 0.03, 0.05, mats.steel); hbar(x, DOOR[1], x, 6, y, 0.03, 0.05, mats.steel); });
       // puerta: marco blanco
-      [DOOR[0], DOOR[1]].forEach(z => vbar(x, z, 0, 2.15, 0.06, mats.white));
-      hbar(x, DOOR[0], x, DOOR[1], 2.15, 0.06, 0.06, mats.white);
-      for (let z = -6; z <= 6; z += 2) {
+      [DOOR[0], DOOR[1]].forEach(z => { vbar(x, z, 0, H, 0.08, mats.white); });
+      hbar(x, DOOR[0], x, DOOR[1], DH, 0.08, 0.08, mats.white);
+      hbar(x, DOOR[0], x, DOOR[1], 0.03, 0.08, 0.05, mats.white);
+      for (const z of [-6, -4, -2, 2, 4, 6]) {
         const trans = Math.abs(z) === 6;
         box(trans ? 0.06 : 0.05, H, trans ? 0.16 : 0.09, trans && semi ? mats.white : mats.steel, x, H / 2, z);
+        if (trans) continue; // 4 amortiguadores por lado, uno en cada pilar de fierro
         // amortiguador ATILA montado en el pilar, por fuera: placa al piso, cuerpo inclinado y resorte al pilar
         const a = new T.Group(); a.position.set(x + s * 0.03, 0, z); built.add(a);
         box(0.5, 0.02, 0.14, mats.amort, s * 0.28, 0.01, 0, a);
@@ -687,8 +687,8 @@ function createCourt3D(el, dz, opts) {
     const upper = (x0, z0, x1, z1) => {
       grid(x0, z0, x1, z1, H, UP, 0.1);
       const len = Math.hypot(x1 - x0, z1 - z0), n = Math.round(len / 2);
-      for (let i = 0; i <= n; i++) { const t = i / n; vbar(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, H, UP, 0.05, mats.steel); }
-      hbar(x0, z0, x1, z1, UP, 0.05, 0.05, mats.steel);
+      for (let i = 0; i <= n; i++) { const t = i / n; vbar(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, H, UP, 0.035, mats.steel); }
+      hbar(x0, z0, x1, z1, UP, 0.035, 0.035, mats.steel);
     };
     [-10, 10].forEach(z => { const zs = Math.sign(z); upper(-5, z, 5, z); upper(-5, z - zs * 2, -5, z); upper(5, z - zs * 2, 5, z); });
     // Semi Panoramic: esquinas con tubo circular de 2,5" hasta la reja superior
@@ -711,6 +711,44 @@ function createCourt3D(el, dz, opts) {
   }
   build(dz);
 
+  // Escenario: Outdoor con luz de día y cielo; Indoor oscuro con la luz de los focos LED y sombras suaves.
+  const LED_HEADS = []; [-5, 5].forEach(x => [-6, 6].forEach(z => LED_HEADS.push([x - Math.sign(x) * 1.35, 6.9, z + Math.sign(z) * 0.32])));
+  const envG = new T.Group(); scene.add(envG);
+  const canvasTex = (w, h, paint) => { const c = document.createElement('canvas'); c.width = w; c.height = h; paint(c.getContext('2d'), w, h); return new T.CanvasTexture(c); };
+  let skyTex = null, glowTex = null;
+  function applyEnv(instal) {
+    envG.children.slice().forEach(o => { envG.remove(o); if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); if (o.shadow && o.shadow.map) o.shadow.map.dispose(); });
+    const indoor = instal === 'Indoor';
+    const ground = new T.Mesh(new T.PlaneGeometry(120, 120), new T.MeshLambertMaterial({ color: indoor ? '#1b1b1c' : '#5f5f5f' }));
+    ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; envG.add(ground);
+    const slab = new T.Mesh(new T.PlaneGeometry(14, 25), new T.MeshLambertMaterial({ color: indoor ? '#252526' : '#6d6d6d' }));
+    slab.rotation.x = -Math.PI / 2; slab.position.y = 0.001; slab.receiveShadow = true; envG.add(slab);
+    if (indoor) {
+      scene.background = new T.Color('#0b0b0c'); scene.fog = new T.Fog('#0b0b0c', 40, 90);
+      envG.add(new T.AmbientLight(0xffffff, 0.22));
+      envG.add(new T.HemisphereLight(0xd9e2ff, 0x111111, 0.18));
+      glowTex = glowTex || canvasTex(64, 64, (x, w) => { const g = x.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); g.addColorStop(0, 'rgba(255,250,235,1)'); g.addColorStop(0.25, 'rgba(255,245,220,.55)'); g.addColorStop(1, 'rgba(255,245,220,0)'); x.fillStyle = g; x.fillRect(0, 0, w, w); });
+      LED_HEADS.forEach(([hx, hy, hz]) => {
+        const sp = new T.SpotLight(0xfff4e0, 0.95, 32, 0.9, 0.7, 1.1);
+        sp.position.set(hx, hy - 0.1, hz); sp.target.position.set(hx * 0.15, 0, hz * 1.35);
+        sp.castShadow = true; sp.shadow.mapSize.set(512, 512); sp.shadow.radius = 5; sp.shadow.bias = -0.0008;
+        envG.add(sp, sp.target);
+        const glow = new T.Sprite(new T.SpriteMaterial({ map: glowTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true })); glow.position.set(hx, hy - 0.08, hz); glow.scale.set(1.2, 1.2, 1); envG.add(glow);
+      });
+      lineMat.color.set('#6a6a6a'); lineMat.opacity = 0.45;
+    } else {
+      skyTex = skyTex || canvasTex(4, 256, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3f7fc4'); g.addColorStop(0.55, '#8fbbe6'); g.addColorStop(1, '#dfe9f2'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
+      scene.background = skyTex; scene.fog = new T.Fog('#cfdbe6', 60, 140);
+      envG.add(new T.HemisphereLight(0xe3f0ff, 0x5a5a5a, 0.75));
+      const sun = new T.DirectionalLight(0xfffaf0, 0.75); sun.position.set(-14, 26, 9);
+      sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.radius = 3; sun.shadow.bias = -0.0006;
+      Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 70 }); sun.shadow.camera.updateProjectionMatrix();
+      envG.add(sun, sun.target);
+      lineMat.color.set('#2b2b2b'); lineMat.opacity = 0.32;
+    }
+  }
+  applyEnv(dz.instal);
+
   // cámara orbital propia
   const st = { theta: opts.theta ?? -0.52, phi: opts.phi ?? 1.31, r: opts.r ?? 21, target: new T.Vector3(1.2, 2.2, 0.4) };
   const home = { ...st };
@@ -732,7 +770,7 @@ function createCourt3D(el, dz, opts) {
 
   let cur = { ...dz };
   return {
-    set(d) { const rebuild = d.modelo !== cur.modelo || d.logo !== cur.logo || d.logoPuertas !== cur.logoPuertas; cur = { ...d };
+    set(d) { const rebuild = d.modelo !== cur.modelo || d.logo !== cur.logo || d.logoPuertas !== cur.logoPuertas; if (d.instal !== cur.instal) applyEnv(d.instal); cur = { ...d };
       mats.grass.color.set(d.pasto); mats.poles.color.set(d.postes || POSTES_DEF); mats.amort.color.set((d.amort || AMORT_DEF).hex);
       if (rebuild) build(d); requestRender(); },
     dispose() { ro.disconnect(); cancelAnimationFrame(raf); renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); }
@@ -1240,9 +1278,9 @@ function specList(dz, d) {
     <dt>Logo</dt><dd>${dz.logo ? `${esc(dz.logo.name)}${donde ? ' · ' + donde : ''}` : '<span class="muted">Sin logo</span>'}</dd>
     <dt>Mapa</dt><dd>${dz.mapa ? esc(dz.mapa.name) : '<span class="muted">Sin mapa</span>'}</dd></dl>`;
 }
-const dzOf = d => ({ ...dzDefault(d.modelo), ...(d.dz || {}), modelo: d.modelo });
+const dzOf = d => ({ ...dzDefault(d.modelo), ...(d.dz || {}), modelo: d.modelo, instal: d.instal || 'Outdoor' });
 const projDz = p => ({ ...dzDefault(p.modelo), pasto: (p.diseno && p.diseno.pasto) || '#1f6fd1', postes: (p.diseno && p.diseno.postes) || POSTES_DEF,
-  amort: (p.diseno && p.diseno.amort) || { ...AMORT_DEF }, ...(p.archivos || {}), modelo: p.modelo });
+  amort: (p.diseno && p.diseno.amort) || { ...AMORT_DEF }, ...(p.archivos || {}), modelo: p.modelo, instal: p.instal || 'Outdoor' });
 
 /* ---------- Datos del negocio (bandeja y portal) ---------- */
 const clientes = () => USERS.filter(u => u.rol === 'cliente');
@@ -1257,7 +1295,7 @@ function dealFields(d, portal) {
     <label class="field"><span>Ciudad</span><select name="ciudad" id="df-ciudad">${CITIES.map(c => `<option ${(d ? d.ciudad : (cliUser && cliUser.ciudad)) === c.ciudad ? 'selected' : ''}>${esc(c.ciudad)}</option>`).join('')}</select></label>
     <label class="field"><span>Comuna / partido / barrio</span><input type="text" name="comuna" id="df-comuna" value="${v('comuna')}"></label>
     <label class="field"><span>Cantidad de canchas</span><input type="number" min="1" name="canchas" id="df-canchas" value="${v('canchas', 1)}" required></label>
-    <label class="field"><span>Instalación</span><select name="instal" id="df-instal">${['Outdoor', 'Indoor'].map(o => `<option ${d && d.instal === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
+    <label class="field"><span>Instalación</span><select name="instal" id="df-instal" data-field="dz-instal">${['Outdoor', 'Indoor'].map(o => `<option ${d && d.instal === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
     ${portal ? '' : `<label class="field"><span>Origen</span><select name="origen" id="df-origen">${['Web', 'Instagram', 'WhatsApp', 'Referido', 'Feria', 'Portal cliente'].map(o => `<option ${d && d.origen === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
     <label class="field"><span>Cuenta de cliente (acceso al portal)</span><select name="clienteId" id="df-cli"><option value="">Sin cuenta</option>${clientes().map(c => `<option value="${c.id}" ${d && d.clienteId === c.id ? 'selected' : ''}>${esc(c.nombre)} · ${esc(c.email)}</option>`).join('')}</select></label>`}
     <label class="field full"><span>${portal ? 'Comentarios para ATILA' : 'Comentarios'}</span><textarea name="comentario" id="df-com" rows="2">${v('comentario')}</textarea></label>
@@ -1267,7 +1305,7 @@ function readDeal(fd, base) {
   const c = cityOf(fd.ciudad);
   return Object.assign(base, { cliente: fd.cliente.trim(), contacto: fd.contacto.trim(), email: (fd.email || '').trim(), telefono: (fd.telefono || '').trim(),
     prov: c.prov, ciudad: c.ciudad, comuna: (fd.comuna || '').trim() || '—', canchas: Math.max(1, +fd.canchas || 1), instal: fd.instal, comentario: (fd.comentario || '').trim(),
-    modelo: UI.dz.modelo, dz: { ...UI.dz } });
+    modelo: UI.dz.modelo, dz: { ...UI.dz, instal: fd.instal } });
 }
 
 /* ---------- Bandeja ---------- */
@@ -1598,6 +1636,7 @@ document.addEventListener('change', ev => {
     d.etapa = t.value; d.aceptada = true; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Etapa cambiada a «${s.nombre}».` + who() }); commit('Etapa actualizada'); return; }
   if (f === 'dz-ral') { if (!t.value) return; const r = RAL.find(x => x.ral === t.value); setPart(UI.dzPart, r.hex, r.ral); dzRefresh(['pal', 'view']); return; }
   if (f === 'dz-libre') { dzRefresh(['pal']); return; }
+  if (f === 'dz-instal') { if (UI.dz) { UI.dz.instal = t.value; dzRefresh(['view']); } return; }
   if (f === 'dz-logoAmort' || f === 'dz-logoPuertas') { UI.dz[f.slice(3)] = t.checked; dzRefresh(['view']); return; }
   if (f === 'dz-file') { const file = t.files[0], kind = t.dataset.kind; if (!file) return;
     if (file.size > 2 * 1024 * 1024) { toast(`«${file.name}» pesa más de 2 MB. Usa un archivo más liviano.`); t.value = ''; return; }
