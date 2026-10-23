@@ -14,6 +14,7 @@ del mes de logística + instalación).
 | --- | --- |
 | Ingreso | Equipo interno con usuario y contraseña; clientes con correo y clave. Cada usuario interno ve solo los negocios asignados (Atila Argentina, Padel Europa o ambos). Todos pueden cambiar su propia contraseña. |
 | Usuarios y permisos | Solo super administrador: usuarios internos, negocios, rol, **módulos visibles** (perfiles Gerencia, Comercial, Operaciones, Solo seguimiento o selección uno a uno), activar/desactivar, nueva contraseña y eliminar. Cada usuario ve en el menú solo sus módulos. Siempre queda al menos un super administrador activo. |
+| Registro de sesiones | Solo super administrador: cuándo ingresa y sale cada usuario (equipo y clientes), cuántas veces ingresa, tiempo conectado, quién está conectado ahora, equipo y navegador. Filtros por usuario y período. |
 | Clientes | Mantenedor de clientes del portal (nombre, club/empresa, correo, teléfono, ciudad, negocio). Al crear el acceso el sistema propone una clave simple (por ejemplo `Volea-4821`) que se puede cambiar; luego se comparte por WhatsApp, correo o copiando el mensaje. Nueva clave, activar/desactivar y eliminar. |
 | Portal de clientes | El cliente diseña su cancha en el visor 3D (tipo, césped, postes de luz, amortiguadores, logo y mapa), envía la solicitud, sigue su estado en «Mis solicitudes» y ve y acepta sus cotizaciones en «Mis cotizaciones». Solo ve lo suyo. |
 | Bandeja de negocios | Etapas: nuevo contacto → propuesta enviada → negociación → venta cerrada / perdida. Las solicitudes del portal llegan marcadas como nuevas: se aceptan o modifican y se ubican en una etapa. También se cargan negocios a mano con todos los datos del cliente y el diseño de su cancha. Cotizaciones con número, ítems, moneda y validez; se envían por WhatsApp, correo o se publican en el portal del cliente. |
@@ -34,6 +35,14 @@ de transición blancos y tubo circular de 2,5" en las cuatro esquinas. Se rota a
 rueda o pellizcando y doble clic vuelve a la vista inicial (de frente al lateral, con la cancha completa). Colores editables: césped, postes de
 luz y amortiguadores. El logo del cliente se dibuja en ambas caras de cada puerta y en las caras de los amortiguadores, siempre al derecho y sin espejarse, desde cualquier ángulo de giro. Escenario según la instalación: **Outdoor** con cielo y sol (sombras suaves) e **Indoor**
 oscuro con la luz de los cuatro focos LED y sombras leves.
+
+## Sesiones e inactividad
+
+Cada ingreso abre una sesión (tabla `sesiones` en Neon: inicio, última actividad, salida, motivo, IP y navegador).
+La sesión se cierra con el botón **Salir** o, si no hay clics ni teclas durante **1 hora**, se cierra sola: la página
+cierra la sesión y vuelve al ingreso, y el servidor también la da por cerrada (a la hora de la última actividad) aunque
+el navegador se haya cerrado. El siguiente ingreso cuenta como uno nuevo. Mientras el usuario trabaja, la página avisa
+actividad al servidor cada 5 minutos como máximo (`api/actividad`).
 
 ## Compartir y proteger cotizaciones
 
@@ -81,9 +90,9 @@ permisos validados en cada llamada a la API).
 
 - **Sitio:** https://atila-gestion-canchas.vercel.app (proyecto Vercel `atila-gestion-canchas`, equipo EDS's projects).
 - **Base de datos:** Neon, proyecto `atila-gestion-canchas` (región São Paulo). Tablas: `usuarios`
-  (contraseñas con scrypt), `entidades` (modelos, negocios y proyectos como JSON) y `meta` (numeración de cotizaciones).
+  (contraseñas con scrypt), `sesiones` (ingresos y salidas), `entidades` (modelos, negocios y proyectos como JSON) y `meta` (numeración de cotizaciones).
 - **API** (`api/`, funciones Node en Vercel): `ping`, `login`, `bootstrap` (carga inicial según el rol),
-  `state` (guardado por cambios), `cotizacion` (abre una cotización protegida con su clave) y `users` (administración de usuarios y cambio de contraseña). La sesión es un
+  `state` (guardado por cambios), `cotizacion` (abre una cotización protegida con su clave), `logout`, `actividad`, `sesiones` (registro, solo super administrador) y `users` (administración de usuarios y cambio de contraseña). La sesión es un
   token firmado de 12 horas. Los permisos se validan en el servidor: los clientes solo ven y modifican sus propias
   solicitudes (en las suyas solo pueden aceptar cotizaciones) y las cotizaciones compartidas con ellos; solo el super administrador administra usuarios internos; el equipo administra clientes.
 - **Variables de entorno en Vercel:** `DATABASE_URL` (Neon) y `SESSION_SECRET`. No están en el repositorio.

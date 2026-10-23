@@ -577,14 +577,50 @@ async function loadAll() {
   else { migrarTipos(); markSaved(); }
 }
 function endSession() { API.token = null; try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} UI.userId = null; UI.unlocked = {}; UI.qKey = null; USERS = []; render(); }
+// Cierre por inactividad: sin clics ni teclas durante 1 hora la sesión se cierra (en todas las pestañas).
+const IDLE_MS = 3600e3, ACT_KEY = 'atila-ultima-actividad';
+let lastAct = (() => { try { return +localStorage.getItem(ACT_KEY) || Date.now(); } catch (e) { return Date.now(); } })(), lastPing = Date.now();
+function noteLogin() { lastAct = lastPing = Date.now(); try { localStorage.setItem(ACT_KEY, String(lastAct)); } catch (e) {} }
+function markActivity() {
+  if (!me()) return; lastAct = Date.now();
+  try { localStorage.setItem(ACT_KEY, String(lastAct)); } catch (e) {}
+  if (lastAct - lastPing > 5 * 60e3) { lastPing = lastAct; if (!API.on) locSesTouch(); else if (API.token) api('actividad', {}).catch(() => {}); }
+}
+function checkIdle() {
+  if (!me() || UI.loggingOut) return;
+  let t = lastAct; try { t = Math.max(t, +localStorage.getItem(ACT_KEY) || 0); } catch (e) {}
+  if (Date.now() - t >= IDLE_MS) logout('inactividad');
+}
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => document.addEventListener(t, markActivity, { capture: true, passive: true }));
+setInterval(checkIdle, 30e3);
+function logout(motivo) {
+  if (UI.loggingOut) return; UI.loggingOut = true;
+  const msg = motivo === 'inactividad' ? 'Sesión cerrada por 1 hora sin actividad. Vuelve a ingresar.' : '';
+  const done = () => { UI.loggingOut = false; UI.ses = null; if (msg) toast(msg); };
+  if (API.on) { flushAll().catch(() => {}).finally(() => api('logout', { motivo }).catch(() => {}).finally(() => { endSession(); UI.view = 'bandeja'; done(); })); return; }
+  locSesEnd(motivo); setSession(null); UI.loginError = ''; UI.dz = null; UI.view = 'bandeja'; render(); done();
+}
+// Registro de sesiones en modo local (en el servidor lo lleva la tabla «sesiones»).
+const SKEY = 'atila-maqueta-sesiones-v1';
+const locSes = () => { try { return JSON.parse(localStorage.getItem(SKEY)) || []; } catch (e) { return []; } };
+const saveLocSes = l => { try { localStorage.setItem(SKEY, JSON.stringify(l.slice(-3000))); } catch (e) {} };
+const locOpen = (l, id) => [...l].reverse().find(s => s.usuarioId === id && !s.fin);
+function locSesStart(id) { const l = locSes(), t = new Date().toISOString(); l.push({ id: uid('s'), usuarioId: id, inicio: t, ultimo: t, fin: null, motivo: null, ip: null, agente: navigator.userAgent.slice(0, 300) }); saveLocSes(l); }
+function locSesTouch() { const l = locSes(), x = me() && locOpen(l, me().id); if (x) { x.ultimo = new Date().toISOString(); saveLocSes(l); } }
+function locSesEnd(motivo) { const l = locSes(), x = me() && locOpen(l, me().id); if (x) { x.fin = new Date().toISOString(); x.motivo = motivo === 'inactividad' ? 'inactividad' : 'salida'; saveLocSes(l); } }
+function locSesClose(l) {
+  let ch = false;
+  l.forEach(x => { if (!x.fin && Date.now() - new Date(x.ultimo) >= IDLE_MS) { x.fin = new Date(+new Date(x.ultimo) + IDLE_MS).toISOString(); x.motivo = 'inactividad'; ch = true; } });
+  if (ch) saveLocSes(l); return l;
+}
 async function boot() {
   if (location.protocol.startsWith('http')) try { const r = await fetch('/api/ping', { cache: 'no-store' }); API.on = r.ok && (await r.json()).ok === true; } catch (e) { API.on = false; }
-  if (!API.on) { await initUsers(); render(); return; }
+  if (!API.on) { await initUsers(); render(); checkIdle(); return; }
   const cot = new URLSearchParams(location.search).get('cot'); if (cot) { UI.publicCot = cot; S = { v: 4, models: [], deals: [], projects: [], quoteSeq: 0 }; render(); return; }
   S = { v: 4, models: [], deals: [], projects: [], quoteSeq: 0 };
   try { API.token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
   if (API.token) { try { await loadAll(); } catch (e) { API.token = null; } }
-  render();
+  render(); checkIdle();
 }
 const pwField = async (usuario, clave) => API.on ? { _clave: clave } : { hash: await hashPw(usuario, clave) };
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
@@ -951,6 +987,51 @@ function vClave() {
     ${UI.formError ? `<p class="st-bad small" role="alert" style="margin:0">${esc(UI.formError)}</p>` : ''}
     <div><button class="btn primary">Guardar contraseña</button></div></div></form>`;
 }
+// Registro de sesiones (solo super administrador): ingresos, salidas y cierres por inactividad.
+const fmtDT = iso => { if (!iso) return '—'; const d = new Date(iso); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtDur = ms => { const m = Math.round(ms / 60e3); return m < 1 ? 'menos de 1 min' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${pad(m % 60)} min`; };
+function uaShort(ua) {
+  ua = ua || ''; if (!ua) return '—';
+  const b = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Navegador';
+  const o = /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iOS' : /Windows/.test(ua) ? 'Windows' : /Mac OS/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : '';
+  return o ? `${b} · ${o}` : b;
+}
+async function loadSesiones() {
+  const dias = UI.sesF.dias; UI.ses = { loading: true, dias };
+  try {
+    if (API.on) { const r = await api('sesiones?dias=' + dias); UI.ses = { list: r.sesiones, dias, at: Date.now() }; }
+    else { const desde = Date.now() - dias * 864e5; UI.ses = { list: locSesClose(locSes()).filter(x => +new Date(x.inicio) > desde).reverse(), dias, at: Date.now() }; }
+  } catch (e) { UI.ses = { err: e.message, dias, at: Date.now() }; }
+  if (UI.view === 'sesiones') render();
+}
+function vSesiones() {
+  const F = UI.sesF || (UI.sesF = { dias: 30, u: '' });
+  if (!UI.ses || (!UI.ses.loading && (UI.ses.dias !== F.dias || Date.now() - UI.ses.at > 60e3))) loadSesiones();
+  const users = USERS.slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const head = `<div class="head"><div><h1>Registro de <em>sesiones</em></h1><p>Cuándo ingresa y sale cada usuario y cuántas veces ingresa. Una sesión abierta sin clics ni teclas durante 1 hora se cierra sola; el siguiente ingreso cuenta como uno nuevo.</p></div><button class="btn" data-act="ses-refresh">Actualizar</button></div>
+    <div class="row" style="gap:12px;margin-bottom:14px;flex-wrap:wrap"><label class="small">Usuario <select data-field="ses-u"><option value="">Todos</option>${users.map(u => `<option value="${u.id}" ${F.u === u.id ? 'selected' : ''}>${esc(u.nombre)} (${esc(u.usuario || u.email)})</option>`).join('')}</select></label>
+    <label class="small">Período <select data-field="ses-dias">${[[1, 'Hoy y ayer'], [7, 'Últimos 7 días'], [30, 'Últimos 30 días'], [90, 'Últimos 90 días'], [3650, 'Todo']].map(([d, t]) => `<option value="${d}" ${F.dias === d ? 'selected' : ''}>${t}</option>`).join('')}</select></label></div>`;
+  if (!UI.ses || UI.ses.loading) return head + '<div class="panel"><div class="empty">Cargando sesiones…</div></div>';
+  if (UI.ses.err) return head + `<div class="panel"><div class="empty">${esc(UI.ses.err)}</div></div>`;
+  const now = Date.now(), name = id => USERS.find(u => u.id === id) || { nombre: 'Usuario eliminado', usuario: id, rol: '' };
+  const dur = x => +new Date(x.fin || now) - +new Date(x.inicio);
+  const by = {}; UI.ses.list.forEach(x => (by[x.usuarioId] = by[x.usuarioId] || []).push(x));
+  const resumen = Object.entries(by).map(([id, l]) => ({ id, u: name(id), n: l.length, ult: l[0].inicio, activa: l.some(x => !x.fin), inact: l.filter(x => x.motivo === 'inactividad').length, total: l.reduce((a, x) => a + dur(x), 0) }))
+    .sort((a, b) => b.n - a.n);
+  const list = F.u ? (by[F.u] || []) : UI.ses.list;
+  const estado = x => !x.fin ? `<span class="pill st-ok">Conectado</span><br><span class="small muted">última actividad ${fmtDT(x.ultimo)}</span>`
+    : x.motivo === 'inactividad' ? '<span class="pill st-acc">Cerrada por inactividad (1 h)</span>' : 'Cerró sesión';
+  const conectados = resumen.filter(r => r.activa).length, inact = UI.ses.list.filter(x => x.motivo === 'inactividad').length;
+  return head + `<p class="small muted" style="margin:0 0 12px">${UI.ses.list.length} ingreso${UI.ses.list.length === 1 ? '' : 's'} en el período · ${conectados} usuario${conectados === 1 ? '' : 's'} conectado${conectados === 1 ? '' : 's'} ahora · ${inact} cerrada${inact === 1 ? '' : 's'} por inactividad</p>
+  <div class="panel tablewrap" style="margin-bottom:16px">${resumen.length ? `<table class="models"><thead><tr><th>Usuario</th><th>Rol</th><th>Ingresos</th><th>Último ingreso</th><th>Tiempo conectado</th><th>Por inactividad</th><th>Estado</th><th></th></tr></thead><tbody>
+    ${resumen.map(r => `<tr${F.u === r.id ? ' style="background:var(--line)"' : ''}><td><b>${esc(r.u.nombre)}</b><br><span class="small muted">${esc(r.u.usuario || r.u.email || '')}</span></td><td>${ROLES[r.u.rol] || (r.u.rol === 'cliente' ? 'Cliente' : '—')}</td>
+      <td class="mono"><b>${r.n}</b></td><td>${fmtDT(r.ult)}</td><td>${fmtDur(r.total)}</td><td class="mono">${r.inact}</td><td>${r.activa ? '<span class="pill st-ok">Conectado</span>' : '<span class="muted small">Desconectado</span>'}</td>
+      <td><button class="btn sm ghost" data-act="ses-user" data-id="${F.u === r.id ? '' : r.id}">${F.u === r.id ? 'Ver todos' : 'Ver ingresos'}</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No hay ingresos en este período.</div>'}</div>
+  ${list.length ? `<div class="panel tablewrap"><table class="models"><thead><tr><th>Usuario</th><th>Ingreso</th><th>Salida</th><th>Duración</th><th>Cierre</th><th>Equipo</th></tr></thead><tbody>
+    ${list.slice(0, 500).map(x => `<tr><td>${esc(name(x.usuarioId).nombre)}</td><td class="mono">${fmtDT(x.inicio)}</td><td class="mono">${x.fin ? fmtDT(x.fin) : '—'}</td><td>${fmtDur(dur(x))}${x.fin ? '' : ' <span class="small muted">(en curso)</span>'}</td><td>${estado(x)}</td>
+      <td class="small">${esc(uaShort(x.agente))}${x.ip ? `<br><span class="muted mono">${esc(x.ip)}</span>` : ''}</td></tr>`).join('')}</tbody></table>
+    ${list.length > 500 ? `<p class="small muted" style="padding:8px 12px">Se muestran los 500 ingresos más recientes de ${list.length}.</p>` : ''}</div>` : ''}`;
+}
 function vUsuarios() {
   const negChecks = (u, dis) => Object.entries(NEGOCIOS).map(([k, n]) => `<label class="check small"><input type="checkbox" id="un-${u.id}-${k}" data-field="u-neg" data-id="${u.id}" data-neg="${k}" ${u.rol === 'superadmin' || u.negocios.includes(k) ? 'checked' : ''} ${dis || u.rol === 'superadmin' ? 'disabled' : ''}> ${n}</label>`).join('');
   return `<div class="head"><div><h1>Usuarios y <em>permisos</em></h1><p>Crea usuarios y define a qué negocios y a qué módulos accede cada uno, con un perfil de acceso (Gerencia, Comercial, Operaciones, Solo seguimiento) o marcando los módulos uno a uno. El super administrador ve todo y es el único que da y quita permisos.</p></div>
@@ -998,7 +1079,8 @@ function renderNav() {
   const u = me();
   $('#userbox').innerHTML = `<div><b>${esc(u.nombre)}</b><br><span class="muted small">${esc(u.usuario)} · ${ROLES[u.rol] || 'Cliente'}</span></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="view" data-id="clave">Contraseña</button><button class="btn sm ghost" data-act="logout">Salir</button></div>`;
-  const adminItem = isSuper() ? `<button data-act="view" data-id="usuarios" ${UI.view === 'usuarios' ? 'aria-current="page"' : ''}>${icon('M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 21a8 8 0 0116 0')}Usuarios y permisos</button>` : '';
+  const adminItem = isSuper() ? `<button data-act="view" data-id="usuarios" ${UI.view === 'usuarios' ? 'aria-current="page"' : ''}>${icon('M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 21a8 8 0 0116 0')}Usuarios y permisos</button>`
+    + `<button data-act="view" data-id="sesiones" ${UI.view === 'sesiones' ? 'aria-current="page"' : ''}>${icon('M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18z')}Registro de sesiones</button>` : '';
   const th = currentTheme();
   $('#th-dark').setAttribute('aria-pressed', th === 'dark');
   $('#th-light').setAttribute('aria-pressed', th === 'light');
@@ -1046,6 +1128,7 @@ function render() {
   document.documentElement.dataset.brand = UI.profile;
   renderNav();
   if (UI.view === 'usuarios') { m.innerHTML = vUsuarios(); return; }
+  if (UI.view === 'sesiones' && isSuper()) { m.innerHTML = vSesiones(); return; }
   if (UI.view === 'clave') { m.innerHTML = vClave(); return; }
   if (UI.view === 'sin-modulos' && UI.profile === 'atila') { m.innerHTML = `<div class="panel"><div class="empty"><b style="color:var(--fg)">Sin módulos asignados</b><span>Tu usuario no tiene acceso a ningún módulo. Pide al super administrador que te asigne los que necesitas.</span></div></div>`; return; }
   if (UI.view === 'clientes') { m.innerHTML = vClientes(); return; }
@@ -1700,7 +1783,9 @@ document.addEventListener('click', ev => {
   const deal = () => S.deals.find(d => d.id === id);
   switch (act) {
     case 'profile': if (!canSee(id)) break; UI.profile = id; if (['usuarios', 'clave', 'inicio', 'clientes'].includes(UI.view)) UI.view = id === 'atila' ? 'bandeja' : 'inicio'; saveUI(); render(); break;
-    case 'logout': if (API.on) { flushAll().finally(() => { endSession(); UI.view = 'bandeja'; }); break; } setSession(null); UI.loginError = ''; UI.dz = null; UI.view = 'bandeja'; render(); break;
+    case 'logout': logout('salida'); break;
+    case 'ses-refresh': loadSesiones(); render(); break;
+    case 'ses-user': UI.sesF.u = id; render(); break;
     case 'nu-perfil': Object.keys(MODULOS).forEach(k => { const c = document.getElementById('nu-mod-' + k); if (c) c.checked = PERFILES[id].modulos.includes(k); }); break;
     case 'newuser': UI.newUser = !UI.newUser; UI.formError = ''; render(); break;
     case 'ureset': UI.resetUser = UI.resetUser === id ? null : id; UI.delUser = null; render(); break;
@@ -1774,6 +1859,8 @@ document.addEventListener('click', ev => {
 });
 
 document.addEventListener('change', ev => {
+  if (ev.target.dataset.field === 'ses-u') { UI.sesF.u = ev.target.value; render(); return; }
+  if (ev.target.dataset.field === 'ses-dias') { UI.sesF.dias = +ev.target.value; render(); return; }
   const t = ev.target, f = t.dataset.field; if (!f) return;
   if (f === 'inicio' || f === 'fin') {
     const p = project(t.dataset.id), e = p.etapas[+t.dataset.i]; if (!t.value) return;
@@ -1817,7 +1904,7 @@ document.addEventListener('submit', async ev => {
   ev.preventDefault();
   const fd = Object.fromEntries(new FormData(f));
   if (kind === 'login' && API.on) {
-    try { const r = await api('login', { usuario: fd.usuario.trim(), clave: fd.clave }); API.token = r.token; try { localStorage.setItem(TOKEN_KEY, r.token); } catch (e) {}
+    try { const r = await api('login', { usuario: fd.usuario.trim(), clave: fd.clave }); API.token = r.token; noteLogin(); try { localStorage.setItem(TOKEN_KEY, r.token); } catch (e) {}
       await loadAll(); } catch (e) { UI.loginError = e.message; render(); return; }
     const u = me(); UI.loginError = ''; UI.view = u.rol === 'cliente' ? 'p-disenar' : firstView(); UI.dz = null; render(); toast(`Hola, ${u.nombre}`); return;
   }
@@ -1830,7 +1917,7 @@ document.addEventListener('submit', async ev => {
     const key = fd.usuario.trim().toLowerCase(), u = USERS.find(x => x.usuario.toLowerCase() === key || (x.email || '').toLowerCase() === key);
     if (!u || u.hash !== await hashPw(u.usuario, fd.clave)) { UI.loginError = 'Usuario, correo o contraseña incorrectos.'; render(); return; }
     if (!u.activo) { UI.loginError = 'Este acceso está desactivado. Comunícate con ATILA para reactivarlo.'; render(); return; }
-    UI.loginError = ''; setSession(u.id); UI.view = u.rol === 'cliente' ? 'p-disenar' : firstView(); UI.dz = null; render(); toast(`Hola, ${u.nombre}`); return;
+    UI.loginError = ''; setSession(u.id); locSesStart(u.id); noteLogin(); UI.view = u.rol === 'cliente' ? 'p-disenar' : firstView(); UI.dz = null; render(); toast(`Hola, ${u.nombre}`); return;
   }
   if (kind === 'pwchange') {
     const u = me();
