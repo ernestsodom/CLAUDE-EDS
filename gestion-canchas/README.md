@@ -19,16 +19,18 @@ del mes de logística + instalación).
 | Bandeja de negocios | Etapas: nuevo contacto → propuesta enviada → negociación → venta cerrada / perdida. Las solicitudes del portal llegan marcadas como nuevas: se aceptan o modifican y se ubican en una etapa. También se cargan negocios a mano con todos los datos del cliente y el diseño de su cancha. Cotizaciones con número, ítems, moneda y validez; se envían por WhatsApp, correo o se publican en el portal del cliente. |
 | Proyectos y entregas | Al cerrar la venta se crea el proyecto con el diseño del negocio. Las características de la cancha quedan de solo lectura (visor 3D + especificaciones); se hace el seguimiento de etapas, fechas y atrasos. Tarjetas coloreadas por estado. |
 | Calendario y mapa | Mapa de Argentina con zoom y etiquetas por proyecto (canchas, modelo, etapa) y calendario mensual de hitos. |
-| Tipos de cancha | Atila Competition PRO (panorámica), Atila PRO (semi panorámica) y Atila Estándar, con nombre y descripción editables y su vista 3D. |
+| Tipos de cancha | Dos tipos: Atila Competition PRO (panorámica) y Atila Semi Panoramic, con nombre y descripción editables y su vista 3D. Lo que estaba como «Atila Estándar» pasa a Competition PRO. |
 
 ## Visor 3D
 
-La cancha se dibuja con Three.js (r128, desde cdnjs) a escala real: 10 × 20 m, líneas de saque, red, vidrios,
-mallas, estructura según el tipo (Competition PRO sin montantes en el vidrio, Atila PRO con esquinas
-tubulares, Estándar con montantes cada 2 m), cuatro postes de luz cuello de cisne y amortiguadores al pie de
-la estructura. Se rota arrastrando, se acerca con la rueda o pellizcando y doble clic vuelve a la vista
-inicial. Colores editables: césped, postes de luz (paleta rápida o carta RAL) y amortiguadores (carta RAL,
-con la foto real del amortiguador como referencia). Si el logo va «sobre las puertas», se muestra en 3D.
+La cancha se dibuja con Three.js (r128, desde cdnjs) a escala real (10 × 20 m) replicando los renders de
+referencia: fondo negro, piso con marco perimetral oscuro, fondos de vidrio sin marco con pinzas, primeros 4 m
+de cada lateral en vidrio y el centro en malla electrosoldada con postes cada 2 m y amortiguadores al pie,
+viga perimetral blanca a 4 m, malla superior hasta 6,5 m en el lateral y el fondo opuestos a la vista
+inicial, red, y cuatro postes de luz cuello de cisne con cabezal LED que salen de los postes de transición.
+La **Semi Panoramic** suma columnas blancas de transición y postes altos en las cuatro esquinas. Se rota
+arrastrando, se acerca con la rueda o pellizcando y doble clic vuelve a la vista inicial (esquina, como en
+los renders). Colores editables: césped, postes de luz y amortiguadores.
 
 ## Línea gráfica ATILA
 

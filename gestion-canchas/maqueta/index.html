@@ -328,7 +328,7 @@ table.users td { vertical-align: top }
 .designer { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 18px; align-items: start }
 .designer > * { min-width: 0 }
 .dz-side { display: grid; gap: 14px }
-.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px }
+.seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px }
 .seg button { border: 1px solid var(--line); background: var(--bg); padding: 7px 6px; border-radius: var(--r, 6px); font-size: 12px; text-align: left; display: grid; gap: 1px; line-height: 1.2 }
 .seg button span { font-size: 10px; color: var(--muted) }
 .seg button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent) }
@@ -479,12 +479,11 @@ const OBS_CPRO = 'Modelo Atila Competition PRO: amortiguadores, vidrio de repues
 function seed() {
   const models = [
     { id: 'm1', nombre: 'Atila Competition PRO', tipo: 'panoramica', desc: 'Modelo insignia: full panorámica 360°, amortiguación PRO, vidrio de repuesto.' },
-    { id: 'm2', nombre: 'Atila PRO', tipo: 'semi', desc: 'Esquinas tubulares.' },
-    { id: 'm3', nombre: 'Atila Estándar', tipo: 'estandar', desc: 'Estructura reforzada de acero galvanizado.' }
+    { id: 'm2', nombre: 'Atila Semi Panoramic', tipo: 'semi', desc: 'Semi panorámica: columnas blancas de transición y postes en las esquinas.' }
   ];
   // [nombre, ubicación (Excel), ciudad, comuna, modelo, indoor/outdoor, color césped (Excel), canchas, status (Excel), observación (Excel), producción, logística + instalación, lat/lon opcional]
   const R = [
-    ['Casa Propia', 'Laguna de Chascomús', 'Chascomús', 'Laguna de Chascomús', 'm3', 'Outdoor', 'AZUL', 1, 'Listo instalado',
+    ['Casa Propia', 'Laguna de Chascomús', 'Chascomús', 'Laguna de Chascomús', 'm1', 'Outdoor', 'AZUL', 1, 'Listo instalado',
       'Modelo Atila Club (césped azul, con amortiguadores, sin vidrio de repuesto, solo con logo Atila).', '2026-06', '2026-07', null, '2026-07-15'],
     ['P1 Padel', 'Balcarce', 'Balcarce', 'Partido de Balcarce', 'm1', 'Indoor', 'GRIS', 3, 'Listo instalado',
       'Modelo Atila Competition PRO (césped negro, amortiguadores, vidrio de repuesto, pintura a definir + personalizaciones Atila + logo).', '2026-06', '2026-07', null, '2026-07-15'],
@@ -530,6 +529,15 @@ const KEY = 'atila-maqueta-v4';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
 if (!S || S.v !== 4) S = seed();
+// Solo quedan dos tipos de cancha: Competition PRO y Semi Panoramic. Lo que estaba en «Atila Estándar» pasa a Competition PRO.
+(function migrarTipos() {
+  if (!S.models.some(m => m.id === 'm3') && !S.models.some(m => m.nombre === 'Atila PRO')) return;
+  S.models = S.models.filter(m => m.id !== 'm3');
+  const m2 = S.models.find(m => m.id === 'm2'); if (m2) { m2.nombre = 'Atila Semi Panoramic'; m2.tipo = 'semi'; m2.desc = 'Semi panorámica: columnas blancas de transición y postes en las esquinas.'; }
+  const fix = o => { if (o && o.modelo === 'm3') o.modelo = 'm1'; };
+  [...S.projects, ...S.deals].forEach(x => { fix(x); fix(x.dz); (x.cotizaciones || []).forEach(q => fix(q.dz)); });
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+})();
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch (e) { toast('No se pudo guardar: el navegador no tiene espacio. Usa archivos más livianos.'); return false; } };
 
 const UI = { profile: 'atila', view: 'bandeja', dealFilter: 'activos', deal: null, closing: false, newDeal: false, project: 'p1',
@@ -583,127 +591,132 @@ function mountViewers() {
   pendingViews.length = 0;
 }
 
-let meshTex = null;
-function meshTexture() {
-  if (meshTex) return meshTex;
-  const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
-  x.strokeStyle = 'rgba(30,30,30,1)'; x.lineWidth = 5; x.strokeRect(0, 0, 64, 64);
-  meshTex = new THREE.CanvasTexture(c); meshTex.wrapS = meshTex.wrapT = THREE.RepeatWrapping; meshTex.anisotropy = 4;
-  return meshTex;
-}
 
 function createCourt3D(el, dz, opts) {
+  // Réplica de los renders ATILA: x = ancho (10 m), z = largo (20 m), y = alto. Cámara por defecto en la esquina (-x, +z) como en las imágenes.
   const T = THREE;
-  const renderer = new T.WebGLRenderer({ antialias: true, alpha: false });
+  const renderer = new T.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   el.prepend(renderer.domElement);
-  const scene = new T.Scene(); scene.background = new T.Color('#0d0d0d'); scene.fog = new T.Fog('#0d0d0d', 45, 90);
-  const camera = new T.PerspectiveCamera(38, 1.6, 0.1, 200);
-  scene.add(new T.HemisphereLight(0xffffff, 0x303030, 0.55));
-  const sun = new T.DirectionalLight(0xffffff, 0.75); sun.position.set(-12, 22, 14); scene.add(sun);
-  const fill = new T.DirectionalLight(0xffffff, 0.35); fill.position.set(14, 10, -12); scene.add(fill);
+  const scene = new T.Scene(); scene.background = new T.Color('#000000');
+  const camera = new T.PerspectiveCamera(42, 1.6, 0.1, 200);
+  scene.add(new T.AmbientLight(0xffffff, 0.55));
+  const key = new T.DirectionalLight(0xffffff, 0.75); key.position.set(-8, 20, 12); scene.add(key);
+  const rim = new T.DirectionalLight(0xffffff, 0.3); rim.position.set(10, 8, -14); scene.add(rim);
 
   const mats = {
-    grass: new T.MeshStandardMaterial({ color: dz.pasto, roughness: 0.95 }),
-    poles: new T.MeshStandardMaterial({ color: dz.postes || POSTES_DEF, roughness: 0.45, metalness: 0.5 }),
-    amort: new T.MeshStandardMaterial({ color: (dz.amort || AMORT_DEF).hex, roughness: 0.5, metalness: 0.2 }),
-    steel: new T.MeshStandardMaterial({ color: '#1c1c1c', roughness: 0.55, metalness: 0.6 }),
-    glass: new T.MeshStandardMaterial({ color: '#bfe0ff', transparent: true, opacity: 0.16, roughness: 0.05, side: T.DoubleSide, depthWrite: false }),
+    grass: new T.MeshLambertMaterial({ color: dz.pasto }),
+    poles: new T.MeshStandardMaterial({ color: dz.postes || POSTES_DEF, roughness: 0.5, metalness: 0.3 }),
+    amort: new T.MeshStandardMaterial({ color: (dz.amort || AMORT_DEF).hex, roughness: 0.5, metalness: 0.1 }),
+    steel: new T.MeshStandardMaterial({ color: '#202020', roughness: 0.6, metalness: 0.4 }),
+    white: new T.MeshStandardMaterial({ color: '#f2f2f2', roughness: 0.5 }),
+    glass: new T.MeshStandardMaterial({ color: '#d6efe6', transparent: true, opacity: 0.1, roughness: 0.05, side: T.DoubleSide, depthWrite: false }),
+    seam: new T.MeshBasicMaterial({ color: '#9fb3ad', transparent: true, opacity: 0.55 }),
     line: new T.MeshBasicMaterial({ color: '#ffffff' }),
-    lamp: new T.MeshBasicMaterial({ color: '#fffbe6' }),
-    spring: new T.MeshStandardMaterial({ color: '#111111', roughness: 0.4, metalness: 0.7 }),
-    ground: new T.MeshStandardMaterial({ color: '#141414', roughness: 1 }),
-    apron: new T.MeshStandardMaterial({ color: '#2c2c2b', roughness: 1 })
+    led: new T.MeshBasicMaterial({ color: '#ffffff' }),
+    spring: new T.MeshStandardMaterial({ color: '#111111', roughness: 0.4, metalness: 0.7 })
   };
-  const meshMat = (w, h) => { const t = meshTexture().clone(); t.needsUpdate = true; t.repeat.set(w / 0.1, h / 0.1);
-    return new T.MeshStandardMaterial({ map: t, transparent: true, alphaTest: 0.35, side: T.DoubleSide, color: '#2a2a2a', roughness: 0.8 }); };
-
   const root = new T.Group(); scene.add(root);
   let built = null;
-  const box = (w, h, d, m, x, y, z, parent) => { const o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.position.set(x, y, z); (parent || root).add(o); return o; };
-  const plane = (w, h, m, x, y, z, ry, parent) => { const o = new T.Mesh(new T.PlaneGeometry(w, h), m); o.position.set(x, y, z); o.rotation.y = ry || 0; (parent || root).add(o); return o; };
+  const box = (w, h, d, m, x, y, z, p) => { const o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.position.set(x, y, z); (p || built).add(o); return o; };
+  const plane = (w, h, m, x, y, z, ry, p) => { const o = new T.Mesh(new T.PlaneGeometry(w, h), m); o.position.set(x, y, z); o.rotation.y = ry || 0; (p || built).add(o); return o; };
+  const vbar = (x, z, y0, y1, w, m) => box(w, y1 - y0, w, m, x, (y0 + y1) / 2, z);
+  // tramo de pared entre (x0,z0) y (x1,z1)
+  const seg = (x0, z0, x1, z1, fn) => { const len = Math.hypot(x1 - x0, z1 - z0), cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, ry = x0 === x1 ? Math.PI / 2 : 0; fn(len, cx, cz, ry); };
+  const lineMat = new T.LineBasicMaterial({ color: '#4d4d4d' });
+  // malla electrosoldada como grilla de líneas finas entre (x0,z0) y (x1,z1), de y0 a y1
+  const grid = (x0, z0, x1, z1, y0, y1, cell) => {
+    const len = Math.hypot(x1 - x0, z1 - z0), pts = [], ux = (x1 - x0) / len, uz = (z1 - z0) / len;
+    for (let t = 0; t <= len + 1e-6; t += cell) { const x = x0 + ux * t, z = z0 + uz * t; pts.push(x, y0, z, x, y1, z); }
+    for (let y = y0; y <= y1 + 1e-6; y += cell) pts.push(x0, y, z0, x1, y, z1);
+    const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); built.add(new T.LineSegments(g, lineMat));
+  };
+  const hbar = (x0, z0, x1, z1, y, w, h, m) => seg(x0, z0, x1, z1, (len, cx, cz) => x0 === x1 ? box(w, h, len, m, cx, y, cz) : box(len, h, w, m, cx, y, cz));
 
   function build(d) {
-    if (built) { root.remove(built); built.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map && o.material !== mats.grass) o.material.dispose(); }); }
-    const g = new T.Group(); built = g; root.add(g);
-    const tipo = model(d.modelo).tipo;
-    // suelo y pasto
-    const ground = new T.Mesh(new T.PlaneGeometry(80, 80), mats.ground); ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02; g.add(ground);
-    const apron = new T.Mesh(new T.PlaneGeometry(13, 23), mats.apron); apron.rotation.x = -Math.PI / 2; apron.position.y = -0.01; g.add(apron);
-    const grass = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); grass.rotation.x = -Math.PI / 2; g.add(grass);
-    // líneas: de saque (a 6,95 m de la red) y central
-    [-6.95, 6.95].forEach(z => box(10, 0.005, 0.05, mats.line, 0, 0.004, z, g));
-    box(0.05, 0.005, 13.9, mats.line, 0, 0.004, 0, g);
-    [-10, 10].forEach(z => box(0.05, 0.005, 0.2, mats.line, 0, 0.004, z - Math.sign(z) * 0.1, g));
+    if (built) { root.remove(built); built.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map) o.material.dispose(); }); }
+    built = new T.Group(); root.add(built);
+    const tipo = model(d.modelo).tipo, semi = tipo === 'semi', BEAM = 4, TOP = 6.5;
+    // piso, marco perimetral y líneas
+    const floor = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); floor.rotation.x = -Math.PI / 2; built.add(floor);
+    hbar(-5.08, -10.08, -5.08, 10.08, 0.05, 0.16, 0.1, mats.steel); hbar(5.08, -10.08, 5.08, 10.08, 0.05, 0.16, 0.1, mats.steel);
+    hbar(-5.08, -10.08, 5.08, -10.08, 0.05, 0.16, 0.1, mats.steel); hbar(-5.08, 10.08, 5.08, 10.08, 0.05, 0.16, 0.1, mats.steel);
+    [-6.95, 6.95].forEach(z => box(10, 0.006, 0.05, mats.line, 0, 0.004, z));
+    box(0.05, 0.006, 13.9, mats.line, 0, 0.004, 0);
+    [-10, 10].forEach(z => box(0.05, 0.006, 0.2, mats.line, 0, 0.004, z - Math.sign(z) * 0.1));
     // red
-    plane(10, 0.88, meshMat(10, 0.88), 0, 0.44, 0, 0, g);
-    box(10, 0.05, 0.02, mats.line, 0, 0.88, 0, g);
-    [-5.05, 5.05].forEach(x => box(0.06, 1.0, 0.06, mats.steel, x, 0.5, 0, g));
-
-    // paredes: [x0,z0,x1,z1, alto vidrio, alto total]
-    const walls = [];
-    [-10, 10].forEach(z => walls.push([-5, z, 5, z, 3, 4]));
-    [-5, 5].forEach(x => { [[-10, -8, 3, 4], [-8, -6, 2, 3], [-6, 6, 0, 3], [6, 8, 2, 3], [8, 10, 3, 4]].forEach(([a, b, gl, tt]) => walls.push([x, a, x, b, gl, tt])); });
-    walls.forEach(([x0, z0, x1, z1, gl, tt]) => {
-      const len = Math.hypot(x1 - x0, z1 - z0), cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, ry = x0 === x1 ? Math.PI / 2 : 0;
-      if (gl > 0) plane(len, gl, mats.glass, cx, gl / 2, cz, ry, g);
-      if (tt > gl) plane(len, tt - gl, meshMat(len, tt - gl), cx, gl + (tt - gl) / 2, cz, ry, g);
-      // perfil superior
-      if (x0 === x1) box(0.06, 0.06, len, mats.steel, cx, tt, cz, g); else box(len, 0.06, 0.06, mats.steel, cx, tt, cz, g);
-      // perfil inferior
-      if (x0 === x1) box(0.07, 0.07, len, mats.steel, cx, 0.035, cz, g); else box(len, 0.07, 0.07, mats.steel, cx, 0.035, cz, g);
+    grid(-5, 0, 5, 0, 0, 0.88, 0.1);
+    box(10, 0.05, 0.02, mats.line, 0, 0.9, 0);
+    [-5.12, 5.12].forEach(x => vbar(x, 0, 0, 1.0, 0.07, mats.white));
+    // vidrios sin marco con pinzas: fondos completos y primeros 4 m de cada lateral
+    const glassWall = (x0, z0, x1, z1) => seg(x0, z0, x1, z1, (len, cx, cz, ry) => {
+      plane(len, 3, mats.glass, cx, 1.5, cz, ry);
+      const n = Math.round(len / 2);
+      for (let i = 0; i <= n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t;
+        vbar(x, z, 0, 3, 0.012, mats.seam); [0.12, 2.9].forEach(y => box(0.07, 0.09, 0.07, mats.steel, x, y, z)); }
+      hbar(x0, z0, x1, z1, 3, 0.012, 0.012, mats.seam);
     });
-    // estructura según el tipo
-    const sideTop = z => (Math.abs(z) >= 8 ? 4 : 3);
-    const post = (x, z, h, round) => { if (round) { const o = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, h, 18), mats.steel); o.position.set(x, h / 2, z); g.add(o); } else box(0.08, h, 0.08, mats.steel, x, h / 2, z, g); };
-    for (const x of [-5, 5]) for (let z = -10; z <= 10; z += 2) {
-      const glassZone = Math.abs(z) >= 6, corner = Math.abs(z) === 10;
-      if (tipo === 'estandar') post(x, z, sideTop(z));
-      else if (tipo === 'semi') { if (!glassZone || Math.abs(z) === 6 || corner) post(x, z, sideTop(z), corner); else post(x, z, sideTop(z), true); }
-      else if (!glassZone || Math.abs(z) === 6) post(x, z, sideTop(z));
+    glassWall(-5, -10, 5, -10); glassWall(-5, 10, 5, 10);
+    [-5, 5].forEach(x => { glassWall(x, -10, x, -6); glassWall(x, 6, x, 10); });
+    // laterales de malla con postes cada 2 m y amortiguadores al pie
+    [-5, 5].forEach(x => {
+      grid(x, -6, x, 6, 0, BEAM, 0.2);
+      hbar(x, -6, x, 6, 2, 0.04, 0.04, mats.steel);
+      for (let z = -6; z <= 6; z += 2) {
+        const trans = Math.abs(z) === 6;
+        if (trans) vbar(x, z, 0, BEAM, semi ? 0.18 : 0.15, semi ? mats.white : mats.steel); else vbar(x, z, 0, BEAM, 0.07, mats.steel);
+        const s = Math.sign(x), a = new T.Group(); a.position.set(x + s * 0.5, 0, z + (trans ? -Math.sign(z) * 0.3 : 0)); a.scale.setScalar(1.4); built.add(a);
+        box(0.55, 0.02, 0.16, mats.amort, 0, 0.01, 0, a);
+        const tube = box(0.11, 0.5, 0.11, mats.amort, s * 0.1, 0.02, 0, a); tube.geometry.translate(0, 0.25, 0); tube.rotation.z = s * 0.6;
+        const spring = new T.Mesh(new T.CylinderGeometry(0.045, 0.045, 0.28, 10), mats.spring); spring.position.set(-s * 0.16, 0.44, 0); spring.rotation.z = s * 0.6; a.add(spring);
+      }
+    });
+    // viga perimetral blanca
+    hbar(-5, -10, -5, 10, BEAM, 0.12, 0.1, mats.white); hbar(5, -10, 5, 10, BEAM, 0.12, 0.1, mats.white);
+    hbar(-5, -10, 5, -10, BEAM, 0.12, 0.1, mats.white); hbar(-5, 10, 5, 10, BEAM, 0.12, 0.1, mats.white);
+    // malla superior en el lateral y el fondo opuestos a la vista inicial
+    const upper = (x0, z0, x1, z1) => seg(x0, z0, x1, z1, (len, cx, cz, ry) => {
+      grid(x0, z0, x1, z1, BEAM, TOP, 0.2);
+      const n = Math.max(1, Math.round(len / 2.5));
+      for (let i = 0; i <= n; i++) { const t = i / n; vbar(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, BEAM, TOP, 0.06, mats.steel); }
+      hbar(x0, z0, x1, z1, TOP, 0.06, 0.06, mats.steel);
+    });
+    upper(5, -10, 5, 10); upper(-5, -10, 5, -10);
+    if (semi) { // esquinas con postes altos y cierre superior
+      [[-5, -10], [5, -10], [-5, 10], [5, 10]].forEach(([x, z]) => vbar(x, z, 0, TOP, 0.06, mats.steel));
+      hbar(-5, 10, 5, 10, TOP, 0.03, 0.03, mats.steel); hbar(-5, -10, -5, 10, TOP, 0.03, 0.03, mats.steel);
     }
-    for (const z of [-10, 10]) for (let x = -4; x <= 4; x += 2) if (tipo === 'estandar') post(x, z, 4);
-    if (tipo === 'panoramica') { // pinzas del vidrio
-      for (const z of [-10, 10]) for (let x = -5; x <= 5; x += 2) [0.4, 2.6].forEach(y => box(0.1, 0.12, 0.08, mats.steel, x, y, z, g));
-      for (const x of [-5, 5]) for (const z of [-10, -8, 8, 10]) [0.4, 2.6].forEach(y => box(0.08, 0.12, 0.1, mats.steel, x, y, z, g));
-    }
-    // postes de luz cuello de cisne (4)
-    for (const x of [-5.45, 5.45]) for (const z of [-6, 6]) {
-      const s = Math.sign(x), curve = new T.CatmullRomCurve3([new T.Vector3(x, 0, z), new T.Vector3(x, 4.6, z), new T.Vector3(x + s * 0.05, 5.7, z), new T.Vector3(x - s * 0.45, 6.35, z), new T.Vector3(x - s * 1.15, 6.5, z)]);
-      g.add(new T.Mesh(new T.TubeGeometry(curve, 40, 0.065, 10, false), mats.poles));
-      box(0.22, 0.08, 0.9, mats.poles, x - s * 1.25, 6.48, z, g);
-      box(0.18, 0.02, 0.82, mats.lamp, x - s * 1.25, 6.43, z, g);
-      box(0.3, 0.06, 0.3, mats.poles, x, 0.03, z, g);
-    }
-    // amortiguadores al pie de la estructura, por fuera de los laterales
-    for (const x of [-5, 5]) for (const z of [-7, -3, 3, 7]) {
-      const s = Math.sign(x), a = new T.Group(); a.position.set(x + s * 0.6, 0, z); a.scale.setScalar(1.6); g.add(a);
-      box(0.6, 0.02, 0.18, mats.amort, 0, 0.01, 0, a);
-      const tube = box(0.12, 0.58, 0.12, mats.amort, 0, 0, 0, a); tube.geometry.translate(0, 0.29, 0); tube.position.set(s * 0.12, 0.02, 0); tube.rotation.z = s * 0.62;
-      const spring = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 0.32, 10), mats.spring); spring.position.set(-s * 0.2, 0.5, 0); spring.rotation.z = s * 0.62; a.add(spring);
-    }
+    // postes de luz cuello de cisne desde los postes de transición
+    [-5, 5].forEach(x => [-6, 6].forEach(z => {
+      const s = Math.sign(x), zs = Math.sign(z), px = x + s * 0.16;
+      const curve = new T.CatmullRomCurve3([new T.Vector3(px, BEAM, z), new T.Vector3(px + s * 0.05, 6.2, z), new T.Vector3(px - s * 0.25, 7.6, z + zs * 0.2), new T.Vector3(px - s * 1.0, 8.5, z + zs * 0.5), new T.Vector3(px - s * 1.6, 8.7, z + zs * 0.7)]);
+      built.add(new T.Mesh(new T.TubeGeometry(curve, 48, 0.07, 10, false), mats.poles));
+      const head = new T.Group(); head.position.set(px - s * 1.75, 8.65, z + zs * 0.75); head.rotation.z = s * 0.35; built.add(head);
+      box(0.32, 0.07, 1.0, mats.poles, 0, 0, 0, head);
+      [-0.32, 0, 0.32].forEach(dz2 => box(0.24, 0.02, 0.26, mats.led, 0, -0.045, dz2, head));
+    }));
     // logo sobre las puertas
     if (d.logoPuertas && d.logo && d.logo.type.startsWith('image/')) {
       const tex = new T.TextureLoader().load(d.logo.data, () => requestRender());
       const lm = new T.MeshBasicMaterial({ map: tex, transparent: true, side: T.DoubleSide });
-      [-5.03, 5.03].forEach(x => plane(1.6, 0.6, lm, x, 2.55, 0, Math.PI / 2, g));
+      [-5.03, 5.03].forEach(x => plane(1.6, 0.6, lm, x, 3.3, 0, Math.PI / 2));
     }
   }
   build(dz);
 
   // cámara orbital propia
-  const st = { theta: opts.theta ?? 0.75, phi: opts.phi ?? 1.0, r: opts.r ?? 30, target: new T.Vector3(0, 1.2, 0) };
+  const st = { theta: opts.theta ?? -0.55, phi: opts.phi ?? 1.27, r: opts.r ?? 23.5, target: new T.Vector3(1.4, 2.6, 0.2) };
   const home = { ...st };
   const place = () => { camera.position.set(st.target.x + st.r * Math.sin(st.phi) * Math.sin(st.theta), st.target.y + st.r * Math.cos(st.phi), st.target.z + st.r * Math.sin(st.phi) * Math.cos(st.theta)); camera.lookAt(st.target); };
   let raf = 0; const requestRender = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; place(); renderer.render(scene, camera); }); };
-  const size = () => { const w = el.clientWidth || 600, h = Math.round(w * (opts.small ? 0.62 : 0.6)); renderer.setSize(w, h, false); renderer.domElement.style.width = '100%'; renderer.domElement.style.height = 'auto'; camera.aspect = w / h; camera.updateProjectionMatrix(); requestRender(); };
+  const size = () => { const w = el.clientWidth || 600, h = Math.round(w * (opts.small ? 0.66 : 0.66)); renderer.setSize(w, h, false); renderer.domElement.style.width = '100%'; renderer.domElement.style.height = 'auto'; camera.aspect = w / h; camera.updateProjectionMatrix(); requestRender(); };
   const ro = new ResizeObserver(size); ro.observe(el); size();
   const cv = renderer.domElement, ptrs = new Map(); let last = null, pinch = 0;
   cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); last = { x: e.clientX, y: e.clientY };
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); } });
   cv.addEventListener('pointermove', e => { if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) st.r = Math.min(60, Math.max(8, st.r * pinch / d)); pinch = d; requestRender(); return; }
-    st.theta -= (e.clientX - last.x) * 0.008; st.phi = Math.min(1.5, Math.max(0.15, st.phi - (e.clientY - last.y) * 0.006)); last = { x: e.clientX, y: e.clientY }; requestRender(); });
+    st.theta -= (e.clientX - last.x) * 0.008; st.phi = Math.min(1.52, Math.max(0.15, st.phi - (e.clientY - last.y) * 0.006)); last = { x: e.clientX, y: e.clientY }; requestRender(); });
   const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0; const r = [...ptrs.values()][0]; if (r) last = r; };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   cv.addEventListener('wheel', e => { e.preventDefault(); st.r = Math.min(60, Math.max(8, st.r * (e.deltaY > 0 ? 1.1 : 0.9))); requestRender(); }, { passive: false });
@@ -1470,7 +1483,7 @@ function vPortal() {
 
 /* ---------- Tipos de cancha ---------- */
 function vModelos() {
-  return `<div class="head"><div><h1>Tipos de <em>cancha</em></h1><p>Los tres tipos de cancha ATILA. Puedes editar el nombre y la descripción de cada uno.</p></div></div>
+  return `<div class="head"><div><h1>Tipos de <em>cancha</em></h1><p>Los dos tipos de cancha ATILA. Puedes editar el nombre y la descripción de cada uno.</p></div></div>
   <div class="panel tablewrap"><table class="models"><thead><tr><th>Nombre</th><th>Estructura</th><th>Descripción</th><th>Proyectos</th></tr></thead><tbody>
   ${S.models.map(m => `<tr><td><input type="text" id="mn-${m.id}" value="${esc(m.nombre)}" data-field="m-nombre" data-id="${m.id}" aria-label="Nombre del tipo de cancha"></td>
     <td><span class="typebadge">${TIPOS[m.tipo]}</span></td>
