@@ -148,3 +148,9 @@ La v6 ahora tiene exactamente el contenido del home v7, con el diseño y los efe
 - **Se agregó (contenido de la v7):** frase de posicionamiento en las cifras; las 5 soluciones (AGM, AGCM, Sistemas de Gestión, Data Center, Servicios por Internet) con su descripción, lista, indicadores y brochure PDF; las 3 razones de confianza como capítulos horizontales; nombre y región de cada cliente; la sección de tecnología con los 6 diferenciales; el formulario completo y el pie con enlaces y redes.
 - **Se eliminó (no existe en la v7):** áreas AGM en el home (están en la página Soluciones), historias, acordeón "Por qué Proexsi" y captura de correo.
 - **Páginas interiores con estilo v6:** `v6-nosotros.html`, `v6-soluciones.html`, `v6-data-center.html`, `v6-clientes.html` y `v6-contacto.html`, con `css/site-v6.css` y `js/site-v6.js`.
+
+## v3 y v5 con el estándar de la v7
+
+- **Iconografía:** los íconos PNG se reemplazaron por el set de íconos de línea de la v7 (trazo azul o blanco con detalle naranjo).
+- **Botones:** azul Proexsi como color principal (`#2F5BFF`, hover `#0035A9`) y naranjo solo para detalles. En la v5 se eliminó el violeta; en la v3, los bloques de áreas usan solo tonos azules.
+- **Páginas interiores:** `v3-*.html` (tema oscuro de la v3) y `v5-*.html` (estilo v5), con el mismo contenido que las de la v7. Comparten `css/site-v3.css` / `js/site-v3.js` y `css/site-v5.css` / `js/site-v5.js`. El menú y el pie de cada home enlazan a ellas.
