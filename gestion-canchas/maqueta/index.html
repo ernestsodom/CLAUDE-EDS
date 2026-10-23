@@ -323,7 +323,8 @@ table.users td { vertical-align: top }
 .v3d canvas:active { cursor: grabbing }
 .v3d-hint { position: absolute; left: 10px; bottom: 8px; font-size: 11px; color: #a3a3a3; pointer-events: none; background: rgb(0 0 0 / .45); padding: 2px 6px; border-radius: 3px }
 .v3d.small .v3d-hint { font-size: 10px }
-.v3d.small { width: 100%; max-width: 520px }
+.v3d.small { width: 100% }
+.deal-cancha > div:first-child { max-width: 560px }
 .v3d-off { display: grid; place-items: center; padding: 30px; color: #a3a3a3; text-align: center }
 /* Diseñador compacto */
 .designer { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 18px; align-items: start }
@@ -764,22 +765,25 @@ function createCourt3D(el, dz, opts) {
 
   // cámara orbital propia
   // Vista inicial de frente al lateral (puerta y red al centro), con la cancha completa en cuadro.
-  const st = { theta: opts.theta ?? -Math.PI / 2, phi: opts.phi ?? 1.08, r: opts.r ?? 27, target: new T.Vector3(0, 2.6, 0) };
+  const st = { theta: opts.theta ?? -Math.PI / 2, phi: opts.phi ?? 1.08, r: opts.r ?? 20, target: new T.Vector3(0, 1.5, 0) };
+  let userZoom = !!opts.r;
+  // Encuadre automático: distancia para que la cancha completa (≈23 m con los postes) llene el ancho del cuadro.
+  const fit = () => { const tv = Math.tan(camera.fov * Math.PI / 360), th = tv * camera.aspect; return Math.max(12.6 / th, 6.6 / tv) * 1.1; };
   const home = { ...st };
   const place = () => { camera.position.set(st.target.x + st.r * Math.sin(st.phi) * Math.sin(st.theta), st.target.y + st.r * Math.cos(st.phi), st.target.z + st.r * Math.sin(st.phi) * Math.cos(st.theta)); camera.lookAt(st.target); };
   let raf = 0; const requestRender = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; place(); renderer.render(scene, camera); }); };
-  const size = () => { const w = el.clientWidth || 600, h = Math.round(w * (opts.small ? 0.66 : 0.66)); renderer.setSize(w, h, false); renderer.domElement.style.width = '100%'; renderer.domElement.style.height = 'auto'; camera.aspect = w / h; camera.updateProjectionMatrix(); requestRender(); };
+  const size = () => { const w = el.clientWidth || 600, h = Math.round(w * (opts.small ? 0.66 : 0.66)); renderer.setSize(w, h, false); renderer.domElement.style.width = '100%'; renderer.domElement.style.height = 'auto'; camera.aspect = w / h; camera.updateProjectionMatrix(); if (!userZoom) { st.r = home.r = fit(); } requestRender(); };
   const ro = new ResizeObserver(size); ro.observe(el); size();
   const cv = renderer.domElement, ptrs = new Map(); let last = null, pinch = 0;
   cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); last = { x: e.clientX, y: e.clientY };
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); } });
   cv.addEventListener('pointermove', e => { if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) st.r = Math.min(60, Math.max(8, st.r * pinch / d)); pinch = d; requestRender(); return; }
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) { userZoom = true; } if (pinch) st.r = Math.min(60, Math.max(8, st.r * pinch / d)); pinch = d; requestRender(); return; }
     st.theta -= (e.clientX - last.x) * 0.008; st.phi = Math.min(1.52, Math.max(0.15, st.phi - (e.clientY - last.y) * 0.006)); last = { x: e.clientX, y: e.clientY }; requestRender(); });
   const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0; const r = [...ptrs.values()][0]; if (r) last = r; };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
-  cv.addEventListener('wheel', e => { e.preventDefault(); st.r = Math.min(60, Math.max(8, st.r * (e.deltaY > 0 ? 1.1 : 0.9))); requestRender(); }, { passive: false });
-  cv.addEventListener('dblclick', () => { Object.assign(st, { theta: home.theta, phi: home.phi, r: home.r }); requestRender(); });
+  cv.addEventListener('wheel', e => { e.preventDefault(); userZoom = true; st.r = Math.min(60, Math.max(8, st.r * (e.deltaY > 0 ? 1.1 : 0.9))); requestRender(); }, { passive: false });
+  cv.addEventListener('dblclick', () => { userZoom = false; Object.assign(st, { theta: home.theta, phi: home.phi, r: fit() }); requestRender(); });
   requestRender();
 
   let cur = { ...dz };
