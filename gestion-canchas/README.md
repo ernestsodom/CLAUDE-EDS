@@ -12,14 +12,23 @@ del mes de logística + instalación).
 
 | Módulo | Qué muestra |
 | --- | --- |
-| Ingreso | Usuario y contraseña. Cada usuario ve solo los negocios que tiene asignados (Atila Argentina, Padel Europa o ambos). |
-| Usuarios y permisos | Solo para el super administrador: crear usuarios, asignar negocios, cambiar rol, activar/desactivar, poner nueva contraseña y eliminar. Siempre queda al menos un super administrador activo. Cada usuario puede cambiar su propia contraseña. |
-| Perfiles | Selector Atila Argentina / Padel Europa, visible solo si el usuario tiene acceso a ambos (Europa queda vacío hasta definir sus módulos). |
-| Bandeja de negocios | Negocios en gestión comercial (nuevo → calificado → propuesta → negociación). Al **cerrar la venta** se crea el proyecto y se copia el historial (trazabilidad). |
-| Proyectos y entregas | Listado de proyectos en tarjetas coloreadas por estado (por iniciar, en construcción, saliendo / en tránsito, en instalación, habilitada, con atraso); al abrir uno se ve en página completa: línea de tiempo (Gantt) con etapas: venta cerrada, en construcción, salida y transporte, entrega en obra, instalación, cancha habilitada. Etapas atrasadas en rojo, fechas editables, bitácora. |
-| Calendario y mapa | En una sola vista: mapa de Argentina con todos los proyectos (zoom con rueda, doble clic, pellizco o botones; arrastre para moverse; al acercarse se lee cada proyecto con su cantidad de canchas, modelo y etapa) y calendario mensual de hitos. Al tocar un proyecto, el mapa se acerca a él y el calendario muestra solo ese proyecto. |
-| Diseño de cancha | Renders reales de los tres tipos de cancha ATILA (Competition PRO = Full Vision, Atila PRO = Elite Pro, Atila Estándar = Panoramic). Solo se cambia el color del césped. Debajo: **amortiguadores** (foto real del amortiguador ATILA, cuyas piezas amarillas se recolorean con la carta RAL Classic completa, con búsqueda por código o nombre y color libre) y **archivos del proyecto**: logo para la cancha (indicando si va en los amortiguadores y/o sobre las puertas) y mapa del proyecto (imagen, PDF o DWG/DXF, hasta 2 MB). Todo se guarda en el proyecto y se ve en su ficha. |
-| Tipos de cancha | Los tres tipos ATILA (Competition PRO, Atila PRO, Atila Estándar) con nombre y descripción editables. |
+| Ingreso | Equipo interno con usuario y contraseña; clientes con correo y clave. Cada usuario interno ve solo los negocios asignados (Atila Argentina, Padel Europa o ambos). Todos pueden cambiar su propia contraseña. |
+| Usuarios y permisos | Solo super administrador: usuarios internos, negocios, roles, activar/desactivar, nueva contraseña y eliminar. Siempre queda al menos un super administrador activo. |
+| Clientes | Mantenedor de clientes del portal (nombre, club/empresa, correo, teléfono, ciudad, negocio). Al crear el acceso el sistema propone una clave simple (por ejemplo `Volea-4821`) que se puede cambiar; luego se comparte por WhatsApp, correo o copiando el mensaje. Nueva clave, activar/desactivar y eliminar. |
+| Portal de clientes | El cliente diseña su cancha en el visor 3D (tipo, césped, postes de luz, amortiguadores, logo y mapa), envía la solicitud, sigue su estado en «Mis solicitudes» y ve y acepta sus cotizaciones en «Mis cotizaciones». Solo ve lo suyo. |
+| Bandeja de negocios | Etapas: nuevo contacto → propuesta enviada → negociación → venta cerrada / perdida. Las solicitudes del portal llegan marcadas como nuevas: se aceptan o modifican y se ubican en una etapa. También se cargan negocios a mano con todos los datos del cliente y el diseño de su cancha. Cotizaciones con número, ítems, moneda y validez; se envían por WhatsApp, correo o se publican en el portal del cliente. |
+| Proyectos y entregas | Al cerrar la venta se crea el proyecto con el diseño del negocio. Las características de la cancha quedan de solo lectura (visor 3D + especificaciones); se hace el seguimiento de etapas, fechas y atrasos. Tarjetas coloreadas por estado. |
+| Calendario y mapa | Mapa de Argentina con zoom y etiquetas por proyecto (canchas, modelo, etapa) y calendario mensual de hitos. |
+| Tipos de cancha | Atila Competition PRO (panorámica), Atila PRO (semi panorámica) y Atila Estándar, con nombre y descripción editables y su vista 3D. |
+
+## Visor 3D
+
+La cancha se dibuja con Three.js (r128, desde cdnjs) a escala real: 10 × 20 m, líneas de saque, red, vidrios,
+mallas, estructura según el tipo (Competition PRO sin montantes en el vidrio, Atila PRO con esquinas
+tubulares, Estándar con montantes cada 2 m), cuatro postes de luz cuello de cisne y amortiguadores al pie de
+la estructura. Se rota arrastrando, se acerca con la rueda o pellizcando y doble clic vuelve a la vista
+inicial. Colores editables: césped, postes de luz (paleta rápida o carta RAL) y amortiguadores (carta RAL,
+con la foto real del amortiguador como referencia). Si el logo va «sobre las puertas», se muestra en 3D.
 
 ## Línea gráfica ATILA
 
@@ -28,9 +37,9 @@ El perfil Atila Argentina sigue la línea de atilapadel.com: fondo #0d0d0d, text
 comercial); la maqueta usa Saira de Google Fonts como alternativa libre. Logos en `maqueta/marca/`
 (versión blanca para fondo negro y versión oscura para fondo blanco).
 
-## Imágenes de las canchas
+## Imágenes de referencia
 
-`maqueta/canchas/` contiene las renders (tomadas de padelcourtsmaster-frontend.vercel.app/es-cl/pistas/)
+La maqueta ya no usa las renders 2D; quedan como referencia. `maqueta/canchas/` contiene las renders (tomadas de padelcourtsmaster-frontend.vercel.app/es-cl/pistas/)
 y una máscara por imagen (canal R = pasto, G = amortiguadores / perfiles, B = poste de luz), generadas con
 `generar_mascaras.py`. La maqueta las lleva incrustadas en `index.html` y recolorea en el navegador
 conservando la luminancia original (luces y sombras).
@@ -60,7 +69,7 @@ permisos validados en cada llamada a la API).
 - **Frontend:** Blazor WebAssembly (o el front que se defina).
 - **Base de datos:** Neon (PostgreSQL serverless). Tablas base: `usuarios`, `usuario_negocios`, `perfiles`, `modelos`,
   `negocios`, `negocio_eventos`, `proyectos`, `proyecto_etapas`, `proyecto_eventos`,
-  `disenos_cancha`, `ubicaciones`.
+  `disenos_cancha`, `ubicaciones`, `clientes`, `cotizaciones`, `cotizacion_items`, `archivos`.
 - **Despliegue:** Vercel. Vercel no tiene un runtime nativo para .NET; la opción
   habitual es publicar el frontend Blazor WebAssembly como sitio estático en Vercel y
   alojar la API .NET en un contenedor (o usar un runtime comunitario). Se decide al
