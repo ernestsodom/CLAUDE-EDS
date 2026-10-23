@@ -763,7 +763,8 @@ function createCourt3D(el, dz, opts) {
   applyEnv(dz.instal);
 
   // cámara orbital propia
-  const st = { theta: opts.theta ?? -0.52, phi: opts.phi ?? 1.31, r: opts.r ?? 21, target: new T.Vector3(1.2, 2.2, 0.4) };
+  // Vista inicial de frente al lateral (puerta y red al centro), con la cancha completa en cuadro.
+  const st = { theta: opts.theta ?? -Math.PI / 2, phi: opts.phi ?? 1.08, r: opts.r ?? 27, target: new T.Vector3(0, 2.6, 0) };
   const home = { ...st };
   const place = () => { camera.position.set(st.target.x + st.r * Math.sin(st.phi) * Math.sin(st.theta), st.target.y + st.r * Math.cos(st.phi), st.target.z + st.r * Math.sin(st.phi) * Math.cos(st.theta)); camera.lookAt(st.target); };
   let raf = 0; const requestRender = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; place(); renderer.render(scene, camera); }); };

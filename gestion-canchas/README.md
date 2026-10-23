@@ -31,7 +31,7 @@ lateral, frente a la red; 4 amortiguadores por lado montados en los pilares de f
 amortiguadores montados en cada pilar lateral; cuatro postes de luz que continúan los pilares de transición con
 tubo curvo y cabezal LED de 3 focos; tubo estructural inferior 80 × 40. La **Semi Panoramic** suma pilares
 de transición blancos y tubo circular de 2,5" en las cuatro esquinas. Se rota arrastrando, se acerca con la
-rueda o pellizcando y doble clic vuelve a la vista inicial de esquina. Colores editables: césped, postes de
+rueda o pellizcando y doble clic vuelve a la vista inicial (de frente al lateral, con la cancha completa). Colores editables: césped, postes de
 luz y amortiguadores. Escenario según la instalación: **Outdoor** con cielo y sol (sombras suaves) e **Indoor**
 oscuro con la luz de los cuatro focos LED y sombras leves.
 
