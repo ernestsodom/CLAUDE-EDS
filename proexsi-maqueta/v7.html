@@ -84,13 +84,17 @@ p { margin: 0; }
 .hdr nav { display: flex; gap: 4px; margin-inline: auto; }
 .hdr nav > div { position: relative; }
 .hdr nav a, .hdr nav button { display: inline-flex; align-items: center; gap: 6px; padding: 10px 12px; font-size: 15px; font-weight: 500; text-decoration: none; background: none; border: 0; cursor: pointer; border-radius: 8px; }
-.hdr nav a:hover, .hdr nav button:hover { color: var(--blue); }
+.hdr nav a, .hdr nav button { transition: background .2s, color .2s; }
+.hdr nav a:hover, .hdr nav button:hover, .hdr nav > div:focus-within > button { background: #0035A9; color: #FFFFFF; }
+.hdr nav button:hover svg, .hdr nav > div:focus-within > button svg { color: #FFB240; }
 .hdr nav button svg { width: 10px; height: 10px; color: var(--orange); }
 .drop { position: absolute; top: 100%; left: 0; min-width: 240px; padding: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 20px 40px -20px rgb(14 19 48 / .35); display: grid; opacity: 0; visibility: hidden; transform: translateY(4px); transition: .15s; }
 .hdr nav > div:hover .drop, .hdr nav > div:focus-within .drop { opacity: 1; visibility: visible; transform: none; }
 .drop a { padding: 9px 12px !important; border-radius: 8px; }
-.drop a:hover { background: var(--soft); }
-.contact-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; text-decoration: none; }
+.drop a:hover { background: #0035A9 !important; color: #FFFFFF !important; }
+.contact-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; text-decoration: none; padding: 10px 14px; border-radius: 8px; transition: background .2s, color .2s; }
+.contact-link:hover { background: #0035A9; color: #FFFFFF; }
+.contact-link:hover svg.i { color: #FFFFFF !important; }
 
 .burger { display: none; margin-left: auto; width: 42px; height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); cursor: pointer; place-items: center; }
 .mnav { border-top: 1px solid var(--line); }
@@ -99,22 +103,29 @@ p { margin: 0; }
 @media (max-width: 980px) { .hdr nav, .hdr .contact-link { display: none; } .burger { display: grid; } }
 
 /* ---------- Hero (v6 con mapa) dentro del bloque redondeado de IPM ---------- */
-.hero { position: relative; background: var(--grad); color: #F1F3FB; border-bottom-right-radius: clamp(48px, 9vw, 140px); overflow: hidden; isolation: isolate; }
-.hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(60% 80% at 80% 40%, rgb(47 91 255 / .35), transparent 70%); }
-.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: 560px; padding-block: 56px 40px; }
+.hero { position: relative; background: #0E1330; color: #F1F3FB; border-bottom-right-radius: clamp(48px, 9vw, 140px); overflow: hidden; isolation: isolate; }
+.hero > .hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; opacity: .55; filter: grayscale(.3); mix-blend-mode: luminosity; }
+.hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(70% 70% at 78% 45%, rgb(18 48 122 / .82) 0%, rgb(14 19 48 / .86) 70%); }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: clamp(560px, 80svh, 760px); padding-block: 48px 40px; }
 .hero-copy { display: grid; gap: 20px; position: relative; z-index: 1; }
-.hero-copy small { color: #C2CAE6; font-size: 14px; display: inline-flex; gap: 10px; align-items: center; }
-.hero-copy small::before { content: ""; width: 28px; height: 2px; background: var(--orange); }
-.hero h1 { font-size: clamp(32px, 3.9vw, 48px); font-weight: 300; letter-spacing: -0.03em; line-height: 1.12; }
+.hero-copy { gap: 22px !important; }
+.hero-copy .kick { display: grid; gap: 14px; color: #A7AFCB; font-size: 14px; }
+.hero-copy .kick::before { content: ""; width: 44px; height: 2px; background: #F29400; }
+.hero h1 { font-size: clamp(32px, 4.2vw, 52px); font-weight: 300; letter-spacing: -0.03em; line-height: 1.18; }
 .hero h1 b { font-weight: 700; }
-.hero p { color: #D2D8EE; font-size: 16.5px; max-width: 50ch; }
-.hero .link { color: #FFFFFF; }
-.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: #C2CAE6; }
+.hero p { color: #C8CEE3; font-size: 17px; max-width: 48ch; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-cta a { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 999px; font-weight: 600; font-size: 15px; text-decoration: none; border: 1px solid transparent; transition: transform .15s, border-color .15s; }
+.hero-cta a:hover { transform: translateY(-1px); }
+.hero-cta .solid { background: #2F5BFF; color: #FFFFFF; }
+.hero-cta .line { border-color: rgb(241 243 251 / .35); color: #F1F3FB; }
+.hero-cta .line:hover { border-color: #F1F3FB; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: #A7AFCB; }
 .legend span { display: inline-flex; gap: 8px; align-items: center; }
 .legend i { width: 10px; height: 10px; border-radius: 50%; }
-.map-box { position: relative; height: 520px; }
+.map-box { position: relative; height: 100%; min-height: 560px; }
 #map { position: absolute; inset: 0; width: 100%; height: 100%; }
-@media (max-width: 900px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); padding-block: 44px 24px; } .map-box { height: 460px; } }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); min-height: 0; padding-block: 44px 24px; } .map-box { min-height: 520px; } }
 
 /* ---------- Cifras (IPM) ---------- */
 .lead-stats .wrap { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 24px; align-items: center; padding-block: 36px; border-bottom: 1px solid var(--line); }
@@ -402,12 +413,13 @@ svg.i .ac { stroke: var(--orange); }
 <main id="top">
   <!-- 1. HERO (v6 con mapa, en el bloque redondeado de IPM) -->
   <section class="hero" aria-label="Presentación">
+    <img class="hero-bg" src="img/slide-calidad.jpg" alt="">
     <div class="wrap">
       <div class="hero-copy">
-        <small>Proexsi · Tecnologías de información para misión crítica</small>
+        <div class="kick">Proexsi · Tecnologías de información para misión crítica</div>
         <h1>Tecnología pública que se <b>nota en la vida de las personas.</b></h1>
         <p>Hace más de 45 años desarrollamos las plataformas con que municipios de norte a sur atienden a millones de chilenos, operadas desde nuestro propio data center.</p>
-        <a class="link" href="#contacto">Solicite una demostración <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="hero-cta"><a class="solid" href="#contacto">Hablar con ventas</a><a class="line" href="#soluciones">Conocer soluciones</a></div>
         <div class="legend"><span><i style="background:#F29400;box-shadow:0 0 0 3px rgb(242 148 0 / .3)"></i>Data center Proexsi, Santiago</span><span><i style="background:#FFFFFF"></i>Municipios clientes</span></div>
       </div>
       <div class="map-box"><canvas id="map" role="img" aria-label="Mapa de Chile con las regiones donde Proexsi tiene municipios clientes: Tarapacá 2, Atacama 1, Valparaíso 5, Metropolitana 10, Maule 1 y Los Lagos 1, conectados al data center en Santiago"></canvas></div>
@@ -580,7 +592,7 @@ svg.i .ac { stroke: var(--orange); }
   <h4>Versión 7: estructura de ipm.com.br</h4>
   <ul>
     <li><b>Mismo orden de secciones que IPM:</b> header blanco, hero redondeado, cifras, soluciones en pestañas verticales, banda de confianza, clientes, tecnología, banner, prensa, formulario y pie gris (sin testimonios ni casos).</li>
-    <li><b>Hero de la v6</b> con el mapa de Chile, dentro del bloque redondeado de IPM.</li>
+    <li><b>Hero de la v6</b> (mismo azul, mapa, botones y efectos) con una foto del data center de fondo, dentro del bloque redondeado de IPM.</li>
     <li><b>Colores Proexsi:</b> azules como principal y naranjo para detalles.</li>
     <li><b>Contenido por definir:</b> las notas de prensa son plantillas; Proexsi debe aportar las reales.</li>
     <li><b>Soluciones:</b> foto con indicadores, descripción y lista de puntos clave; AGM incluye el brochure en PDF descargable.</li>
@@ -683,7 +695,7 @@ const CLIENTS = [
   function layout() {
     const r = cv.getBoundingClientRect(); W = r.width; H = r.height; const dpr = Math.min(devicePixelRatio || 1, 2);
     cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const top = 10, bottom = H - 10, k = (bottom - top) / 24, cx = W * 0.36;
+    const top = 12, bottom = H - 12, k = (bottom - top) / 24, cx = W * 0.36;
     proj = (lat, lon) => [cx + (lon + 70.6) * k, top + (-18 - lat) * k];
     dots = []; const step = Math.max(6, k * 0.24);
     for (let y = top; y <= bottom; y += step) for (let x = cx - k * 4; x <= cx + k * 4; x += step) { const lat = -18 - (y - top) / k, lon = (x - cx) / k - 70.6; if (inside(lat, lon)) dots.push([x, y]); }
@@ -698,19 +710,19 @@ const CLIENTS = [
   function draw(now) {
     const time = now / 1000;
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "rgba(170,195,255,.28)";
+    ctx.fillStyle = "rgba(170,195,255,.26)";
     for (const [x, y] of dots) { ctx.beginPath(); ctx.arc(x, y, 1.2, 0, 6.283); ctx.fill(); }
-    for (const n of nodes) { const c = curve(hub, [n.x, n.y]); ctx.strokeStyle = "rgba(140,170,255,.42)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hub[0], hub[1]); ctx.quadraticCurveTo(c[0], c[1], n.x, n.y); ctx.stroke(); }
+    for (const n of nodes) { const c = curve(hub, [n.x, n.y]); ctx.strokeStyle = "rgba(111,146,255,.38)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hub[0], hub[1]); ctx.quadraticCurveTo(c[0], c[1], n.x, n.y); ctx.stroke(); }
     for (const p of packets) { if (running) p.t = (p.t + p.s / 60) % 1; const c = curve(hub, [p.n.x, p.n.y]); const [x, y] = q(hub, c, [p.n.x, p.n.y], p.t); ctx.fillStyle = "rgba(255,178,64,.95)"; ctx.beginPath(); ctx.arc(x, y, 2, 0, 6.283); ctx.fill(); }
-    for (const n of nodes) { const pu = reduce ? .5 : (Math.sin(time * 2 + n.phase) + 1) / 2; ctx.fillStyle = `rgba(140,170,255,${.14 + pu * .22})`; ctx.beginPath(); ctx.arc(n.x, n.y, 5 + pu * 4, 0, 6.283); ctx.fill(); ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.arc(n.x, n.y, 2.8, 0, 6.283); ctx.fill(); }
-    const g = ctx.createRadialGradient(hub[0], hub[1], 0, hub[0], hub[1], 30); g.addColorStop(0, "rgba(242,148,0,.6)"); g.addColorStop(1, "rgba(242,148,0,0)");
+    for (const n of nodes) { const pu = reduce ? .5 : (Math.sin(time * 2 + n.phase) + 1) / 2; ctx.fillStyle = `rgba(111,146,255,${.14 + pu * .22})`; ctx.beginPath(); ctx.arc(n.x, n.y, 5 + pu * 4, 0, 6.283); ctx.fill(); ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.arc(n.x, n.y, 2.8, 0, 6.283); ctx.fill(); }
+    const g = ctx.createRadialGradient(hub[0], hub[1], 0, hub[0], hub[1], 30); g.addColorStop(0, "rgba(242,148,0,.55)"); g.addColorStop(1, "rgba(242,148,0,0)");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hub[0], hub[1], 30, 0, 6.283); ctx.fill();
     ctx.fillStyle = "#F29400"; ctx.beginPath(); ctx.arc(hub[0], hub[1], 5.5, 0, 6.283); ctx.fill();
     const lx = proj(-30, -66.4)[0]; let lastY = -99;
     for (const [name, count, lat] of REGION_LABELS) {
       let y = proj(lat, -70)[1]; if (y - lastY < 30) y = lastY + 30; lastY = y;
       const ax = proj(lat, -70.2)[0] + 14, ay = proj(lat, -70)[1];
-      ctx.strokeStyle = "rgba(242,148,0,.4)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx - 8, y); ctx.stroke();
+      ctx.strokeStyle = "rgba(242,148,0,.35)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx - 8, y); ctx.stroke();
       ctx.font = "600 13.5px 'Inter Tight', sans-serif"; ctx.textBaseline = "middle"; ctx.fillStyle = "#EEF0FB"; ctx.textAlign = "left"; ctx.fillText(name, lx, y);
       const tw = ctx.measureText(name).width, txt = String(count);
       ctx.font = "600 12px 'Inter Tight', sans-serif"; const cw = Math.max(22, ctx.measureText(txt).width + 14);

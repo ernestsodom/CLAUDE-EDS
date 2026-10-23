@@ -109,8 +109,8 @@ Una sola línea gráfica en toda la página: colores principales en tonos azules
 
 Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea gráfica de Proexsi (azules + detalles naranjos) y el hero de la v6:
 
-1. **Header blanco** con logo, menú central con desplegables (Soluciones, Contenidos) y enlace "Contacto".
-2. **Hero**: el de la v6 con el mapa de Chile, dentro de un bloque azul con la esquina inferior derecha redondeada, y enlace "Solicite una demostración".
+1. **Header blanco** con logo, menú central con desplegables (Soluciones, Contenidos) y enlace "Contacto". Al pasar el mouse, cada botón se pinta de azul Proexsi.
+2. **Hero**: igual al de la v6 (mismo azul noche, mapa animado de Chile, botones "Hablar con ventas" y "Conocer soluciones") con una foto del equipo en el data center de fondo, cubierta por el azul. Va dentro de un bloque con la esquina inferior derecha redondeada, como en IPM.
 3. **Fila de cifras**: frase de posicionamiento y tres datos (+45 años, 20 municipios, 81 sistemas).
 4. **Soluciones en pestañas verticales**: AGM, AGCM, Sistemas de Gestión, Data Center y Servicios por Internet. Cada pestaña muestra una foto con un panel ilustrativo y tres indicadores sobre la imagen, y a la derecha el título, la descripción, los puntos clave en una grilla con check, un botón de brochure en PDF y "Quiero conocer". AGM enlaza el brochure `docs/brochure-agm.pdf`; las demás lo marcan como "próximamente". El contenido es el mismo de antes (sin el detalle completo del brochure).
 5. **Banda de confianza** azul sobre foto, con tres tarjetas ilustradas (trayectoria, relaciones de largo plazo, calidad ISO).
