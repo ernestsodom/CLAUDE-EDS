@@ -32,8 +32,17 @@ amortiguadores montados en cada pilar lateral; cuatro postes de luz que continú
 tubo curvo y cabezal LED de 3 focos; tubo estructural inferior 80 × 40. La **Semi Panoramic** suma pilares
 de transición blancos y tubo circular de 2,5" en las cuatro esquinas. Se rota arrastrando, se acerca con la
 rueda o pellizcando y doble clic vuelve a la vista inicial (de frente al lateral, con la cancha completa). Colores editables: césped, postes de
-luz y amortiguadores. Escenario según la instalación: **Outdoor** con cielo y sol (sombras suaves) e **Indoor**
+luz y amortiguadores. El logo del cliente se dibuja en ambas caras de cada puerta y en las caras de los amortiguadores, siempre al derecho y sin espejarse, desde cualquier ángulo de giro. Escenario según la instalación: **Outdoor** con cielo y sol (sombras suaves) e **Indoor**
 oscuro con la luz de los cuatro focos LED y sombras leves.
+
+## Compartir y proteger cotizaciones
+
+Al enviar una cotización el equipo puede:
+
+- **Compartirla** con otros clientes del portal (casillas en la cotización). Ellos la ven en «Mis cotizaciones», pero solo el cliente dueño del negocio puede aceptarla.
+- **Protegerla con clave**: el sistema genera una clave (se muestra una sola vez para copiarla o enviarla) y guarda solo su hash SHA-256 con sal. La cotización llega al portal sin precios ni ítems hasta que se ingresa la clave, y también se puede abrir con el enlace `/?cot=<id>` + clave. Se puede generar una nueva clave o quitar la protección. El equipo interno la ve siempre.
+
+La validación de la clave se hace en el servidor (`api/cotizacion`), con espera ante claves incorrectas.
 
 ## Línea gráfica ATILA
 
@@ -74,9 +83,9 @@ permisos validados en cada llamada a la API).
 - **Base de datos:** Neon, proyecto `atila-gestion-canchas` (región São Paulo). Tablas: `usuarios`
   (contraseñas con scrypt), `entidades` (modelos, negocios y proyectos como JSON) y `meta` (numeración de cotizaciones).
 - **API** (`api/`, funciones Node en Vercel): `ping`, `login`, `bootstrap` (carga inicial según el rol),
-  `state` (guardado por cambios) y `users` (administración de usuarios y cambio de contraseña). La sesión es un
+  `state` (guardado por cambios), `cotizacion` (abre una cotización protegida con su clave) y `users` (administración de usuarios y cambio de contraseña). La sesión es un
   token firmado de 12 horas. Los permisos se validan en el servidor: los clientes solo ven y modifican sus propias
-  solicitudes; solo el super administrador administra usuarios internos; el equipo administra clientes.
+  solicitudes (en las suyas solo pueden aceptar cotizaciones) y las cotizaciones compartidas con ellos; solo el super administrador administra usuarios internos; el equipo administra clientes.
 - **Variables de entorno en Vercel:** `DATABASE_URL` (Neon) y `SESSION_SECRET`. No están en el repositorio.
 - **Despliegue:** `build.js` envuelve `maqueta/index.html` en `public/index.html`. La misma página detecta si corre en
   Vercel (responde `/api/ping`) y usa la base de datos; fuera de Vercel funciona con datos locales del navegador.

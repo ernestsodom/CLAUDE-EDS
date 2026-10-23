@@ -374,6 +374,7 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .stages li.stg .dot.done { background: var(--sc); border-color: var(--sc); color: #0d0d0d }
 .stages li.stg .dot.cur { border-color: var(--sc); color: var(--sc) }
 .stages li.stg.cur .btn.primary { background: var(--sc); border-color: var(--sc); color: #0d0d0d }
+.qaccess { display: grid; gap: 10px; padding: 0 12px 12px }
 </style>
 
 <div class="app">
@@ -575,10 +576,11 @@ async function loadAll() {
   if (b.me.rol !== 'cliente' && !S.models.length && (b.me.rol === 'superadmin' || b.me.negocios.includes('atila'))) { const seeded = seed(); markSaved(); S = { ...seeded, quoteSeq: 0 }; queueSync(); }
   else { migrarTipos(); markSaved(); }
 }
-function endSession() { API.token = null; try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} UI.userId = null; USERS = []; render(); }
+function endSession() { API.token = null; try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} UI.userId = null; UI.unlocked = {}; UI.qKey = null; USERS = []; render(); }
 async function boot() {
   if (location.protocol.startsWith('http')) try { const r = await fetch('/api/ping', { cache: 'no-store' }); API.on = r.ok && (await r.json()).ok === true; } catch (e) { API.on = false; }
   if (!API.on) { await initUsers(); render(); return; }
+  const cot = new URLSearchParams(location.search).get('cot'); if (cot) { UI.publicCot = cot; S = { v: 4, models: [], deals: [], projects: [], quoteSeq: 0 }; render(); return; }
   S = { v: 4, models: [], deals: [], projects: [], quoteSeq: 0 };
   try { API.token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
   if (API.token) { try { await loadAll(); } catch (e) { API.token = null; } }
@@ -693,7 +695,22 @@ function createCourt3D(el, dz, opts) {
   };
   const hbar = (x0, z0, x1, z1, y, w, h, m) => seg(x0, z0, x1, z1, (len, cx, cz) => x0 === x1 ? box(w, h, len, m, cx, y, cz) : box(len, h, w, m, cx, y, cz));
 
+  const fits = [];
+  let logoTex = null, logoSrc = null;
+  // Plano con el logo que conserva la proporción de la imagen; rz gira el logo en su plano (p. ej. a lo largo del amortiguador).
+  const logoFace = (parent, x, y, z, ry, rz, maxW, maxH) => {
+    const m = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: logoTex, transparent: true, side: T.FrontSide }));
+    m.position.set(x, y, z); m.rotation.set(0, ry, rz); parent.add(m);
+    // si el texto quedó corriendo hacia abajo, se gira 180° en su plano para que siempre se lea de abajo hacia arriba
+    if (rz) { m.updateWorldMatrix(true, false); if (new T.Vector3(1, 0, 0).transformDirection(m.matrixWorld).y < 0) m.rotation.z += Math.PI; }
+    const fit = () => { const im = logoTex.image; if (!im || !im.width) return; const ar = im.width / im.height; let w = maxW, h = w / ar; if (h > maxH) { h = maxH; w = h * ar; } m.scale.set(w, h, 1); };
+    fit(); fits.push(fit);
+  };
+  const amortTubes = [];
   function build(d) {
+    fits.length = 0; amortTubes.length = 0;
+    const img = d.logo && d.logo.type.startsWith('image/') && (d.logoPuertas || d.logoAmort) ? d.logo.data : null;
+    if (img !== logoSrc) { if (logoTex) logoTex.dispose(); logoSrc = img; logoTex = img ? new T.TextureLoader().load(img, () => { fits.forEach(f => f()); requestRender(); }) : null; }
     if (built) { root.remove(built); built.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map) o.material.dispose(); }); }
     built = new T.Group(); root.add(built);
     // Medidas reales (m): vidrio 3 m de alto; anillo principal blanco a 3 m; malla lateral 3 m en módulos de 2 m;
@@ -737,7 +754,7 @@ function createCourt3D(el, dz, opts) {
         // amortiguador ATILA montado en el pilar, por fuera: placa al piso, cuerpo inclinado y resorte al pilar
         const a = new T.Group(); a.position.set(x + s * 0.03, 0, z); built.add(a);
         box(0.5, 0.02, 0.14, mats.amort, s * 0.28, 0.01, 0, a);
-        const tube = box(0.1, 0.56, 0.1, mats.amort, s * 0.45, 0.02, 0, a); tube.geometry.translate(0, 0.28, 0); tube.rotation.z = s * 0.62;
+        const tube = box(0.1, 0.56, 0.1, mats.amort, s * 0.45, 0.02, 0, a); tube.geometry.translate(0, 0.28, 0); tube.rotation.z = s * 0.62; amortTubes.push(tube);
         const spring = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.2, 10), mats.spring); spring.position.set(s * 0.1, 0.5, 0); spring.rotation.z = Math.PI / 2; a.add(spring);
         box(0.05, 0.07, 0.07, mats.spring, s * 0.0, 0.5, 0, a);
       }
@@ -764,12 +781,10 @@ function createCourt3D(el, dz, opts) {
       box(0.3, 0.06, 1.05, mats.poles, 0, 0, 0, head);
       [-0.33, 0, 0.33].forEach(o => box(0.22, 0.02, 0.26, mats.led, 0, -0.04, o, head));
     }));
-    // logo sobre las puertas
-    if (d.logoPuertas && d.logo && d.logo.type.startsWith('image/')) {
-      const tex = new T.TextureLoader().load(d.logo.data, () => requestRender());
-      const lm = new T.MeshBasicMaterial({ map: tex, transparent: true, side: T.DoubleSide });
-      [-5.04, 5.04].forEach(x => plane(1.0, 0.4, lm, x, 2.55, (DOOR[0] + DOOR[1]) / 2, Math.PI / 2));
-    }
+    // Logo: cada cara es de un solo lado y mira hacia afuera, así se lee al derecho desde cualquier ángulo (nunca en espejo).
+    if (logoTex && d.logoPuertas) [-5, 5].forEach(x => { [1, -1].forEach(n => logoFace(built, x + n * 0.012, 2.6, 0, n * Math.PI / 2, 0, 1.3, 0.5)); });
+    if (logoTex && d.logoAmort) amortTubes.forEach(tube => [[0, 0, 0.052, 0], [0, 0, -0.052, Math.PI], [0.052, 0, 0, Math.PI / 2], [-0.052, 0, 0, -Math.PI / 2]]
+      .forEach(([x, , z, ry]) => logoFace(tube, x, 0.3, z, ry, Math.PI / 2, 0.42, 0.08)));
   }
   build(dz);
 
@@ -813,7 +828,7 @@ function createCourt3D(el, dz, opts) {
 
   // cámara orbital propia
   // Vista inicial de frente al lateral (puerta y red al centro), con la cancha completa en cuadro.
-  const st = { theta: opts.theta ?? -Math.PI / 2, phi: opts.phi ?? 1.08, r: opts.r ?? 20, target: new T.Vector3(0, 1.5, 0) };
+  const st = { theta: opts.theta ?? -Math.PI / 2, phi: opts.phi ?? 1.08, r: opts.r ?? 20, target: opts.target ? new T.Vector3(...opts.target) : new T.Vector3(0, 1.5, 0) };
   let userZoom = !!opts.r;
   // Encuadre automático: distancia para que la cancha completa (≈23 m con los postes) llene el ancho del cuadro.
   const fit = () => { const tv = Math.tan(camera.fov * Math.PI / 360), th = tv * camera.aspect; return Math.max(12.6 / th, 6.6 / tv) * 1.1; };
@@ -836,7 +851,7 @@ function createCourt3D(el, dz, opts) {
 
   let cur = { ...dz };
   return {
-    set(d) { const rebuild = d.modelo !== cur.modelo || d.logo !== cur.logo || d.logoPuertas !== cur.logoPuertas; if (d.instal !== cur.instal) applyEnv(d.instal); cur = { ...d };
+    set(d) { const rebuild = d.modelo !== cur.modelo || d.logo !== cur.logo || d.logoPuertas !== cur.logoPuertas || d.logoAmort !== cur.logoAmort; if (d.instal !== cur.instal) applyEnv(d.instal); cur = { ...d };
       mats.grass.color.set(d.pasto); mats.poles.color.set(d.postes || POSTES_DEF); mats.amort.color.set((d.amort || AMORT_DEF).hex);
       if (rebuild) build(d); requestRender(); },
     dispose() { ro.disconnect(); cancelAnimationFrame(raf); renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); }
@@ -911,7 +926,7 @@ const canSee = neg => !!me() && (isSuper() || me().negocios.includes(neg));
 const allowedNegocios = () => Object.keys(NEGOCIOS).filter(canSee);
 const activeSupers = () => USERS.filter(u => u.rol === 'superadmin' && u.activo);
 function setSession(id) {
-  UI.userId = id;
+  UI.userId = id; UI.unlocked = {}; UI.qKey = null;
   try { if (id) localStorage.setItem(UKEY + '-sesion', id); else { localStorage.removeItem(UKEY + '-sesion'); sessionStorage.removeItem(UKEY + '-sesion'); } } catch (e) {}
 }
 const who = () => me() ? ` (${me().nombre})` : '';
@@ -1002,8 +1017,18 @@ function renderNav() {
     v.id === 'bandeja' ? `<span class="count${nuevas ? ' hot' : ''}" title="${nuevas ? nuevas + ' solicitud(es) nueva(s) del portal' : ''}">${active}</span>` : v.id === 'clientes' ? `<span class="count">${clientes().length}</span>` : v.id === 'proyectos' ? `<span class="count">${live}</span>` : ''}</button>`).join('') + adminItem;
 }
 
+function vCotPublica() {
+  const r = UI.publicData;
+  if (r) { if (!S.models.length) S.models = r.models || []; return `<div style="max-width:900px;margin:24px auto;display:grid;gap:12px">${quoteDoc(r.d, r.q)}<span class="muted small">Cotización compartida por ATILA. Para responderla, contacta a tu ejecutivo.</span></div>`; }
+  return `<div class="login"><form class="panel login-card" data-form="cot-publica"><div class="pb" style="display:grid;gap:14px">
+    <div><span class="label">ATILA · Cotización protegida</span><h1 style="margin-top:6px">Ingresa la <em>clave</em></h1><p class="muted small" style="margin:6px 0 0">La clave te la envió el equipo ATILA junto con el enlace.</p></div>
+    <label class="field"><span>Clave</span><input type="password" id="cp-clave" name="clave" required autocomplete="off" autofocus></label>
+    ${UI.unlockErr ? `<p class="st-bad small" role="alert" style="margin:0">${esc(UI.unlockErr)}</p>` : ''}
+    <button class="btn primary">Ver cotización</button></div></form></div>`;
+}
 function render() {
   const m = $('#main');
+  if (UI.publicCot) { document.body.classList.add('no-session'); document.documentElement.dataset.brand = 'atila'; m.innerHTML = vCotPublica(); return; }
   document.body.classList.toggle('no-session', !me());
   if (!me()) { document.documentElement.dataset.brand = ''; m.innerHTML = vLogin(); return; }
   const neg = allowedNegocios();
@@ -1481,7 +1506,7 @@ function quotesBlock(d) {
   return `<div style="display:grid;gap:10px"><div class="row" style="justify-content:space-between"><h3>Cotizaciones</h3>${d.etapa !== 'perdida' ? `<button class="btn sm primary" data-act="q-new" data-id="${d.id}">${UI.quoteForm === d.id ? 'Cerrar formulario' : '+ Generar cotización'}</button>` : ''}</div>
     ${UI.quoteForm === d.id ? quoteForm(d) : ''}
     ${qs.length ? qs.slice().reverse().map(q => `<div class="qrow"><button class="qhead" data-act="q-open" data-id="${q.id}" aria-expanded="${UI.quoteOpen === q.id}"><b class="mono">${q.numero}</b><span>${fmtY(q.fecha)}</span><span class="mono">${money(qTotal(q), q.moneda)}</span><span class="pill ${QSTATE[q.estado][1]}">${QSTATE[q.estado][0]}</span>${q.portal ? '<span class="tag">En el portal</span>' : ''}</button>
-      ${UI.quoteOpen === q.id ? `${quoteDoc(d, q)}${quoteSend(d, q)}` : ''}</div>`).join('') : (UI.quoteForm === d.id ? '' : '<span class="muted small">Aún no hay cotizaciones para este negocio.</span>')}
+      ${UI.quoteOpen === q.id ? `${quoteDoc(d, q)}${quoteSend(d, q)}${quoteAccess(d, q)}` : ''}</div>`).join('') : (UI.quoteForm === d.id ? '' : '<span class="muted small">Aún no hay cotizaciones para este negocio.</span>')}
   </div>`;
 }
 function quoteForm(d) {
@@ -1517,9 +1542,35 @@ function quoteDoc(d, q) {
     ${q.estado === 'aceptada' ? `<p class="small st-ok"><b>Aceptada por el cliente el ${fmtY(q.aceptadaEl)}.</b></p>` : ''}
   </article>`;
 }
+// Cotización protegida: se guarda solo un hash (SHA-256 con sal) de la clave; el enlace público pide la clave.
+async function sha256hex(txt) {
+  if (window.crypto && crypto.subtle) { const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)); return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join(''); }
+  throw new Error('Este navegador no permite proteger cotizaciones (se requiere conexión segura).');
+}
+const qHash = (salt, clave) => sha256hex(`cot|${salt}|${clave}`);
+const qLink = q => API.on ? `${location.origin}/?cot=${q.id}` : '';
+const qLocked = q => !!(q.share || q.protegida) && !UI.unlocked?.[q.id];
 function quoteMsg(d, q) {
   return `Hola ${d.contacto || d.cliente}, te enviamos la cotización ${q.numero} de ATILA para ${d.canchas} cancha${d.canchas > 1 ? 's' : ''} ${model(d.modelo).nombre}. Total: ${money(qTotal(q), q.moneda)}. Válida hasta el ${fmtY(qVence(q))}.`
-    + (d.clienteId ? ` Puedes verla ingresando al portal de clientes de ATILA con tu correo ${(USERS.find(u => u.id === d.clienteId) || {}).email || ''}.` : '');
+    + (d.clienteId ? ` Puedes verla ingresando al portal de clientes de ATILA con tu correo ${(USERS.find(u => u.id === d.clienteId) || {}).email || ''}.` : '')
+    + (q.share && qLink(q) ? ` También puedes abrirla en ${qLink(q)} con la clave ${UI.qKey && UI.qKey.qid === q.id ? UI.qKey.clave : 'que te enviamos por separado'}.` : '');
+}
+function quoteAccess(d, q) {
+  const otros = clientes().filter(c => c.id !== d.clienteId && c.activo);
+  const key = UI.qKey && UI.qKey.qid === q.id ? UI.qKey.clave : null;
+  return `<div class="qaccess"><span class="label">Visibilidad y acceso</span>
+    <div class="field"><span>Compartir con otros usuarios del portal</span>
+      ${otros.length ? `<div class="row">${otros.map(c => `<label class="check small"><input type="checkbox" id="qc-${q.id}-${c.id}" data-field="q-comp" data-deal="${d.id}" data-q="${q.id}" data-u="${c.id}" ${(q.compartidaCon || []).includes(c.id) ? 'checked' : ''}> ${esc(c.nombre)} <span class="muted">(${esc(c.empresa || c.email)})</span></label>`).join('')}</div>`
+        : '<span class="muted small">No hay otros clientes con acceso al portal. Créalos en «Clientes».</span>'}
+      <span class="muted small">Los usuarios marcados ven esta cotización en «Mis cotizaciones», pero no pueden aceptarla ni ver el resto del negocio.</span></div>
+    <div class="field"><span>Protección con clave</span>
+      ${q.share ? `<div class="row"><span class="pill st-ok">Protegida con clave</span><button class="btn sm" data-act="q-protect" data-deal="${d.id}" data-id="${q.id}">Nueva clave</button><button class="btn sm ghost danger" data-act="q-unprotect" data-deal="${d.id}" data-id="${q.id}">Quitar protección</button></div>`
+        : `<div class="row"><button class="btn sm" data-act="q-protect" data-deal="${d.id}" data-id="${q.id}">Proteger con clave</button><span class="muted small">Pide una clave para abrirla, también en el portal, y habilita un enlace para compartirla.</span></div>`}
+      ${key ? `<div class="closebox"><span>Clave: <b class="mono">${esc(key)}</b>${qLink(q) ? ` · Enlace: <span class="mono small">${esc(qLink(q))}</span>` : ''}</span>
+        <span class="small muted">Compártela ahora: por seguridad no se vuelve a mostrar. ${qLink(q) ? '' : 'El enlace funciona en la versión publicada en Vercel.'}</span>
+        <div class="row"><button class="btn sm" data-act="q-copykey" data-deal="${d.id}" data-id="${q.id}">Copiar enlace y clave</button></div></div>` : ''}
+      ${q.share && !key && qLink(q) ? `<span class="small muted">Enlace: <span class="mono">${esc(qLink(q))}</span> (pide la clave)</span>` : ''}</div>
+  </div>`;
 }
 function quoteSend(d, q) {
   const msg = quoteMsg(d, q), tel = (d.telefono || '').replace(/\D/g, '');
@@ -1532,7 +1583,7 @@ function quoteSend(d, q) {
         : `<button class="btn sm ghost" data-act="cli-from-deal" data-id="${d.id}">Crear acceso al portal para publicarla</button>`}</div>
     ${!tel ? '<span class="small muted">Sin teléfono: WhatsApp abrirá para elegir el contacto.</span>' : ''}
     ${(q.canales || []).length ? `<span class="small muted">Enviada por: ${q.canales.map(c => `${esc(c.canal)} (${fmtY(c.f)})`).join(', ')}</span>` : ''}
-    <span class="small muted">La cotización es privada: solo la ve el cliente dueño de la cuenta al ingresar con su correo y clave.</span></div>`;
+    <span class="small muted">La cotización es privada: la ven el equipo ATILA y el cliente dueño de la cuenta, más los usuarios con quienes la compartas abajo.</span></div>`;
 }
 function markSent(d, q, canal) {
   q.canales = [...(q.canales || []), { canal, f: TODAY }];
@@ -1588,7 +1639,7 @@ const PORTAL_VIEWS = [
   { id: 'p-cotizaciones', name: 'Mis cotizaciones', icon: 'M6 3h9l4 4v14H6zM9 12h7M9 16h7' }
 ];
 const myDeals = () => S.deals.filter(d => d.clienteId === me().id);
-const myQuotes = () => myDeals().flatMap(d => (d.cotizaciones || []).filter(q => q.portal).map(q => ({ d, q })));
+const myQuotes = () => S.deals.flatMap(d => (d.cotizaciones || []).filter(q => (d.clienteId === me().id && q.portal) || (q.compartidaCon || []).includes(me().id)).map(q => ({ d, q })));
 const CLI_STATE = { nuevo: 'Recibida', propuesta: 'Cotización enviada', negociacion: 'En conversación', cerrada: 'Venta cerrada', perdida: 'No concretada' };
 function vPortal() {
   const v = UI.view;
@@ -1606,9 +1657,13 @@ function vPortal() {
   }
   if (v === 'p-cotizaciones') {
     const qs = myQuotes().sort((a, b) => b.q.fecha.localeCompare(a.q.fecha));
-    return `<div class="head"><div><h1>Mis <em>cotizaciones</em></h1><p>Cotizaciones que ATILA preparó para ti. Solo tú las ves con tu correo y clave.</p></div></div>
-    ${qs.length ? qs.map(({ d, q }) => `<div class="panel"><div class="pb" style="display:grid;gap:12px">${quoteDoc(d, q)}
-      ${q.estado !== 'aceptada' ? `<div class="row"><button class="btn primary" data-act="q-accept" data-deal="${d.id}" data-id="${q.id}">Aceptar cotización</button><span class="small muted">Al aceptarla, el equipo ATILA te contactará para cerrar la compra.</span></div>` : ''}</div></div>`).join('')
+    return `<div class="head"><div><h1>Mis <em>cotizaciones</em></h1><p>Cotizaciones que ATILA preparó para ti o compartió contigo. Las protegidas piden su clave para abrirse.</p></div></div>
+    ${qs.length ? qs.map(({ d, q }) => qLocked(q) ? `<div class="panel"><div class="pb" style="display:grid;gap:12px">
+      <div class="row" style="justify-content:space-between"><b class="mono">${esc(q.numero)}</b><span class="small muted">Emitida ${fmtY(q.fecha)}${d.clienteId !== me().id ? ' · compartida contigo' : ''}</span></div>
+      <form class="row" data-form="q-unlock" data-deal="${d.id}" data-id="${q.id}"><span>Esta cotización está protegida.</span><input type="password" name="clave" id="qu-${q.id}" placeholder="Clave de la cotización" required autocomplete="off" style="max-width:240px"><button class="btn primary sm">Ver cotización</button></form>
+      ${UI.unlockErr === q.id ? '<p class="st-bad small" role="alert" style="margin:0">Clave incorrecta.</p>' : ''}</div></div>`
+      : `<div class="panel"><div class="pb" style="display:grid;gap:12px">${quoteDoc(d, UI.unlocked?.[q.id] || q)}
+      ${d.clienteId === me().id && q.estado !== 'aceptada' ? `<div class="row"><button class="btn primary" data-act="q-accept" data-deal="${d.id}" data-id="${q.id}">Aceptar cotización</button><span class="small muted">Al aceptarla, el equipo ATILA te contactará para cerrar la compra.</span></div>` : ''}</div></div>`).join('')
       : '<div class="panel"><div class="empty">Todavía no tienes cotizaciones. Llegarán aquí cuando ATILA responda tu solicitud.</div></div>'}`;
   }
   // diseñar
@@ -1674,6 +1729,11 @@ document.addEventListener('click', ev => {
     case 'q-new': UI.quoteForm = UI.quoteForm === id ? null : id; render(); break;
     case 'q-open': UI.quoteOpen = UI.quoteOpen === id ? null : id; render(); break;
     case 'q-canal': { const [d, q] = findQ(b.dataset.deal, id); markSent(d, q, b.dataset.canal); save(); setTimeout(render, 50); break; }
+    case 'q-protect': { const [d, q] = findQ(b.dataset.deal, id), clave = genClave(), salt = Math.random().toString(36).slice(2, 10);
+      qHash(salt, clave).then(hash => { q.share = { salt, hash, desde: TODAY }; UI.qKey = { qid: q.id, clave };
+        d.hist.push({ f: TODAY, t: `Cotización ${q.numero} protegida con clave.` + who() }); commit('Cotización protegida con clave'); }).catch(e => toast(e.message)); break; }
+    case 'q-unprotect': { const [d, q] = findQ(b.dataset.deal, id); delete q.share; UI.qKey = null; d.hist.push({ f: TODAY, t: `Se quitó la clave de la cotización ${q.numero}.` + who() }); commit('Protección quitada'); break; }
+    case 'q-copykey': { const [d, q] = findQ(b.dataset.deal, id); copyText(`Cotización ${q.numero} de ATILA${qLink(q) ? ': ' + qLink(q) : ''} · Clave: ${UI.qKey && UI.qKey.qid === q.id ? UI.qKey.clave : ''}`); break; }
     case 'q-copy': { const [d, q] = findQ(b.dataset.deal, id); copyText(quoteMsg(d, q)); break; }
     case 'q-portal': { const [d, q] = findQ(b.dataset.deal, id); q.portal = true; markSent(d, q, 'Portal de clientes'); commit('Cotización publicada en el portal del cliente'); break; }
     case 'q-accept': { const [d, q] = findQ(b.dataset.deal, id); q.estado = 'aceptada'; q.aceptadaEl = TODAY;
@@ -1729,6 +1789,9 @@ document.addEventListener('change', ev => {
     if (f === 'u-activo') { if (!t.checked && u.rol === 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.activo = t.checked; }
     saveUsers(); render(); toast('Permisos actualizados'); return;
   }
+  if (f === 'q-comp') { const [d, q] = findQ(t.dataset.deal, t.dataset.q), u = USERS.find(x => x.id === t.dataset.u);
+    q.compartidaCon = t.checked ? [...new Set([...(q.compartidaCon || []), u.id])] : (q.compartidaCon || []).filter(x => x !== u.id);
+    d.hist.push({ f: TODAY, t: `Cotización ${q.numero} ${t.checked ? 'compartida con' : 'dejó de compartirse con'} ${u.nombre}.` + who() }); commit(t.checked ? `Compartida con ${u.nombre}` : 'Dejó de compartirse'); return; }
   if (f === 'c-activo') { const c = USERS.find(x => x.id === t.dataset.id); c.activo = t.checked; saveUsers(); render(); toast(c.activo ? 'Acceso activado' : 'Acceso desactivado'); return; }
   if (f === 'd-etapa') { const d = S.deals.find(x => x.id === t.dataset.id), s = DEAL_STAGES.find(x => x.key === t.value);
     d.etapa = t.value; d.aceptada = true; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Etapa cambiada a «${s.nombre}».` + who() }); commit('Etapa actualizada'); return; }
@@ -1800,6 +1863,20 @@ document.addEventListener('submit', async ev => {
   if (kind === 'cli-reset') {
     const c = USERS.find(x => x.id === f.dataset.id); Object.assign(c, await pwField(c.usuario, fd.clave)); if (!(await saveUsers())) return;
     UI.resetCli = null; UI.lastAccess = { id: c.id, clave: fd.clave }; render(); window.scrollTo(0, 0); toast(`Nueva clave para ${c.email}`); return;
+  }
+  if (kind === 'q-unlock') {
+    const [d, q] = findQ(f.dataset.deal, f.dataset.id); UI.unlocked = UI.unlocked || {};
+    try {
+      if (API.on) { const r = await api('cotizacion', { qid: q.id, clave: fd.clave }); UI.unlocked[q.id] = r.q; }
+      else if (q.share && (await qHash(q.share.salt, fd.clave)) === q.share.hash) UI.unlocked[q.id] = q;
+      else throw new Error('Clave incorrecta');
+      UI.unlockErr = null;
+    } catch (e) { UI.unlockErr = q.id; }
+    render(); return;
+  }
+  if (kind === 'cot-publica') {
+    try { const r = await api('cotizacion', { qid: UI.publicCot, clave: fd.clave }); UI.publicData = r; UI.unlockErr = null; } catch (e) { UI.unlockErr = e.message; }
+    render(); return;
   }
   if (kind === 'note') { const d = S.deals.find(x => x.id === f.dataset.id); d.hist.push({ f: TODAY, t: fd.t + who() }); d.actualizado = TODAY; commit('Nota agregada'); }
   if (kind === 'pnote') { logP(project(f.dataset.id), fd.t); commit('Novedad registrada'); }
