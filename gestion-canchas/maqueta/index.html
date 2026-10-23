@@ -810,6 +810,18 @@ const VIEWS_ATILA = [
   { id: 'clientes', name: 'Clientes', icon: 'M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 21a8 8 0 0116 0' },
   { id: 'modelos', name: 'Tipos de cancha', icon: 'M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z' }
 ];
+// Permisos por módulo: el super administrador ve todo; cada usuario ve solo los módulos que tiene asignados.
+const MODULOS = Object.fromEntries(VIEWS_ATILA.map(v => [v.id, v.name]));
+const PERFILES = {
+  gerencia: { nombre: 'Gerencia', modulos: ['bandeja', 'proyectos', 'agenda', 'clientes', 'modelos'] },
+  comercial: { nombre: 'Comercial', modulos: ['bandeja', 'clientes', 'modelos'] },
+  operaciones: { nombre: 'Operaciones', modulos: ['proyectos', 'agenda'] },
+  consulta: { nombre: 'Solo seguimiento', modulos: ['proyectos'] }
+};
+const userModulos = u => u.rol === 'superadmin' ? Object.keys(MODULOS) : (u.modulos || Object.keys(MODULOS));
+const canModule = id => !!me() && (!MODULOS[id] || userModulos(me()).includes(id));
+const perfilDe = mods => (Object.entries(PERFILES).find(([, p]) => p.modulos.length === mods.length && p.modulos.every(m => mods.includes(m))) || ['personalizado'])[0];
+const firstView = () => VIEWS_ATILA.find(v => canModule(v.id))?.id || 'sin-modulos';
 const icon = d => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 
 /* ===================== Usuarios, sesión y permisos ===================== */
@@ -871,7 +883,7 @@ function vClave() {
 }
 function vUsuarios() {
   const negChecks = (u, dis) => Object.entries(NEGOCIOS).map(([k, n]) => `<label class="check small"><input type="checkbox" id="un-${u.id}-${k}" data-field="u-neg" data-id="${u.id}" data-neg="${k}" ${u.rol === 'superadmin' || u.negocios.includes(k) ? 'checked' : ''} ${dis || u.rol === 'superadmin' ? 'disabled' : ''}> ${n}</label>`).join('');
-  return `<div class="head"><div><h1>Usuarios y <em>permisos</em></h1><p>Crea usuarios y define a qué negocios accede cada uno. Un usuario solo ve los negocios que tiene marcados; el super administrador ve todo y administra los permisos.</p></div>
+  return `<div class="head"><div><h1>Usuarios y <em>permisos</em></h1><p>Crea usuarios y define a qué negocios y a qué módulos accede cada uno, con un perfil de acceso (Gerencia, Comercial, Operaciones, Solo seguimiento) o marcando los módulos uno a uno. El super administrador ve todo y es el único que da y quita permisos.</p></div>
     <button class="btn primary" data-act="newuser">+ Nuevo usuario</button></div>
   ${UI.newUser ? `<form class="panel" data-form="newuser"><div class="ph"><h2>Nuevo usuario</h2><button type="button" class="btn ghost sm" data-act="newuser">Cancelar</button></div>
     <div class="pb form">
@@ -879,15 +891,22 @@ function vUsuarios() {
       <label class="field"><span>Nombre</span><input type="text" id="nu-nombre" name="nombre" required></label>
       <label class="field"><span>Contraseña inicial (mínimo 8)</span><input type="password" id="nu-clave" name="clave" minlength="8" autocomplete="new-password" required></label>
       <label class="field"><span>Rol</span><select id="nu-rol" name="rol">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === 'usuario' ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <div class="field full"><span>Perfil de acceso (módulos que verá)</span><div class="row">
+        ${Object.entries(PERFILES).map(([k, p]) => `<button type="button" class="btn sm" data-act="nu-perfil" data-id="${k}">${p.nombre}</button>`).join('')}</div>
+        <div class="row" id="nu-mods">${Object.entries(MODULOS).map(([k, n]) => `<label class="check small"><input type="checkbox" id="nu-mod-${k}" name="mod_${k}" checked> ${n}</label>`).join('')}</div>
+        <span class="muted small">El super administrador siempre ve todos los módulos y administra usuarios y permisos.</span></div>
       <div class="field full"><span>Negocios a los que accede</span><div style="display:flex;gap:16px;flex-wrap:wrap">${Object.entries(NEGOCIOS).map(([k, n]) => `<label class="check"><input type="checkbox" id="nu-neg-${k}" name="neg_${k}"> ${n}</label>`).join('')}</div></div>
       ${UI.formError ? `<p class="st-bad small full" role="alert" style="margin:0">${esc(UI.formError)}</p>` : ''}
       <div class="full"><button class="btn primary">Crear usuario</button></div>
     </div></form>` : ''}
-  <div class="panel tablewrap"><table class="models users"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Negocios</th><th>Activo</th><th></th></tr></thead><tbody>
+  <div class="panel tablewrap"><table class="models users"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Negocios</th><th>Módulos</th><th>Activo</th><th></th></tr></thead><tbody>
   ${USERS.filter(u => u.rol !== 'cliente').map(u => { const self = u.id === me().id;
     return `<tr><td class="mono">${esc(u.usuario)}${self ? ' <span class="muted small">(tú)</span>' : ''}</td><td>${esc(u.nombre)}</td>
     <td><select id="ur-${u.id}" data-field="u-rol" data-id="${u.id}" ${self ? 'disabled' : ''} aria-label="Rol de ${esc(u.usuario)}">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${u.rol === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
     <td><div style="display:grid;gap:4px">${negChecks(u, false)}${u.rol === 'superadmin' ? '<span class="muted small">Acceso total</span>' : ''}</div></td>
+    <td>${u.rol === 'superadmin' ? '<span class="muted small">Todos los módulos</span>' : `<div style="display:grid;gap:4px">
+      <select id="up-${u.id}" data-field="u-perfil" data-id="${u.id}" aria-label="Perfil de acceso de ${esc(u.usuario)}">${Object.entries(PERFILES).map(([k, p]) => `<option value="${k}" ${perfilDe(userModulos(u)) === k ? 'selected' : ''}>${p.nombre}</option>`).join('')}<option value="personalizado" ${perfilDe(userModulos(u)) === 'personalizado' ? 'selected' : ''} disabled>Personalizado</option></select>
+      ${Object.entries(MODULOS).map(([k, n]) => `<label class="check small"><input type="checkbox" id="um-${u.id}-${k}" data-field="u-mod" data-id="${u.id}" data-mod="${k}" ${userModulos(u).includes(k) ? 'checked' : ''}> ${n}</label>`).join('')}</div>`}</td>
     <td><input type="checkbox" id="ua-${u.id}" data-field="u-activo" data-id="${u.id}" ${u.activo ? 'checked' : ''} ${self ? 'disabled' : ''} aria-label="Activo"></td>
     <td><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn sm" data-act="ureset" data-id="${u.id}">Nueva contraseña</button>
@@ -924,7 +943,7 @@ function renderNav() {
   if (UI.profile !== 'atila') { $('#nav').innerHTML = `<button data-act="view" data-id="inicio" ${['usuarios', 'clave'].includes(UI.view) ? '' : 'aria-current="page"'}>${icon('M3 12l9-8 9 8M5 10v10h14V10')}Inicio</button>${adminItem}`; return; }
   const active = S.deals.filter(d => !['cerrada', 'perdida'].includes(d.etapa)).length, nuevas = S.deals.filter(d => d.portal && !d.aceptada).length;
   const live = S.projects.filter(p => current(p)).length;
-  $('#nav').innerHTML = VIEWS_ATILA.map(v => `<button data-act="view" data-id="${v.id}" ${UI.view === v.id ? 'aria-current="page"' : ''}>${icon(v.icon)}${v.name}${
+  $('#nav').innerHTML = VIEWS_ATILA.filter(v => canModule(v.id)).map(v => `<button data-act="view" data-id="${v.id}" ${UI.view === v.id ? 'aria-current="page"' : ''}>${icon(v.icon)}${v.name}${
     v.id === 'bandeja' ? `<span class="count${nuevas ? ' hot' : ''}" title="${nuevas ? nuevas + ' solicitud(es) nueva(s) del portal' : ''}">${active}</span>` : v.id === 'clientes' ? `<span class="count">${clientes().length}</span>` : v.id === 'proyectos' ? `<span class="count">${live}</span>` : ''}</button>`).join('') + adminItem;
 }
 
@@ -942,10 +961,13 @@ function render() {
   if (!neg.length) { document.documentElement.dataset.brand = ''; m.innerHTML = `<div class="login"><div class="panel login-card"><div class="pb" style="display:grid;gap:12px"><h2>Sin negocios asignados</h2><p class="muted" style="margin:0">Tu usuario no tiene acceso a ningún negocio. Pide al super administrador que te asigne Atila Argentina o Padel Europa.</p><div><button class="btn" data-act="logout">Salir</button></div></div></div></div>`; return; }
   if (!neg.includes(UI.profile)) UI.profile = neg[0];
   if ((UI.view === 'usuarios' && !isSuper()) || UI.view === 'configurador' || UI.view.startsWith('p-')) UI.view = 'bandeja';
+  if (UI.profile === 'atila' && MODULOS[UI.view] && !canModule(UI.view)) UI.view = firstView();
+  if (UI.view === 'sin-modulos' && firstView() !== 'sin-modulos') UI.view = firstView();
   document.documentElement.dataset.brand = UI.profile;
   renderNav();
   if (UI.view === 'usuarios') { m.innerHTML = vUsuarios(); return; }
   if (UI.view === 'clave') { m.innerHTML = vClave(); return; }
+  if (UI.view === 'sin-modulos' && UI.profile === 'atila') { m.innerHTML = `<div class="panel"><div class="empty"><b style="color:var(--fg)">Sin módulos asignados</b><span>Tu usuario no tiene acceso a ningún módulo. Pide al super administrador que te asigne los que necesitas.</span></div></div>`; return; }
   if (UI.view === 'clientes') { m.innerHTML = vClientes(); return; }
   if (UI.profile === 'europa') { m.innerHTML = vEuropa(); return; }
   m.innerHTML = ({ bandeja: vBandeja, proyectos: vProyectos, agenda: vAgenda, modelos: vModelos }[UI.view] || vBandeja)();
@@ -1569,13 +1591,14 @@ document.addEventListener('click', ev => {
   switch (act) {
     case 'profile': if (!canSee(id)) break; UI.profile = id; if (['usuarios', 'clave', 'inicio', 'clientes'].includes(UI.view)) UI.view = id === 'atila' ? 'bandeja' : 'inicio'; saveUI(); render(); break;
     case 'logout': setSession(null); UI.loginError = ''; UI.dz = null; UI.view = 'bandeja'; render(); break;
+    case 'nu-perfil': Object.keys(MODULOS).forEach(k => { const c = document.getElementById('nu-mod-' + k); if (c) c.checked = PERFILES[id].modulos.includes(k); }); break;
     case 'newuser': UI.newUser = !UI.newUser; UI.formError = ''; render(); break;
     case 'ureset': UI.resetUser = UI.resetUser === id ? null : id; UI.delUser = null; render(); break;
     case 'udel': UI.delUser = id || null; UI.resetUser = null; render(); break;
     case 'udelok': { const u = USERS.find(x => x.id === id);
       if (u.rol === 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); break; }
       USERS = USERS.filter(x => x.id !== id); UI.delUser = null; saveUsers(); render(); toast(`Usuario ${u.usuario} eliminado`); break; }
-    case 'view': UI.view = id; UI.formError = ''; UI.projOpen = false; UI.newDeal = false; UI.editDeal = null;
+    case 'view': if (MODULOS[id] && !canModule(id)) break; UI.view = id; UI.formError = ''; UI.projOpen = false; UI.newDeal = false; UI.editDeal = null;
       if (id === 'p-disenar') { UI.dz = dzDefault(S.models[0].id); UI.dzPart = 'pasto'; }
       saveUI(); render(); window.scrollTo(0, 0); break;
     case 'theme': document.documentElement.dataset.theme = id; try { localStorage.setItem(KEY + '-theme', id); } catch (e) {} renderNav(); break;
@@ -1590,7 +1613,7 @@ document.addEventListener('click', ev => {
     case 'lose': { const d = deal(); d.etapa = 'perdida'; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: 'Negocio marcado como perdido.' + who() }); commit('Negocio marcado como perdido'); break; }
     case 'closeopen': UI.closing = true; render(); break;
     case 'closecancel': UI.closing = false; render(); break;
-    case 'cli-from-deal': { const d = deal(); UI.view = 'clientes'; UI.cliNew = true; UI.linkDeal = d.id;
+    case 'cli-from-deal': if (!canModule('clientes')) { toast('No tienes acceso al módulo Clientes.'); break; } { const d = deal(); UI.view = 'clientes'; UI.cliNew = true; UI.linkDeal = d.id;
       UI.cliPrefill = { nombre: d.contacto, empresa: d.cliente, email: d.email, telefono: d.telefono, ciudad: d.ciudad }; render(); window.scrollTo(0, 0); break; }
     // cotizaciones
     case 'q-new': UI.quoteForm = UI.quoteForm === id ? null : id; render(); break;
@@ -1618,7 +1641,7 @@ document.addEventListener('click', ev => {
     // portal
     case 'p-sel': UI.pSel = id; render(); break;
     // proyectos
-    case 'openproj': UI.profile = 'atila'; UI.view = 'proyectos'; UI.project = id; UI.projOpen = true; saveUI(); render(); window.scrollTo(0, 0); break;
+    case 'openproj': if (!canModule('proyectos')) { toast('No tienes acceso al módulo Proyectos y entregas.'); break; } UI.profile = 'atila'; UI.view = 'proyectos'; UI.project = id; UI.projOpen = true; saveUI(); render(); window.scrollTo(0, 0); break;
     case 'projback': UI.projOpen = false; render(); window.scrollTo(0, 0); break;
     case 'stage-start': case 'stage-done': case 'stage-undo': {
       const p = project(id), e = p.etapas[+b.dataset.i];
@@ -1644,6 +1667,8 @@ document.addEventListener('change', ev => {
   }
   if (f.startsWith('u-')) {
     const u = USERS.find(x => x.id === t.dataset.id);
+    if (f === 'u-mod') { const cur = userModulos(u); u.modulos = t.checked ? [...new Set([...cur, t.dataset.mod])] : cur.filter(m => m !== t.dataset.mod); }
+    if (f === 'u-perfil' && PERFILES[t.value]) u.modulos = [...PERFILES[t.value].modulos];
     if (f === 'u-neg') u.negocios = t.checked ? [...new Set([...u.negocios, t.dataset.neg])] : u.negocios.filter(n => n !== t.dataset.neg);
     if (f === 'u-rol') { if (u.rol === 'superadmin' && t.value !== 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.rol = t.value; }
     if (f === 'u-activo') { if (!t.checked && u.rol === 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.activo = t.checked; }
@@ -1677,7 +1702,7 @@ document.addEventListener('submit', async ev => {
     const key = fd.usuario.trim().toLowerCase(), u = USERS.find(x => x.usuario.toLowerCase() === key || (x.email || '').toLowerCase() === key);
     if (!u || u.hash !== await hashPw(u.usuario, fd.clave)) { UI.loginError = 'Usuario, correo o contraseña incorrectos.'; render(); return; }
     if (!u.activo) { UI.loginError = 'Este acceso está desactivado. Comunícate con ATILA para reactivarlo.'; render(); return; }
-    UI.loginError = ''; setSession(u.id); UI.view = u.rol === 'cliente' ? 'p-disenar' : 'bandeja'; UI.dz = null; render(); toast(`Hola, ${u.nombre}`); return;
+    UI.loginError = ''; setSession(u.id); UI.view = u.rol === 'cliente' ? 'p-disenar' : firstView(); UI.dz = null; render(); toast(`Hola, ${u.nombre}`); return;
   }
   if (kind === 'pwchange') {
     const u = me();
@@ -1688,8 +1713,8 @@ document.addEventListener('submit', async ev => {
   if (kind === 'newuser') {
     const usuario = fd.usuario.trim();
     if (USERS.some(x => x.usuario.toLowerCase() === usuario.toLowerCase())) { UI.formError = `El usuario «${usuario}» ya existe. Elige otro.`; render(); return; }
-    const negocios = Object.keys(NEGOCIOS).filter(k => fd['neg_' + k]);
-    USERS.push({ id: uid('u'), usuario, nombre: fd.nombre.trim(), rol: fd.rol, negocios, activo: true, hash: await hashPw(usuario, fd.clave) });
+    const negocios = Object.keys(NEGOCIOS).filter(k => fd['neg_' + k]), modulos = Object.keys(MODULOS).filter(k => fd['mod_' + k]);
+    USERS.push({ id: uid('u'), usuario, nombre: fd.nombre.trim(), rol: fd.rol, negocios, modulos, activo: true, hash: await hashPw(usuario, fd.clave) });
     saveUsers(); UI.newUser = false; UI.formError = ''; render(); toast(`Usuario ${usuario} creado`); return;
   }
   if (kind === 'pwreset') {

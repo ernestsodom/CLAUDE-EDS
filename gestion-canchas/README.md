@@ -13,7 +13,7 @@ del mes de logística + instalación).
 | Módulo | Qué muestra |
 | --- | --- |
 | Ingreso | Equipo interno con usuario y contraseña; clientes con correo y clave. Cada usuario interno ve solo los negocios asignados (Atila Argentina, Padel Europa o ambos). Todos pueden cambiar su propia contraseña. |
-| Usuarios y permisos | Solo super administrador: usuarios internos, negocios, roles, activar/desactivar, nueva contraseña y eliminar. Siempre queda al menos un super administrador activo. |
+| Usuarios y permisos | Solo super administrador: usuarios internos, negocios, rol, **módulos visibles** (perfiles Gerencia, Comercial, Operaciones, Solo seguimiento o selección uno a uno), activar/desactivar, nueva contraseña y eliminar. Cada usuario ve en el menú solo sus módulos. Siempre queda al menos un super administrador activo. |
 | Clientes | Mantenedor de clientes del portal (nombre, club/empresa, correo, teléfono, ciudad, negocio). Al crear el acceso el sistema propone una clave simple (por ejemplo `Volea-4821`) que se puede cambiar; luego se comparte por WhatsApp, correo o copiando el mensaje. Nueva clave, activar/desactivar y eliminar. |
 | Portal de clientes | El cliente diseña su cancha en el visor 3D (tipo, césped, postes de luz, amortiguadores, logo y mapa), envía la solicitud, sigue su estado en «Mis solicitudes» y ve y acepta sus cotizaciones en «Mis cotizaciones». Solo ve lo suyo. |
 | Bandeja de negocios | Etapas: nuevo contacto → propuesta enviada → negociación → venta cerrada / perdida. Las solicitudes del portal llegan marcadas como nuevas: se aceptan o modifican y se ubican en una etapa. También se cargan negocios a mano con todos los datos del cliente y el diseño de su cancha. Cotizaciones con número, ítems, moneda y validez; se envían por WhatsApp, correo o se publican en el portal del cliente. |
@@ -72,7 +72,7 @@ permisos validados en cada llamada a la API).
 
 - **Backend:** .NET 10 (ASP.NET Core Minimal API) + EF Core con Npgsql.
 - **Frontend:** Blazor WebAssembly (o el front que se defina).
-- **Base de datos:** Neon (PostgreSQL serverless). Tablas base: `usuarios`, `usuario_negocios`, `perfiles`, `modelos`,
+- **Base de datos:** Neon (PostgreSQL serverless). Tablas base: `usuarios`, `usuario_negocios`, `usuario_modulos`, `perfiles`, `modelos`,
   `negocios`, `negocio_eventos`, `proyectos`, `proyecto_etapas`, `proyecto_eventos`,
   `disenos_cancha`, `ubicaciones`, `clientes`, `cotizaciones`, `cotizacion_items`, `archivos`.
 - **Despliegue:** Vercel. Vercel no tiene un runtime nativo para .NET; la opción
