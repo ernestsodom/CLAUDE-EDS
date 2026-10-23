@@ -139,3 +139,12 @@ Construidas con el contenido de portal.proexsi.cl y la misma línea gráfica del
 - **`contacto.html`**: dirección, correo y teléfono copiables, certificación y formulario demostrativo.
 
 Imágenes nuevas en `img/int/`, `img/aliados/` y `img/clientes/`.
+
+## Versión 6 alineada con la v7
+
+La v6 ahora tiene exactamente el contenido del home v7, con el diseño y los efectos de la v6:
+
+- **Se mantiene de la v6:** header con "Hablemos" y "Menú" (menú a pantalla completa), hero con mapa, índice de soluciones con miniatura que sigue al cursor, capítulos con scroll horizontal, franja de clientes y cierre en banda azul noche.
+- **Se agregó (contenido de la v7):** frase de posicionamiento en las cifras; las 5 soluciones (AGM, AGCM, Sistemas de Gestión, Data Center, Servicios por Internet) con su descripción, lista, indicadores y brochure PDF; las 3 razones de confianza como capítulos horizontales; nombre y región de cada cliente; la sección de tecnología con los 6 diferenciales; el formulario completo y el pie con enlaces y redes.
+- **Se eliminó (no existe en la v7):** áreas AGM en el home (están en la página Soluciones), historias, acordeón "Por qué Proexsi" y captura de correo.
+- **Páginas interiores con estilo v6:** `v6-nosotros.html`, `v6-soluciones.html`, `v6-data-center.html`, `v6-clientes.html` y `v6-contacto.html`, con `css/site-v6.css` y `js/site-v6.js`.

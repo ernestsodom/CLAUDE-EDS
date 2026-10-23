@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contacto · Proexsi</title>
+<meta name="description" content="Contacto Proexsi: Moneda 1040, piso 10, Santiago. hablemos@proexsi.cl · +56 2 2489 1900.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Inter+Tight:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/site-v6.css">
+</head>
+<body>
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="v6.html"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"></a>
+    <div class="top-r">
+      <a class="pill solid" href="v6-contacto.html">Hablemos</a>
+      <button class="pill" type="button" id="openMenu" aria-expanded="false" aria-controls="menu"><span class="burger" aria-hidden="true"><i></i><i></i></span>Menú</button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" hidden role="dialog" aria-modal="true" aria-label="Menú">
+  <div class="wrap menu-head"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"><button class="pill" type="button" id="closeMenu">Cerrar</button></div>
+  <div class="wrap menu-grid">
+    <nav aria-label="Principal">
+      <a href="v6.html"><small>Inicio</small>Home</a>
+      <a href="v6-nosotros.html"><small>Proexsi</small>Nosotros</a>
+      <a href="v6-soluciones.html"><small>GRP</small>Soluciones</a>
+      <a href="v6-data-center.html"><small>ISO</small>Data Center</a>
+      <a href="v6-clientes.html"><small>34</small>Clientes</a>
+      <a href="v6-contacto.html"><small>Hablemos</small>Contacto</a>
+    </nav>
+    <div class="menu-side">
+      <img src="img/area-grp.jpg" alt="">
+      <p><b>¿Ya es cliente?</b> Ingrese al <a href="#acceso">portal de clientes</a> (enlace por definir).</p>
+    </div>
+  </div>
+  <div class="wrap menu-foot"><span>hablemos@proexsi.cl · +56 2 2489 1900</span><span>Moneda 1040, piso 10, Santiago</span></div>
+</div>
+
+<main id="top">
+  <section class="page-hero" aria-label="Contacto">
+    <img class="hero-bg" src="img/pilar-trayectoria.jpg" alt="">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Ruta"><a href="v6.html">Inicio</a><span aria-hidden="true">/</span><span>Contacto</span></nav>
+      <div class="kick">Contáctenos</div>
+      <h1>Transformémonos en <b>su partner estratégico.</b></h1>
+      <p>Estamos ubicados en el área más protegida del país y estaremos encantados de contactarnos con usted.</p>
+      
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap contact-grid">
+      <div class="cinfo">
+        <span class="eyebrow">Datos de contacto</span>
+        <h2 class="h2" style="margin-bottom:8px">Hablemos de <em>su institución.</em></h2>
+        <div class="row"><span class="ri"><i class="ico" data-icon="pin"></i></span><div><small>Dirección</small><b>Moneda 1040, piso 10, Santiago de Chile</b></div><a class="act" href="https://www.google.com/maps/search/?api=1&query=Moneda+1040+Santiago+Chile" target="_blank" rel="noopener">Ver mapa</a></div>
+        <div class="row"><span class="ri"><i class="ico" data-icon="chat"></i></span><div><small>Correo</small><b>hablemos@proexsi.cl</b></div><button class="act" type="button" data-copy="hablemos@proexsi.cl">Copiar</button></div>
+        <div class="row"><span class="ri"><i class="ico" data-icon="send"></i></span><div><small>Teléfono</small><b>+56 2 2489 1900</b></div><button class="act" type="button" data-copy="+56224891900">Copiar</button></div>
+        <div style="margin-top:12px"><div class="iso-strip" id="iso"><img src="img/sello-iso-mercadopublico.png" alt="Sellos de ChileCompra Mercado Público e ISO 9001 Bureau Veritas"><div><b>Certificación ISO 9001:2015</b><p>Otorgada por Bureau Veritas: acredita que nuestra forma de trabajo centrada en la calidad cumple con las normas de sistemas de gestión de la calidad, tanto en los procesos de Data Center como en el desarrollo y mantención de las soluciones informáticas que entregamos.</p></div></div></div>
+      </div>
+      <form class="big" data-demo novalidate>
+        <h3 style="font-size:20px">Escríbanos</h3>
+        <div class="fld"><label for="c1">Nombre completo <i>*</i></label><input id="c1" name="name" autocomplete="name" placeholder="Ingrese su nombre"></div>
+        <div class="two">
+          <div class="fld"><label for="c2">Correo <i>*</i></label><input id="c2" name="email" type="email" autocomplete="email" placeholder="nombre@institucion.cl"></div>
+          <div class="fld"><label for="c3">Teléfono</label><input id="c3" name="tel" type="tel" autocomplete="tel" placeholder="+56 9 1234 5678"></div>
+        </div>
+        <div class="two">
+          <div class="fld"><label for="c4">Institución</label><input id="c4" name="org" autocomplete="organization" placeholder="Municipalidad de…"></div>
+          <div class="fld"><label for="c5">Región</label><select id="c5" name="region"><option>Arica y Parinacota</option><option>Tarapacá</option><option>Antofagasta</option><option>Atacama</option><option>Coquimbo</option><option>Valparaíso</option><option selected>Metropolitana</option><option>O'Higgins</option><option>Maule</option><option>Ñuble</option><option>Biobío</option><option>La Araucanía</option><option>Los Ríos</option><option>Los Lagos</option><option>Aysén</option><option>Magallanes</option></select></div>
+        </div>
+        <div class="fld"><label for="c6">Motivo de contacto</label><select id="c6" name="motivo"><option>Solicitar una demostración</option><option>Soluciones GRP (AGM / AGCM)</option><option>Sistemas de Gestión</option><option>Data Center (hosting / housing)</option><option>Soporte a clientes</option></select></div>
+        <div class="fld"><label for="c7">Mensaje</label><textarea id="c7" name="msg" placeholder="Escriba su mensaje"></textarea></div>
+        <button class="btn btn-blue" type="submit" style="justify-self:start">Enviar mensaje</button>
+        <p class="fmsg" hidden></p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"><p>Tecnologías de información para misión crítica.</p></div>
+    <div><h4>Soluciones</h4><ul><li><a href="v6-soluciones.html#grp">Soluciones GRP</a></li><li><a href="v6-soluciones.html#agm">Proexsi AGM</a></li><li><a href="v6-soluciones.html#agcm">Proexsi AGCM</a></li><li><a href="v6-soluciones.html#sistemas">Sistemas de Gestión</a></li><li><a href="v6-soluciones.html#areas">Áreas y sistemas</a></li></ul></div>
+    <div><h4>Data Center</h4><ul><li><a href="v6-data-center.html#hosting">Hosting</a></li><li><a href="v6-data-center.html#housing">Housing</a></li><li><a href="v6-data-center.html#iso">Calidad ISO 9001</a></li></ul></div>
+    <div><h4>Institucional</h4><ul><li><a href="v6-nosotros.html">Nosotros</a></li><li><a href="v6-clientes.html">Clientes</a></li><li><a href="#acceso">Acceso clientes</a></li><li><a href="v6-contacto.html">Contacto</a></li></ul></div>
+  </div>
+  <div class="wrap foot-mid">
+    <div><h4>Síganos en redes sociales</h4><div class="social" aria-label="Redes sociales (enlaces por definir)"><span title="LinkedIn"><i class="ico" data-icon="linkedin"></i></span><span title="YouTube"><i class="ico" data-icon="youtube"></i></span><span title="Facebook"><i class="ico" data-icon="facebook"></i></span><span title="X"><i class="ico" data-icon="x"></i></span></div></div>
+    <div><h4>Oficina central · Santiago</h4><p>Moneda 1040, piso 10, Santiago de Chile<br>+56 2 2489 1900 · hablemos@proexsi.cl</p></div>
+  </div>
+  <div class="wrap foot-b"><span>© Proexsi. Todos los derechos reservados.</span><span class="tag">Tecnologías de información para misión crítica</span></div>
+</footer>
+<script src="js/site-v6.js"></script>
+</body>
+</html>
