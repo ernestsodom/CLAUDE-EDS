@@ -66,7 +66,7 @@ Inspirada en sitios premiados de estudios de desarrollo (Lusion, Active Theory, 
 3. **Capítulos horizontales**: las 4 fotos del slider original avanzan de lado al bajar (en celular se apilan en vertical).
 4. **Índice de soluciones**: filas grandes que muestran una foto siguiendo al cursor y se abren con el detalle.
 5. **Bloques de color** para las 12 áreas, cada uno con su número de módulos; al hacer clic se abre una ficha con la lista.
-6. **Escala**, **calidad** (+45 años e ISO) y **muro de 20 logos** con su región.
+6. **Escala**, **calidad** (+50 años e ISO) y **muro de 20 logos** con su región.
 7. **Cierre "Hablemos."** en tipografía gigante, con los datos de contacto y el formulario.
 8. **Menú** a pantalla completa.
 
@@ -111,7 +111,7 @@ Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea
 
 1. **Header blanco** con logo, menú central con desplegables (Soluciones, Contenidos) y enlace "Contacto". Al pasar el mouse, cada botón se pinta de azul Proexsi.
 2. **Hero**: igual al de la v6 (mismo azul noche, mapa animado de Chile, botones "Hablar con ventas" y "Conocer soluciones") con una foto del equipo en el data center de fondo, cubierta por el azul. Va dentro de un bloque con la esquina inferior derecha redondeada, como en IPM.
-3. **Fila de cifras**: frase de posicionamiento y tres datos (+45 años, 20 municipios, 81 sistemas).
+3. **Fila de cifras**: frase de posicionamiento y tres datos (+50 años, +20 municipios, 81 sistemas).
 4. **Soluciones en pestañas verticales**: AGM, AGCM, Sistemas de Gestión, Data Center y Servicios por Internet. Cada pestaña muestra una foto con un panel ilustrativo y tres indicadores sobre la imagen, y a la derecha el título, la descripción, los puntos clave en una grilla con check, un botón de brochure en PDF y "Quiero conocer". AGM enlaza el brochure `docs/brochure-agm.pdf`; las demás lo marcan como "próximamente". El contenido es el mismo de antes (sin el detalle completo del brochure).
 5. **Banda de confianza** azul sobre foto, con tres tarjetas ilustradas (trayectoria, relaciones de largo plazo, calidad ISO).
 6. **Clientes**: carrusel de 20 logos con nombre y región, flechas y barra de avance.
