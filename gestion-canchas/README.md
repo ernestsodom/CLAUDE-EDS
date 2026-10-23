@@ -55,7 +55,7 @@ conservando la luminancia original (luces y sombras).
 principal) y la máscara de sus piezas amarillas (generada con `generar_mascara.py`). Igual que las canchas,
 se recolorea en el navegador conservando la luminancia; la tuerca dorada del resorte queda fuera de la máscara.
 
-## Usuarios iniciales de la maqueta
+## Usuarios iniciales de la maqueta (solo en modo local)
 
 | Usuario | Contraseña | Rol | Negocios |
 | --- | --- | --- | --- |
@@ -68,19 +68,26 @@ En la maqueta los usuarios y la sesión se guardan en el navegador (contraseñas
 .NET (ASP.NET Core Identity o equivalente, contraseñas con hash en Neon, sesión emitida por el servidor y
 permisos validados en cada llamada a la API).
 
-## Arquitectura prevista (no implementada todavía)
+## Publicación (Vercel + Neon)
 
-- **Backend:** .NET 10 (ASP.NET Core Minimal API) + EF Core con Npgsql.
-- **Frontend:** Blazor WebAssembly (o el front que se defina).
-- **Base de datos:** Neon (PostgreSQL serverless). Tablas base: `usuarios`, `usuario_negocios`, `usuario_modulos`, `perfiles`, `modelos`,
-  `negocios`, `negocio_eventos`, `proyectos`, `proyecto_etapas`, `proyecto_eventos`,
-  `disenos_cancha`, `ubicaciones`, `clientes`, `cotizaciones`, `cotizacion_items`, `archivos`.
-- **Despliegue:** Vercel. Vercel no tiene un runtime nativo para .NET; la opción
-  habitual es publicar el frontend Blazor WebAssembly como sitio estático en Vercel y
-  alojar la API .NET en un contenedor (o usar un runtime comunitario). Se decide al
-  pasar de la maqueta al desarrollo.
-- **Mapa real:** Leaflet/MapLibre con geocodificación por ciudad y comuna (la maqueta
-  usa un contorno esquemático).
+- **Sitio:** https://atila-gestion-canchas.vercel.app (proyecto Vercel `atila-gestion-canchas`, equipo EDS's projects).
+- **Base de datos:** Neon, proyecto `atila-gestion-canchas` (región São Paulo). Tablas: `usuarios`
+  (contraseñas con scrypt), `entidades` (modelos, negocios y proyectos como JSON) y `meta` (numeración de cotizaciones).
+- **API** (`api/`, funciones Node en Vercel): `ping`, `login`, `bootstrap` (carga inicial según el rol),
+  `state` (guardado por cambios) y `users` (administración de usuarios y cambio de contraseña). La sesión es un
+  token firmado de 12 horas. Los permisos se validan en el servidor: los clientes solo ven y modifican sus propias
+  solicitudes; solo el super administrador administra usuarios internos; el equipo administra clientes.
+- **Variables de entorno en Vercel:** `DATABASE_URL` (Neon) y `SESSION_SECRET`. No están en el repositorio.
+- **Despliegue:** `build.js` envuelve `maqueta/index.html` en `public/index.html`. La misma página detecta si corre en
+  Vercel (responde `/api/ping`) y usa la base de datos; fuera de Vercel funciona con datos locales del navegador.
+- **Pendiente:** los permisos por módulo se aplican en la interfaz, todavía no en la API; los archivos (logo, mapa)
+  se guardan dentro de la base de datos (máx. 2 MB c/u) y conviene moverlos a un almacenamiento de archivos.
+
+## Arquitectura
+
+Se publicó con funciones Node.js en Vercel en lugar de .NET, porque Vercel no ejecuta .NET de forma nativa.
+Si se requiere .NET 10, la API puede reescribirse en ASP.NET Core sobre las mismas tablas de Neon y alojarse en un
+servicio de contenedores, manteniendo el frontend en Vercel.
 
 ## Ver la maqueta
 
