@@ -323,9 +323,10 @@ table.users td { vertical-align: top }
 .v3d canvas:active { cursor: grabbing }
 .v3d-hint { position: absolute; left: 10px; bottom: 8px; font-size: 11px; color: #a3a3a3; pointer-events: none; background: rgb(0 0 0 / .45); padding: 2px 6px; border-radius: 3px }
 .v3d.small .v3d-hint { font-size: 10px }
+.v3d.small { width: 100%; max-width: 520px }
 .v3d-off { display: grid; place-items: center; padding: 30px; color: #a3a3a3; text-align: center }
 /* Diseñador compacto */
-.designer { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 18px; align-items: start }
+.designer { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 18px; align-items: start }
 .designer > * { min-width: 0 }
 .dz-side { display: grid; gap: 14px }
 .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px }
@@ -344,7 +345,7 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .sw-i { width: 12px; height: 12px; display: inline-block; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid rgb(127 127 127 / .5) }
 .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; color: var(--muted); font-weight: 500 }
 .count.hot { background: var(--accent); color: var(--accent-fg) }
-.deal-cancha { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; align-items: start }
+.deal-cancha { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start }
 /* Cotizaciones */
 .qrow { border: 1px solid var(--line); border-radius: var(--r, 8px); overflow: hidden }
 .qhead { width: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--surface2); border: 0; padding: 9px 12px; text-align: left }
@@ -363,6 +364,15 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .qitems input { min-width: 0 }
 @media (max-width: 1100px) { .designer, .deal-cancha { grid-template-columns: 1fr } }
 @media (max-width: 600px) { .qcli { grid-template-columns: 1fr } .seg { grid-template-columns: 1fr } }
+
+/* Etapas de la entrega: cada etapa se pinta con su color al avanzar */
+.stages li.stg { padding-left: 10px; padding-right: 10px; border-radius: var(--r, 6px); border-left: 3px solid transparent; margin-bottom: 4px }
+.stages li.stg.done { background: color-mix(in srgb, var(--sc) 22%, transparent); border-left-color: var(--sc) }
+.stages li.stg.cur { background: color-mix(in srgb, var(--sc) 9%, transparent); border-left-color: color-mix(in srgb, var(--sc) 60%, transparent) }
+.stages li.stg.late { background: color-mix(in srgb, var(--bad) 12%, transparent); border-left-color: var(--bad) }
+.stages li.stg .dot.done { background: var(--sc); border-color: var(--sc); color: #0d0d0d }
+.stages li.stg .dot.cur { border-color: var(--sc); color: var(--sc) }
+.stages li.stg.cur .btn.primary { background: var(--sc); border-color: var(--sc); color: #0d0d0d }
 </style>
 
 <div class="app">
@@ -573,7 +583,10 @@ function pixels(img) { const c = document.createElement('canvas'); c.width = img
 const hexRgb = h => { const n = parseInt(h.replace('#', ''), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
 
 const POSTES_DEF = '#1b1b1b';
-const dzDefault = (modelo = 'm1') => ({ modelo, instal: 'Outdoor', pasto: '#1f6fd1', postes: POSTES_DEF, amort: { ...AMORT_DEF }, logo: null, logoAmort: false, logoPuertas: false, mapa: null });
+// Césped de partida: gris para Competition PRO y terracota para Semi Panoramic.
+const PASTO_INI = { panoramica: '#8e949a', semi: '#c4553a' };
+const pastoIni = modelo => PASTO_INI[(S.models.find(m => m.id === modelo) || {}).tipo] || '#8e949a';
+const dzDefault = (modelo = 'm1') => ({ modelo, instal: 'Outdoor', pasto: pastoIni(modelo), postes: POSTES_DEF, amort: { ...AMORT_DEF }, logo: null, logoAmort: false, logoPuertas: false, mapa: null });
 const VIEWERS = [];
 const pendingViews = [];
 function viewer3d(dz, opts = {}) {
@@ -600,7 +613,7 @@ function createCourt3D(el, dz, opts) {
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
   el.prepend(renderer.domElement);
   const scene = new T.Scene();
-  const camera = new T.PerspectiveCamera(42, 1.6, 0.1, 200);
+  const camera = new T.PerspectiveCamera(42, 1.6, 0.5, 200);
 
   const mats = {
     grass: new T.MeshLambertMaterial({ color: dz.pasto }),
@@ -637,10 +650,10 @@ function createCourt3D(el, dz, opts) {
     // Medidas reales (m): vidrio 3 m de alto; anillo principal blanco a 3 m; malla lateral 3 m en módulos de 2 m;
     // reja superior de 1 m solo sobre los fondos y el vértice (2 m del lateral); puerta de acceso en cada lateral.
     const semi = model(d.modelo).tipo === 'semi', H = 3, UP = 4;
-    const floor = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.002; floor.receiveShadow = true; built.add(floor);
-    [-6.95, 6.95].forEach(z => box(10, 0.006, 0.05, mats.line, 0, 0.004, z));
-    box(0.05, 0.006, 13.9, mats.line, 0, 0.004, 0);
-    [-10, 10].forEach(z => box(0.05, 0.006, 0.2, mats.line, 0, 0.004, z - Math.sign(z) * 0.1));
+    const floor = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.012; floor.receiveShadow = true; built.add(floor);
+    [-6.95, 6.95].forEach(z => box(10, 0.006, 0.05, mats.line, 0, 0.018, z));
+    box(0.05, 0.006, 13.9, mats.line, 0, 0.018, 0);
+    [-10, 10].forEach(z => box(0.05, 0.006, 0.2, mats.line, 0, 0.018, z - Math.sign(z) * 0.1));
     // tubo estructural inferior 80×40 bajo vidrios y mallas
     hbar(-5.04, -10.04, -5.04, 10.04, 0.04, 0.08, 0.08, mats.steel); hbar(5.04, -10.04, 5.04, 10.04, 0.04, 0.08, 0.08, mats.steel);
     hbar(-5.04, -10.04, 5.04, -10.04, 0.04, 0.08, 0.08, mats.steel); hbar(-5.04, 10.04, 5.04, 10.04, 0.04, 0.08, 0.08, mats.steel);
@@ -1018,7 +1031,7 @@ function projectDetail(p) {
         if (e.estado === 'en_curso') action = `<button class="btn sm primary" data-act="stage-done" data-id="${p.id}" data-i="${i}">Completar</button>`;
         else if (e.estado === 'pendiente' && i === firstOpen) action = `<button class="btn sm" data-act="stage-start" data-id="${p.id}" data-i="${i}">Iniciar</button>`;
         else if (e.estado === 'completada' && i === firstOpen - 1) action = `<button class="btn sm ghost" data-act="stage-undo" data-id="${p.id}" data-i="${i}">Deshacer</button>`;
-        return `<li><span class="dot ${cls}">${e.estado === 'completada' ? '✓' : i + 1}</span><div><b>${stageName(e.key)}</b> ${late ? '<span class="pill st-bad">Atrasada</span>' : ''}
+        return `<li class="stg ${cls}" style="--sc:${stageColor(e.key)}"><span class="dot ${cls}">${e.estado === 'completada' ? '✓' : i + 1}</span><div><b>${stageName(e.key)}</b> ${late ? '<span class="pill st-bad">Atrasada</span>' : ''}
           <div class="dates"><input type="date" id="d-${p.id}-${i}-a" value="${e.inicio}" data-field="inicio" data-id="${p.id}" data-i="${i}" aria-label="Inicio ${stageName(e.key)}"><span class="muted">→</span><input type="date" id="d-${p.id}-${i}-b" value="${e.fin}" data-field="fin" data-id="${p.id}" data-i="${i}" aria-label="Fin ${stageName(e.key)}">
           ${e.hecho ? `<span class="muted small">hecho ${fmt(e.hecho)}</span>` : ''}</div></div>${action}</li>`; }).join('')}
     </ul></div></div>
@@ -1593,7 +1606,7 @@ document.addEventListener('click', ev => {
     case 'acc-copy': { const c = USERS.find(u => u.id === UI.lastAccess.id); copyText(accessMsg(c, UI.lastAccess.clave)); break; }
     case 'acc-close': UI.lastAccess = null; render(); break;
     // diseñador
-    case 'dz-modelo': UI.dz.modelo = id; dzRefresh(['tipos', 'view']); break;
+    case 'dz-modelo': { const prev = UI.dz.modelo; if (UI.dz.pasto === pastoIni(prev)) UI.dz.pasto = pastoIni(id); UI.dz.modelo = id; dzRefresh(['tipos', 'pal', 'view']); break; }
     case 'dz-part': UI.dzPart = id; dzRefresh(['pal']); break;
     case 'dz-color': setPart(UI.dzPart, b.dataset.hex, b.dataset.ral); dzRefresh(['pal', 'view']); break;
     case 'dz-filedel': UI.dz[id] = null; if (id === 'logo') { UI.dz.logoAmort = UI.dz.logoPuertas = false; } dzRefresh(['files', 'view']); break;
