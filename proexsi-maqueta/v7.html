@@ -137,83 +137,50 @@ p { margin: 0; }
 .vtab:hover { border-color: var(--blue); color: var(--blue); }
 .vtab[aria-selected="true"] { background: var(--grad); color: #FFFFFF; border-color: transparent; box-shadow: 0 10px 20px -10px rgb(0 53 169 / .6); }
 .vtab[aria-selected="true"]::after { content: ""; position: absolute; right: -19px; top: 8px; bottom: 8px; width: 2px; background: var(--orange); }
-.tpanel { display: grid; gap: 18px; min-width: 0; }
-.ph-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
-.ph-head h3 { font-size: 24px; font-weight: 700; color: var(--blue); }
-.ph-head h3 span { color: var(--orange-ink); }
-.ph-head p { color: var(--muted); max-width: 72ch; margin-top: 8px; font-size: 15.5px; }
-.ph-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.ph-meta span { font-size: 12.5px; font-weight: 600; color: var(--blue); background: var(--blue-soft); padding: 4px 10px; border-radius: 999px; }
-.pdf { display: inline-flex; gap: 12px; align-items: center; padding: 12px 18px 12px 14px; border-radius: 14px; background: var(--grad); color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14.5px; line-height: 1.25; box-shadow: 0 12px 24px -14px rgb(0 53 169 / .7); transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
+.tpanel { min-width: 0; }
+.sp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 44px); align-items: stretch; }
+.sp-media { position: relative; border-radius: 22px; overflow: hidden; min-height: 460px; isolation: isolate; background: var(--grad); }
+.sp-media > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; animation: zoomIn 1.2s cubic-bezier(.22,1,.36,1) both; }
+@keyframes zoomIn { from { transform: scale(1.08); } to { transform: scale(1); } }
+.sp-media::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(14 19 48 / .05) 25%, rgb(14 19 48 / .88)); }
+.sp-ui { position: absolute; left: 18px; top: 18px; width: min(58%, 260px); background: #FFFFFF; color: #111735; border-radius: 14px; padding: 12px 14px; box-shadow: 0 16px 34px -14px rgb(0 0 0 / .5); display: grid; gap: 7px; font-size: 12px; animation: up .6s .15s cubic-bezier(.22,1,.36,1) both; }
+.sp-ui b { font-size: 12.5px; display: flex; gap: 6px; align-items: center; }
+.sp-ui b::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #F29400; }
+.sp-ui .row2 { display: grid; grid-template-columns: 52px 1fr; gap: 8px; align-items: center; color: #5D6684; font-size: 11px; }
+.sp-ui .bar { height: 6px; border-radius: 3px; background: #E7EDFF; overflow: hidden; }
+.sp-ui .bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #0035A9, #2F5BFF); transform-origin: left; animation: barIn .9s .3s cubic-bezier(.22,1,.36,1) both; }
+@keyframes barIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.sp-ui small { color: #8A93AE; font-size: 10.5px; }
+.sp-kpis { position: absolute; left: 16px; right: 16px; bottom: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sp-kpis div { background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .22); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 12px; color: #FFFFFF; display: grid; gap: 6px; align-content: start; animation: up .6s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(.25s + var(--i) * .08s); }
+.sp-kpis .ki { width: 32px; height: 32px; border-radius: 9px; background: rgb(255 255 255 / .16); display: grid; place-items: center; }
+.sp-kpis .ki svg.i { width: 18px; height: 18px; }
+.sp-kpis .ki svg.i .ac { stroke: #FFB240; }
+.sp-kpis b { font-family: var(--display); font-size: 17px; line-height: 1.1; }
+.sp-kpis span { font-size: 12px; line-height: 1.3; color: rgb(255 255 255 / .82); }
+.sp-body { display: grid; align-content: center; gap: 16px; }
+.sp-body > * { animation: up .55s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i, 0) * .06s); }
+@keyframes up { from { transform: translateY(12px); opacity: .2; } to { transform: none; opacity: 1; } }
+.sp-body h3 { font-size: clamp(24px, 2.4vw, 30px); font-weight: 700; color: var(--blue); }
+.sp-body h3 span { color: var(--orange-ink); }
+.sp-lead { font-size: 18px; line-height: 1.45; font-weight: 500; }
+.sp-text { color: var(--muted); font-size: 15px; }
+.sp-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sp-list li { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 12px; background: var(--soft); border: 1px solid transparent; font-size: 14px; font-weight: 500; line-height: 1.25; transition: border-color .2s, transform .25s cubic-bezier(.34,1.56,.64,1), background .2s; }
+.sp-list li:hover { border-color: rgb(47 91 255 / .35); background: var(--card); transform: translateX(3px); }
+.sp-list .ck { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #0035A9, #2F5BFF); color: #FFFFFF; display: grid; place-items: center; flex: none; }
+.sp-actions { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding-top: 4px; }
+.pdf { display: inline-flex; gap: 12px; align-items: center; padding: 10px 18px 10px 10px; border-radius: 14px; background: var(--grad); color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14.5px; line-height: 1.25; box-shadow: 0 12px 24px -14px rgb(0 53 169 / .7); transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
 .pdf:hover { transform: translateY(-2px); }
-.pdf .pi { width: 38px; height: 38px; border-radius: 10px; background: rgb(255 255 255 / .14); display: grid; place-items: center; }
+.pdf .pi { width: 36px; height: 36px; border-radius: 10px; background: rgb(255 255 255 / .14); display: grid; place-items: center; }
 .pdf .pi svg.i .ac { stroke: #FFB240; }
 .pdf small { display: block; font-weight: 400; font-size: 12px; opacity: .8; }
 .pdf.soon { background: var(--soft); color: var(--muted); box-shadow: none; border: 1px dashed var(--line); cursor: default; }
 .pdf.soon .pi { background: var(--card); color: var(--muted); }
 .pdf.soon:hover { transform: none; }
-.layers { display: grid; gap: 10px; }
-.layer { display: grid; grid-template-columns: 40px minmax(0, 1fr); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card); }
-.layer > .lab { writing-mode: vertical-rl; transform: rotate(180deg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #FFFFFF; padding: 12px 0; text-align: center; }
-.t-com > .lab { background: linear-gradient(180deg, #F29400, #D97A00); }
-.t-srv > .lab { background: #0035A9; }
-.t-sop > .lab { background: #2F5BFF; }
-.t-dir > .lab { background: #0E1330; }
-.layer .lb { padding: 14px; display: grid; gap: 10px; min-width: 0; }
-.flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.flow .node { display: flex; gap: 10px; align-items: center; padding: 8px 14px 8px 8px; border-radius: 12px; background: color-mix(in srgb, var(--orange) 12%, var(--card)); font-weight: 600; font-size: 13.5px; line-height: 1.25; }
-.flow .node .ni { width: 32px; height: 32px; border-radius: 9px; background: #F29400; color: #FFFFFF; display: grid; place-items: center; flex: none; }
-.flow .node .ni svg.i { width: 18px; height: 18px; }
-.flow .node .ni svg.i .ac { stroke: #FFFFFF; }
-.flow .arr { color: var(--orange); flex: none; }
-.flow-note { font-size: 13px; color: var(--muted); font-style: italic; }
-.blocks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.t-sop .blocks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.blocks.two { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-.blk { display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); text-align: left; font-weight: 600; font-size: 13.5px; line-height: 1.25; min-width: 0; transition: transform .25s cubic-bezier(.34,1.56,.64,1), border-color .2s, background .2s, color .2s; }
-button.blk { cursor: pointer; }
-button.blk:hover { border-color: var(--bright); transform: translateY(-2px); }
-.blk .bi { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(145deg, var(--tile-a, #EEF3FF), var(--tile-b, #DCE6FF)); color: var(--tile-ink, #0035A9); display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
-.blk .bi svg.i { width: 19px; height: 19px; }
-.blk .bt { min-width: 0; }
-.blk .bt small { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); }
-.blk[aria-expanded="true"] { background: var(--grad); color: #FFFFFF; border-color: transparent; }
-.blk[aria-expanded="true"] .bi { background: rgb(255 255 255 / .15); color: #FFFFFF; }
-.blk[aria-expanded="true"] .bt small { color: rgb(255 255 255 / .8); }
-.blk .chev { margin-left: auto; color: var(--orange); flex: none; transition: transform .2s; }
-.blk[aria-expanded="true"] .chev { transform: rotate(180deg); color: #FFB240; }
-.detail { grid-column: 1 / -1; border-radius: 12px; background: var(--soft); padding: 14px 16px; display: grid; gap: 10px; animation: dIn .3s cubic-bezier(.22,1,.36,1); }
-@keyframes dIn { from { transform: translateY(-6px); opacity: .4; } to { transform: none; opacity: 1; } }
-.detail h4 { font-size: 15px; font-family: var(--body); letter-spacing: 0; display: flex; gap: 8px; align-items: center; }
-.detail h4::before { content: ""; width: 14px; height: 2px; background: var(--orange); }
-.detail p { color: var(--muted); font-size: 14px; }
-.syslist { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.syslist li { padding: 5px 11px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; font-weight: 500; }
-.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.stp { position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--soft); }
-.stp:not(:last-child)::after { content: ""; position: absolute; right: -9px; top: 50%; width: 8px; height: 8px; border-top: 2px solid var(--orange); border-right: 2px solid var(--orange); transform: translateY(-50%) rotate(45deg); }
-.stp .si { width: 36px; height: 36px; border-radius: 10px; background: #0E1330; color: #FFFFFF; display: grid; place-items: center; flex: none; }
-.stp .si svg.i { width: 20px; height: 20px; }
-.stp .si svg.i .ac { stroke: #FFB240; }
-.stp small { display: block; font-size: 11.5px; font-weight: 700; color: var(--orange-ink); letter-spacing: .06em; }
-.stp b { display: block; font-size: 14px; line-height: 1.25; }
-.stp span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-.dir-note { font-size: 13.5px; color: var(--muted); }
-.dir-note b { color: var(--ink); }
-.ph-foot { display: flex; justify-content: flex-end; }
-@media (max-width: 1080px) { .blocks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 900px) {
-  .ph-head { grid-template-columns: minmax(0, 1fr); align-items: start; }
-  .pdf { justify-self: start; }
-  .blocks, .t-sop .blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .steps { grid-template-columns: minmax(0, 1fr); }
-  .stp:not(:last-child)::after { right: auto; left: 30px; top: auto; bottom: -9px; transform: rotate(135deg); }
-}
-@media (max-width: 640px) {
-  .layer { grid-template-columns: minmax(0, 1fr); }
-  .layer > .lab { writing-mode: horizontal-tb; transform: none; justify-content: flex-start; padding: 7px 14px; }
-}
-@media (max-width: 440px) { .blocks, .t-sop .blocks, .blocks.two { grid-template-columns: minmax(0, 1fr) !important; } }
+@media (max-width: 960px) { .sp { grid-template-columns: minmax(0, 1fr); } .sp-media { min-height: 380px; } }
+@media (max-width: 480px) { .sp-list { grid-template-columns: minmax(0, 1fr); } .sp-kpis { grid-template-columns: minmax(0, 1fr); } .sp-kpis div { grid-template-columns: 32px minmax(0, 1fr); column-gap: 12px; row-gap: 0; align-items: center; padding: 10px 12px; } .sp-kpis .ki { grid-row: span 2; } .sp-kpis div b, .sp-kpis div > span:last-child { grid-column: 2; } .sp-kpis b { font-size: 15.5px; } .sp-media { min-height: 480px; } }
+@media (prefers-reduced-motion: reduce) { .sp-media > img, .sp-ui, .sp-ui .bar i, .sp-kpis div, .sp-body > * { animation: none; } .sp-list li { transition: none; } }
 @media (max-width: 640px) {
   .tabs-wrap { grid-template-columns: minmax(0, 1fr); }
   .vtabs { display: flex; overflow-x: auto; border-right: 0; border-bottom: 2px solid var(--line); padding: 0 0 12px; }
@@ -453,7 +420,7 @@ svg.i .ac { stroke: var(--orange); }
       <p class="claim"><b>Proexsi</b> es tecnología de misión crítica para el sector público.</p>
       <div class="k"><b>+45 años</b><span>de trayectoria en gestión pública</span></div>
       <div class="k"><b>20 municipios</b><span>en 6 regiones confían en Proexsi</span></div>
-      <div class="k"><b>14 áreas</b><span>de servicio y de soporte municipal integradas</span></div>
+      <div class="k"><b>81 sistemas</b><span>en 12 áreas municipales</span></div>
     </div>
   </section>
 
@@ -526,7 +493,7 @@ svg.i .ac { stroke: var(--orange); }
         <div class="frame" aria-hidden="true"></div>
         <div class="photo"><img src="img/slide-conectados.jpg" alt="Personas conectadas a servicios municipales desde sus teléfonos"></div>
         <div class="float f1"><small>Servicios en línea</small><b>Permiso de circulación</b><small>Pago en línea · ilustrativo</small></div>
-        <div class="float f2"><small>Proexsi AGM</small><b>14 áreas integradas</b><small>Servicio y soporte conectados</small></div>
+        <div class="float f2"><small>Proexsi AGM</small><b>12 áreas integradas</b><small>Tesorería y contabilidad conectadas</small></div>
       </div>
       <div class="fgrid">
         <article class="fcard" data-anim="server"><span class="ic"><i class="ico" data-icon="server"></i></span><h3>Data center propio</h3><p>Hosting y housing con seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos cada día.</p></article>
@@ -616,7 +583,7 @@ svg.i .ac { stroke: var(--orange); }
     <li><b>Hero de la v6</b> con el mapa de Chile, dentro del bloque redondeado de IPM.</li>
     <li><b>Colores Proexsi:</b> azules como principal y naranjo para detalles.</li>
     <li><b>Contenido por definir:</b> las notas de prensa son plantillas; Proexsi debe aportar las reales.</li>
-    <li><b>Soluciones:</b> cada pestaña muestra descripción breve, botón de PDF y un diagrama por capas. AGM usa el contenido del brochure, descargable.</li>
+    <li><b>Soluciones:</b> foto con indicadores, descripción y lista de puntos clave; AGM incluye el brochure en PDF descargable.</li>
     <li><b>Iconografía nueva:</b> set propio de línea redondeada con detalle naranjo; las tarjetas de diferenciales usan mosaico celeste y se animan al pasar el mouse.</li>
     <li><b>Formulario y redes:</b> demostrativos, no envían datos ni enlazan.</li>
   </ul>
@@ -668,82 +635,32 @@ document.querySelectorAll("[data-icon]").forEach(el => { el.outerHTML = icon(el.
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const AREAS = ["Finanzas","Administración","RR.HH.","Rentas Municipales","Dirección de Tránsito","Inspección y Operaciones","Juzgados de Policía Local","Gobierno Digital","Desarrollo Comunitario","Obras Municipales","Gestión Cultural","Servicios por Internet"];
-// Contenido de AGM tomado del brochure "AGM · Gestión municipal integrada" (docs/brochure-agm.pdf)
-const COMUNIDAD = { tone: "com", label: "Comunidad", type: "flow",
-  nodes: [["monitor", "Servicios digitales remotos y/o presenciales"], ["globe", "Internet online"], ["chat", "Consultas · Solicitudes · Trámites · Pagos"]],
-  note: "Atención al vecino en línea, desde cualquier canal." };
 const SOLS = [
-  { tab: "Proexsi AGM", icon: "city", title: ["Proexsi", "AGM"],
-    desc: "Gestión municipal integrada: una plataforma que integra las áreas de servicio a la comunidad y de soporte municipal, digitaliza la atención al vecino y entrega a la Alta Dirección información para planificar, controlar y decidir.",
-    meta: ["8 áreas de servicio", "6 áreas de soporte", "Alta dirección"],
-    pdf: { href: "docs/brochure-agm.pdf", label: "Descargar brochure AGM", size: "PDF · 580 KB" },
-    layers: [
-      COMUNIDAD,
-      { tone: "srv", label: "Áreas de servicio", type: "blocks", items: [
-        ["receipt", "Rentas Municipales", ["Patentes Municipales", "Declaración de Trabajadores y Capital", "Permisos", "Aseo Domiciliario"]],
-        ["car", "Tránsito", ["Permisos de Circulación", "Licencias de Conducir", "Registro de Multas", "Petrinovic ATS II"]],
-        ["heart", "Desarrollo Social", ["Asistencia Social y Judicial", "Control de Beneficios", "OMIL", "Desarrollo Comunitario", "Organizaciones Comunitarias", "Tarjeta Vecino", "Subvenciones", "Cursos y Talleres"]],
-        ["ticket", "Culturales", ["E-Ticket", "Gestión de Teatro", "Eventos", "Museos", "Ferias", "Talleres y Cursos"]],
-        ["eye", "Inspección y Operaciones", ["Inspección Municipal", "Seguridad Ciudadana", "Gestión Operaciones", "Inspección Digital"]],
-        ["gavel", "Juzgados Policía Local", ["Seguimiento de Causas", "Partes Empadronados", "Multas Tag"]],
-        ["doc", "Gobierno Digital", ["OIRS", "Control electrónico de Decretos", "Transparencia"]],
-        ["cap", "Servicios Traspasados", ["Salud", "Educación", "Gestión de Cementerios"]] ] },
-      { tone: "sop", label: "Áreas de soporte", type: "blocks", items: [
-        ["users", "RRHH", ["Personal", "Ficha Única", "Contrataciones", "Control de Asistencia", "Movimiento de Personal", "Remuneraciones", "Certificados de Renta", "Liquidaciones de Sueldo", "Integración Previred", "Bienestar", "Afiliados", "Prestaciones", "Bonificaciones", "Beneficios"]],
-        ["chart", "Administración y Finanzas", ["Contabilidad Gubernamental", "Contabilidad Financiera", "Manejo Presupuestario", "Conciliación Bancaria", "Decretos de Pago", "Pre obligaciones", "Documentos de Garantía", "Cuenta Única Proveedores (CUP)", "Control de Proveedores", "Adquisiciones y Control Bodega", "Inventario", "Activo Fijo", "Gestión Contable y Financiera"]],
-        ["doc", "Secretaría", ["Gestión Documental (OFPA)", "Control Decretos", "Banco Comunal de Proyectos", "Tabla Concejo", "Consulta Ciudadana", "Biblioteca Digital"]],
-        ["wallet", "Tesorería", ["Ingresos (CUC)", "Egresos (Resolución de Pagos)", "Cobranzas", "Convenios de Pago (Control Online)"]],
-        ["coins", "Giros", null, "Cuenta Única Contribuyente (CUC), que alimenta a Tesorería."],
-        ["globe", "Intranet Online", null, "Portal de autoservicio conectado con Secretaría y RRHH."] ] },
-      { tone: "dir", label: "Alta dirección", type: "steps", note: "<b>De los datos a las decisiones.</b> Indicadores consolidados de todas las áreas para planificar, controlar y decidir.", items: [
-        ["chart", "01", "Análisis de información / KPI · SIG", "Indicadores consolidados de todas las áreas."],
-        ["target", "02", "Planificación estratégica y control de gestión", "Metas, seguimiento y control."],
-        ["tree", "03", "Toma de decisiones", "Políticas organizacionales y asignación de recursos."] ] } ] },
-  { tab: "Proexsi AGCM", icon: "layers", title: ["Proexsi", "AGCM"],
-    desc: "La plataforma de administración y gestión de corporaciones, modular e integrada bajo el concepto GRP, con la misma base tecnológica y calidad certificada de Proexsi AGM.",
-    meta: ["Modular", "Integrada GRP", "ISO 9001"], pdf: null,
-    layers: [
-      { tone: "srv", label: "Plataforma", type: "blocks", cols: 2, items: [
-        ["layers", "Modular", null, "Plataforma organizada en módulos según las necesidades de la corporación."],
-        ["grid", "Integrada", null, "Bajo el concepto GRP (Government Resource Planning)."] ] },
-      { tone: "sop", label: "Respaldo", type: "blocks", cols: 2, items: [
-        ["shield", "ISO 9001:2015", null, "Desarrollo y mantención de sistemas con calidad certificada."],
-        ["server", "Data center propio", null, "Operación en la infraestructura de Proexsi."] ] } ] },
-  { tab: "Sistemas de Gestión", icon: "web", title: ["Sistemas de", "Gestión"],
-    desc: "Diseñamos y desarrollamos sistemas que mejoran significativamente los resultados de nuestros clientes, integrados con su plataforma.",
-    meta: ["A la medida", "ISO 9001", "+45 años"], pdf: null,
-    layers: [
-      { tone: "srv", label: "Cómo trabajamos", type: "steps", items: [
-        ["web", "01", "Diseño", "Sistemas a la medida de cada institución."],
-        ["chip", "02", "Desarrollo", "Construcción e integración con la plataforma GRP."],
-        ["shield", "03", "Mantención", "Calidad certificada ISO 9001:2015."] ] },
-      { tone: "sop", label: "Respaldo", type: "blocks", cols: 2, items: [
-        ["award", "+45 años", null, "Desarrollando para el sector público en Chile."],
-        ["server", "Data center propio", null, "Sus sistemas operados en infraestructura certificada."] ] } ] },
-  { tab: "Data Center", icon: "server", title: ["Data", "Center"],
-    desc: "Seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos diariamente, en infraestructura propia y certificada.",
-    meta: ["Hosting", "Housing", "ISO 9001"], pdf: null,
-    layers: [
-      { tone: "srv", label: "Servicios", type: "blocks", cols: 2, items: [
-        ["server", "Hosting", ["Seguridad", "Confiabilidad", "Rapidez", "Estabilidad"], "Alojamos y operamos sus sistemas."],
-        ["chip", "Housing", ["Seguridad", "Conectividad", "Estabilidad", "Escalabilidad"], "Sus equipos en nuestra infraestructura certificada."] ] },
-      { tone: "sop", label: "Calidad", type: "blocks", cols: 2, items: [
-        ["shield", "ISO 9001:2015", null, "Operación del data center certificada."],
-        ["pin", "Santiago", null, "Infraestructura propia operada por Proexsi."] ] } ] },
-  { tab: "Servicios por Internet", icon: "citizen", title: ["Servicios por", "Internet"],
-    desc: "Simplificamos el acceso a los procesos que requiere la comunidad, interna y externa: servicios más expeditos, libres de errores, oportunos y transparentes.",
-    meta: ["Para vecinos", "Para funcionarios"], pdf: null,
-    layers: [
-      COMUNIDAD,
-      { tone: "srv", label: "Servicios", type: "blocks", items: [
-        ["card", "Pagos en línea", null, "Pagos municipales desde internet."],
-        ["chat", "Consultas y trámites", null, "Solicitudes y trámites en línea."],
-        ["car", "Permisos de circulación", null, "Pago y obtención en línea."],
-        ["receipt", "Patentes municipales", null, "Pago en línea."],
-        ["city", "Aseo domiciliario", null, "Pago en línea."],
-        ["gavel", "Juzgados de Policía Local", null, "Seguimiento de causas y pago de partes empadronados."],
-        ["car", "Licencias de conducir", null, "Toma de hora y examen teórico."],
-        ["ticket", "E-Ticket", null, "Venta de tickets para teatros o eventos."] ] } ] }
+  { tab: "Proexsi AGM", icon: "city", title: ["Proexsi", "AGM"], pdf: { href: "docs/brochure-agm.pdf", label: "Descargar brochure AGM", size: "PDF · 580 KB" }, img: "img/areas/finanzas.jpg", ui: ["Análisis presupuestario", [80, 62, 71, 45]],
+    lead: "La plataforma de administración y gestión municipal, modular, completa e integrada.",
+    text: "Doce áreas del municipio sobre una misma base, conectadas con tesorería y contabilidad, para gestionar mejor y atender más rápido a la comunidad.",
+    list: AREAS,
+    kpis: [["layers", "12 áreas", "integradas en una sola plataforma"], ["grid", "81 sistemas", "disponibles por módulos"], ["pin", "20 municipios", "de Iquique a Puerto Montt"]] },
+  { tab: "Proexsi AGCM", icon: "layers", title: ["Proexsi", "AGCM"], img: "img/area-grp.jpg", ui: ["Gestión de corporaciones", [70, 55, 82, 40]],
+    lead: "La plataforma de administración y gestión de corporaciones, modular e integrada bajo el concepto GRP.",
+    text: "La misma base tecnológica y calidad certificada de Proexsi AGM, aplicada a la administración y gestión de corporaciones.",
+    list: ["Plataforma modular", "Integrada bajo concepto GRP", "Calidad ISO 9001", "Data center propio"],
+    kpis: [["layers", "Modular", "active solo lo que necesita"], ["grid", "Integrada", "bajo el concepto GRP"], ["shield", "ISO 9001", "desarrollo y mantención certificados"]] },
+  { tab: "Sistemas de Gestión", icon: "web", title: ["Sistemas de", "Gestión"], img: "img/area-sistemas.jpg", ui: ["Proyecto a la medida", [90, 66, 48, 75]],
+    lead: "Diseñamos y desarrollamos sistemas que mejoran significativamente los resultados de nuestros clientes.",
+    text: "Cuando una necesidad no está cubierta, construimos el sistema que la institución requiere, integrado con su plataforma.",
+    list: ["Diseño de sistemas", "Desarrollo a la medida", "Mantención de sistemas", "Integración con GRP", "Calidad ISO 9001"],
+    kpis: [["award", "+45 años", "desarrollando para el sector público"], ["chart", "A la medida", "de cada institución"], ["shield", "ISO 9001", "calidad certificada"]] },
+  { tab: "Data Center", icon: "server", title: ["Data", "Center"], img: "img/area-datacenter.jpg", ui: ["Disponibilidad de servicios", [96, 93, 98, 95]],
+    lead: "Seguridad, confiabilidad, rapidez y estabilidad en los millones de datos que procesamos diariamente.",
+    text: "Hosting de sus sistemas y housing de sus equipos en infraestructura propia y certificada, con conectividad y escalabilidad.",
+    list: ["Hosting", "Housing", "Seguridad", "Conectividad", "Estabilidad", "Escalabilidad"],
+    kpis: [["shield", "ISO 9001", "operación certificada"], ["server", "Millones", "de datos procesados al día"], ["pin", "Propio", "operado por Proexsi en Santiago"]] },
+  { tab: "Servicios por Internet", icon: "citizen", title: ["Servicios por", "Internet"], img: "img/areas/servicios-internet.jpg", ui: ["Pagos en línea", [60, 85, 72, 90]],
+    lead: "Simplificamos el acceso a los procesos que requiere la comunidad, interna y externa.",
+    text: "Servicios más expeditos, libres de errores, oportunos y transparentes para vecinos y funcionarios.",
+    list: ["Pagos en línea", "Permisos de circulación", "Patentes municipales", "Aseo domiciliario", "Licencias de conducir", "Juzgados de Policía Local", "Obras", "E-Ticket", "Gestión documental"],
+    kpis: [["car", "Permisos", "de circulación en línea"], ["card", "Pagos", "municipales desde internet"], ["gavel", "Causas", "seguimiento del JPL"]] }
 ];
 const CLIENTS = [
   ["iquique","Iquique","Tarapacá",-20.21,-70.15],["alto-hospicio","Alto Hospicio","Tarapacá",-20.27,-70.10],["copiapo","Copiapó","Atacama",-27.37,-70.33],
@@ -811,25 +728,9 @@ const CLIENTS = [
 const vt = $("#vtabs");
 vt.innerHTML = SOLS.map((s, i) => `<button class="vtab" type="button" role="tab" id="vt${i}" aria-controls="tpanel" aria-selected="${i === 0}">${icon(s.icon)}<span>${s.tab}</span></button>`).join("");
 $("#solDots").innerHTML = SOLS.map((_, i) => `<i data-i="${i}"></i>`).join("");
-const chev = `<svg class="chev" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const arr = `<svg class="arr" width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><path d="M1 6h15M12 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-function layerHTML(L, li) {
-  let body = "";
-  if (L.type === "flow") {
-    body = `<div class="flow">${L.nodes.map(([ic, t], k) => (k ? arr : "") + `<span class="node"><span class="ni">${icon(ic)}</span>${t}</span>`).join("")}</div><p class="flow-note">${L.note}</p>`;
-  } else if (L.type === "blocks") {
-    body = `<div class="blocks${L.cols === 2 ? " two" : ""}">${L.items.map(([ic, name, sys, note], k) => {
-      const sub = sys ? `${sys.length} sistemas` : (note ? "Ver detalle" : "");
-      return `<button class="blk" type="button" aria-expanded="false" data-l="${li}" data-k="${k}"><span class="bi">${icon(ic)}</span><span class="bt">${name}<small>${sub}</small></span>${chev}</button>`;
-    }).join("")}</div><div class="detail" data-detail="${li}" hidden></div>`;
-  } else if (L.type === "steps") {
-    body = `<div class="steps">${L.items.map(([ic, n, t, d]) => `<div class="stp"><span class="si">${icon(ic)}</span><div><small>${n}</small><b>${t}</b><span>${d}</span></div></div>`).join("")}</div>${L.note ? `<p class="dir-note">${L.note}</p>` : ""}`;
-  }
-  return `<div class="layer t-${L.tone}"><div class="lab">${L.label}</div><div class="lb">${body}</div></div>`;
-}
-let current = 0;
+const check = `<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 6.2 2.2 2.2 4.8-4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 function showSol(i) {
-  const s = SOLS[i]; current = i;
+  const s = SOLS[i];
   vt.querySelectorAll(".vtab").forEach((b, k) => { b.setAttribute("aria-selected", k === i); b.tabIndex = k === i ? 0 : -1; });
   document.querySelectorAll("#solDots i").forEach((d, k) => d.classList.toggle("on", k <= i));
   $("#tpanel").setAttribute("aria-labelledby", "vt" + i);
@@ -837,25 +738,20 @@ function showSol(i) {
     ? `<a class="pdf" href="${s.pdf.href}" target="_blank" rel="noopener"><span class="pi">${icon("download")}</span><span>${s.pdf.label}<small>${s.pdf.size}</small></span></a>`
     : `<span class="pdf soon" aria-disabled="true"><span class="pi">${icon("file")}</span><span>Brochure en PDF<small>Próximamente</small></span></span>`;
   $("#tpanel").innerHTML = `
-    <div class="ph-head">
-      <div><h3>${s.title[0]} <span>${s.title[1]}</span></h3><p>${s.desc}</p><div class="ph-meta">${s.meta.map(m => `<span>${m}</span>`).join("")}</div></div>
-      ${pdf}
-    </div>
-    <div class="layers">${s.layers.map(layerHTML).join("")}</div>
-    <div class="ph-foot"><a class="link" href="#contacto">Quiero conocer <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>`;
+    <div class="sp">
+      <div class="sp-media"><img src="${s.img}" alt="">
+        <div class="sp-ui"><b>${s.ui[0]}</b>${s.ui[1].map((v, k) => `<span class="row2">${["Enero","Febrero","Marzo","Abril"][k]}<span class="bar"><i style="width:${v}%"></i></span></span>`).join("")}<small>Datos ilustrativos</small></div>
+        <div class="sp-kpis">${s.kpis.map(([ic, b, t], k) => `<div style="--i:${k}"><span class="ki">${icon(ic)}</span><b>${b}</b><span>${t}</span></div>`).join("")}</div>
+      </div>
+      <div class="sp-body">
+        <h3 style="--i:0">${s.title[0]} <span>${s.title[1]}</span></h3>
+        <p class="sp-lead" style="--i:1">${s.lead}</p>
+        <p class="sp-text" style="--i:2">${s.text}</p>
+        <ul class="sp-list" style="--i:3">${s.list.map(l => `<li><span class="ck">${check}</span>${l}</li>`).join("")}</ul>
+        <div class="sp-actions" style="--i:4">${pdf}<a class="link" href="#contacto">Quiero conocer <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+      </div>
+    </div>`;
 }
-$("#tpanel").addEventListener("click", (e) => {
-  const b = e.target.closest(".blk"); if (!b) return;
-  const L = SOLS[current].layers[+b.dataset.l], [ic, name, sys, note] = L.items[+b.dataset.k];
-  const det = $("#tpanel").querySelector(`[data-detail="${b.dataset.l}"]`), open = b.getAttribute("aria-expanded") === "true";
-  b.parentElement.querySelectorAll(".blk").forEach(x => x.setAttribute("aria-expanded", "false"));
-  if (open) { det.hidden = true; return; }
-  b.setAttribute("aria-expanded", "true");
-  det.innerHTML = `<h4>${name}</h4>${note ? `<p>${note}</p>` : ""}${sys ? `<ul class="syslist">${sys.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}`;
-  det.hidden = false;
-  // En pantallas angostas el detalle se abre justo bajo el botón; en las anchas, bajo la grilla
-  if (matchMedia("(max-width: 440px)").matches) b.after(det); else b.parentElement.after(det);
-});
 vt.addEventListener("click", (e) => { const b = e.target.closest(".vtab"); if (b) showSol([...vt.children].indexOf(b)); });
 vt.addEventListener("keydown", (e) => {
   if (!["ArrowDown","ArrowUp","ArrowLeft","ArrowRight"].includes(e.key)) return; e.preventDefault();

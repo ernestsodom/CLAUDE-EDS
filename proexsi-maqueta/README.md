@@ -112,9 +112,7 @@ Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea
 1. **Header blanco** con logo, menú central con desplegables (Soluciones, Contenidos) y enlace "Contacto".
 2. **Hero**: el de la v6 con el mapa de Chile, dentro de un bloque azul con la esquina inferior derecha redondeada, y enlace "Solicite una demostración".
 3. **Fila de cifras**: frase de posicionamiento y tres datos (+45 años, 20 municipios, 81 sistemas).
-4. **Soluciones en pestañas verticales**: AGM, AGCM, Sistemas de Gestión, Data Center y Servicios por Internet. Cada pestaña muestra una descripción breve, etiquetas, un botón de brochure en PDF y un diagrama por capas con bloques que se despliegan.
-   - **AGM** sigue el brochure `docs/brochure-agm.pdf` (descargable): Comunidad → Áreas de servicio (8) → Áreas de soporte (6) → Alta dirección, con los sistemas de cada área.
-   - Las otras pestañas usan el mismo formato, con el PDF marcado como "próximamente".
+4. **Soluciones en pestañas verticales**: AGM, AGCM, Sistemas de Gestión, Data Center y Servicios por Internet. Cada pestaña muestra una foto con un panel ilustrativo y tres indicadores sobre la imagen, y a la derecha el título, la descripción, los puntos clave en una grilla con check, un botón de brochure en PDF y "Quiero conocer". AGM enlaza el brochure `docs/brochure-agm.pdf`; las demás lo marcan como "próximamente". El contenido es el mismo de antes (sin el detalle completo del brochure).
 5. **Banda de confianza** azul sobre foto, con tres tarjetas ilustradas (trayectoria, relaciones de largo plazo, calidad ISO).
 6. **Clientes**: carrusel de 20 logos con nombre y región, flechas y barra de avance.
 7. **Tecnología**: titular centrado, imagen compuesta con marco azul y tarjetas flotantes, y seis tarjetas de diferenciales.
