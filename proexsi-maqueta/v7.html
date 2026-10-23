@@ -13,8 +13,8 @@
    (azules como color principal, naranjo para detalles) y el hero de la v6 con el mapa de Chile
    dentro del bloque redondeado del hero de IPM.
    Orden: header blanco · hero · cifras · soluciones en pestañas verticales · banda de confianza
-   con 3 tarjetas · carrusel de clientes · tecnología (imagen + 6 tarjetas) · banner ·
-   prensa · formulario en banda · pie gris. */
+   con 3 tarjetas · carrusel de clientes · tecnología (imagen + 6 tarjetas) ·
+   formulario en banda · pie gris. */
 :root {
   --night: #0E1330;
   --bg: #FFFFFF;
@@ -28,11 +28,11 @@
   --blue-soft: #E7EDFF;
   --orange: #F29400;
   --orange-ink: #B86A00;
-  --warm: #FFF6EA;
-  --warm-2: #FDEBD3;
-  --warm-line: #F5DDBD;
-  --warm-ink: #3A2A16;
-  --warm-muted: #6E5A42;
+  --cool: #EEF5FD;
+  --cool-2: #E1EDFB;
+  --cool-line: #CFE0F5;
+  --cool-ink: #111735;
+  --cool-muted: #4C5A78;
   --grad: linear-gradient(120deg, #0E1330 0%, #0B2A7A 55%, #1A4BD6 100%);
   --logo-filter: none;
   --display: "Sora", "Segoe UI", Helvetica, Arial, sans-serif;
@@ -42,14 +42,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0A0F26; --soft: #0F1633; --card: #131B3D; --ink: #EDF0FA; --muted: #9EA7C5; --line: #222C55;
-    --blue: #86A6FF; --bright: #6F92FF; --blue-soft: #16244F; --orange: #FFAA2B; --orange-ink: #FFB84D; --warm: #241C16; --warm-2: #2E241A; --warm-line: #45362A; --warm-ink: #F4E9DC; --warm-muted: #CBB79F;
+    --blue: #86A6FF; --bright: #6F92FF; --blue-soft: #16244F; --orange: #FFAA2B; --orange-ink: #FFB84D; --cool: #12203F; --cool-2: #172A52; --cool-line: #24386A; --cool-ink: #EDF0FA; --cool-muted: #A9B4CF;
     --logo-filter: brightness(0) invert(1);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0A0F26; --soft: #0F1633; --card: #131B3D; --ink: #EDF0FA; --muted: #9EA7C5; --line: #222C55;
-  --blue: #86A6FF; --bright: #6F92FF; --blue-soft: #16244F; --orange: #FFAA2B; --orange-ink: #FFB84D; --warm: #241C16; --warm-2: #2E241A; --warm-line: #45362A; --warm-ink: #F4E9DC; --warm-muted: #CBB79F;
+  --blue: #86A6FF; --bright: #6F92FF; --blue-soft: #16244F; --orange: #FFAA2B; --orange-ink: #FFB84D; --cool: #12203F; --cool-2: #172A52; --cool-line: #24386A; --cool-ink: #EDF0FA; --cool-muted: #A9B4CF;
   --logo-filter: brightness(0) invert(1);
   color-scheme: dark;
 }
@@ -154,8 +154,8 @@ p { margin: 0; }
 .vtab[aria-selected="true"] { background: var(--grad); color: #FFFFFF; border-color: transparent; box-shadow: 0 10px 20px -10px rgb(0 53 169 / .6); }
 .vtab[aria-selected="true"]::after { content: ""; position: absolute; right: -19px; top: 8px; bottom: 8px; width: 2px; background: var(--orange); }
 .tpanel { min-width: 0; }
-.sp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 44px); align-items: stretch; }
-.sp-media { position: relative; border-radius: 22px; overflow: hidden; min-height: 460px; isolation: isolate; background: var(--grad); }
+.sp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 44px); align-items: center; }
+.sp-media { position: relative; border-radius: 22px; overflow: hidden; height: 480px; isolation: isolate; background: var(--grad); }
 .sp-media > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; animation: zoomIn 1.2s cubic-bezier(.22,1,.36,1) both; }
 @keyframes zoomIn { from { transform: scale(1.08); } to { transform: scale(1); } }
 .sp-media::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(14 19 48 / .05) 25%, rgb(14 19 48 / .88)); }
@@ -182,8 +182,8 @@ p { margin: 0; }
 .sp-lead { font-size: 18px; line-height: 1.45; font-weight: 500; }
 .sp-text { color: var(--muted); font-size: 15px; }
 .sp-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.sp-list li { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 12px; background: var(--warm); border: 1px solid var(--warm-line); color: var(--warm-ink); font-size: 14px; font-weight: 500; line-height: 1.25; transition: border-color .2s, transform .25s cubic-bezier(.34,1.56,.64,1), background .2s; }
-.sp-list li:hover { border-color: #F2B866; background: var(--warm-2); transform: translateX(3px); }
+.sp-list li { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 12px; background: var(--cool); border: 1px solid var(--cool-line); color: var(--cool-ink); font-size: 14px; font-weight: 500; line-height: 1.25; transition: border-color .2s, transform .25s cubic-bezier(.34,1.56,.64,1), background .2s; }
+.sp-list li:hover { border-color: #9DBDF0; background: var(--cool-2); transform: translateX(3px); }
 .sp-list .ck { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #0035A9, #2F5BFF); color: #FFFFFF; display: grid; place-items: center; flex: none; }
 .sp-actions { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding-top: 4px; }
 .pdf { display: inline-flex; gap: 12px; align-items: center; padding: 10px 18px 10px 10px; border-radius: 14px; background: var(--grad); color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14.5px; line-height: 1.25; box-shadow: 0 12px 24px -14px rgb(0 53 169 / .7); transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
@@ -194,8 +194,8 @@ p { margin: 0; }
 .pdf.soon { background: var(--soft); color: var(--muted); box-shadow: none; border: 1px dashed var(--line); cursor: default; }
 .pdf.soon .pi { background: var(--card); color: var(--muted); }
 .pdf.soon:hover { transform: none; }
-@media (max-width: 960px) { .sp { grid-template-columns: minmax(0, 1fr); } .sp-media { min-height: 380px; } }
-@media (max-width: 480px) { .sp-list { grid-template-columns: minmax(0, 1fr); } .sp-kpis { grid-template-columns: minmax(0, 1fr); } .sp-kpis div { grid-template-columns: 32px minmax(0, 1fr); column-gap: 12px; row-gap: 0; align-items: center; padding: 10px 12px; } .sp-kpis .ki { grid-row: span 2; } .sp-kpis div b, .sp-kpis div > span:last-child { grid-column: 2; } .sp-kpis b { font-size: 15.5px; } .sp-media { min-height: 480px; } }
+@media (max-width: 960px) { .sp { grid-template-columns: minmax(0, 1fr); } .sp-media { height: 420px; } }
+@media (max-width: 480px) { .sp-list { grid-template-columns: minmax(0, 1fr); } .sp-kpis { grid-template-columns: minmax(0, 1fr); } .sp-kpis div { grid-template-columns: 32px minmax(0, 1fr); column-gap: 12px; row-gap: 0; align-items: center; padding: 10px 12px; } .sp-kpis .ki { grid-row: span 2; } .sp-kpis div b, .sp-kpis div > span:last-child { grid-column: 2; } .sp-kpis b { font-size: 15.5px; } .sp-media { height: 500px; } }
 @media (prefers-reduced-motion: reduce) { .sp-media > img, .sp-ui, .sp-ui .bar i, .sp-kpis div, .sp-body > * { animation: none; } .sp-list li { transition: none; } }
 @media (max-width: 640px) {
   .tabs-wrap { grid-template-columns: minmax(0, 1fr); }
@@ -216,16 +216,18 @@ p { margin: 0; }
 .trust .dots i { background: rgb(255 255 255 / .35); }
 .trust .dots i.on { background: var(--orange); }
 .tcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.tcard { background: var(--warm); color: var(--warm-ink); border: 1px solid var(--warm-line); border-radius: 16px; overflow: hidden; display: grid; grid-template-rows: 150px auto; }
-.tcard .art { position: relative; background: linear-gradient(180deg, var(--warm), var(--warm-2)); display: grid; place-items: center; overflow: hidden; }
-.tcard .art svg.lines { position: absolute; inset: 0; width: 100%; height: 100%; color: #F2C48A; opacity: .8; }
+.tcard { background: var(--cool); color: var(--cool-ink); border: 1px solid var(--cool-line); border-radius: 16px; overflow: hidden; display: grid; grid-template-rows: 150px auto; }
+.tcard .art { position: relative; background: linear-gradient(180deg, var(--cool), var(--cool-2)); display: grid; place-items: center; overflow: hidden; }
+.tcard .art .art-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .42; filter: saturate(.9); }
+.tcard .art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(238 245 253 / .15) 0%, var(--cool) 100%); }
+.tcard .pair { z-index: 1; }
 .tcard .pair { position: relative; display: flex; align-items: center; }
-.tcard .pair .c { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; border: 3px solid var(--warm); box-shadow: 0 8px 18px -8px rgb(120 70 0 / .45); overflow: hidden; }
+.tcard .pair .c { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; border: 3px solid var(--cool); box-shadow: 0 8px 18px -8px rgb(0 53 169 / .45); overflow: hidden; }
 .tcard .pair .c.photo { margin-left: -10px; }
 .tcard .pair .c.photo img { width: 100%; height: 100%; object-fit: cover; }
-.tcard .tx { padding: 22px 22px 26px; display: grid; gap: 8px; background: var(--warm); border-top: 1px solid var(--warm-line); }
+.tcard .tx { padding: 22px 22px 26px; display: grid; gap: 8px; background: var(--cool); border-top: 1px solid var(--cool-line); }
 .tcard h3 { font-size: 18px; font-weight: 600; }
-.tcard p { font-size: 14.5px; color: var(--warm-muted); }
+.tcard p { font-size: 14.5px; color: var(--cool-muted); }
 @media (max-width: 860px) { .tcards { grid-template-columns: 1fr; } .trust-head .dots { display: none; } }
 
 /* ---------- Clientes (IPM: logos con nombre, flechas y barra) ---------- */
@@ -259,30 +261,12 @@ p { margin: 0; }
 .composite .f1 { left: 0; top: 18%; }
 .composite .f2 { right: 0; bottom: 14%; }
 .fgrid { position: relative; z-index: 3; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: -10px; padding-top: 0; }
-.fcard { background: var(--warm); border-radius: 14px; padding: 28px 24px; text-align: center; display: grid; justify-items: center; gap: 10px; box-shadow: 0 2px 4px rgb(14 19 48 / .04), 0 16px 34px -20px rgb(14 19 48 / .3); border: 1px solid var(--warm-line); }
+.fcard { background: var(--cool); border-radius: 14px; padding: 28px 24px; text-align: center; display: grid; justify-items: center; gap: 10px; box-shadow: 0 2px 4px rgb(14 19 48 / .04), 0 16px 34px -20px rgb(14 19 48 / .3); border: 1px solid var(--cool-line); }
 .fcard .ic { display: grid; place-items: center; }
-.fcard h3 { font-size: 17px; font-weight: 600; color: var(--warm-ink); }
-.fcard p { color: var(--warm-muted); font-size: 14.5px; }
+.fcard h3 { font-size: 17px; font-weight: 600; color: var(--cool-ink); }
+.fcard p { color: var(--cool-muted); font-size: 14.5px; }
 @media (max-width: 900px) { .fgrid { grid-template-columns: 1fr 1fr; } .composite .float { display: none; } }
 @media (max-width: 560px) { .fgrid { grid-template-columns: 1fr; } }
-
-/* ---------- Banner (IPM) ---------- */
-.banner { border-radius: 18px; background: var(--grad); color: #FFFFFF; display: flex; align-items: center; gap: 24px; padding: clamp(24px, 4vw, 40px); position: relative; overflow: hidden; isolation: isolate; flex-wrap: wrap; }
-.banner::before { content: ""; position: absolute; inset: 0; z-index: -1; background: repeating-radial-gradient(circle at 12% 50%, rgb(255 255 255 / .05) 0 2px, transparent 2px 34px); }
-.banner .mark { height: 56px; padding: 0 18px; border-radius: 12px; background: #FFFFFF; display: grid; place-items: center; flex: none; }
-.banner .mark img { width: 130px; }
-.banner h3 { font-size: clamp(18px, 2vw, 22px); font-weight: 600; flex: 1; min-width: 220px; }
-.banner .btn-white { min-width: 180px; }
-
-/* ---------- Prensa (IPM) ---------- */
-.media-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.mcard { flex: 0 0 calc((100% - 3 * 16px) / 4); scroll-snap-align: start; border: 1px solid var(--warm-line); border-radius: 12px; padding: 22px; min-height: 220px; display: grid; align-content: space-between; gap: 22px; background: var(--warm); text-decoration: none; }
-.mcard:hover { border-color: var(--blue); }
-.mcard .src { font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--blue); }
-.mcard b { font-size: 15.5px; line-height: 1.4; }
-.mcard span { color: var(--orange-ink); font-weight: 600; font-size: 14px; }
-@media (max-width: 900px) { .mcard { flex-basis: calc((100% - 16px) / 2); } }
-@media (max-width: 520px) { .mcard { flex-basis: 86%; } }
 
 /* ---------- Formulario en banda (IPM) ---------- */
 .form-band { background: var(--grad); color: #FFFFFF; position: relative; isolation: isolate; overflow: hidden; }
@@ -307,9 +291,9 @@ form.big { background: var(--card); color: var(--ink); border-radius: 18px; padd
 
 /* ---------- Pie gris (IPM) ---------- */
 footer { background: var(--soft); color: var(--muted); font-size: 14px; }
-.f-top { display: grid; grid-template-columns: minmax(0, 1.2fr) repeat(4, minmax(0, 1fr)); gap: 24px; padding-block: 48px 36px; border-bottom: 1px solid var(--line); }
-.f-top .logo-box { display: inline-grid; place-items: center; padding: 18px 22px; border-radius: 16px; background: #0035A9; }
-.f-top .logo-box img { width: 150px; height: auto; filter: brightness(0) invert(1); }
+.f-top { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); gap: 24px; padding-block: 48px 36px; border-bottom: 1px solid var(--line); }
+.f-top .flogo img { width: 180px; height: auto; filter: var(--logo-filter); }
+.f-top .flogo p { margin-top: 12px; font-size: 13.5px; }
 .f-top h4 { color: var(--ink); font-size: 14.5px; margin-bottom: 10px; font-family: var(--body); font-weight: 600; letter-spacing: 0; }
 .f-top ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .f-top a { text-decoration: none; }
@@ -401,18 +385,17 @@ svg.i .ac { stroke: var(--orange); }
   <div class="wrap">
     <a class="brand" href="#top"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"></a>
     <nav aria-label="Principal">
-      <div><a href="#confianza">Nosotros</a></div>
+      <div><a href="nosotros.html">Nosotros</a></div>
       <div><button type="button" aria-haspopup="true">Soluciones <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
-        <div class="drop"><a href="#soluciones" data-tab="0">Proexsi AGM</a><a href="#soluciones" data-tab="1">Proexsi AGCM</a><a href="#soluciones" data-tab="2">Sistemas de Gestión</a><a href="#soluciones" data-tab="3">Data Center</a><a href="#soluciones" data-tab="4">Servicios por Internet</a></div></div>
-      <div><a href="#tecnologia">Tecnología</a></div>
-      <div><a href="#clientes">Clientes</a></div>
-      <div><button type="button" aria-haspopup="true">Contenidos <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
-        <div class="drop"><a href="#prensa">Proexsi en los medios</a></div></div>
+        <div class="drop"><a href="soluciones.html#grp">Soluciones GRP</a><a href="soluciones.html#sistemas">Sistemas de Gestión</a><a href="soluciones.html#areas">Áreas y sistemas AGM</a></div></div>
+      <div><button type="button" aria-haspopup="true">Data Center <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        <div class="drop"><a href="data-center.html#hosting">Hosting</a><a href="data-center.html#housing">Housing</a></div></div>
+      <div><a href="clientes.html">Clientes</a></div>
     </nav>
-    <a class="contact-link" href="#contacto"><i class="ico" data-icon="chat"></i>Contacto</a>
+    <a class="contact-link" href="contacto.html"><i class="ico" data-icon="chat"></i>Contacto</a>
     <button class="burger" type="button" id="burger" aria-expanded="false" aria-controls="mnav" aria-label="Abrir menú"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
   </div>
-  <div class="mnav" id="mnav" hidden><div class="wrap"><a href="#confianza">Nosotros</a><a href="#soluciones">Soluciones</a><a href="#tecnologia">Tecnología</a><a href="#clientes">Clientes</a><a href="#prensa">Contenidos</a><a href="#contacto">Contacto</a></div></div>
+  <div class="mnav" id="mnav" hidden><div class="wrap"><a href="nosotros.html">Nosotros</a><a href="soluciones.html">Soluciones</a><a href="data-center.html">Data Center</a><a href="clientes.html">Clientes</a><a href="contacto.html">Contacto</a></div></div>
 </header>
 
 <main id="top">
@@ -465,17 +448,17 @@ svg.i .ac { stroke: var(--orange); }
       </div>
       <div class="tcards">
         <article class="tcard">
-          <div class="art"><svg class="lines" viewBox="0 0 300 150" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1"><ellipse cx="80" cy="150" rx="70" ry="70"/><ellipse cx="80" cy="150" rx="40" ry="70"/><ellipse cx="80" cy="150" rx="10" ry="70"/><path d="M10 120h140M14 100h132M26 85h108"/></g></svg>
+          <div class="art"><img class="art-bg" src="img/slide-experiencia.jpg" alt="">
             <div class="pair"><span class="c icon"><i class="ico" data-icon="award"></i></span><span class="c photo"><img src="img/pilar-trayectoria.jpg" alt=""></span></div></div>
           <div class="tx"><h3>Sólida trayectoria</h3><p>Más de 45 años sosteniendo procesos de misión crítica. Únicos en Chile acompañando la transformación digital del sector público.</p></div>
         </article>
         <article class="tcard">
-          <div class="art"><svg class="lines" viewBox="0 0 300 150" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M0 60c60-30 100 30 150 0s90-30 150 0M0 100c60-30 100 30 150 0s90-30 150 0"/></g></svg>
+          <div class="art"><img class="art-bg" src="img/slide-innovacion.jpg" alt="">
             <div class="pair"><span class="c photo" style="margin-left:0"><img src="img/pilar-relaciones.jpg" alt=""></span><svg width="34" height="16" viewBox="0 0 34 16" aria-hidden="true" style="margin:0 8px;color:#F29400"><path d="M2 8h28M24 3l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c icon"><i class="ico" data-icon="handshake"></i></span></div></div>
           <div class="tx"><h3>Relaciones de largo plazo</h3><p>Calidad, satisfacción, servicio integral e innovación en cada proyecto, con una sola plataforma para todo el municipio.</p></div>
         </article>
         <article class="tcard">
-          <div class="art"><svg class="lines" viewBox="0 0 300 150" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M20 140l40-60h60l30-50h60l40 60M160 140l30-40h50M60 80l-20-50"/></g></svg>
+          <div class="art"><img class="art-bg" src="img/area-datacenter.jpg" alt="">
             <div class="pair"><span class="c icon"><i class="ico" data-icon="shield"></i></span><span class="c photo"><img src="img/pilar-iso.jpg" alt=""></span></div></div>
           <div class="tx"><h3>Calidad certificada ISO 9001</h3><p>Infraestructura y sistemas seguros que aseguran la continuidad operacional, con data center propio certificado.</p></div>
         </article>
@@ -523,26 +506,6 @@ svg.i .ac { stroke: var(--orange); }
     </div>
   </section>
 
-  <!-- 7. BANNER -->
-  <section class="wrap" aria-label="Conozca más">
-    <div class="banner">
-      <span class="mark"><img src="img/logo-proexsi.png" alt=""></span>
-      <h3>Conozca más sobre las soluciones y la tecnología de Proexsi</h3>
-      <a class="btn btn-white" href="#soluciones">Quiero conocer</a>
-    </div>
-  </section>
-
-  <!-- 9. PRENSA -->
-  <section class="sec" id="prensa">
-    <div class="wrap">
-      <div class="media-head"><h2 class="h2">Proexsi en los medios</h2></div>
-      <div class="carousel" data-car style="grid-template-columns:minmax(0,1fr)">
-        <div class="track" id="mTrack"></div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:12px" class="arrows" id="mArrows"><button type="button" data-prev-for="mTrack" aria-label="Anteriores"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4 3 8l4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><button type="button" data-next-for="mTrack" aria-label="Siguientes"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
-    </div>
-  </section>
-
   <!-- 10. FORMULARIO -->
   <section class="form-band" id="contacto">
     <div class="wrap">
@@ -579,11 +542,10 @@ svg.i .ac { stroke: var(--orange); }
 
 <footer>
   <div class="wrap f-top">
-    <div><span class="logo-box"><img src="img/logo-proexsi.png" alt="Proexsi"></span></div>
-    <div><h4>Soluciones</h4><ul><li><a href="#soluciones">Proexsi AGM</a></li><li><a href="#soluciones">Proexsi AGCM</a></li><li><a href="#soluciones">Sistemas de Gestión</a></li><li><a href="#soluciones">Data Center</a></li><li><a href="#soluciones">Servicios por Internet</a></li></ul></div>
-    <div><h4>Tecnología</h4><ul><li><a href="#tecnologia">Data center</a></li><li><a href="#tecnologia">Calidad ISO 9001</a></li></ul></div>
-    <div><h4>Contenidos</h4><ul><li><a href="#prensa">Proexsi en los medios</a></li></ul></div>
-    <div><h4>Institucional</h4><ul><li><a href="#confianza">Nosotros</a></li><li><a href="#clientes">Clientes</a></li><li><a href="#acceso">Acceso clientes</a></li><li><a href="#contacto">Contacto</a></li></ul></div>
+    <div class="flogo"><img src="img/logo-proexsi.png" alt="Proexsi" width="219" height="35"><p>Tecnologías de información para misión crítica.</p></div>
+    <div><h4>Soluciones</h4><ul><li><a href="soluciones.html#grp">Soluciones GRP</a></li><li><a href="soluciones.html#agm">Proexsi AGM</a></li><li><a href="soluciones.html#agcm">Proexsi AGCM</a></li><li><a href="soluciones.html#sistemas">Sistemas de Gestión</a></li><li><a href="soluciones.html#areas">Áreas y sistemas</a></li></ul></div>
+    <div><h4>Data Center</h4><ul><li><a href="data-center.html#hosting">Hosting</a></li><li><a href="data-center.html#housing">Housing</a></li><li><a href="data-center.html#iso">Calidad ISO 9001</a></li></ul></div>
+    <div><h4>Institucional</h4><ul><li><a href="nosotros.html">Nosotros</a></li><li><a href="clientes.html">Clientes</a></li><li><a href="#acceso">Acceso clientes</a></li><li><a href="contacto.html">Contacto</a></li></ul></div>
   </div>
   <div class="wrap f-mid">
     <div><h4>Síganos en redes sociales</h4><div class="social" aria-label="Redes sociales (enlaces por definir)"><span title="LinkedIn"><i class="ico" data-icon="linkedin"></i></span><span title="YouTube"><i class="ico" data-icon="youtube"></i></span><span title="Facebook"><i class="ico" data-icon="facebook"></i></span><span title="X"><i class="ico" data-icon="x"></i></span></div></div>
@@ -596,13 +558,13 @@ svg.i .ac { stroke: var(--orange); }
 <aside class="notes" id="notes" hidden aria-label="Notas de la versión 7">
   <h4>Versión 7: estructura de ipm.com.br</h4>
   <ul>
-    <li><b>Mismo orden de secciones que IPM:</b> header blanco, hero redondeado, cifras, soluciones en pestañas verticales, banda de confianza, clientes, tecnología, banner, prensa, formulario y pie gris (sin testimonios ni casos).</li>
+    <li><b>Mismo orden de secciones que IPM:</b> header blanco, hero redondeado, cifras, soluciones en pestañas verticales, banda de confianza, clientes, tecnología, formulario y pie gris.</li>
     <li><b>Hero de la v6</b> (mismo azul, mapa, botones y efectos) con una foto del data center de fondo, dentro del bloque redondeado de IPM.</li>
     <li><b>Colores Proexsi:</b> azules como principal y naranjo para detalles.</li>
-    <li><b>Contenido por definir:</b> las notas de prensa son plantillas; Proexsi debe aportar las reales.</li>
     <li><b>Soluciones:</b> foto con indicadores, descripción y lista de puntos clave; AGM incluye el brochure en PDF descargable.</li>
     <li><b>Iconografía nueva:</b> set propio de línea redondeada con detalle naranjo; las tarjetas de diferenciales se animan al pasar el mouse.</li>
-    <li><b>Tarjetas en naranjo neutro:</b> confianza, diferenciales, prensa y puntos clave usan un fondo crema anaranjado con borde suave.</li>
+    <li><b>Tarjetas en celeste:</b> confianza (con foto en la mitad superior), diferenciales y puntos clave usan un fondo celeste suave.</li>
+    <li><b>Páginas interiores:</b> Nosotros, Soluciones, Data Center, Clientes y Contacto, enlazadas desde el menú.</li>
     <li><b>Formulario y redes:</b> demostrativos, no envían datos ni enlazan.</li>
   </ul>
 </aside>
@@ -776,12 +738,10 @@ vt.addEventListener("keydown", (e) => {
   const bs = [...vt.children], c = bs.indexOf(document.activeElement), n = (c + (["ArrowDown","ArrowRight"].includes(e.key) ? 1 : -1) + bs.length) % bs.length;
   showSol(n); bs[n].focus();
 });
-document.querySelectorAll("[data-tab]").forEach(a => a.addEventListener("click", () => showSol(+a.dataset.tab)));
 showSol(0);
 
 // ---------- Carruseles ----------
 $("#clTrack").innerHTML = CLIENTS.map(([f, n, r]) => `<div class="logo-item"><div><img src="img/clientes/${f}.png" alt="Municipalidad de ${n}"></div>${n} (${r})</div>`).join("");
-$("#mTrack").innerHTML = [1, 2, 3, 4, 5].map(i => `<a class="mcard" href="#prensa"><span class="src">[Medio ${i}]</span><b>[Titular de una nota de prensa sobre Proexsi]</b><span>Leer más →</span></a>`).join("");
 function wire(track, prev, next, bar) {
   const upd = () => {
     const max = track.scrollWidth - track.clientWidth;
@@ -795,7 +755,6 @@ function wire(track, prev, next, bar) {
   track.addEventListener("scroll", upd, { passive: true }); addEventListener("resize", upd); upd();
 }
 wire($("#clTrack"), document.querySelector("#clientes [data-prev]"), document.querySelector("#clientes [data-next]"), $("#clBar"));
-["mTrack"].forEach(id => wire(document.getElementById(id), document.querySelector(`[data-prev-for="${id}"]`), document.querySelector(`[data-next-for="${id}"]`)));
 
 // ---------- Formulario ----------
 $("#f5").innerHTML = ["Arica y Parinacota","Tarapacá","Antofagasta","Atacama","Coquimbo","Valparaíso","Metropolitana","O'Higgins","Maule","Ñuble","Biobío","La Araucanía","Los Ríos","Los Lagos","Aysén","Magallanes"].map(r => `<option>${r}</option>`).join("");

@@ -116,13 +116,26 @@ Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea
 5. **Banda de confianza** azul sobre foto, con tres tarjetas ilustradas (trayectoria, relaciones de largo plazo, calidad ISO).
 6. **Clientes**: carrusel de 20 logos con nombre y región, flechas y barra de avance.
 7. **Tecnología**: titular centrado, imagen compuesta con marco azul y tarjetas flotantes, y seis tarjetas de diferenciales.
-8. **Banner** "Conozca más" con botón.
-9. **Proexsi en los medios**: carrusel de notas (plantilla).
-10. **Formulario** en banda azul con tarjeta blanca (nombre, correo, teléfono, comuna, región, cargo, tipo de institución, motivo, mensaje).
-11. **Pie gris** con columnas de enlaces, redes, dirección y frase de marca.
+8. *(Banner y prensa eliminados.)*
+9. **Formulario** en banda azul con tarjeta blanca (nombre, correo, teléfono, comuna, región, cargo, tipo de institución, motivo, mensaje).
+10. **Pie gris** con columnas de enlaces, redes, dirección y frase de marca.
 
 **Iconografía**: set propio de íconos de línea redondeada (24 px, trazo 1,75) con un detalle naranjo en cada uno, usado en toda la página (pestañas, indicadores, tarjetas, contacto y redes). Las tarjetas de diferenciales usan un mosaico celeste que al pasar el mouse pasa a azul, gira levemente, levanta la tarjeta, dibuja una línea naranja inferior y anima el ícono (luces del servidor, bloques que se separan, barras que crecen, check que se dibuja). Al hacer scroll entran de forma escalonada.
 
-**Tarjetas en naranjo neutro**: las tarjetas de la banda de confianza, los diferenciales, las notas de prensa y los puntos clave de soluciones usan un fondo crema anaranjado (`--warm`) con borde suave, en contraste con los azules del resto de la página.
+**Tarjetas en celeste**: las tarjetas de la banda de confianza (con una foto suave en la mitad superior), los diferenciales y los puntos clave de soluciones usan un fondo celeste (`--cool`) con borde suave. La foto de cada pestaña de soluciones tiene un alto fijo para que no cambie de tamaño entre pestañas.
+
+Se eliminaron el banner "Conozca más" y la sección "Proexsi en los medios". El logo del pie va en azul sobre el fondo gris.
 
 Se eliminaron las secciones de testimonios y de casos de éxito. Las notas de prensa están marcadas entre corchetes para reemplazar con contenido real de Proexsi.
+
+### Páginas interiores de la v7
+
+Construidas con el contenido de portal.proexsi.cl y la misma línea gráfica del home (header, pie, íconos y colores compartidos en `css/site.css` y `js/site.js`). Todas parten con un hero azul con foto de fondo y ruta de navegación.
+
+- **`nosotros.html`**: historia (desde 1975, SERMENA), compromiso (5 pilares), razones de confianza, 28 alianzas estratégicas y certificación ISO 9001:2015.
+- **`soluciones.html`**: Soluciones GRP (Proexsi AGM con brochure PDF y Proexsi AGCM), Sistemas de Gestión (cómo aportamos y atributos) y las 12 áreas de AGM con sus sistemas desplegables.
+- **`data-center.html`**: infraestructura, normas internacionales, Hosting (uptime sobre 99,7%, servidores, almacenamiento, sistemas operativos, bases de datos y lenguajes), Housing (equipamiento, seguridad, conectividad y continuidad) y certificación.
+- **`clientes.html`**: 34 clientes con filtros por tipo (municipalidades, corporaciones, gobierno y otras organizaciones).
+- **`contacto.html`**: dirección, correo y teléfono copiables, certificación y formulario demostrativo.
+
+Imágenes nuevas en `img/int/`, `img/aliados/` y `img/clientes/`.
