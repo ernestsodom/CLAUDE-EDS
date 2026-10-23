@@ -1,0 +1,5 @@
+*.py
+README.md
+maqueta/canchas
+maqueta/amortiguador/*.py
+maqueta/amortiguador/amortiguador-original.webp

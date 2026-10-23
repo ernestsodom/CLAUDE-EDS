@@ -538,18 +538,66 @@ function stageName(k) { return (STAGES.find(s => s.key === k) || {}).nombre || k
 
 const KEY = 'atila-maqueta-v4';
 let S;
+/* ===================== Servidor (Vercel + Neon) ===================== */
+// En Vercel la página usa la API (/api/*) y la base de datos Neon. Fuera de Vercel (vista previa) funciona con datos locales.
+const API = { on: false, token: null };
+const TOKEN_KEY = 'atila-sesion-token';
+async function api(path, body, method) {
+  const r = await fetch('/api/' + path, { method: method || (body ? 'POST' : 'GET'),
+    headers: { 'content-type': 'application/json', ...(API.token ? { authorization: 'Bearer ' + API.token } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && API.token && path !== 'login') { endSession(); toast(j.error || 'Sesión vencida. Vuelve a ingresar.'); throw new Error(j.error || 'Sesión vencida'); }
+  if (!r.ok) throw new Error(j.error || 'No se pudo conectar con el servidor.');
+  return j;
+}
+let lastSaved = {};
+const entKeys = () => { const m = {}; S.models.forEach(x => m['modelo:' + x.id] = x); S.deals.forEach(x => m['negocio:' + x.id] = x); S.projects.forEach(x => m['proyecto:' + x.id] = x); return m; };
+const markSaved = () => { lastSaved = Object.fromEntries(Object.entries(entKeys()).map(([k, v]) => [k, JSON.stringify(v)])); lastSaved.quoteSeq = S.quoteSeq || 0; };
+let syncT = null, syncing = Promise.resolve();
+function queueSync() { clearTimeout(syncT); syncT = setTimeout(() => { syncing = syncing.then(syncNow); }, 350); }
+async function syncNow() {
+  const cur = entKeys(), upserts = [], deletes = [];
+  for (const [k, v] of Object.entries(cur)) { const j = JSON.stringify(v); if (lastSaved[k] !== j) { const [tipo, id] = k.split(':'); upserts.push({ tipo, id, data: v }); } }
+  for (const k of Object.keys(lastSaved)) if (k.includes(':') && !cur[k]) { const [tipo, id] = k.split(':'); deletes.push({ tipo, id }); }
+  if (!upserts.length && !deletes.length && (S.quoteSeq || 0) === lastSaved.quoteSeq) return;
+  try {
+    // en lotes de hasta ~3 MB para no exceder el tamaño máximo de una solicitud en Vercel
+    const lotes = [[]]; let peso = 0;
+    for (const u of upserts) { const w = JSON.stringify(u).length; if (peso + w > 3e6 && lotes[lotes.length - 1].length) { lotes.push([]); peso = 0; } lotes[lotes.length - 1].push(u); peso += w; }
+    for (let i = 0; i < lotes.length; i++) await api('state', { upserts: lotes[i], deletes: i ? [] : deletes, quoteSeq: S.quoteSeq || 0 }, 'PUT');
+    markSaved();
+  } catch (e) { toast('No se pudo guardar en el servidor: ' + e.message); }
+}
+async function loadAll() {
+  const b = await api('bootstrap');
+  USERS = b.users; UI.userId = b.me.id;
+  S = b.state;
+  if (b.me.rol !== 'cliente' && !S.models.length && (b.me.rol === 'superadmin' || b.me.negocios.includes('atila'))) { const seeded = seed(); markSaved(); S = { ...seeded, quoteSeq: 0 }; queueSync(); }
+  else { migrarTipos(); markSaved(); }
+}
+function endSession() { API.token = null; try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} UI.userId = null; USERS = []; render(); }
+async function boot() {
+  if (location.protocol.startsWith('http')) try { const r = await fetch('/api/ping', { cache: 'no-store' }); API.on = r.ok && (await r.json()).ok === true; } catch (e) { API.on = false; }
+  if (!API.on) { await initUsers(); render(); return; }
+  S = { v: 4, models: [], deals: [], projects: [], quoteSeq: 0 };
+  try { API.token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
+  if (API.token) { try { await loadAll(); } catch (e) { API.token = null; } }
+  render();
+}
+const pwField = async (usuario, clave) => API.on ? { _clave: clave } : { hash: await hashPw(usuario, clave) };
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
 if (!S || S.v !== 4) S = seed();
 // Solo quedan dos tipos de cancha: Competition PRO y Semi Panoramic. Lo que estaba en «Atila Estándar» pasa a Competition PRO.
-(function migrarTipos() {
+function migrarTipos() {
   if (!S.models.some(m => m.id === 'm3') && !S.models.some(m => m.nombre === 'Atila PRO')) return;
   S.models = S.models.filter(m => m.id !== 'm3');
   const m2 = S.models.find(m => m.id === 'm2'); if (m2) { m2.nombre = 'Atila Semi Panoramic'; m2.tipo = 'semi'; m2.desc = 'Semi panorámica: columnas blancas de transición y postes en las esquinas.'; }
   const fix = o => { if (o && o.modelo === 'm3') o.modelo = 'm1'; };
   [...S.projects, ...S.deals].forEach(x => { fix(x); fix(x.dz); (x.cotizaciones || []).forEach(q => fix(q.dz)); });
-  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-})();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch (e) { toast('No se pudo guardar: el navegador no tiene espacio. Usa archivos más livianos.'); return false; } };
+  if (!API.on) try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+}
+migrarTipos();
+const save = () => { if (API.on) { queueSync(); return true; } try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch (e) { toast('No se pudo guardar: el navegador no tiene espacio. Usa archivos más livianos.'); return false; } };
 
 const UI = { profile: 'atila', view: 'bandeja', dealFilter: 'activos', deal: null, closing: false, newDeal: false, project: 'p1',
   cal: TODAY.slice(0, 7), calProject: '', mapProv: '', projOpen: false, cfg: null };
@@ -839,7 +887,14 @@ async function hashPw(usuario, pw) {
   }
   let h = 2166136261; for (const ch of txt) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return 'f' + h.toString(16);
 }
-const saveUsers = () => { try { localStorage.setItem(UKEY, JSON.stringify(USERS)); } catch (e) {} };
+const saveUsers = () => {
+  if (!API.on) { try { localStorage.setItem(UKEY, JSON.stringify(USERS)); } catch (e) {} return Promise.resolve(true); }
+  const job = usersSync.then(() => api('users', { op: 'sync', users: USERS })).then(r => { USERS = r.users; if (r.errors && r.errors.length) { toast(r.errors.join(' ')); return false; } return true; })
+    .catch(e => { toast(e.message); return false; }).finally(() => { if (me()) render(); });
+  usersSync = job; return job;
+};
+let usersSync = Promise.resolve();
+async function flushAll() { clearTimeout(syncT); await usersSync; await syncing; await syncNow(); }
 async function initUsers() {
   try { USERS = JSON.parse(localStorage.getItem(UKEY)) || []; } catch (e) { USERS = []; }
   if (!USERS.length) {
@@ -1590,7 +1645,7 @@ document.addEventListener('click', ev => {
   const deal = () => S.deals.find(d => d.id === id);
   switch (act) {
     case 'profile': if (!canSee(id)) break; UI.profile = id; if (['usuarios', 'clave', 'inicio', 'clientes'].includes(UI.view)) UI.view = id === 'atila' ? 'bandeja' : 'inicio'; saveUI(); render(); break;
-    case 'logout': setSession(null); UI.loginError = ''; UI.dz = null; UI.view = 'bandeja'; render(); break;
+    case 'logout': if (API.on) { flushAll().finally(() => { endSession(); UI.view = 'bandeja'; }); break; } setSession(null); UI.loginError = ''; UI.dz = null; UI.view = 'bandeja'; render(); break;
     case 'nu-perfil': Object.keys(MODULOS).forEach(k => { const c = document.getElementById('nu-mod-' + k); if (c) c.checked = PERFILES[id].modulos.includes(k); }); break;
     case 'newuser': UI.newUser = !UI.newUser; UI.formError = ''; render(); break;
     case 'ureset': UI.resetUser = UI.resetUser === id ? null : id; UI.delUser = null; render(); break;
@@ -1698,6 +1753,16 @@ document.addEventListener('submit', async ev => {
   const f = ev.target, kind = f.dataset.form; if (!kind) return;
   ev.preventDefault();
   const fd = Object.fromEntries(new FormData(f));
+  if (kind === 'login' && API.on) {
+    try { const r = await api('login', { usuario: fd.usuario.trim(), clave: fd.clave }); API.token = r.token; try { localStorage.setItem(TOKEN_KEY, r.token); } catch (e) {}
+      await loadAll(); } catch (e) { UI.loginError = e.message; render(); return; }
+    const u = me(); UI.loginError = ''; UI.view = u.rol === 'cliente' ? 'p-disenar' : firstView(); UI.dz = null; render(); toast(`Hola, ${u.nombre}`); return;
+  }
+  if (kind === 'pwchange' && API.on) {
+    if (fd.nueva !== fd.repetir) { UI.formError = 'Las contraseñas nuevas no coinciden.'; render(); return; }
+    try { await api('users', { op: 'mypw', actual: fd.actual, nueva: fd.nueva }); } catch (e) { UI.formError = e.message; render(); return; }
+    UI.formError = ''; UI.view = me().rol === 'cliente' ? 'p-solicitudes' : UI.profile === 'atila' ? firstView() : 'inicio'; render(); toast('Contraseña actualizada'); return;
+  }
   if (kind === 'login') {
     const key = fd.usuario.trim().toLowerCase(), u = USERS.find(x => x.usuario.toLowerCase() === key || (x.email || '').toLowerCase() === key);
     if (!u || u.hash !== await hashPw(u.usuario, fd.clave)) { UI.loginError = 'Usuario, correo o contraseña incorrectos.'; render(); return; }
@@ -1714,26 +1779,26 @@ document.addEventListener('submit', async ev => {
     const usuario = fd.usuario.trim();
     if (USERS.some(x => x.usuario.toLowerCase() === usuario.toLowerCase())) { UI.formError = `El usuario «${usuario}» ya existe. Elige otro.`; render(); return; }
     const negocios = Object.keys(NEGOCIOS).filter(k => fd['neg_' + k]), modulos = Object.keys(MODULOS).filter(k => fd['mod_' + k]);
-    USERS.push({ id: uid('u'), usuario, nombre: fd.nombre.trim(), rol: fd.rol, negocios, modulos, activo: true, hash: await hashPw(usuario, fd.clave) });
-    saveUsers(); UI.newUser = false; UI.formError = ''; render(); toast(`Usuario ${usuario} creado`); return;
+    USERS.push({ id: uid('u'), usuario, nombre: fd.nombre.trim(), rol: fd.rol, negocios, modulos, activo: true, ...(await pwField(usuario, fd.clave)) });
+    if (!(await saveUsers())) return; UI.newUser = false; UI.formError = ''; render(); toast(`Usuario ${usuario} creado`); return;
   }
   if (kind === 'pwreset') {
-    const u = USERS.find(x => x.id === f.dataset.id); u.hash = await hashPw(u.usuario, fd.clave);
-    saveUsers(); UI.resetUser = null; render(); toast(`Contraseña de ${u.usuario} actualizada`); return;
+    const u = USERS.find(x => x.id === f.dataset.id); Object.assign(u, await pwField(u.usuario, fd.clave));
+    if (!(await saveUsers())) return; UI.resetUser = null; render(); toast(`Contraseña de ${u.usuario} actualizada`); return;
   }
   if (kind === 'cliente') {
     const email = fd.email.trim().toLowerCase();
     if (USERS.some(x => x.usuario.toLowerCase() === email || (x.email || '').toLowerCase() === email)) { UI.formError = `Ya existe un acceso con el correo ${email}.`; render(); return; }
     const c = { id: uid('c'), usuario: email, email, nombre: fd.nombre.trim(), empresa: fd.empresa.trim(), telefono: fd.telefono.trim(), ciudad: fd.ciudad,
-      rol: 'cliente', negocios: [fd.negocio], activo: true, creado: TODAY, hash: await hashPw(email, fd.clave) };
-    USERS.push(c); saveUsers();
+      rol: 'cliente', negocios: [fd.negocio], activo: true, creado: TODAY, ...(await pwField(email, fd.clave)) };
+    USERS.push(c); if (!(await saveUsers())) return;
     if (UI.linkDeal) { const d = S.deals.find(x => x.id === UI.linkDeal); if (d) { d.clienteId = c.id; d.hist.push({ f: TODAY, t: `Acceso al portal creado para ${email}.` + who() }); save(); } }
     UI.lastAccess = { id: c.id, clave: fd.clave }; UI.cliNew = false; UI.cliPrefill = null; UI.formError = '';
     if (UI.linkDeal) { UI.view = 'clientes'; UI.linkDeal = null; }
     render(); toast(`Cliente ${c.nombre} creado`); return;
   }
   if (kind === 'cli-reset') {
-    const c = USERS.find(x => x.id === f.dataset.id); c.hash = await hashPw(c.usuario, fd.clave); saveUsers();
+    const c = USERS.find(x => x.id === f.dataset.id); Object.assign(c, await pwField(c.usuario, fd.clave)); if (!(await saveUsers())) return;
     UI.resetCli = null; UI.lastAccess = { id: c.id, clave: fd.clave }; render(); window.scrollTo(0, 0); toast(`Nueva clave para ${c.email}`); return;
   }
   if (kind === 'note') { const d = S.deals.find(x => x.id === f.dataset.id); d.hist.push({ f: TODAY, t: fd.t + who() }); d.actualizado = TODAY; commit('Nota agregada'); }
@@ -1773,5 +1838,5 @@ document.addEventListener('submit', async ev => {
     S.projects.unshift(p); UI.closing = false; UI.view = 'proyectos'; UI.project = p.id; UI.projOpen = true; saveUI(); commit('Venta cerrada. Proyecto creado con su línea de tiempo'); window.scrollTo(0, 0); }
 });
 
-initUsers().then(render);
+boot();
 </script>
