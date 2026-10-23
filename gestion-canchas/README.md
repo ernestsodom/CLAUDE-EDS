@@ -23,14 +23,16 @@ del mes de logística + instalación).
 
 ## Visor 3D
 
-La cancha se dibuja con Three.js (r128, desde cdnjs) a escala real (10 × 20 m) replicando los renders de
-referencia: fondo negro, piso con marco perimetral oscuro, fondos de vidrio sin marco con pinzas, primeros 4 m
-de cada lateral en vidrio y el centro en malla electrosoldada con postes cada 2 m y amortiguadores al pie,
-viga perimetral blanca a 4 m, malla superior hasta 6,5 m en el lateral y el fondo opuestos a la vista
-inicial, red, y cuatro postes de luz cuello de cisne con cabezal LED que salen de los postes de transición.
-La **Semi Panoramic** suma columnas blancas de transición y postes altos en las cuatro esquinas. Se rota
-arrastrando, se acerca con la rueda o pellizcando y doble clic vuelve a la vista inicial (esquina, como en
-los renders). Colores editables: césped, postes de luz y amortiguadores.
+La cancha se dibuja con Three.js (r128, desde cdnjs) con las medidas del modelo de referencia
+(padelcourtsmaster.com/elite-padel-court): 10 × 20 m; 18 vidrios templados de 2 × 3 m sin marco con pinzas
+(5 por fondo y 2 en cada extremo lateral); anillo principal blanco a 3 m; laterales de malla electrosoldada de
+3 m en módulos de 2 m con pilares de fierro y pletinas a 1 y 2 m; una puerta de acceso con marco blanco por
+lateral; reja superior de 1 m (marcos de 2 × 1 m) solo sobre los fondos y el vértice (2 m de cada lateral);
+amortiguadores montados en cada pilar lateral; cuatro postes de luz que continúan los pilares de transición con
+tubo curvo y cabezal LED de 3 focos; tubo estructural inferior 80 × 40. La **Semi Panoramic** suma pilares
+de transición blancos y tubo circular de 2,5" en las cuatro esquinas. Se rota arrastrando, se acerca con la
+rueda o pellizcando y doble clic vuelve a la vista inicial de esquina. Colores editables: césped, postes de
+luz y amortiguadores.
 
 ## Línea gráfica ATILA
 

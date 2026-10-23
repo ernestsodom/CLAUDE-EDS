@@ -636,76 +636,83 @@ function createCourt3D(el, dz, opts) {
   function build(d) {
     if (built) { root.remove(built); built.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map) o.material.dispose(); }); }
     built = new T.Group(); root.add(built);
-    const tipo = model(d.modelo).tipo, semi = tipo === 'semi', BEAM = 4, TOP = 6.5;
-    // piso, marco perimetral y líneas
+    // Medidas reales (m): vidrio 3 m de alto; anillo principal blanco a 3 m; malla lateral 3 m en módulos de 2 m;
+    // reja superior de 1 m solo sobre los fondos y el vértice (2 m del lateral); puerta de acceso en cada lateral.
+    const semi = model(d.modelo).tipo === 'semi', H = 3, UP = 4;
     const floor = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); floor.rotation.x = -Math.PI / 2; built.add(floor);
-    hbar(-5.08, -10.08, -5.08, 10.08, 0.05, 0.16, 0.1, mats.steel); hbar(5.08, -10.08, 5.08, 10.08, 0.05, 0.16, 0.1, mats.steel);
-    hbar(-5.08, -10.08, 5.08, -10.08, 0.05, 0.16, 0.1, mats.steel); hbar(-5.08, 10.08, 5.08, 10.08, 0.05, 0.16, 0.1, mats.steel);
     [-6.95, 6.95].forEach(z => box(10, 0.006, 0.05, mats.line, 0, 0.004, z));
     box(0.05, 0.006, 13.9, mats.line, 0, 0.004, 0);
     [-10, 10].forEach(z => box(0.05, 0.006, 0.2, mats.line, 0, 0.004, z - Math.sign(z) * 0.1));
+    // tubo estructural inferior 80×40 bajo vidrios y mallas
+    hbar(-5.04, -10.04, -5.04, 10.04, 0.04, 0.08, 0.08, mats.steel); hbar(5.04, -10.04, 5.04, 10.04, 0.04, 0.08, 0.08, mats.steel);
+    hbar(-5.04, -10.04, 5.04, -10.04, 0.04, 0.08, 0.08, mats.steel); hbar(-5.04, 10.04, 5.04, 10.04, 0.04, 0.08, 0.08, mats.steel);
     // red
-    grid(-5, 0, 5, 0, 0, 0.88, 0.1);
+    grid(-5, 0, 5, 0, 0.06, 0.88, 0.1);
     box(10, 0.05, 0.02, mats.line, 0, 0.9, 0);
-    [-5.12, 5.12].forEach(x => vbar(x, 0, 0, 1.0, 0.07, mats.white));
-    // vidrios sin marco con pinzas: fondos completos y primeros 4 m de cada lateral
+    [-4.95, 4.95].forEach(x => vbar(x, 0, 0, 0.95, 0.06, mats.white));
+    // vidrios templados 2×3 m sin marco, con pinzas: 5 por fondo y 2 en cada extremo lateral (18 en total)
     const glassWall = (x0, z0, x1, z1) => seg(x0, z0, x1, z1, (len, cx, cz, ry) => {
-      plane(len, 3, mats.glass, cx, 1.5, cz, ry);
+      plane(len, H, mats.glass, cx, H / 2, cz, ry);
       const n = Math.round(len / 2);
       for (let i = 0; i <= n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t;
-        vbar(x, z, 0, 3, 0.012, mats.seam); [0.12, 2.9].forEach(y => box(0.07, 0.09, 0.07, mats.steel, x, y, z)); }
-      hbar(x0, z0, x1, z1, 3, 0.012, 0.012, mats.seam);
+        vbar(x, z, 0.08, H, 0.012, mats.seam); [0.2, 2.8].forEach(y => box(0.06, 0.08, 0.06, mats.steel, x, y, z)); }
     });
     glassWall(-5, -10, 5, -10); glassWall(-5, 10, 5, 10);
     [-5, 5].forEach(x => { glassWall(x, -10, x, -6); glassWall(x, 6, x, 10); });
-    // laterales de malla con postes cada 2 m y amortiguadores al pie
+    // laterales: módulos de malla de 3 m con pilares de fierro cada 2 m, pletinas horizontales y puerta de acceso
+    const DOOR = [0.4, 1.4];
     [-5, 5].forEach(x => {
-      grid(x, -6, x, 6, 0, BEAM, 0.2);
-      hbar(x, -6, x, 6, 2, 0.04, 0.04, mats.steel);
+      const s = Math.sign(x);
+      [[-6, DOOR[0]], [DOOR[1], 6]].forEach(([a, b]) => grid(x, a, x, b, 0.08, H, 0.1));
+      grid(x, DOOR[0], x, DOOR[1], 2.15, H, 0.1);
+      [1.0, 2.0].forEach(y => { hbar(x, -6, x, DOOR[0], y, 0.03, 0.05, mats.steel); hbar(x, DOOR[1], x, 6, y, 0.03, 0.05, mats.steel); });
+      // puerta: marco blanco
+      [DOOR[0], DOOR[1]].forEach(z => vbar(x, z, 0, 2.15, 0.06, mats.white));
+      hbar(x, DOOR[0], x, DOOR[1], 2.15, 0.06, 0.06, mats.white);
       for (let z = -6; z <= 6; z += 2) {
         const trans = Math.abs(z) === 6;
-        if (trans) vbar(x, z, 0, BEAM, semi ? 0.18 : 0.15, semi ? mats.white : mats.steel); else vbar(x, z, 0, BEAM, 0.07, mats.steel);
-        const s = Math.sign(x), a = new T.Group(); a.position.set(x + s * 0.5, 0, z + (trans ? -Math.sign(z) * 0.3 : 0)); a.scale.setScalar(1.4); built.add(a);
-        box(0.55, 0.02, 0.16, mats.amort, 0, 0.01, 0, a);
-        const tube = box(0.11, 0.5, 0.11, mats.amort, s * 0.1, 0.02, 0, a); tube.geometry.translate(0, 0.25, 0); tube.rotation.z = s * 0.6;
-        const spring = new T.Mesh(new T.CylinderGeometry(0.045, 0.045, 0.28, 10), mats.spring); spring.position.set(-s * 0.16, 0.44, 0); spring.rotation.z = s * 0.6; a.add(spring);
+        box(trans ? 0.06 : 0.05, H, trans ? 0.16 : 0.09, trans && semi ? mats.white : mats.steel, x, H / 2, z);
+        // amortiguador ATILA montado en el pilar, por fuera: placa al piso, cuerpo inclinado y resorte al pilar
+        const a = new T.Group(); a.position.set(x + s * 0.03, 0, z); built.add(a);
+        box(0.5, 0.02, 0.14, mats.amort, s * 0.28, 0.01, 0, a);
+        const tube = box(0.1, 0.56, 0.1, mats.amort, s * 0.45, 0.02, 0, a); tube.geometry.translate(0, 0.28, 0); tube.rotation.z = s * 0.62;
+        const spring = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.2, 10), mats.spring); spring.position.set(s * 0.1, 0.5, 0); spring.rotation.z = Math.PI / 2; a.add(spring);
+        box(0.05, 0.07, 0.07, mats.spring, s * 0.0, 0.5, 0, a);
       }
     });
-    // viga perimetral blanca
-    hbar(-5, -10, -5, 10, BEAM, 0.12, 0.1, mats.white); hbar(5, -10, 5, 10, BEAM, 0.12, 0.1, mats.white);
-    hbar(-5, -10, 5, -10, BEAM, 0.12, 0.1, mats.white); hbar(-5, 10, 5, 10, BEAM, 0.12, 0.1, mats.white);
-    // malla superior en el lateral y el fondo opuestos a la vista inicial
-    const upper = (x0, z0, x1, z1) => seg(x0, z0, x1, z1, (len, cx, cz, ry) => {
-      grid(x0, z0, x1, z1, BEAM, TOP, 0.2);
-      const n = Math.max(1, Math.round(len / 2.5));
-      for (let i = 0; i <= n; i++) { const t = i / n; vbar(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, BEAM, TOP, 0.06, mats.steel); }
-      hbar(x0, z0, x1, z1, TOP, 0.06, 0.06, mats.steel);
-    });
-    upper(5, -10, 5, 10); upper(-5, -10, 5, -10);
-    if (semi) { // esquinas con postes altos y cierre superior
-      [[-5, -10], [5, -10], [-5, 10], [5, 10]].forEach(([x, z]) => vbar(x, z, 0, TOP, 0.06, mats.steel));
-      hbar(-5, 10, 5, 10, TOP, 0.03, 0.03, mats.steel); hbar(-5, -10, -5, 10, TOP, 0.03, 0.03, mats.steel);
-    }
-    // postes de luz cuello de cisne desde los postes de transición
+    // anillo principal blanco a 3 m (perfil 150×50)
+    hbar(-5, -10.03, -5, 10.03, H, 0.16, 0.06, mats.white); hbar(5, -10.03, 5, 10.03, H, 0.16, 0.06, mats.white);
+    hbar(-5.03, -10, 5.03, -10, H, 0.16, 0.06, mats.white); hbar(-5.03, 10, 5.03, 10, H, 0.16, 0.06, mats.white);
+    // reja superior de 1 m: marcos de 2×1 m sobre ambos fondos y el vértice (2 m de cada lateral)
+    const upper = (x0, z0, x1, z1) => {
+      grid(x0, z0, x1, z1, H, UP, 0.1);
+      const len = Math.hypot(x1 - x0, z1 - z0), n = Math.round(len / 2);
+      for (let i = 0; i <= n; i++) { const t = i / n; vbar(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, H, UP, 0.05, mats.steel); }
+      hbar(x0, z0, x1, z1, UP, 0.05, 0.05, mats.steel);
+    };
+    [-10, 10].forEach(z => { const zs = Math.sign(z); upper(-5, z, 5, z); upper(-5, z - zs * 2, -5, z); upper(5, z - zs * 2, 5, z); });
+    // Semi Panoramic: esquinas con tubo circular de 2,5" hasta la reja superior
+    if (semi) [[-5, -10], [5, -10], [-5, 10], [5, 10]].forEach(([x, z]) => { const c = new T.Mesh(new T.CylinderGeometry(0.032, 0.032, UP, 16), mats.steel); c.position.set(x, UP / 2, z); built.add(c); });
+    // postes de luz: continúan el pilar de transición con un tubo curvo y un cabezal LED de 3 focos
     [-5, 5].forEach(x => [-6, 6].forEach(z => {
-      const s = Math.sign(x), zs = Math.sign(z), px = x + s * 0.16;
-      const curve = new T.CatmullRomCurve3([new T.Vector3(px, BEAM, z), new T.Vector3(px + s * 0.05, 6.2, z), new T.Vector3(px - s * 0.25, 7.6, z + zs * 0.2), new T.Vector3(px - s * 1.0, 8.5, z + zs * 0.5), new T.Vector3(px - s * 1.6, 8.7, z + zs * 0.7)]);
-      built.add(new T.Mesh(new T.TubeGeometry(curve, 48, 0.07, 10, false), mats.poles));
-      const head = new T.Group(); head.position.set(px - s * 1.75, 8.65, z + zs * 0.75); head.rotation.z = s * 0.35; built.add(head);
-      box(0.32, 0.07, 1.0, mats.poles, 0, 0, 0, head);
-      [-0.32, 0, 0.32].forEach(dz2 => box(0.24, 0.02, 0.26, mats.led, 0, -0.045, dz2, head));
+      const s = Math.sign(x), zs = Math.sign(z);
+      const curve = new T.CatmullRomCurve3([new T.Vector3(x, H, z), new T.Vector3(x + s * 0.12, 4.6, z), new T.Vector3(x + s * 0.05, 5.9, z), new T.Vector3(x - s * 0.45, 6.7, z + zs * 0.15), new T.Vector3(x - s * 1.2, 7.0, z + zs * 0.3)]);
+      built.add(new T.Mesh(new T.TubeGeometry(curve, 48, 0.055, 10, false), mats.poles));
+      const head = new T.Group(); head.position.set(x - s * 1.35, 6.98, z + zs * 0.32); head.rotation.z = s * 0.4; built.add(head);
+      box(0.3, 0.06, 1.05, mats.poles, 0, 0, 0, head);
+      [-0.33, 0, 0.33].forEach(o => box(0.22, 0.02, 0.26, mats.led, 0, -0.04, o, head));
     }));
     // logo sobre las puertas
     if (d.logoPuertas && d.logo && d.logo.type.startsWith('image/')) {
       const tex = new T.TextureLoader().load(d.logo.data, () => requestRender());
       const lm = new T.MeshBasicMaterial({ map: tex, transparent: true, side: T.DoubleSide });
-      [-5.03, 5.03].forEach(x => plane(1.6, 0.6, lm, x, 3.3, 0, Math.PI / 2));
+      [-5.04, 5.04].forEach(x => plane(1.0, 0.4, lm, x, 2.55, (DOOR[0] + DOOR[1]) / 2, Math.PI / 2));
     }
   }
   build(dz);
 
   // cámara orbital propia
-  const st = { theta: opts.theta ?? -0.55, phi: opts.phi ?? 1.27, r: opts.r ?? 23.5, target: new T.Vector3(1.4, 2.6, 0.2) };
+  const st = { theta: opts.theta ?? -0.52, phi: opts.phi ?? 1.31, r: opts.r ?? 21, target: new T.Vector3(1.2, 2.2, 0.4) };
   const home = { ...st };
   const place = () => { camera.position.set(st.target.x + st.r * Math.sin(st.phi) * Math.sin(st.theta), st.target.y + st.r * Math.cos(st.phi), st.target.z + st.r * Math.sin(st.phi) * Math.cos(st.theta)); camera.lookAt(st.target); };
   let raf = 0; const requestRender = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; place(); renderer.render(scene, camera); }); };
