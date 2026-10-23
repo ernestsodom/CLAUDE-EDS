@@ -121,4 +121,6 @@ Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea
 10. **Formulario** en banda azul con tarjeta blanca (nombre, correo, teléfono, comuna, región, cargo, tipo de institución, motivo, mensaje).
 11. **Pie gris** con columnas de enlaces, redes, dirección y frase de marca.
 
+**Iconografía**: set propio de íconos de línea redondeada (24 px, trazo 1,75) con un detalle naranjo en cada uno, usado en toda la página (pestañas, indicadores, tarjetas, contacto y redes). Las tarjetas de diferenciales usan un mosaico celeste que al pasar el mouse pasa a azul, gira levemente, levanta la tarjeta, dibuja una línea naranja inferior y anima el ícono (luces del servidor, bloques que se separan, barras que crecen, check que se dibuja). Al hacer scroll entran de forma escalonada.
+
 Se eliminaron las secciones de testimonios y de casos de éxito. Las notas de prensa están marcadas entre corchetes para reemplazar con contenido real de Proexsi.
