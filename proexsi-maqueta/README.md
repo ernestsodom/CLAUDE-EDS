@@ -123,4 +123,6 @@ Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea
 
 **Iconografía**: set propio de íconos de línea redondeada (24 px, trazo 1,75) con un detalle naranjo en cada uno, usado en toda la página (pestañas, indicadores, tarjetas, contacto y redes). Las tarjetas de diferenciales usan un mosaico celeste que al pasar el mouse pasa a azul, gira levemente, levanta la tarjeta, dibuja una línea naranja inferior y anima el ícono (luces del servidor, bloques que se separan, barras que crecen, check que se dibuja). Al hacer scroll entran de forma escalonada.
 
+**Tarjetas en naranjo neutro**: las tarjetas de la banda de confianza, los diferenciales, las notas de prensa y los puntos clave de soluciones usan un fondo crema anaranjado (`--warm`) con borde suave, en contraste con los azules del resto de la página.
+
 Se eliminaron las secciones de testimonios y de casos de éxito. Las notas de prensa están marcadas entre corchetes para reemplazar con contenido real de Proexsi.
