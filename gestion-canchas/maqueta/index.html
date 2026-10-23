@@ -663,14 +663,14 @@ function createCourt3D(el, dz, opts) {
       const s = Math.sign(x);
       [[-6, DOOR[0]], [DOOR[1], 6]].forEach(([a, b]) => grid(x, a, x, b, 0.08, H, 0.1));
       grid(x, DOOR[0], x, DOOR[1], DH, H, 0.1);
-      [1.0, 2.0].forEach(y => { hbar(x, -6, x, DOOR[0], y, 0.03, 0.05, mats.steel); hbar(x, DOOR[1], x, 6, y, 0.03, 0.05, mats.steel); });
+      [1.0, 2.0].forEach(y => { hbar(x, -6, x, DOOR[0], y, 0.012, 0.02, mats.steel); hbar(x, DOOR[1], x, 6, y, 0.012, 0.02, mats.steel); });
       // puerta: marco blanco
-      [DOOR[0], DOOR[1]].forEach(z => { vbar(x, z, 0, H, 0.08, mats.white); });
-      hbar(x, DOOR[0], x, DOOR[1], DH, 0.08, 0.08, mats.white);
-      hbar(x, DOOR[0], x, DOOR[1], 0.03, 0.08, 0.05, mats.white);
+      [DOOR[0], DOOR[1]].forEach(z => { vbar(x, z, 0, H, 0.045, mats.white); });
+      hbar(x, DOOR[0], x, DOOR[1], DH, 0.045, 0.045, mats.white);
+      hbar(x, DOOR[0], x, DOOR[1], 0.03, 0.045, 0.03, mats.white);
       for (const z of [-6, -4, -2, 2, 4, 6]) {
         const trans = Math.abs(z) === 6;
-        box(trans ? 0.06 : 0.05, H, trans ? 0.16 : 0.09, trans && semi ? mats.white : mats.steel, x, H / 2, z);
+        box(trans ? 0.06 : 0.025, H, trans ? 0.16 : 0.035, trans && semi ? mats.white : mats.steel, x, H / 2, z);
         if (trans) continue; // 4 amortiguadores por lado, uno en cada pilar de fierro
         // amortiguador ATILA montado en el pilar, por fuera: placa al piso, cuerpo inclinado y resorte al pilar
         const a = new T.Group(); a.position.set(x + s * 0.03, 0, z); built.add(a);
