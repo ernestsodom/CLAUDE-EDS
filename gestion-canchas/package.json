@@ -3,7 +3,7 @@
   "private": true,
   "description": "Gesti\u00f3n de canchas ATILA: API serverless en Vercel con base de datos Neon",
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "dependencies": {
     "@neondatabase/serverless": "0.10.4"
