@@ -13,8 +13,8 @@
    (azules como color principal, naranjo para detalles) y el hero de la v6 con el mapa de Chile
    dentro del bloque redondeado del hero de IPM.
    Orden: header blanco · hero · cifras · soluciones en pestañas verticales · banda de confianza
-   con 3 tarjetas · carrusel de clientes · tecnología (imagen + 6 tarjetas) · banner · testimonios ·
-   prensa · formulario en banda · casos/blog · pie gris. */
+   con 3 tarjetas · carrusel de clientes · tecnología (imagen + 6 tarjetas) · banner ·
+   prensa · formulario en banda · pie gris. */
 :root {
   --night: #0E1330;
   --bg: #FFFFFF;
@@ -242,16 +242,6 @@ p { margin: 0; }
 .banner h3 { font-size: clamp(18px, 2vw, 22px); font-weight: 600; flex: 1; min-width: 220px; }
 .banner .btn-white { min-width: 180px; }
 
-/* ---------- Testimonios (IPM) ---------- */
-.quote { display: grid; justify-items: center; gap: 16px; text-align: center; }
-.quote .q { font-family: var(--display); font-size: 54px; line-height: .6; color: var(--orange); height: 30px; }
-.quote h2 { font-size: clamp(24px, 2.6vw, 32px); font-weight: 600; }
-.q-car { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; width: 100%; max-width: 940px; margin-top: 10px; }
-.q-body { display: grid; gap: 18px; }
-.q-body blockquote { margin: 0; font-size: 17px; line-height: 1.6; color: var(--muted); }
-.q-body .who b { display: block; }
-.q-body .who span { color: var(--muted); font-size: 14px; }
-
 /* ---------- Prensa (IPM) ---------- */
 .media-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .mcard { flex: 0 0 calc((100% - 3 * 16px) / 4); scroll-snap-align: start; border: 1px solid var(--line); border-radius: 12px; padding: 22px; min-height: 220px; display: grid; align-content: space-between; gap: 22px; background: var(--card); text-decoration: none; }
@@ -283,22 +273,8 @@ form.big { background: var(--card); color: var(--ink); border-radius: 18px; padd
 @media (max-width: 860px) { .form-band .wrap { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 500px) { .two { grid-template-columns: 1fr; } }
 
-/* ---------- Casos / blog (IPM) ---------- */
-.blog { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: clamp(24px, 4vw, 48px); align-items: center; padding-bottom: clamp(40px, 5vw, 64px); border-bottom: 1px solid var(--line); }
-.blog-l { display: grid; gap: 18px; }
-.blog-l h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 700; }
-.blog-l p { color: var(--muted); }
-.post { flex: 0 0 100%; scroll-snap-align: start; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
-.post img { width: 100%; aspect-ratio: 16 / 6; object-fit: cover; }
-.post .in { padding: 18px 20px 22px; display: grid; gap: 10px; }
-.tags { display: flex; gap: 6px; flex-wrap: wrap; }
-.tags span { font-size: 11.5px; font-weight: 600; color: var(--blue); background: var(--blue-soft); padding: 3px 8px; border-radius: 6px; }
-.post h3 { font-size: 17px; font-weight: 600; }
-.post p { color: var(--muted); font-size: 14px; }
-@media (max-width: 860px) { .blog { grid-template-columns: minmax(0, 1fr); } }
-
 /* ---------- Pie gris (IPM) ---------- */
-footer { background: var(--soft); color: var(--muted); font-size: 14px; margin-top: clamp(40px, 5vw, 64px); }
+footer { background: var(--soft); color: var(--muted); font-size: 14px; }
 .f-top { display: grid; grid-template-columns: minmax(0, 1.2fr) repeat(4, minmax(0, 1fr)); gap: 24px; padding-block: 48px 36px; border-bottom: 1px solid var(--line); }
 .f-top .logo-box { display: inline-grid; place-items: center; padding: 18px 22px; border-radius: 16px; background: #0035A9; }
 .f-top .logo-box img { width: 150px; height: auto; filter: brightness(0) invert(1); }
@@ -334,7 +310,7 @@ footer { background: var(--soft); color: var(--muted); font-size: 14px; margin-t
       <div><a href="#tecnologia">Tecnología</a></div>
       <div><a href="#clientes">Clientes</a></div>
       <div><button type="button" aria-haspopup="true">Contenidos <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
-        <div class="drop"><a href="#prensa">Proexsi en los medios</a><a href="#casos">Casos de éxito</a></div></div>
+        <div class="drop"><a href="#prensa">Proexsi en los medios</a></div></div>
     </nav>
     <a class="contact-link" href="#contacto"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12v9H8l-4 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Contacto</a>
     <button class="burger" type="button" id="burger" aria-expanded="false" aria-controls="mnav" aria-label="Abrir menú"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
@@ -458,21 +434,8 @@ footer { background: var(--soft); color: var(--muted); font-size: 14px; margin-t
     </div>
   </section>
 
-  <!-- 8. TESTIMONIOS -->
-  <section class="sec" aria-label="Testimonios">
-    <div class="wrap quote">
-      <span class="q" aria-hidden="true">“</span>
-      <h2>Lo que dicen de nosotros</h2>
-      <div class="q-car">
-        <div class="arrows"><button type="button" id="qPrev" aria-label="Testimonio anterior"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4 3 8l4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
-        <div class="q-body" id="qBody" aria-live="polite"></div>
-        <div class="arrows"><button type="button" id="qNext" aria-label="Testimonio siguiente"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
-      </div>
-    </div>
-  </section>
-
   <!-- 9. PRENSA -->
-  <section class="sec" id="prensa" style="padding-top:0">
+  <section class="sec" id="prensa">
     <div class="wrap">
       <div class="media-head"><h2 class="h2">Proexsi en los medios</h2></div>
       <div class="carousel" data-car style="grid-template-columns:minmax(0,1fr)">
@@ -514,19 +477,6 @@ footer { background: var(--soft); color: var(--muted); font-size: 14px; margin-t
       </form>
     </div>
   </section>
-
-  <!-- 11. CASOS / BLOG -->
-  <section class="sec" id="casos">
-    <div class="wrap blog">
-      <div class="blog-l">
-        <h2>Tenemos historias de éxito para contar.</h2>
-        <p>Novedades y casos de municipios que gestionan con Proexsi.</p>
-        <a class="btn btn-outline" href="#casos" style="justify-self:start">Ir al blog</a>
-        <div class="arrows"><button type="button" data-prev-for="bTrack" aria-label="Caso anterior"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4 3 8l4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><button type="button" data-next-for="bTrack" aria-label="Caso siguiente"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
-      </div>
-      <div class="track" id="bTrack"></div>
-    </div>
-  </section>
 </main>
 
 <footer>
@@ -534,7 +484,7 @@ footer { background: var(--soft); color: var(--muted); font-size: 14px; margin-t
     <div><span class="logo-box"><img src="img/logo-proexsi.png" alt="Proexsi"></span></div>
     <div><h4>Soluciones</h4><ul><li><a href="#soluciones">Proexsi AGM</a></li><li><a href="#soluciones">Proexsi AGCM</a></li><li><a href="#soluciones">Sistemas de Gestión</a></li><li><a href="#soluciones">Data Center</a></li><li><a href="#soluciones">Servicios por Internet</a></li></ul></div>
     <div><h4>Tecnología</h4><ul><li><a href="#tecnologia">Data center</a></li><li><a href="#tecnologia">Calidad ISO 9001</a></li></ul></div>
-    <div><h4>Contenidos</h4><ul><li><a href="#prensa">Proexsi en los medios</a></li><li><a href="#casos">Casos de éxito</a></li></ul></div>
+    <div><h4>Contenidos</h4><ul><li><a href="#prensa">Proexsi en los medios</a></li></ul></div>
     <div><h4>Institucional</h4><ul><li><a href="#confianza">Nosotros</a></li><li><a href="#clientes">Clientes</a></li><li><a href="#acceso">Acceso clientes</a></li><li><a href="#contacto">Contacto</a></li></ul></div>
   </div>
   <div class="wrap f-mid">
@@ -548,10 +498,10 @@ footer { background: var(--soft); color: var(--muted); font-size: 14px; margin-t
 <aside class="notes" id="notes" hidden aria-label="Notas de la versión 7">
   <h4>Versión 7: estructura de ipm.com.br</h4>
   <ul>
-    <li><b>Mismo orden de secciones que IPM:</b> header blanco, hero redondeado, cifras, soluciones en pestañas verticales, banda de confianza, clientes, tecnología, banner, testimonios, prensa, formulario, casos y pie gris.</li>
+    <li><b>Mismo orden de secciones que IPM:</b> header blanco, hero redondeado, cifras, soluciones en pestañas verticales, banda de confianza, clientes, tecnología, banner, prensa, formulario y pie gris (sin testimonios ni casos).</li>
     <li><b>Hero de la v6</b> con el mapa de Chile, dentro del bloque redondeado de IPM.</li>
     <li><b>Colores Proexsi:</b> azules como principal y naranjo para detalles.</li>
-    <li><b>Contenido por definir:</b> testimonios, notas de prensa y casos son plantillas; Proexsi debe aportar los reales.</li>
+    <li><b>Contenido por definir:</b> las notas de prensa son plantillas; Proexsi debe aportar las reales.</li>
     <li><b>Formulario y redes:</b> demostrativos, no envían datos ni enlazan.</li>
   </ul>
 </aside>
@@ -685,8 +635,6 @@ showSol(0);
 // ---------- Carruseles ----------
 $("#clTrack").innerHTML = CLIENTS.map(([f, n, r]) => `<div class="logo-item"><div><img src="img/clientes/${f}.png" alt="Municipalidad de ${n}"></div>${n} (${r})</div>`).join("");
 $("#mTrack").innerHTML = [1, 2, 3, 4, 5].map(i => `<a class="mcard" href="#prensa"><span class="src">[Medio ${i}]</span><b>[Titular de una nota de prensa sobre Proexsi]</b><span>Leer más →</span></a>`).join("");
-$("#bTrack").innerHTML = [["area-grp-hover.jpg", ["Casos de éxito", "Gestión municipal"]], ["areas/transito.jpg", ["Casos de éxito", "Tránsito"]], ["areas/gobierno-digital.jpg", ["Gobierno Digital"]]]
-  .map(([img, tags]) => `<article class="post"><img src="img/${img}" alt=""><div class="in"><div class="tags">${tags.map(t => `<span>${t}</span>`).join("")}</div><h3>[Título del caso: municipio y resultado obtenido]</h3><p>[Resumen del caso de éxito, con el cambio que produjo la plataforma en la gestión del municipio. Contenido por definir con Proexsi.]</p></div></article>`).join("");
 function wire(track, prev, next, bar) {
   const upd = () => {
     const max = track.scrollWidth - track.clientWidth;
@@ -700,15 +648,7 @@ function wire(track, prev, next, bar) {
   track.addEventListener("scroll", upd, { passive: true }); addEventListener("resize", upd); upd();
 }
 wire($("#clTrack"), document.querySelector("#clientes [data-prev]"), document.querySelector("#clientes [data-next]"), $("#clBar"));
-["mTrack", "bTrack"].forEach(id => wire(document.getElementById(id), document.querySelector(`[data-prev-for="${id}"]`), document.querySelector(`[data-next-for="${id}"]`)));
-
-// ---------- Testimonios (plantilla) ----------
-const QUOTES = [1, 2, 3].map(i => ({ t: `[Testimonio ${i}: cita de una autoridad municipal sobre el cambio que produjo la plataforma de Proexsi en su gestión. Contenido por definir.]`, w: "[Nombre y apellido]", r: "[Cargo · Municipalidad]" }));
-let qi = 0;
-function showQ() { const x = QUOTES[qi]; $("#qBody").innerHTML = `<blockquote>${x.t}</blockquote><div class="who"><b>${x.w}</b><span>${x.r}</span></div>`; $("#qPrev").disabled = qi === 0; $("#qNext").disabled = qi === QUOTES.length - 1; }
-$("#qPrev").addEventListener("click", () => { qi = Math.max(0, qi - 1); showQ(); });
-$("#qNext").addEventListener("click", () => { qi = Math.min(QUOTES.length - 1, qi + 1); showQ(); });
-showQ();
+["mTrack"].forEach(id => wire(document.getElementById(id), document.querySelector(`[data-prev-for="${id}"]`), document.querySelector(`[data-next-for="${id}"]`)));
 
 // ---------- Formulario ----------
 $("#f5").innerHTML = ["Arica y Parinacota","Tarapacá","Antofagasta","Atacama","Coquimbo","Valparaíso","Metropolitana","O'Higgins","Maule","Ñuble","Biobío","La Araucanía","Los Ríos","Los Lagos","Aysén","Magallanes"].map(r => `<option>${r}</option>`).join("");

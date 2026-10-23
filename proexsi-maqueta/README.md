@@ -117,10 +117,8 @@ Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea
 6. **Clientes**: carrusel de 20 logos con nombre y región, flechas y barra de avance.
 7. **Tecnología**: titular centrado, imagen compuesta con marco azul y tarjetas flotantes, y seis tarjetas de diferenciales.
 8. **Banner** "Conozca más" con botón.
-9. **Testimonios** con flechas (plantilla).
-10. **Proexsi en los medios**: carrusel de notas (plantilla).
-11. **Formulario** en banda azul con tarjeta blanca (nombre, correo, teléfono, comuna, región, cargo, tipo de institución, motivo, mensaje).
-12. **Casos de éxito / blog**: título, botón y carrusel de casos (plantilla).
-13. **Pie gris** con columnas de enlaces, redes, dirección y frase de marca.
+9. **Proexsi en los medios**: carrusel de notas (plantilla).
+10. **Formulario** en banda azul con tarjeta blanca (nombre, correo, teléfono, comuna, región, cargo, tipo de institución, motivo, mensaje).
+11. **Pie gris** con columnas de enlaces, redes, dirección y frase de marca.
 
-Testimonios, notas de prensa y casos están marcados entre corchetes para reemplazar con contenido real de Proexsi.
+Se eliminaron las secciones de testimonios y de casos de éxito. Las notas de prensa están marcadas entre corchetes para reemplazar con contenido real de Proexsi.
