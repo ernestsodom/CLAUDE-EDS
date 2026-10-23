@@ -282,20 +282,22 @@ form.big { background: var(--card); color: var(--ink); border-radius: 18px; padd
 
 /* ---------- Pie gris (IPM) ---------- */
 footer { background: var(--soft); color: var(--muted); font-size: 14px; }
-.f-top { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); gap: 24px; padding-block: 48px 36px; border-bottom: 1px solid var(--line); }
-.f-top .flogo img { width: 180px; height: auto; filter: var(--logo-filter); }
-.f-top .flogo p { margin-top: 12px; font-size: 13.5px; }
-.f-top h4 { color: var(--ink); font-size: 14.5px; margin-bottom: 10px; font-family: var(--body); font-weight: 600; letter-spacing: 0; }
-.f-top ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.f-top a { text-decoration: none; }
-.f-top a:hover { color: var(--blue); }
-.f-mid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; padding-block: 28px; border-bottom: 1px solid var(--line); }
-.f-mid h4 { color: var(--ink); font-size: 14.5px; margin-bottom: 10px; font-family: var(--body); font-weight: 600; letter-spacing: 0; }
-.social { display: flex; gap: 10px; }
-.social span { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--blue); background: var(--card); }
-.f-bot { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-block: 22px 32px; font-size: 13px; }
-.f-bot .tag { color: var(--blue); font-weight: 600; }
-@media (max-width: 900px) { .f-top { grid-template-columns: 1fr 1fr; } .f-mid { grid-template-columns: 1fr; } }
+.f-main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 2fr) minmax(0, .95fr); gap: 40px; padding-block: 36px 28px; border-bottom: 1px solid var(--line); }
+.f-brand img { width: 160px; height: auto; filter: var(--logo-filter); }
+.f-brand p { margin: 10px 0 14px; font-size: 13.5px; }
+.f-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.f-main h4 { color: var(--ink); font-size: 14px; margin: 0 0 10px; font-family: var(--body); font-weight: 600; letter-spacing: 0; }
+.f-main h4 a { color: inherit; }
+.f-main ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.f-main a { text-decoration: none; }
+.f-main a:hover, .f-bot a:hover { color: var(--blue); }
+.f-contact p { margin: 0 0 8px; line-height: 1.55; }
+.social { display: flex; gap: 8px; }
+.social span { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--blue); background: var(--card); }
+.f-bot { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-block: 16px 22px; font-size: 13px; }
+.f-bot a { text-decoration: none; font-weight: 600; color: var(--blue); }
+@media (max-width: 960px) { .f-main { grid-template-columns: 1fr 1fr; gap: 28px; } .f-links { grid-column: 1 / -1; grid-row: 2; } }
+@media (max-width: 560px) { .f-main { gap: 24px 16px; } .f-brand { grid-column: 1 / -1; } .f-links { display: contents; } .f-bot { padding-bottom: 76px; } }
 
 
 /* ---------- Iconografía Proexsi: línea redondeada + detalle naranjo ---------- */
@@ -317,7 +319,7 @@ svg.i .ac { stroke: var(--orange); }
 .hint-ic { background: rgb(255 255 255 / .1); border: 1px solid rgb(255 255 255 / .25); color: #FFFFFF; }
 .tech-head .mark { color: #FFFFFF; background: linear-gradient(135deg, #0035A9, #2F5BFF); width: 52px; height: 52px; border-radius: 14px; }
 .tech-head .mark svg.i { width: 28px; height: 28px; }
-.social span svg.i { width: 20px; height: 20px; }
+.social span svg.i { width: 18px; height: 18px; }
 .social span { transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s, color .2s; }
 .social span:hover { transform: translateY(-3px); background: #0035A9; color: #FFFFFF; }
 .social span:hover svg.i .ac { stroke: #FFB240; }
