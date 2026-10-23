@@ -104,3 +104,23 @@ Una sola línea gráfica en toda la página: colores principales en tonos azules
 5. **Clientes** en una franja blanca continua e **historias** (placeholder).
 6. **Por qué Proexsi** en pantalla dividida de borde a borde: foto del data center con el sello ISO a la izquierda y lista desplegable a la derecha.
 7. **Cierre** en una banda azul noche de borde a borde, continua con el pie: titular, captura de correo y datos de contacto en tres columnas, sin foto.
+
+## Versión 7 (`v7.html`): estructura de ipm.com.br
+
+Misma estructura y orden de secciones que el home de IPM Sistemas, con la línea gráfica de Proexsi (azules + detalles naranjos) y el hero de la v6:
+
+1. **Header blanco** con logo, menú central con desplegables (Soluciones, Contenidos) y enlace "Contacto".
+2. **Hero**: el de la v6 con el mapa de Chile, dentro de un bloque azul con la esquina inferior derecha redondeada, y enlace "Solicite una demostración".
+3. **Fila de cifras**: frase de posicionamiento y tres datos (+45 años, 20 municipios, 81 sistemas).
+4. **Soluciones en pestañas verticales**: AGM, AGCM, Sistemas de Gestión, Data Center y Servicios por Internet. Cada una con foto e interfaz ilustrativa, descripción, lista en tres columnas, tres indicadores con ícono y "Quiero conocer".
+5. **Banda de confianza** azul sobre foto, con tres tarjetas ilustradas (trayectoria, relaciones de largo plazo, calidad ISO).
+6. **Clientes**: carrusel de 20 logos con nombre y región, flechas y barra de avance.
+7. **Tecnología**: titular centrado, imagen compuesta con marco azul y tarjetas flotantes, y seis tarjetas de diferenciales.
+8. **Banner** "Conozca más" con botón.
+9. **Testimonios** con flechas (plantilla).
+10. **Proexsi en los medios**: carrusel de notas (plantilla).
+11. **Formulario** en banda azul con tarjeta blanca (nombre, correo, teléfono, comuna, región, cargo, tipo de institución, motivo, mensaje).
+12. **Casos de éxito / blog**: título, botón y carrusel de casos (plantilla).
+13. **Pie gris** con columnas de enlaces, redes, dirección y frase de marca.
+
+Testimonios, notas de prensa y casos están marcados entre corchetes para reemplazar con contenido real de Proexsi.
