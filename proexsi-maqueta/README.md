@@ -154,3 +154,11 @@ La v6 ahora tiene exactamente el contenido del home v7, con el diseño y los efe
 - **Iconografía:** los íconos PNG se reemplazaron por el set de íconos de línea de la v7 (trazo azul o blanco con detalle naranjo).
 - **Botones:** azul Proexsi como color principal (`#2F5BFF`, hover `#0035A9`) y naranjo solo para detalles. En la v5 se eliminó el violeta; en la v3, los bloques de áreas usan solo tonos azules.
 - **Páginas interiores:** `v3-*.html` (tema oscuro de la v3) y `v5-*.html` (estilo v5), con el mismo contenido que las de la v7. Comparten `css/site-v3.css` / `js/site-v3.js` y `css/site-v5.css` / `js/site-v5.js`. El menú y el pie de cada home enlazan a ellas.
+
+## v8: diseño de la v7 con la paleta de la v3
+
+`v8.html` y sus interiores `v8-*.html` (con `css/site-v8.css` y `js/site-v8.js`) repiten exactamente la v7: estructura, contenido, íconos, animaciones, el footer compacto y el menú con enlaces directos. Solo cambia la paleta, que es la de la v3: fondo azul noche (#03081A), paneles azul profundo (#071233 / #0B1840), azul eléctrico (#4C86FF) y celeste (#9CC0FF) para acentos, y naranjo (#F29400) para detalles. Los botones siguen el estándar de la v7 (#2F5BFF, hover #0035A9). Los logos de clientes y los sellos ISO van sobre fondo blanco para que se lean bien.
+
+### Footer y menú de la v7
+
+El footer de la v7 se agrupó en una sola franja: marca y redes, tres grupos de enlaces (Soluciones, Data Center, Empresa) y la oficina central, con una barra inferior delgada. En el menú, Soluciones y Data Center ya no abren un desplegable: llevan directo a su página.
