@@ -1,0 +1,650 @@
+<title>TOMI Ride Rediseño</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Bicicletas de equilibrio, scooters, triciclos y cascos TOMI para niños de 1 a 8 años. Apostando por una infancia al aire libre.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Nunito+Sans:opsz,wght@6..12,400..800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: una "ruta de crecimiento" de 12 meses a 8 años organiza todo. Regla de edad como hilo conductor, fichas tipo etiqueta técnica, fotos reales a sangre. */
+:root{
+  --paper:#F3F7F5; --surface:#FFFFFF; --ink:#13201C; --muted:#56655F; --line:#D5E0DB;
+  --mint:#7FD9C3; --mint-ink:#11745F; --mint-soft:#DDF4EC;
+  --pink:#E8609E; --blue:#2A8AD4; --sale:#C2324F;
+  --badge-bg:#13201C; --badge-fg:#FFFFFF;
+  --f-display:"Archivo","Arial Narrow",Impact,sans-serif;
+  --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:18px; --wrap:1180px;
+  --shadow:0 1px 0 rgba(19,32,28,.04),0 12px 32px -18px rgba(19,32,28,.25);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E1614; --surface:#16211E; --ink:#E6EFEB; --muted:#9DB0A8; --line:#2A3833;
+  --mint:#7FD9C3; --mint-ink:#86E0CA; --mint-soft:#183A31; --pink:#F27DB2; --blue:#5AA9E6; --sale:#FF7A90;
+  --badge-bg:#E6EFEB; --badge-fg:#0E1614; --shadow:0 12px 32px -18px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E1614; --surface:#16211E; --ink:#E6EFEB; --muted:#9DB0A8; --line:#2A3833;
+  --mint:#7FD9C3; --mint-ink:#86E0CA; --mint-soft:#183A31; --pink:#F27DB2; --blue:#5AA9E6; --sale:#FF7A90;
+  --badge-bg:#E6EFEB; --badge-fg:#0E1614; --shadow:0 12px 32px -18px rgba(0,0,0,.6); color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--surface)}
+img{display:block;max-width:100%}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--mint-ink);outline-offset:3px;border-radius:6px}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-stretch:68%;font-weight:900;line-height:.95;letter-spacing:-.01em;text-wrap:balance;margin:0;text-transform:uppercase}
+h2{font-size:clamp(2.2rem,5vw,3.8rem)}
+h3{font-size:1.6rem}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mint-ink);font-weight:500}
+.lede{color:var(--muted);font-size:1.08rem;max-width:58ch}
+.sec{padding-block:clamp(56px,9vw,104px)}
+.sec-head{display:grid;gap:14px;margin-bottom:40px}
+
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;font:800 .95rem/1 var(--f-body);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform .15s,background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-mint{background:var(--mint);color:#0B2A22}
+.btn-ghost{border-color:var(--ink);color:var(--ink);background:transparent}
+.btn svg{width:16px;height:16px}
+
+/* Franja + header */
+.strip{background:var(--ink);color:var(--paper);font-size:.85rem;font-weight:700}
+.strip .wrap{display:flex;gap:28px;justify-content:center;padding-block:9px;flex-wrap:wrap;text-align:center}
+.strip span{opacity:.92}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:24px;min-height:68px}
+.logo{display:block;background:#000;border-radius:8px;padding:6px 10px;flex:none}
+.logo img{height:26px;width:auto}
+nav.main{display:flex;gap:4px;margin-left:8px}
+nav.main a{text-decoration:none;font-weight:700;font-size:.95rem;padding:8px 12px;border-radius:999px}
+nav.main a:hover{background:var(--mint-soft)}
+.top .spacer{flex:1}
+.menu-btn{display:none;background:none;border:2px solid var(--ink);border-radius:999px;color:var(--ink);font:800 .9rem var(--f-body);padding:8px 14px;cursor:pointer}
+@media (max-width:900px){
+  nav.main{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));margin:0}
+  nav.main.open{display:flex}
+  nav.main a{padding:14px 12px;font-size:1.05rem}
+  .menu-btn{display:inline-flex}
+  .top .btn-primary{display:none}
+}
+
+/* Hero */
+.hero{padding-block:clamp(28px,5vw,64px) clamp(40px,6vw,72px)}
+.hero .wrap{display:grid;grid-template-columns:1.02fr 1fr;gap:clamp(24px,5vw,64px);align-items:center}
+.hero h1{font-size:clamp(2.8rem,7vw,5.4rem);line-height:.86}
+.hero h1 em{font-style:normal;color:var(--mint-ink)}
+.hero-copy{display:grid;gap:24px;min-width:0}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero-facts{display:flex;gap:10px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
+.hero-facts li{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px}
+.hero-photo{position:relative;min-width:0}
+.hero-photo img{width:100%;height:auto;aspect-ratio:4/3.4;object-fit:cover;object-position:52% 60%;border-radius:28px}
+.tag{position:absolute;background:var(--surface);color:var(--ink);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);font-size:.85rem;line-height:1.3;display:grid;gap:2px}
+.tag b{font-family:var(--f-display);font-stretch:75%;font-size:1.1rem;text-transform:uppercase}
+.tag .mono{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.tag-bike{left:-14px;bottom:18%}
+.tag-bike::after{content:"";position:absolute;right:-34px;top:50%;width:34px;height:2px;background:var(--surface)}
+.tag-price{right:14px;top:14px;background:var(--mint);color:#0B2A22}
+.tag-price .mono{color:#0B2A22;opacity:.75}
+@media (max-width:820px){.hero .wrap{grid-template-columns:1fr}.tag-bike{left:12px;bottom:12px}.tag-bike::after{display:none}}
+
+/* Ruta de crecimiento */
+.route{background:var(--surface);border-block:1px solid var(--line)}
+.route .wrap{padding-block:28px}
+.ruler{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.stage{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center;text-decoration:none;padding:10px;border-radius:16px;transition:background .15s}
+.stage:hover{background:var(--mint-soft)}
+.stage img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:12px}
+.stage .age{font-family:var(--f-mono);font-size:.78rem;color:var(--mint-ink)}
+.stage .nm{font-family:var(--f-display);font-stretch:72%;font-weight:800;font-size:1.25rem;text-transform:uppercase;line-height:1}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem;color:var(--muted);border-top:2px solid var(--ink);margin-top:18px;padding-top:6px;position:relative}
+.scale span{position:relative}
+.scale span::before{content:"";position:absolute;left:50%;top:-12px;width:2px;height:8px;background:var(--ink)}
+@media (max-width:900px){.ruler{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.ruler{grid-template-columns:1fr}.scale{display:none}}
+
+/* Guía por edad */
+.finder{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,48px);background:var(--ink);color:var(--paper);border-radius:32px;padding:clamp(24px,4vw,48px)}
+.finder .eyebrow{color:var(--mint)}
+.finder h2{color:var(--paper)}
+.finder .lede{color:color-mix(in srgb,var(--paper) 72%,transparent)}
+.ctrl{display:grid;gap:10px;margin-top:26px}
+.ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+.ctrl output{font-family:var(--f-display);font-stretch:70%;font-weight:900;font-size:2.4rem;line-height:1;color:var(--mint)}
+.ctrl input[type=range]{width:100%;accent-color:var(--mint);height:28px}
+.ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.7rem;opacity:.6}
+.results{display:grid;gap:12px;align-content:start}
+.res{display:grid;grid-template-columns:84px 1fr auto;gap:14px;align-items:center;background:color-mix(in srgb,var(--paper) 8%,transparent);border:1px solid color-mix(in srgb,var(--paper) 14%,transparent);border-radius:18px;padding:10px 14px 10px 10px;text-decoration:none;color:inherit;transition:opacity .2s,transform .2s}
+.res img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:12px}
+.res .nm{font-weight:800;font-size:1.05rem;line-height:1.2}
+.res .meta{font-size:.85rem;opacity:.75}
+.res .fit{font-family:var(--f-mono);font-size:.72rem;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.fit-ideal{background:var(--mint);color:#0B2A22}
+.fit-ok{background:color-mix(in srgb,var(--paper) 18%,transparent)}
+.fit-no{border:1px dashed color-mix(in srgb,var(--paper) 35%,transparent)}
+.res.off{opacity:.38}
+@media (max-width:820px){.finder{grid-template-columns:1fr}}
+@media (max-width:440px){.res{grid-template-columns:64px 1fr}.res img{width:64px;height:64px}.res .fit{grid-column:2;justify-self:start}}
+
+/* Productos */
+.grid-products{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+@media (max-width:1060px){.grid-products{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.grid-products{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.card .ph{position:relative;background:#fff;aspect-ratio:1/1}
+.card .ph img{width:100%;height:100%;object-fit:contain;padding:16px;transition:opacity .2s}
+.off-badge{position:absolute;left:12px;top:12px;background:var(--sale);color:#fff;font:800 .8rem var(--f-body);padding:5px 10px;border-radius:999px}
+.age-badge{position:absolute;right:12px;top:12px;background:var(--badge-bg);color:var(--badge-fg);font:500 .72rem var(--f-mono);padding:5px 9px;border-radius:999px}
+.card .bd{padding:16px 18px 18px;display:grid;gap:12px;flex:1;align-content:start}
+.card h3{font-size:1.45rem}
+.card .sub{color:var(--muted);font-size:.9rem;line-height:1.4}
+.swatches{display:flex;gap:8px;align-items:center}
+.swatches .lbl{font-size:.82rem;color:var(--muted);margin-left:4px}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
+.price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.price .now{font-family:var(--f-display);font-stretch:75%;font-weight:900;font-size:1.9rem;line-height:1}
+.price .was{color:var(--muted);text-decoration:line-through;font-size:.92rem}
+.price .cur{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.card .acts{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:auto}
+.card .acts .btn{min-height:44px;padding:0 16px;font-size:.88rem}
+
+/* Ficha de producto */
+.pdp{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:start}
+.pdp.rev .gal{order:2}
+@media (max-width:900px){.pdp{grid-template-columns:1fr}.pdp.rev .gal{order:0}}
+.gal{display:grid;gap:10px;position:sticky;top:96px}
+@media (max-width:900px){.gal{position:static}}
+.gal .main{border-radius:24px;overflow:hidden;background:#fff;aspect-ratio:1/1}
+.gal .main img{width:100%;height:100%;object-fit:cover}
+.thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.thumbs button{padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;cursor:pointer;background:#fff;aspect-ratio:1/1}
+.thumbs button[aria-current="true"]{border-color:var(--ink)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.info{display:grid;gap:22px;min-width:0}
+.info h2{font-size:clamp(2.4rem,5.4vw,4.2rem)}
+.spec{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.spec .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--ink);color:var(--paper)}
+.spec .hd b{font-family:var(--f-display);font-stretch:72%;text-transform:uppercase;font-size:1.05rem;letter-spacing:.02em}
+.spec .hd span{font-family:var(--f-mono);font-size:.72rem;opacity:.75}
+.spec dl{margin:0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+.spec dt,.spec dd{margin:0;padding:11px 18px;border-top:1px solid var(--line);font-size:.92rem}
+.spec dt{color:var(--muted)}
+.spec dd{font-family:var(--f-mono);font-size:.86rem;font-variant-numeric:tabular-nums}
+.spec dl>:nth-child(-n+2){border-top:0}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.checks li{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start}
+.checks li::before{content:"";width:22px;height:22px;margin-top:2px;border-radius:50%;background:var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B2A22' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/14px no-repeat}
+.buyrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.note{font-size:.82rem;color:var(--muted)}
+
+/* Por qué equilibrio */
+.why{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
+.why figure{margin:0;border-radius:22px;overflow:hidden;position:relative}
+.why figure img{width:100%;height:100%;object-fit:cover}
+.why .a{grid-column:span 5;grid-row:span 2}
+.why .b{grid-column:span 4}
+.why .c{grid-column:span 3}
+.why .d{grid-column:span 7;background:var(--mint);color:#0B2A22;border-radius:22px;padding:clamp(20px,3vw,32px);display:grid;gap:16px;align-content:center}
+.why .d h3{font-size:clamp(1.8rem,3.4vw,2.6rem)}
+.why .d ul{margin:0;padding-left:1.1em;display:grid;gap:6px}
+@media (max-width:900px){.why .a,.why .b,.why .c,.why .d{grid-column:span 12;grid-row:auto}.why .a{aspect-ratio:4/3}}
+
+/* Cascos */
+.helmets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(24px,4vw,48px);align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:32px;padding:clamp(20px,4vw,48px)}
+.helmet-stage{background:#fff;border-radius:24px;aspect-ratio:1/1}
+.helmet-stage img{width:100%;height:100%;object-fit:contain;padding:8%}
+@media (max-width:820px){.helmets{grid-template-columns:1fr}}
+
+/* Comparador */
+.cmp-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table.cmp{border-collapse:collapse;width:100%;min-width:720px;font-size:.92rem}
+.cmp th,.cmp td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.cmp thead th{font-family:var(--f-display);font-stretch:72%;text-transform:uppercase;font-size:1.15rem;line-height:1.05}
+.cmp thead th img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:10px;margin-bottom:8px}
+.cmp tbody th{color:var(--muted);font-weight:600;width:18%}
+.cmp td{font-family:var(--f-mono);font-size:.84rem;font-variant-numeric:tabular-nums}
+.cmp tr:last-child>*{border-bottom:0}
+
+/* Comunidad */
+.community{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:220px;gap:12px}
+.community figure{margin:0;border-radius:20px;overflow:hidden;position:relative}
+.community img{width:100%;height:100%;object-fit:cover}
+.community .feat{grid-column:span 2;grid-row:span 2}
+.community figcaption{position:absolute;left:12px;bottom:12px;background:var(--surface);color:var(--ink);font-size:.8rem;font-weight:700;padding:6px 12px;border-radius:999px}
+@media (max-width:820px){.community{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:170px}}
+
+/* FAQ */
+.faq{display:grid;gap:10px;max-width:820px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0 20px}
+.faq summary{cursor:pointer;list-style:none;font-weight:800;font-size:1.05rem;padding:18px 0;display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-family:var(--f-mono);font-size:1.3rem;line-height:1;color:var(--mint-ink)}
+.faq details[open] summary::after{content:"–"}
+.faq details p{padding-bottom:18px;color:var(--muted);max-width:65ch}
+
+/* Footer */
+footer{background:var(--ink);color:var(--paper);padding-block:56px 32px;margin-top:clamp(40px,6vw,72px)}
+footer .cols{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:32px}
+footer h4{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;opacity:.6;margin:0 0 12px}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+footer a{text-decoration:none;opacity:.9}
+footer a:hover{opacity:1;text-decoration:underline}
+footer .claim{font-family:var(--f-display);font-stretch:68%;font-weight:900;font-size:clamp(2rem,4vw,3rem);text-transform:uppercase;line-height:.95;margin-top:18px;color:var(--mint)}
+footer .legal{margin-top:40px;padding-top:20px;border-top:1px solid color-mix(in srgb,var(--paper) 18%,transparent);font-size:.8rem;opacity:.6}
+@media (max-width:820px){footer .cols{grid-template-columns:1fr 1fr}}
+
+/* Notas del rediseño */
+.notes-btn{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:70;background:var(--mint);color:#0B2A22;border:0;border-radius:999px;padding:12px 18px;font:800 .88rem var(--f-body);box-shadow:var(--shadow);cursor:pointer}
+.notes{position:fixed;inset:auto 0 0 auto;top:0;width:min(440px,100%);z-index:80;background:var(--surface);border-left:1px solid var(--line);box-shadow:-20px 0 50px -20px rgba(0,0,0,.35);overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 24px) max(24px,calc(env(safe-area-inset-right,0px) + 24px)) 32px 24px;display:grid;gap:18px;align-content:start}
+.notes[hidden]{display:none}
+.notes h3{font-size:1.8rem}
+.notes ol{margin:0;padding-left:1.2em;display:grid;gap:10px;font-size:.92rem}
+.notes .x{justify-self:end;background:none;border:2px solid var(--ink);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:800;cursor:pointer}
+.notes .ref{font-size:.85rem;color:var(--muted)}
+</style>
+
+<div class="strip"><div class="wrap">
+  <span>Hasta 37% de descuento en bicicletas de equilibrio</span>
+  <span>Compra protegida a través de Mercado Libre</span>
+</div></div>
+
+<header class="top"><div class="wrap">
+  <a class="logo" href="#inicio" aria-label="TOMI Ride, inicio"><img src="img/logo.png" alt="TOMI"></a>
+  <nav class="main" id="nav" aria-label="Principal">
+    <a href="#bicicletas">Bicicletas</a>
+    <a href="#scooters">Scooters</a>
+    <a href="#triciclos">Triciclos</a>
+    <a href="#cascos">Cascos</a>
+    <a href="#comparar">Comparar</a>
+    <a href="#preguntas">Preguntas</a>
+  </nav>
+  <div class="spacer"></div>
+  <a class="btn btn-primary" href="#guia">¿Cuál es para mi hijo/a?</a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="nav">Menú</button>
+</div></header>
+
+<main id="inicio">
+<section class="hero"><div class="wrap">
+  <div class="hero-copy">
+    <p class="eyebrow">Bicicletas de equilibrio · Scooters · Triciclos</p>
+    <h1>Grandes momentos empiezan con <em>pequeños pasos… y ruedas</em></h1>
+    <p class="lede">Vehículos livianos y fáciles de armar para niños de 1 a 8 años. Apostando por una infancia al aire libre.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-mint" href="#guia">Encuentra su primera TOMI</a>
+      <a class="btn btn-ghost" href="#productos">Ver productos</a>
+    </div>
+    <ul class="hero-facts">
+      <li>Bicicleta 2,9 kg</li><li>Triciclo 1,8 kg</li><li>Armado sin herramientas</li>
+    </ul>
+  </div>
+  <div class="hero-photo">
+    <img src="img/hero-tomi.jpg" alt="Niño sonriente con su bicicleta de equilibrio TOMI color menta en un patio de tierra al atardecer" width="1600" height="1200">
+    <a class="tag tag-price" href="#bicicletas"><span class="mono">Bicicleta de equilibrio</span><b>$49.990</b></a>
+    <div class="tag tag-bike"><b>Menta · Aro 12"</b><span class="mono">2 a 5 años · 80–105 cm</span></div>
+  </div>
+</div></section>
+
+<section class="route" aria-label="Ruta de crecimiento"><div class="wrap">
+  <div class="ruler">
+    <a class="stage" href="#triciclos"><img src="img/triciclo.jpg" alt=""><div><div class="age">12–24 meses</div><div class="nm">Triciclo Mini Ride</div></div></a>
+    <a class="stage" href="#bicicletas"><img src="img/bici-menta.jpg" alt=""><div><div class="age">2–5 años</div><div class="nm">Bici de equilibrio</div></div></a>
+    <a class="stage" href="#scooters"><img src="img/scooter-azul.jpg" alt=""><div><div class="age">2–8 años</div><div class="nm">Scooter BJ</div></div></a>
+    <a class="stage" href="#cascos"><img src="img/casco-menta.jpg" alt=""><div><div class="age">Siempre</div><div class="nm">Casco ajustable</div></div></a>
+  </div>
+  <div class="scale" aria-hidden="true"><span>1 año</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8 años</span></div>
+</div></section>
+
+<section class="sec" id="guia"><div class="wrap">
+  <div class="finder">
+    <div>
+      <p class="eyebrow">Guía por edad y altura</p>
+      <h2>¿Cuál es la TOMI para tu peque?</h2>
+      <p class="lede" style="margin-top:14px">Mueve los controles y te mostramos qué le queda bien hoy, según las medidas de cada producto.</p>
+      <div class="ctrl">
+        <label for="age">Edad <output id="ageOut" for="age">3 años</output></label>
+        <input type="range" id="age" min="1" max="8" step="0.5" value="3">
+        <div class="ticks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+      </div>
+      <div class="ctrl">
+        <label for="height">Altura <output id="hOut" for="height">95 cm</output></label>
+        <input type="range" id="height" min="70" max="130" step="1" value="95">
+        <div class="ticks" aria-hidden="true"><span>70</span><span>85</span><span>100</span><span>115</span><span>130 cm</span></div>
+      </div>
+    </div>
+    <div class="results" id="results" aria-live="polite"></div>
+  </div>
+</div></section>
+
+<section class="sec" id="productos" style="padding-top:0"><div class="wrap">
+  <div class="sec-head">
+    <p class="eyebrow">Catálogo</p>
+    <h2>Conoce nuestros productos</h2>
+  </div>
+  <div class="grid-products" id="grid"></div>
+</div></section>
+
+<section class="sec" id="bicicletas" style="padding-top:0"><div class="wrap">
+  <div class="pdp">
+    <div class="gal" data-gal>
+      <div class="main"><img src="img/bici-uso-nina.jpg" alt="Niña sentada en una bicicleta de equilibrio TOMI menta"></div>
+      <div class="thumbs">
+        <button aria-current="true" data-src="img/bici-uso-nina.jpg" data-alt="Niña sentada en una bicicleta de equilibrio TOMI menta"><img src="img/bici-uso-nina.jpg" alt=""></button>
+        <button data-src="img/bici-uso-salto.jpg" data-alt="Niña bajando un escalón en su bicicleta de equilibrio"><img src="img/bici-uso-salto.jpg" alt=""></button>
+        <button data-src="img/bici-rueda.jpg" data-alt="Detalle de la rueda aro 12 de la bicicleta"><img src="img/bici-rueda.jpg" alt=""></button>
+        <button data-src="img/bici-detalle-logo.jpg" data-alt="Detalle del logo T en el cuadro"><img src="img/bici-detalle-logo.jpg" alt=""></button>
+        <button data-src="img/bici-uso-escalera.jpg" data-alt="Dos niñas con bicicletas TOMI en una escalera"><img src="img/bici-uso-escalera.jpg" alt=""></button>
+      </div>
+    </div>
+    <div class="info">
+      <p class="eyebrow">2 a 5 años · Aro 12"</p>
+      <h2>Bicicleta de equilibrio TOMI</h2>
+      <p class="lede">Diseño sin pedales, ideal como primer paso antes de una bici con rueditas. Favorece la motricidad y el equilibrio, y con 2,9 kg es súper liviana.</p>
+      <div class="price"><span class="now">$49.990</span><span class="was">$79.990</span><span class="cur">CLP</span></div>
+      <div class="buyrow">
+        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972?picker=true&quantity=1">Comprar Menta ↗</a>
+        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349598642">Azul ↗</a>
+        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3343607261?picker=true&quantity=1">Rosada ↗</a>
+      </div>
+      <div class="spec">
+        <div class="hd"><b>Ficha técnica</b><span>BICI-EQ-12</span></div>
+        <dl>
+          <dt>Edad recomendada</dt><dd>2 a 5 años</dd>
+          <dt>Altura del niño/a</dt><dd>80 a 105 cm</dd>
+          <dt>Altura del asiento</dt><dd>30 a 40 cm</dd>
+          <dt>Peso máximo de uso</dt><dd>30 kg</dd>
+          <dt>Aro</dt><dd>12"</dd>
+          <dt>Peso del producto</dt><dd>2,9 kg</dd>
+          <dt>Material</dt><dd>PP + acero inoxidable</dd>
+          <dt>Colores</dt><dd>Menta, azul y rosado</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" style="padding-top:0" aria-labelledby="whyT"><div class="wrap">
+  <div class="why">
+    <figure class="a"><img src="img/bici-uso-salto.jpg" alt="Niña con casco avanzando en su bicicleta de equilibrio"></figure>
+    <figure class="b"><img src="img/tomados-mano.jpg" alt="Niños caminando de la mano junto a una bicicleta"></figure>
+    <figure class="c"><img src="img/bici-rosada-detalle.jpg" alt="Detalle de la bicicleta rosada TOMI Bikes"></figure>
+    <div class="d">
+      <p class="eyebrow" style="color:#0B2A22">Más que una bici</p>
+      <h3 id="whyT">Su primera gran aventura</h3>
+      <ul>
+        <li>Mejora el equilibrio y la coordinación motora.</li>
+        <li>Refuerza la confianza e independencia al avanzar por sí mismos.</li>
+        <li>Fortalece la motricidad y los músculos de piernas y brazos.</li>
+        <li>Es una forma divertida y segura de estar activos al aire libre.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" id="scooters" style="padding-top:0"><div class="wrap">
+  <div class="pdp rev">
+    <div class="gal" data-gal>
+      <div class="main"><img src="img/scooter-uso.jpg" alt="Niño usando el scooter TOMI azul en un parque"></div>
+      <div class="thumbs">
+        <button aria-current="true" data-src="img/scooter-uso.jpg" data-alt="Niño usando el scooter TOMI azul en un parque"><img src="img/scooter-uso.jpg" alt=""></button>
+        <button data-src="img/scooter-ajuste.jpg" data-alt="Ajuste de altura del manubrio del scooter"><img src="img/scooter-ajuste.jpg" alt=""></button>
+        <button data-src="img/scooter-desarmado.jpg" data-alt="Scooter desmontado en dos piezas para transportarlo"><img src="img/scooter-desarmado.jpg" alt=""></button>
+        <button data-src="img/scooter-base.jpg" data-alt="Base del scooter vista desde abajo"><img src="img/scooter-base.jpg" alt=""></button>
+        <button data-src="img/scooter-rosado-frente.jpg" data-alt="Scooter TOMI rosado de frente"><img src="img/scooter-rosado-frente.jpg" alt=""></button>
+      </div>
+    </div>
+    <div class="info">
+      <p class="eyebrow">2 a 8 años · hasta 50 kg</p>
+      <h2>Scooter BJ TOMI</h2>
+      <p class="lede">Crece con tu peque: el manubrio se ajusta en 4 alturas y las ruedas tienen luces LED que funcionan sin pilas.</p>
+      <div class="price"><span class="now">$39.990</span><span class="was">$49.990</span><span class="cur">CLP</span></div>
+      <div class="buyrow">
+        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483910432?product_trigger_id=MLC60157520&picker=true&quantity=1">Comprar Azul ↗</a>
+        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483895788?product_trigger_id=MLC60157518&picker=true&quantity=1">Rosado ↗</a>
+      </div>
+      <ul class="checks">
+        <li>Se arma en segundos, sin herramientas.</li>
+        <li>Ruedas con luces LED que funcionan sin pilas.</li>
+        <li>Manubrio ajustable en 4 alturas.</li>
+        <li>Fácil de transportar gracias a su sistema desmontable.</li>
+        <li>Soporta hasta 50 kg.</li>
+      </ul>
+      <div class="spec">
+        <div class="hd"><b>Ficha técnica</b><span>SCOOTER-BJ</span></div>
+        <dl>
+          <dt>Edad recomendada</dt><dd>2 a 8 años</dd>
+          <dt>Carga máxima</dt><dd>50 kg</dd>
+          <dt>Altura del manubrio</dt><dd>57 a 77 cm</dd>
+          <dt>Peso</dt><dd>2,5 kg</dd>
+          <dt>Medidas en uso</dt><dd>57 × 28 × 77 cm</dd>
+          <dt>Medidas de la caja</dt><dd>17 × 29 × 58 cm</dd>
+          <dt>Material</dt><dd>Aluminio, polipropileno y fibra de vidrio reforzada</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" id="triciclos" style="padding-top:0"><div class="wrap">
+  <div class="pdp">
+    <div class="gal" data-gal>
+      <div class="main"><img src="img/triciclo-uso-manos.jpg" alt="Bebé dando sus primeros pasos con el triciclo Mini Ride"></div>
+      <div class="thumbs">
+        <button aria-current="true" data-src="img/triciclo-uso-manos.jpg" data-alt="Bebé dando sus primeros pasos con el triciclo Mini Ride"><img src="img/triciclo-uso-manos.jpg" alt=""></button>
+        <button data-src="img/triciclo-uso-casco.jpg" data-alt="Niña con casco rosado junto al triciclo"><img src="img/triciclo-uso-casco.jpg" alt=""></button>
+        <button data-src="img/triciclo.jpg" data-alt="Triciclo Mini Ride TOMI menta"><img src="img/triciclo.jpg" alt=""></button>
+        <button data-src="img/triciclo-detalle.jpg" data-alt="Detalle del asiento ergonómico y el cuadro"><img src="img/triciclo-detalle.jpg" alt=""></button>
+        <button data-src="img/triciclo-rueda.jpg" data-alt="Rueda EVA de 6 pulgadas"><img src="img/triciclo-rueda.jpg" alt=""></button>
+      </div>
+    </div>
+    <div class="info">
+      <p class="eyebrow">12 a 24 meses · 1,8 kg</p>
+      <h2>Triciclo Mini Ride TOMI</h2>
+      <p class="lede">El compañero perfecto para las primeras aventuras. Invita a explorar mientras aprenden a mantener el equilibrio, y con solo 1,8 kg lo llevas fácil al parque o a casa de los tatas.</p>
+      <div class="price"><span class="now">$34.990</span><span class="cur">CLP</span></div>
+      <div class="buyrow">
+        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/triciclo-tomi-miniride-10-a-24-meses/up/MLCU3344743029">Comprar en Mercado Libre ↗</a>
+      </div>
+      <ul class="checks">
+        <li>Ligero y resistente.</li>
+        <li>Ayuda a desarrollar equilibrio, fuerza y coordinación.</li>
+        <li>Ruedas EVA ecológicas, suaves y silenciosas.</li>
+        <li>Armado fácil y rápido, sin herramientas especiales.</li>
+      </ul>
+      <div class="spec">
+        <div class="hd"><b>Ficha técnica</b><span>MINI-RIDE</span></div>
+        <dl>
+          <dt>Edad recomendada</dt><dd>12 a 24 meses</dd>
+          <dt>Altura del niño/a</dt><dd>75 a 95 cm aprox.</dd>
+          <dt>Altura del asiento</dt><dd>30 cm</dd>
+          <dt>Peso máximo</dt><dd>25 kg</dd>
+          <dt>Ruedas</dt><dd>EVA 6"</dd>
+          <dt>Peso del producto</dt><dd>1,8 kg</dd>
+          <dt>Material</dt><dd>PP + acero + aluminio + nylon</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" id="cascos" style="padding-top:0"><div class="wrap">
+  <div class="helmets">
+    <div class="helmet-stage"><img id="helmetImg" src="img/casco-menta.jpg" alt="Casco TOMI menta"></div>
+    <div class="info">
+      <p class="eyebrow">Talla ajustable</p>
+      <h2>Casco TOMI para niños</h2>
+      <p class="lede">El complemento para cada etapa: bicicleta, scooter o triciclo. Elige el color que combine con su TOMI.</p>
+      <div class="swatches" role="group" aria-label="Color del casco" id="helmetSw"></div>
+      <div class="price"><span class="now">$24.990</span><span class="was">$29.990</span><span class="cur">CLP</span></div>
+      <div class="buyrow"><a class="btn btn-primary" id="helmetBuy" target="_blank" rel="noopener" href="#">Comprar casco ↗</a></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" id="comparar" style="padding-top:0"><div class="wrap">
+  <div class="sec-head"><p class="eyebrow">Lado a lado</p><h2>Compara y elige</h2></div>
+  <div class="cmp-wrap">
+    <table class="cmp">
+      <thead><tr><th scope="col"></th>
+        <th scope="col"><img src="img/triciclo.jpg" alt=""><br>Triciclo Mini Ride</th>
+        <th scope="col"><img src="img/bici-menta.jpg" alt=""><br>Bici de equilibrio</th>
+        <th scope="col"><img src="img/scooter-azul.jpg" alt=""><br>Scooter BJ</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Edad</th><td>12–24 meses</td><td>2–5 años</td><td>2–8 años</td></tr>
+        <tr><th scope="row">Altura del niño/a</th><td>75–95 cm</td><td>80–105 cm</td><td>Manubrio 57–77 cm</td></tr>
+        <tr><th scope="row">Peso máximo</th><td>25 kg</td><td>30 kg</td><td>50 kg</td></tr>
+        <tr><th scope="row">Peso del producto</th><td>1,8 kg</td><td>2,9 kg</td><td>2,5 kg</td></tr>
+        <tr><th scope="row">Ruedas</th><td>EVA 6"</td><td>Aro 12"</td><td>Luces LED sin pilas</td></tr>
+        <tr><th scope="row">Colores</th><td>Menta</td><td>Menta, azul, rosado</td><td>Azul, rosado</td></tr>
+        <tr><th scope="row">Precio</th><td>$34.990</td><td>$49.990</td><td>$39.990</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div></section>
+
+<section class="sec" style="padding-top:0" aria-labelledby="comT"><div class="wrap">
+  <div class="sec-head"><p class="eyebrow">Comunidad TOMI</p><h2 id="comT">Infancia al aire libre</h2></div>
+  <div class="community">
+    <figure class="feat"><img src="img/hero-tomi.jpg" alt="Niño con su bicicleta de equilibrio TOMI menta" style="object-position:50% 55%;height:100%"><figcaption>Primeras rodadas en casa</figcaption></figure>
+    <figure><img src="img/grupo-escalera.jpg" alt="Grupo de niños con bicicletas TOMI en una escalera"></figure>
+    <figure><img src="img/parque.jpg" alt="Niños con scooters y bicicletas en un parque"></figure>
+    <figure><img src="img/triciclo-uso-dos.jpg" alt="Dos niñas jugando con bicicleta y triciclo"></figure>
+    <figure><img src="img/grupo-fila.jpg" alt="Niños en fila con sus vehículos TOMI"></figure>
+  </div>
+</div></section>
+
+<section class="sec" id="preguntas" style="padding-top:0"><div class="wrap">
+  <div class="sec-head"><p class="eyebrow">Antes de comprar</p><h2>Preguntas frecuentes</h2></div>
+  <div class="faq">
+    <details open><summary>¿Desde qué edad puede usar una TOMI?</summary><p>Desde los 12 meses con el Triciclo Mini Ride (75 a 95 cm de altura). Entre 2 y 5 años la bicicleta de equilibrio aro 12" (80 a 105 cm), y entre 2 y 8 años el Scooter BJ, que soporta hasta 50 kg.</p></details>
+    <details><summary>¿Necesito herramientas para armarlos?</summary><p>No. El scooter se arma en segundos sin herramientas y el triciclo se arma de forma rápida sin herramientas especiales.</p></details>
+    <details><summary>¿Por qué una bicicleta sin pedales?</summary><p>La bicicleta de equilibrio es el primer paso antes de la bici con pedales: mejora el equilibrio y la coordinación, y refuerza la confianza al avanzar por sí mismos.</p></details>
+    <details><summary>¿Las luces del scooter usan pilas?</summary><p>No. Las ruedas tienen luces LED que se encienden con el movimiento y funcionan sin pilas.</p></details>
+    <details><summary>¿Dónde compro?</summary><p>Todas las compras se realizan en nuestras publicaciones oficiales de Mercado Libre, con el pago y despacho que ofrece la plataforma.</p></details>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <div class="cols">
+    <div>
+      <span class="logo" style="display:inline-block"><img src="img/logo.png" alt="TOMI"></span>
+      <p class="claim">Apostando por una infancia al aire libre</p>
+    </div>
+    <div><h4>Productos</h4><ul><li><a href="#bicicletas">Bicicletas de equilibrio</a></li><li><a href="#scooters">Scooters</a></li><li><a href="#triciclos">Triciclos</a></li><li><a href="#cascos">Cascos</a></li></ul></div>
+    <div><h4>Ayuda</h4><ul><li><a href="#guia">Guía por edad</a></li><li><a href="#comparar">Comparar productos</a></li><li><a href="#preguntas">Preguntas frecuentes</a></li></ul></div>
+    <div><h4>Síguenos</h4><ul><li><a href="https://instagram.com" target="_blank" rel="noopener">Instagram ↗</a></li><li><a href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972" target="_blank" rel="noopener">Mercado Libre ↗</a></li></ul></div>
+  </div>
+  <p class="legal">© TOMI Ride · tomiride.cl · Precios en pesos chilenos (CLP) tomados del sitio actual.</p>
+</div></footer>
+
+<button class="notes-btn" id="notesBtn" aria-expanded="false" aria-controls="notes">Notas del rediseño</button>
+<aside class="notes" id="notes" hidden aria-label="Notas del rediseño">
+  <button class="x" id="notesX">Cerrar</button>
+  <p class="eyebrow">Maqueta · propuesta</p>
+  <h3>Qué cambiamos y por qué</h3>
+  <ol>
+    <li><b>Guía por edad y altura.</b> El sitio actual obligaba a abrir cada ficha para saber si un producto servía. Ahora se responde en un paso, con las medidas reales de cada producto.</li>
+    <li><b>Selector de color en la tarjeta.</b> Antes había una tarjeta por color (8 tarjetas para 4 productos). Ahora una por producto, con muestras de color que cambian foto y enlace de compra.</li>
+    <li><b>Descuento visible.</b> Se calcula el % de ahorro (20 %, 37 %, 17 %) en vez de mostrar solo dos precios.</li>
+    <li><b>Una sola página con navegación fija.</b> Las 3 subpáginas de Google Sites quedan integradas como fichas con galería, ficha técnica y botones de compra por color.</li>
+    <li><b>Comparador y preguntas frecuentes</b> armados con los datos del sitio, para resolver dudas antes de ir a Mercado Libre.</li>
+    <li><b>Enlaces directos.</b> Se quitan las redirecciones de google.com/url y se corrige un error: en la página de scooters, "Comprar Azul" llevaba a la bicicleta.</li>
+    <li><b>Fotos reales primero.</b> Hero con foto de uso real, galería de comunidad y tema claro/oscuro.</li>
+  </ol>
+  <p class="ref"><b>Referencias del rubro:</b> woom (bicicletas infantiles con premios iF Design y Red Dot; su modelo WOW obtuvo el iF Design Award 2026) y Early Rider: guía por talla, fichas técnicas claras y fotografía de uso real.</p>
+  <p class="ref"><b>Pendiente para el cliente:</b> el enlace de Instagram del sitio actual apunta a instagram.com sin cuenta; falta el usuario real.</p>
+</aside>
+
+<script>
+const ML={
+  bici:{menta:"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972?picker=true&quantity=1",azul:"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349598642",rosada:"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3343607261?picker=true&quantity=1"},
+  scooter:{azul:"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483910432?product_trigger_id=MLC60157520&picker=true&quantity=1",rosado:"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483895788?product_trigger_id=MLC60157518&picker=true&quantity=1"},
+  tri:"https://www.mercadolibre.cl/triciclo-tomi-miniride-10-a-24-meses/up/MLCU3344743029",
+  casco:"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM",
+  cascoMenta:"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM?attributes=COLOR_SECONDARY_COLOR%3ATWVudGE%3D&picker=true&quantity=1"
+};
+const P=[
+  {id:"bicicletas",name:"Bicicleta de equilibrio",sub:"Aro 12\" · 2,9 kg · sin pedales",age:"2–5 años",now:49990,was:79990,
+   v:[{c:"Menta",hex:"#7FD9C3",img:"img/bici-menta.jpg",url:ML.bici.menta},{c:"Azul",hex:"#2BA3DC",img:"img/bici-azul.jpg",url:ML.bici.azul},{c:"Rosada",hex:"#E8559B",img:"img/bici-rosada.jpg",url:ML.bici.rosada}]},
+  {id:"scooters",name:"Scooter BJ",sub:"Manubrio ajustable · luces LED sin pilas",age:"2–8 años",now:39990,was:49990,
+   v:[{c:"Azul",hex:"#2160D8",img:"img/scooter-azul.jpg",url:ML.scooter.azul},{c:"Rosado",hex:"#F3A7B9",img:"img/scooter-rosado.jpg",url:ML.scooter.rosado}]},
+  {id:"triciclos",name:"Triciclo Mini Ride",sub:"Ruedas EVA 6\" · 1,8 kg",age:"12–24 m",now:34990,
+   v:[{c:"Menta",hex:"#7FD9C3",img:"img/triciclo.jpg",url:ML.tri}]},
+  {id:"cascos",name:"Casco ajustable",sub:"Talla ajustable para niños",age:"Todas",now:24990,was:29990,
+   v:[{c:"Menta",hex:"#5ED6C9",img:"img/casco-menta.jpg",url:ML.cascoMenta},{c:"Azul",hex:"#1E9BE6",img:"img/casco-azul.jpg",url:ML.casco},{c:"Rosado",hex:"#C987DE",img:"img/casco-rosado.jpg",url:ML.casco}]}
+];
+const clp=n=>"$"+n.toLocaleString("es-CL");
+
+const grid=document.getElementById("grid");
+P.forEach(p=>{
+  const off=p.was?Math.round((1-p.now/p.was)*100):0;
+  const el=document.createElement("article");el.className="card";
+  el.innerHTML=`<div class="ph">${off?`<span class="off-badge">-${off}%</span>`:""}<span class="age-badge">${p.age}</span><img alt="${p.name} ${p.v[0].c}" src="${p.v[0].img}" loading="lazy"></div>
+  <div class="bd"><h3>${p.name}</h3><p class="sub">${p.sub}</p>
+  <div class="swatches" role="group" aria-label="Color">${p.v.map((v,i)=>`<button class="sw" style="background:${v.hex}" aria-label="${v.c}" aria-pressed="${i===0}" data-i="${i}"></button>`).join("")}<span class="lbl">${p.v[0].c}</span></div>
+  <div class="price"><span class="now">${clp(p.now)}</span>${p.was?`<span class="was">${clp(p.was)}</span>`:""}<span class="cur">CLP</span></div>
+  <div class="acts"><a class="btn btn-primary buy" target="_blank" rel="noopener" href="${p.v[0].url}">Comprar ↗</a><a class="btn btn-ghost" href="#${p.id}">Ficha</a></div></div>`;
+  const img=el.querySelector(".ph img"),lbl=el.querySelector(".lbl"),buy=el.querySelector(".buy");
+  el.querySelectorAll(".sw").forEach(b=>b.addEventListener("click",()=>{
+    const v=p.v[+b.dataset.i];
+    el.querySelectorAll(".sw").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    img.src=v.img;img.alt=`${p.name} ${v.c}`;lbl.textContent=v.c;buy.href=v.url;
+  }));
+  grid.appendChild(el);
+});
+
+// Cascos
+const H=P[3],hsw=document.getElementById("helmetSw"),himg=document.getElementById("helmetImg"),hbuy=document.getElementById("helmetBuy");
+H.v.forEach((v,i)=>{const b=document.createElement("button");b.className="sw";b.style.background=v.hex;b.setAttribute("aria-label",v.c);b.setAttribute("aria-pressed",i===0);
+  b.addEventListener("click",()=>{hsw.querySelectorAll(".sw").forEach(x=>x.setAttribute("aria-pressed",x===b));himg.src=v.img;himg.alt="Casco TOMI "+v.c.toLowerCase();hbuy.href=v.url;hbuy.textContent="Comprar casco "+v.c.toLowerCase()+" ↗";hsw.querySelector(".lbl").textContent=v.c});hsw.appendChild(b)});
+const hl=document.createElement("span");hl.className="lbl";hl.textContent=H.v[0].c;hsw.appendChild(hl);
+hbuy.href=H.v[0].url;hbuy.textContent="Comprar casco menta ↗";
+
+// Galerías
+document.querySelectorAll("[data-gal]").forEach(g=>{
+  const main=g.querySelector(".main img");
+  g.querySelectorAll(".thumbs button").forEach(b=>{b.setAttribute("aria-label",b.dataset.alt);b.addEventListener("click",()=>{
+    main.src=b.dataset.src;main.alt=b.dataset.alt;g.querySelectorAll(".thumbs button").forEach(x=>x.setAttribute("aria-current",x===b))})})
+});
+
+// Guía por edad y altura (rangos del sitio actual)
+const R=[
+  {name:"Triciclo Mini Ride",img:"img/triciclo.jpg",href:"#triciclos",a:[1,2],h:[75,95],note:"12–24 meses · 75–95 cm"},
+  {name:"Bicicleta de equilibrio",img:"img/bici-menta.jpg",href:"#bicicletas",a:[2,5],h:[80,105],note:"2–5 años · 80–105 cm"},
+  {name:"Scooter BJ",img:"img/scooter-azul.jpg",href:"#scooters",a:[2,8],h:null,note:"2–8 años · hasta 50 kg"},
+  {name:"Casco ajustable",img:"img/casco-menta.jpg",href:"#cascos",a:[1,8],h:null,note:"Recomendado en cualquier etapa"}
+];
+const age=document.getElementById("age"),hgt=document.getElementById("height"),out=document.getElementById("results");
+function render(){
+  const a=+age.value,h=+hgt.value;
+  document.getElementById("ageOut").textContent=a===1?"1 año":(a+" años").replace(".5"," ½");
+  document.getElementById("hOut").textContent=h+" cm";
+  const rows=R.map(r=>{
+    const okA=a>=r.a[0]&&a<=r.a[1],okH=!r.h||(h>=r.h[0]&&h<=r.h[1]);
+    let fit,cls,rank;
+    if(okA&&okH){fit=r.name.startsWith("Casco")?"Siempre":"Ideal";cls=r.name.startsWith("Casco")?"fit-ok":"fit-ideal";rank=r.name.startsWith("Casco")?1:0}
+    else if(okA||okH&&r.h&&Math.abs(a-(a<r.a[0]?r.a[0]:r.a[1]))<=.5){fit="Revisa medidas";cls="fit-ok";rank=2}
+    else{fit=a<r.a[0]?"Más adelante":"Ya lo superó";cls="fit-no";rank=3}
+    return {r,fit,cls,rank};
+  }).sort((x,y)=>x.rank-y.rank);
+  out.innerHTML=rows.map(({r,fit,cls,rank})=>`<a class="res${rank===3?" off":""}" href="${r.href}"><img src="${r.img}" alt=""><div><div class="nm">${r.name}</div><div class="meta">${r.note}</div></div><span class="fit ${cls}">${fit}</span></a>`).join("");
+}
+age.addEventListener("input",render);hgt.addEventListener("input",render);render();
+
+// Menú móvil
+const mb=document.getElementById("menuBtn"),nav=document.getElementById("nav");
+mb.addEventListener("click",()=>{const o=nav.classList.toggle("open");mb.setAttribute("aria-expanded",o)});
+nav.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{nav.classList.remove("open");mb.setAttribute("aria-expanded",false)}));
+
+// Notas
+const nb=document.getElementById("notesBtn"),nt=document.getElementById("notes");
+const setN=o=>{nt.hidden=!o;nb.setAttribute("aria-expanded",o)};
+nb.addEventListener("click",()=>setN(nt.hidden));document.getElementById("notesX").addEventListener("click",()=>setN(false));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")setN(false)});
+</script>
