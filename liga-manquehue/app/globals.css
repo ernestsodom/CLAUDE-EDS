@@ -262,3 +262,4 @@ details.sub summary { cursor: pointer; color: var(--muted); font-weight: 600; fo
 details.card > summary { cursor: pointer; }
 .match-form { grid-template-columns: 1fr 1fr; }
 @media (min-width: 760px) { .match-form { grid-template-columns: 1fr 1fr 1fr 1fr; } }
+.standings .rend { color: var(--muted); font-size: .8rem; white-space: nowrap; }

@@ -1,3 +1,7 @@
+// Rendimiento: puntos sobre puntos posibles (3 por partido)
+const rend = (r) =>
+  r.pj ? `${((r.pts / (r.pj * 3)) * 100).toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%` : '–';
+
 export default function StandingsTable({ rows }) {
   if (!rows.length) return <p className="empty">Aún no hay equipos en esta categoría.</p>;
   return (
@@ -15,6 +19,7 @@ export default function StandingsTable({ rows }) {
             <th>GF</th>
             <th>GC</th>
             <th>DIF</th>
+            <th title="Rendimiento: puntos obtenidos sobre puntos jugados">REND</th>
           </tr>
         </thead>
         <tbody>
@@ -34,6 +39,7 @@ export default function StandingsTable({ rows }) {
               <td>{r.gf}</td>
               <td>{r.gc}</td>
               <td>{r.dif > 0 ? `+${r.dif}` : r.dif}</td>
+              <td className="rend">{rend(r)}</td>
             </tr>
           ))}
         </tbody>

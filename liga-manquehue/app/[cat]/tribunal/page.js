@@ -25,7 +25,7 @@ export default async function TribunalPage({ params }) {
                 <span className="badge red">{s.matches_suspended} {s.matches_suspended === 1 ? 'fecha' : 'fechas'} de suspensión</span>
               )}
               {s.points_deducted > 0 && <span className="badge orange">-{s.points_deducted} pts al equipo</span>}
-              {!s.matches_suspended && !s.points_deducted && <span className="badge gray">Amonestación</span>}
+              {!s.matches_suspended && !s.points_deducted && <span className="badge gray">Resolución</span>}
             </div>
             <p>{s.reason}</p>
           </article>
