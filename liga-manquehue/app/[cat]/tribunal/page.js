@@ -35,7 +35,7 @@ export default async function TribunalPage({ params }) {
       )}
 
       <h2>Tabla Fair Play</h2>
-      <p className="muted small">TA: tarjetas amarillas · TR: tarjetas rojas · Menos puntos = más juego limpio.</p>
+      <p className="muted small">TA: tarjetas amarillas · TR: tarjetas rojas · Menos puntos = más juego limpio. En caso de empate en puntos en la tabla de posiciones, queda arriba el equipo con mejor fair play.</p>
       <div className="table-wrap">
         <table className="standings">
           <thead>
@@ -44,7 +44,7 @@ export default async function TribunalPage({ params }) {
           <tbody>
             {fairPlay.map((t, i) => (
               <tr key={t.id}>
-                <td>{i > 0 && fairPlay[i - 1].fp_pts === t.fp_pts ? '' : i + 1}</td>
+                <td>{fairPlay.findIndex((x) => x.fp_pts === t.fp_pts && x.fp_tr === t.fp_tr) + 1}</td>
                 <td className="left team">{t.name}</td>
                 <td>{t.fp_ta}</td>
                 <td>{t.fp_tr}</td>

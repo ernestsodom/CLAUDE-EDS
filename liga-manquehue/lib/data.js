@@ -21,7 +21,7 @@ export async function getStandings(cat) {
   const rows = new Map(
     teams.map((t) => [
       t.id,
-      { id: t.id, name: t.name, has_logo: t.has_logo, pj: t.base_pj, pg: t.base_pg, pe: t.base_pe, pp: t.base_pp, gf: t.base_gf, gc: t.base_gc, desc: 0 },
+      { id: t.id, name: t.name, has_logo: t.has_logo, fp: t.fp_pts, fp_tr: t.fp_tr, pj: t.base_pj, pg: t.base_pg, pe: t.base_pe, pp: t.base_pp, gf: t.base_gf, gc: t.base_gc, desc: 0 },
     ])
   );
 
@@ -42,7 +42,8 @@ export async function getStandings(cat) {
 
   return [...rows.values()]
     .map((r) => ({ ...r, pts: r.pg * 3 + r.pe - r.desc, dif: r.gf - r.gc }))
-    .sort((a, b) => b.pts - a.pts || b.dif - a.dif || b.gf - a.gf || a.name.localeCompare(b.name));
+    // Empate en puntos: define el mejor fair play (menos puntos, luego menos rojas); después diferencia y goles a favor
+    .sort((a, b) => b.pts - a.pts || a.fp - b.fp || a.fp_tr - b.fp_tr || b.dif - a.dif || b.gf - a.gf || a.name.localeCompare(b.name));
 }
 
 // Fechas con sus partidos, ordenadas por número de fecha

@@ -29,6 +29,7 @@ export default async function TablePage({ params }) {
 
       <h1 className="page-title">Tabla de Posiciones · {category.name}</h1>
       <StandingsTable rows={rows} />
+      <p className="muted small">En caso de empate en puntos, define el mejor comportamiento Fair Play.</p>
 
       <div className="grid-2">
         <div>
