@@ -79,11 +79,20 @@ main.container { padding-top: 8px; padding-bottom: 48px; }
 .standings tbody tr { background: #fff; }
 .standings tbody tr:nth-child(even) { background: #f8f9fc; }
 .standings tbody tr:first-child td:first-child { color: var(--navy); font-weight: 800; }
-.standings .pts { font-weight: 800; color: var(--navy); font-size: 1rem; }
+.standings td.team { padding-right: 14px; z-index: 1; }
+.standings .team-cell { display: flex; align-items: center; gap: 6px; }
+.standings .team-cell .crest { flex: none; margin: 0; vertical-align: middle; }
+.standings .team-cell .minus { flex: none; margin-left: 0; }
+.standings .team-name { white-space: nowrap; }
+.standings .pts { font-weight: 800; color: var(--navy); font-size: 1rem; padding-left: 8px; }
 @media (max-width: 480px) {
   .standings { font-size: .82rem; }
   .standings th, .standings td { padding: 9px 3px; }
   .standings th:first-child, .standings td:first-child { padding-left: 8px; }
+  /* Nombres largos (ej. SAN ESTEBAN) pasan a dos líneas en vez de pisar el puntaje */
+  .standings td.team { padding-right: 10px; min-width: 7.5em; }
+  .standings .team-name { white-space: normal; line-height: 1.15; }
+  .standings .pts { padding-left: 6px; }
 }
 .minus { margin-left: 6px; font-size: .72rem; color: #fff; background: var(--red); border-radius: 6px; padding: 1px 5px; }
 

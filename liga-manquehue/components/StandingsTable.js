@@ -27,9 +27,11 @@ export default function StandingsTable({ rows }) {
             <tr key={r.id}>
               <td>{i + 1}</td>
               <td className="left team">
-                {r.has_logo && <img className="crest" src={`/api/equipo/${r.id}/escudo`} alt="" />}
-                {r.name}
-                {r.desc > 0 && <span className="minus" title="Descuento de puntos del Tribunal">-{r.desc}</span>}
+                <div className="team-cell">
+                  {r.has_logo && <img className="crest" src={`/api/equipo/${r.id}/escudo`} alt="" width="20" height="20" />}
+                  <span className="team-name">{r.name}</span>
+                  {r.desc > 0 && <span className="minus" title="Descuento de puntos del Tribunal">-{r.desc}</span>}
+                </div>
               </td>
               <td className="pts">{r.pts}</td>
               <td>{r.pj}</td>
