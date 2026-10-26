@@ -351,9 +351,136 @@ input[type=range].a-range{width:100%;accent-color:var(--a-blue)}
   html.is-admin .wa-float{bottom:calc(58vh + 14px)}
   .adm-seg{display:none}
 }
+
+.lead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4cqi,48px);background:var(--surface);border:1px solid var(--line);border-radius:calc(var(--r) + 14px);padding:clamp(22px,4cqi,48px);align-items:start}
+.lead-copy{display:grid;gap:14px}
+.lead-form,.lead-ok{display:grid;gap:14px;align-content:start}
+.lf{display:grid;gap:6px}
+.lf label{font-weight:700;font-size:.9rem}
+.lf input,.lf select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;font:500 1rem var(--f-body);background:var(--paper);color:var(--ink)}
+.lf input:focus,.lf select:focus{outline:none;border-color:var(--mint-ink);box-shadow:0 0 0 3px var(--mint-soft)}
+.lf2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lf-err{color:var(--sale);font-weight:700;font-size:.9rem}
+.lf-note{font-size:.8rem;color:var(--muted)}
+@container site (max-width:820px){.lead{grid-template-columns:1fr}}
+@container site (max-width:460px){.lf2{grid-template-columns:1fr}}
+
+/* ===== Clientes y gestión ===== */
+.tile-wide{grid-column:1/-1;display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:12px;background:#1B2420;color:#fff;border-color:#1B2420}
+.tile-wide .ic{background:#2A3832;color:#8EE3C8}
+.tile-wide small{color:#B9C6C0}
+.tile-wide .go{font-weight:800;font-size:1.2rem}
+html.dash-open body{overflow:hidden}
+.dash{--d-bg:#F3F5F4;--d-card:#FFFFFF;--d-line:#E1E6E3;--d-ink:#1B2420;--d-muted:#66716C;--d-grid:#E8ECEA;--d-series:#2A78D6;--d-series-dk:#1F5FB0;--d-good:#15803D;--d-bad:#B42318;
+  position:fixed;inset:0;z-index:96;background:var(--d-bg);overflow-y:auto;color:var(--d-ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dash-top{position:sticky;top:0;z-index:3;background:var(--d-card);border-bottom:1px solid var(--d-line)}
+.dash-top .in,.dash-main{max-width:1280px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.dash-top .in{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding-block:10px}
+.dash-top .ttl{font-weight:800;font-size:1.05rem;margin-right:auto;display:flex;align-items:center;gap:10px}
+.dash-top .ttl img{height:22px;background:#000;border-radius:6px;padding:4px 7px;box-sizing:content-box}
+.dtabs{display:flex;gap:4px;background:var(--d-bg);padding:4px;border-radius:12px;flex-wrap:wrap}
+.dtabs button{border:0;background:none;padding:8px 14px;border-radius:9px;font:700 .9rem inherit;color:var(--d-muted);cursor:pointer}
+.dtabs button[aria-selected="true"]{background:var(--d-card);color:var(--d-ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.dper{display:inline-flex;border:1px solid var(--d-line);border-radius:10px;overflow:hidden}
+.dper button{border:0;background:var(--d-card);padding:8px 12px;font:600 .85rem inherit;color:var(--d-muted);cursor:pointer}
+.dper button+button{border-left:1px solid var(--d-line)}
+.dper button[aria-pressed="true"]{background:var(--d-ink);color:#fff}
+.dash-main{padding-block:20px 56px;display:grid;gap:16px}
+.dbanner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between;border-radius:14px;padding:12px 16px;font-size:.9rem;line-height:1.45}
+.dbanner.demo{background:#FFF4DB;color:#6B4006;border:1px solid #F3D9A0}
+.dbanner.real{background:#E9F1FD;color:#1E3A8A;border:1px solid #C9DBFA}
+.dbanner b{font-weight:800}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--d-card);border:1px solid var(--d-line);border-radius:16px;padding:14px 16px;display:grid;gap:2px;align-content:start}
+.kl{font-size:.82rem;color:var(--d-muted);font-weight:600}
+.kv{font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.2}
+.kd{font-size:.78rem;color:var(--d-muted)}
+.kd.up{color:var(--d-good)}.kd.down{color:var(--d-bad)}
+.dgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+.dgrid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:980px){.dgrid,.dgrid.three{grid-template-columns:minmax(0,1fr)}}
+.dcard{background:var(--d-card);border:1px solid var(--d-line);border-radius:16px;padding:16px 18px;display:grid;gap:12px;min-width:0;align-content:start}
+.dcard h3{margin:0;font-size:1rem;font-weight:800}
+.dcard .sub{margin:-8px 0 0;color:var(--d-muted);font-size:.84rem}
+.dcard .chart{position:relative;min-height:220px}
+.dcard svg text{font:500 11px system-ui,sans-serif;fill:var(--d-muted)}
+.bars{display:grid;gap:9px}
+.bar-row{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) 56px;gap:10px;align-items:center;font-size:.88rem;border-radius:6px}
+.bar-row:focus-visible{outline:2px solid var(--d-series);outline-offset:3px}
+.bt{height:14px}
+.bt i{display:block;height:100%;background:var(--d-series);border-radius:0 4px 4px 0;min-width:2px}
+.bar-row:hover .bt i,.bar-row:focus .bt i{background:var(--d-series-dk)}
+.bv{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.bl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.funnel .bar-row{grid-template-columns:minmax(0,1fr) 110px;row-gap:4px}
+.funnel .bl{grid-column:1/-1;white-space:normal}
+.funnel .bv small{display:block;font-weight:500;color:var(--d-muted);font-size:.74rem}
+.dtw{overflow-x:auto}
+.dtable{width:100%;border-collapse:collapse;font-size:.9rem;min-width:820px}
+.dtable th,.dtable td{padding:11px 10px;border-bottom:1px solid var(--d-line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dtable th:first-child,.dtable td:first-child{text-align:left}
+.dtable thead th{font-size:.76rem;color:var(--d-muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.dtable td.vb{min-width:180px}
+.dtable td.vb span{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.dtable td.vb i{display:block;height:10px;background:var(--d-series);border-radius:0 3px 3px 0}
+.dtable tfoot td{font-weight:800;border-bottom:0}
+.dstat{display:flex;gap:24px;flex-wrap:wrap}
+.dstat div{display:grid}
+.dstat b{font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums}
+.dstat span{font-size:.82rem;color:var(--d-muted)}
+.dlist{list-style:none;margin:0;padding:0;display:grid}
+.dlist li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--d-line);font-size:.9rem;align-items:center}
+.dlist li:last-child{border-bottom:0}
+.dlist .empty{color:var(--d-muted)}
+.chip{display:inline-flex;align-items:center;font-size:.74rem;font-weight:700;padding:3px 8px;border-radius:999px;background:#EEF1F0;color:#3A4540;white-space:nowrap}
+.st-nuevo{background:#E8EFFE;color:#1D4ED8}.st-conversacion{background:#FEF3C7;color:#92400E}.st-vendido{background:#DCFCE7;color:#166534}.st-perdido{background:#EEF1F0;color:#5B6661}
+.dbtn{border:0;border-radius:10px;padding:9px 14px;font:700 .88rem inherit;cursor:pointer;background:#EEF1F0;color:var(--d-ink);display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+.dbtn:hover{background:#E1E6E3}
+.dbtn.pri{background:#2563EB;color:#fff}.dbtn.pri:hover{background:#1D4ED8}
+.dbtn.wa{background:#25D366;color:#06331A}
+.dbtn.sm{padding:6px 10px;font-size:.8rem}
+.dbtn:disabled{opacity:.45;cursor:default}
+.dtools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dtools input,.dtools select,.dmodal input,.dmodal select,.dmodal textarea,.dlinks input{border:1.5px solid var(--d-line);border-radius:10px;padding:9px 12px;font:500 .92rem inherit;background:#fff;color:var(--d-ink)}
+.dtools input{flex:1;min-width:180px}
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:12px;overflow-x:auto;padding-bottom:4px}
+.kcol{background:#E9EEEB;border-radius:16px;padding:10px;display:grid;gap:8px;align-content:start;min-height:160px}
+.kcol h4{margin:2px 4px 4px;font-size:.88rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.kcol h4 small{font-weight:600;color:var(--d-muted)}
+.lcard{background:#fff;border-radius:12px;padding:12px;border:1px solid var(--d-line);display:grid;gap:7px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.lcard:hover{border-color:#9DB7EE}
+.lcard b{font-size:.95rem}
+.lcard .pr{font-size:.84rem;color:var(--d-muted)}
+.lcard .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.76rem;color:var(--d-muted)}
+.lcard .acts{display:flex;gap:6px;align-items:center}
+.lcard select{border:1.5px solid var(--d-line);border-radius:8px;padding:5px 6px;font:600 .78rem inherit;background:#fff;flex:1;min-width:0}
+.lcard.late{border-color:#F3C77A;box-shadow:inset 3px 0 0 #E8A33B}
+.dempty{background:var(--d-card);border:1.5px dashed #C7D0CC;border-radius:16px;padding:28px;text-align:center;display:grid;gap:10px;justify-items:center;color:var(--d-muted)}
+.dempty b{color:var(--d-ink);font-size:1.05rem}
+.dlinks{display:grid;gap:10px}
+.dlinks .row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.dlinks input{width:100%;font-family:ui-monospace,monospace;font-size:.82rem}
+.srcpick{display:flex;gap:6px;flex-wrap:wrap}
+.srcpick button{border:1.5px solid var(--d-line);background:#fff;border-radius:999px;padding:6px 12px;font:600 .84rem inherit;cursor:pointer;color:var(--d-ink)}
+.srcpick button[aria-pressed="true"]{border-color:#2563EB;background:#E8EFFE;color:#1D4ED8}
+.dtip{position:fixed;z-index:140;background:#1B2420;color:#fff;padding:8px 10px;border-radius:8px;font:500 .82rem/1.4 system-ui,sans-serif;pointer-events:none;max-width:260px;box-shadow:0 8px 20px -8px rgba(0,0,0,.4)}
+.dmodal{position:fixed;inset:0;z-index:150;background:rgba(15,25,21,.5);display:grid;place-items:center;padding:16px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1B2420}
+.dmodal form{background:#fff;border-radius:20px;padding:22px;width:min(520px,100%);max-height:calc(100vh - 32px);overflow-y:auto;display:grid;gap:14px;box-shadow:0 30px 70px -20px rgba(0,0,0,.45)}
+.dmodal h3{margin:0;font-size:1.2rem}
+.dmodal .f{display:grid;gap:6px}
+.dmodal label,.dmodal .lb{font-size:.84rem;font-weight:700}
+.dmodal input,.dmodal select,.dmodal textarea{width:100%}
+.dmodal textarea{min-height:80px;resize:vertical}
+.dmodal .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stpick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.stpick button{border:1.5px solid #E1E6E3;border-radius:10px;padding:8px 4px;font:700 .78rem inherit;cursor:pointer;background:#fff;color:#1B2420}
+.stpick button[aria-pressed="true"]{border-color:#1B2420;background:#1B2420;color:#fff}
+.dmodal .foot{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;align-items:center}
+.dmodal .note{font-size:.82rem;color:#66716C}
+@media (max-width:560px){.dmodal .two{grid-template-columns:1fr}.stpick{grid-template-columns:1fr 1fr}.dash-top .ttl{width:100%}}
 </style>
 <div id="site"></div>
-<script id="tr-default" type="application/json">{"updatedAt":0,"brand":{"name":"TOMI Ride","logo":"img/logo.png","logoBg":"#000000"},"contact":{"whatsapp":"+56 9 0000 0000","waMessage":"Hola TOMI Ride, quiero consultar por sus productos","waLabel":"¿Dudas? Escríbenos","waShow":true,"instagram":"https://instagram.com","mercadolibre":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972","email":"","phone":""},"theme":{"preset":"menta","colors":{"bg":"#F3F7F5","surface":"#FFFFFF","ink":"#13201C","muted":"#56655F","accent":"#7FD9C3","accentInk":"#11745F","sale":"#C2324F"},"display":"Archivo","body":"Nunito Sans","upper":true,"titleScale":100,"radius":18},"sections":{"route":true,"guide":true,"benefits":true,"compare":true,"community":true,"faq":true},"texts":{"strip":["Hasta 37% de descuento en bicicletas de equilibrio","Compra protegida a través de Mercado Libre"],"navCta":"¿Cuál es para mi hijo/a?","hero":{"eyebrow":"Bicicletas de equilibrio · Scooters · Triciclos","title":"Grandes momentos empiezan con","titleAccent":"pequeños pasos… y ruedas","lede":"Vehículos livianos y fáciles de armar para niños de 1 a 8 años. Apostando por una infancia al aire libre.","cta1":"Encuentra su primera TOMI","cta2":"Ver productos","facts":["Bicicleta 2,9 kg","Triciclo 1,8 kg","Armado sin herramientas"],"image":"img/hero-tomi.jpg","imageAlt":"Niño sonriente con su bicicleta de equilibrio TOMI color menta","focusY":60,"tagASmall":"2 a 5 años · 80–105 cm","tagABig":"Menta · Aro 12\"","tagBSmall":"Bicicleta de equilibrio","tagBBig":"$49.990"},"guide":{"eyebrow":"Guía por edad y altura","title":"¿Cuál es la TOMI para tu peque?","lede":"Mueve los controles y te mostramos qué le queda bien hoy, según las medidas de cada producto."},"catalog":{"eyebrow":"Catálogo","title":"Conoce nuestros productos"},"benefits":{"eyebrow":"Más que una bici","title":"Su primera gran aventura","items":["Mejora el equilibrio y la coordinación motora.","Refuerza la confianza e independencia al avanzar por sí mismos.","Fortalece la motricidad y los músculos de piernas y brazos.","Es una forma divertida y segura de estar activos al aire libre."],"images":[{"src":"img/bici-uso-salto.jpg","alt":"Niña con casco avanzando en su bicicleta de equilibrio"},{"src":"img/tomados-mano.jpg","alt":"Niños caminando de la mano junto a una bicicleta"},{"src":"img/bici-rosada-detalle.jpg","alt":"Detalle de la bicicleta rosada TOMI Bikes"}]},"compare":{"eyebrow":"Lado a lado","title":"Compara y elige"},"community":{"eyebrow":"Comunidad TOMI","title":"Infancia al aire libre","images":[{"src":"img/hero-tomi.jpg","alt":"Niño con su bicicleta de equilibrio TOMI menta","caption":"Primeras rodadas en casa"},{"src":"img/grupo-escalera.jpg","alt":"Grupo de niños con bicicletas TOMI en una escalera","caption":""},{"src":"img/parque.jpg","alt":"Niños con scooters y bicicletas en un parque","caption":""},{"src":"img/triciclo-uso-dos.jpg","alt":"Dos niñas jugando con bicicleta y triciclo","caption":""},{"src":"img/grupo-fila.jpg","alt":"Niños en fila con sus vehículos TOMI","caption":""}]},"faq":{"eyebrow":"Antes de comprar","title":"Preguntas frecuentes","items":[{"q":"¿Desde qué edad puede usar una TOMI?","a":"Desde los 12 meses con el Triciclo Mini Ride (75 a 95 cm de altura). Entre 2 y 5 años la bicicleta de equilibrio aro 12\" (80 a 105 cm), y entre 2 y 8 años el Scooter BJ, que soporta hasta 50 kg."},{"q":"¿Necesito herramientas para armarlos?","a":"No. El scooter se arma en segundos sin herramientas y el triciclo se arma de forma rápida sin herramientas especiales."},{"q":"¿Por qué una bicicleta sin pedales?","a":"La bicicleta de equilibrio es el primer paso antes de la bici con pedales: mejora el equilibrio y la coordinación, y refuerza la confianza al avanzar por sí mismos."},{"q":"¿Las luces del scooter usan pilas?","a":"No. Las ruedas tienen luces LED que se encienden con el movimiento y funcionan sin pilas."},{"q":"¿Dónde compro?","a":"En nuestras publicaciones oficiales de Mercado Libre, con el pago y despacho de la plataforma. Si tienes dudas, escríbenos por WhatsApp."}]},"footer":{"claim":"Apostando por una infancia al aire libre","legal":"© TOMI Ride · tomiride.cl · Precios en pesos chilenos (CLP)."}},"products":[{"id":"bicicletas","name":"Bicicleta de equilibrio TOMI","navLabel":"Bicicletas","eyebrow":"2 a 5 años · Aro 12\"","sub":"Aro 12\" · 2,9 kg · sin pedales","desc":"Diseño sin pedales, ideal como primer paso antes de una bici con rueditas. Favorece la motricidad y el equilibrio, y con 2,9 kg es súper liviana.","ageLabel":"2–5 años","ageMin":2,"ageMax":5,"hMin":80,"hMax":105,"now":49990,"was":79990,"guide":true,"compare":true,"specCode":"BICI-EQ-12","bullets":["Favorece la motricidad y el equilibrio.","Primer paso antes de una bici con rueditas.","Súper liviana: 2,9 kg."],"specs":[{"k":"Edad recomendada","v":"2 a 5 años"},{"k":"Altura del niño/a","v":"80 a 105 cm"},{"k":"Altura del asiento","v":"30 a 40 cm"},{"k":"Peso máximo","v":"30 kg"},{"k":"Ruedas","v":"Aro 12\""},{"k":"Peso del producto","v":"2,9 kg"},{"k":"Material","v":"PP + acero inoxidable"}],"variants":[{"c":"Menta","hex":"#7FD9C3","img":"img/bici-menta.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972?picker=true&quantity=1"},{"c":"Azul","hex":"#2BA3DC","img":"img/bici-azul.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349598642"},{"c":"Rosada","hex":"#E8559B","img":"img/bici-rosada.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3343607261?picker=true&quantity=1"}],"gallery":[{"src":"img/bici-uso-nina.jpg","alt":"Niña sentada en una bicicleta de equilibrio TOMI menta"},{"src":"img/bici-uso-salto.jpg","alt":"Niña bajando un escalón en su bicicleta de equilibrio"},{"src":"img/bici-rueda.jpg","alt":"Detalle de la rueda aro 12"},{"src":"img/bici-detalle-logo.jpg","alt":"Detalle del logo en el cuadro"},{"src":"img/bici-uso-escalera.jpg","alt":"Dos niñas con bicicletas TOMI en una escalera"}]},{"id":"scooters","name":"Scooter BJ TOMI","navLabel":"Scooters","eyebrow":"2 a 8 años · hasta 50 kg","sub":"Manubrio ajustable · luces LED sin pilas","desc":"Crece con tu peque: el manubrio se ajusta en 4 alturas y las ruedas tienen luces LED que funcionan sin pilas.","ageLabel":"2–8 años","ageMin":2,"ageMax":8,"hMin":null,"hMax":null,"now":39990,"was":49990,"guide":true,"compare":true,"specCode":"SCOOTER-BJ","bullets":["Se arma en segundos, sin herramientas.","Ruedas con luces LED que funcionan sin pilas.","Manubrio ajustable en 4 alturas.","Fácil de transportar gracias a su sistema desmontable.","Soporta hasta 50 kg."],"specs":[{"k":"Edad recomendada","v":"2 a 8 años"},{"k":"Peso máximo","v":"50 kg"},{"k":"Altura del manubrio","v":"57 a 77 cm"},{"k":"Ruedas","v":"Luces LED sin pilas"},{"k":"Peso del producto","v":"2,5 kg"},{"k":"Medidas en uso","v":"57 × 28 × 77 cm"},{"k":"Medidas de la caja","v":"17 × 29 × 58 cm"},{"k":"Material","v":"Aluminio, polipropileno y fibra de vidrio reforzada"}],"variants":[{"c":"Azul","hex":"#2160D8","img":"img/scooter-azul.jpg","url":"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483910432?product_trigger_id=MLC60157520&picker=true&quantity=1"},{"c":"Rosado","hex":"#F3A7B9","img":"img/scooter-rosado.jpg","url":"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483895788?product_trigger_id=MLC60157518&picker=true&quantity=1"}],"gallery":[{"src":"img/scooter-uso.jpg","alt":"Niño usando el scooter TOMI azul en un parque"},{"src":"img/scooter-ajuste.jpg","alt":"Ajuste de altura del manubrio"},{"src":"img/scooter-desarmado.jpg","alt":"Scooter desmontado en dos piezas"},{"src":"img/scooter-base.jpg","alt":"Base del scooter vista desde abajo"},{"src":"img/scooter-rosado-frente.jpg","alt":"Scooter TOMI rosado de frente"}]},{"id":"triciclos","name":"Triciclo Mini Ride TOMI","navLabel":"Triciclos","eyebrow":"12 a 24 meses · 1,8 kg","sub":"Ruedas EVA 6\" · 1,8 kg","desc":"El compañero perfecto para las primeras aventuras. Invita a explorar mientras aprenden a mantener el equilibrio, y con solo 1,8 kg lo llevas fácil al parque o a casa de los tatas.","ageLabel":"12–24 meses","ageMin":1,"ageMax":2,"hMin":75,"hMax":95,"now":34990,"was":null,"guide":true,"compare":true,"specCode":"MINI-RIDE","bullets":["Ligero y resistente.","Ayuda a desarrollar equilibrio, fuerza y coordinación.","Ruedas EVA ecológicas, suaves y silenciosas.","Armado fácil y rápido, sin herramientas especiales."],"specs":[{"k":"Edad recomendada","v":"12 a 24 meses"},{"k":"Altura del niño/a","v":"75 a 95 cm aprox."},{"k":"Altura del asiento","v":"30 cm"},{"k":"Peso máximo","v":"25 kg"},{"k":"Ruedas","v":"EVA 6\""},{"k":"Peso del producto","v":"1,8 kg"},{"k":"Material","v":"PP + acero + aluminio + nylon"}],"variants":[{"c":"Menta","hex":"#7FD9C3","img":"img/triciclo.jpg","url":"https://www.mercadolibre.cl/triciclo-tomi-miniride-10-a-24-meses/up/MLCU3344743029"}],"gallery":[{"src":"img/triciclo-uso-manos.jpg","alt":"Bebé dando sus primeros pasos con el triciclo"},{"src":"img/triciclo-uso-casco.jpg","alt":"Niña con casco rosado junto al triciclo"},{"src":"img/triciclo-detalle.jpg","alt":"Detalle del asiento ergonómico"},{"src":"img/triciclo-rueda.jpg","alt":"Rueda EVA de 6 pulgadas"}]},{"id":"cascos","name":"Casco TOMI para niños","navLabel":"Cascos","eyebrow":"Talla ajustable","sub":"Talla ajustable para niños","desc":"El complemento para cada etapa: bicicleta, scooter o triciclo. Elige el color que combine con su TOMI.","ageLabel":"Todas las etapas","ageMin":1,"ageMax":8,"hMin":null,"hMax":null,"now":24990,"was":29990,"guide":true,"compare":false,"specCode":"","bullets":[],"specs":[],"variants":[{"c":"Menta","hex":"#5ED6C9","img":"img/casco-menta.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM?attributes=COLOR_SECONDARY_COLOR%3ATWVudGE%3D&picker=true&quantity=1"},{"c":"Azul","hex":"#1E9BE6","img":"img/casco-azul.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM"},{"c":"Rosado","hex":"#C987DE","img":"img/casco-rosado.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM"}],"gallery":[]}]}</script>
+<script id="tr-default" type="application/json">{"updatedAt":0,"brand":{"name":"TOMI Ride","logo":"img/logo.png","logoBg":"#000000"},"contact":{"whatsapp":"+56 9 0000 0000","waMessage":"Hola TOMI Ride, quiero consultar por sus productos","waLabel":"¿Dudas? Escríbenos","waShow":true,"instagram":"https://instagram.com","mercadolibre":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972","email":"","phone":""},"theme":{"preset":"menta","colors":{"bg":"#F3F7F5","surface":"#FFFFFF","ink":"#13201C","muted":"#56655F","accent":"#7FD9C3","accentInk":"#11745F","sale":"#C2324F"},"display":"Archivo","body":"Nunito Sans","upper":true,"titleScale":100,"radius":18},"sections":{"route":true,"guide":true,"benefits":true,"compare":true,"community":true,"faq":true,"leadForm":true},"texts":{"strip":["Hasta 37% de descuento en bicicletas de equilibrio","Compra protegida a través de Mercado Libre"],"navCta":"¿Cuál es para mi hijo/a?","hero":{"eyebrow":"Bicicletas de equilibrio · Scooters · Triciclos","title":"Grandes momentos empiezan con","titleAccent":"pequeños pasos… y ruedas","lede":"Vehículos livianos y fáciles de armar para niños de 1 a 8 años. Apostando por una infancia al aire libre.","cta1":"Encuentra su primera TOMI","cta2":"Ver productos","facts":["Bicicleta 2,9 kg","Triciclo 1,8 kg","Armado sin herramientas"],"image":"img/hero-tomi.jpg","imageAlt":"Niño sonriente con su bicicleta de equilibrio TOMI color menta","focusY":60,"tagASmall":"2 a 5 años · 80–105 cm","tagABig":"Menta · Aro 12\"","tagBSmall":"Bicicleta de equilibrio","tagBBig":"$49.990"},"guide":{"eyebrow":"Guía por edad y altura","title":"¿Cuál es la TOMI para tu peque?","lede":"Mueve los controles y te mostramos qué le queda bien hoy, según las medidas de cada producto."},"catalog":{"eyebrow":"Catálogo","title":"Conoce nuestros productos"},"benefits":{"eyebrow":"Más que una bici","title":"Su primera gran aventura","items":["Mejora el equilibrio y la coordinación motora.","Refuerza la confianza e independencia al avanzar por sí mismos.","Fortalece la motricidad y los músculos de piernas y brazos.","Es una forma divertida y segura de estar activos al aire libre."],"images":[{"src":"img/bici-uso-salto.jpg","alt":"Niña con casco avanzando en su bicicleta de equilibrio"},{"src":"img/tomados-mano.jpg","alt":"Niños caminando de la mano junto a una bicicleta"},{"src":"img/bici-rosada-detalle.jpg","alt":"Detalle de la bicicleta rosada TOMI Bikes"}]},"compare":{"eyebrow":"Lado a lado","title":"Compara y elige"},"community":{"eyebrow":"Comunidad TOMI","title":"Infancia al aire libre","images":[{"src":"img/hero-tomi.jpg","alt":"Niño con su bicicleta de equilibrio TOMI menta","caption":"Primeras rodadas en casa"},{"src":"img/grupo-escalera.jpg","alt":"Grupo de niños con bicicletas TOMI en una escalera","caption":""},{"src":"img/parque.jpg","alt":"Niños con scooters y bicicletas en un parque","caption":""},{"src":"img/triciclo-uso-dos.jpg","alt":"Dos niñas jugando con bicicleta y triciclo","caption":""},{"src":"img/grupo-fila.jpg","alt":"Niños en fila con sus vehículos TOMI","caption":""}]},"faq":{"eyebrow":"Antes de comprar","title":"Preguntas frecuentes","items":[{"q":"¿Desde qué edad puede usar una TOMI?","a":"Desde los 12 meses con el Triciclo Mini Ride (75 a 95 cm de altura). Entre 2 y 5 años la bicicleta de equilibrio aro 12\" (80 a 105 cm), y entre 2 y 8 años el Scooter BJ, que soporta hasta 50 kg."},{"q":"¿Necesito herramientas para armarlos?","a":"No. El scooter se arma en segundos sin herramientas y el triciclo se arma de forma rápida sin herramientas especiales."},{"q":"¿Por qué una bicicleta sin pedales?","a":"La bicicleta de equilibrio es el primer paso antes de la bici con pedales: mejora el equilibrio y la coordinación, y refuerza la confianza al avanzar por sí mismos."},{"q":"¿Las luces del scooter usan pilas?","a":"No. Las ruedas tienen luces LED que se encienden con el movimiento y funcionan sin pilas."},{"q":"¿Dónde compro?","a":"En nuestras publicaciones oficiales de Mercado Libre, con el pago y despacho de la plataforma. Si tienes dudas, escríbenos por WhatsApp."}]},"footer":{"claim":"Apostando por una infancia al aire libre","legal":"© TOMI Ride · tomiride.cl · Precios en pesos chilenos (CLP)."},"leadForm":{"eyebrow":"Asesoría gratis","title":"¿Te ayudamos a elegir?","lede":"Déjanos tu nombre y tu WhatsApp. Te recomendamos la TOMI ideal según la edad y altura de tu peque.","button":"Quiero que me asesoren"}},"products":[{"id":"bicicletas","name":"Bicicleta de equilibrio TOMI","navLabel":"Bicicletas","eyebrow":"2 a 5 años · Aro 12\"","sub":"Aro 12\" · 2,9 kg · sin pedales","desc":"Diseño sin pedales, ideal como primer paso antes de una bici con rueditas. Favorece la motricidad y el equilibrio, y con 2,9 kg es súper liviana.","ageLabel":"2–5 años","ageMin":2,"ageMax":5,"hMin":80,"hMax":105,"now":49990,"was":79990,"guide":true,"compare":true,"specCode":"BICI-EQ-12","bullets":["Favorece la motricidad y el equilibrio.","Primer paso antes de una bici con rueditas.","Súper liviana: 2,9 kg."],"specs":[{"k":"Edad recomendada","v":"2 a 5 años"},{"k":"Altura del niño/a","v":"80 a 105 cm"},{"k":"Altura del asiento","v":"30 a 40 cm"},{"k":"Peso máximo","v":"30 kg"},{"k":"Ruedas","v":"Aro 12\""},{"k":"Peso del producto","v":"2,9 kg"},{"k":"Material","v":"PP + acero inoxidable"}],"variants":[{"c":"Menta","hex":"#7FD9C3","img":"img/bici-menta.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972?picker=true&quantity=1"},{"c":"Azul","hex":"#2BA3DC","img":"img/bici-azul.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349598642"},{"c":"Rosada","hex":"#E8559B","img":"img/bici-rosada.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3343607261?picker=true&quantity=1"}],"gallery":[{"src":"img/bici-uso-nina.jpg","alt":"Niña sentada en una bicicleta de equilibrio TOMI menta"},{"src":"img/bici-uso-salto.jpg","alt":"Niña bajando un escalón en su bicicleta de equilibrio"},{"src":"img/bici-rueda.jpg","alt":"Detalle de la rueda aro 12"},{"src":"img/bici-detalle-logo.jpg","alt":"Detalle del logo en el cuadro"},{"src":"img/bici-uso-escalera.jpg","alt":"Dos niñas con bicicletas TOMI en una escalera"}]},{"id":"scooters","name":"Scooter BJ TOMI","navLabel":"Scooters","eyebrow":"2 a 8 años · hasta 50 kg","sub":"Manubrio ajustable · luces LED sin pilas","desc":"Crece con tu peque: el manubrio se ajusta en 4 alturas y las ruedas tienen luces LED que funcionan sin pilas.","ageLabel":"2–8 años","ageMin":2,"ageMax":8,"hMin":null,"hMax":null,"now":39990,"was":49990,"guide":true,"compare":true,"specCode":"SCOOTER-BJ","bullets":["Se arma en segundos, sin herramientas.","Ruedas con luces LED que funcionan sin pilas.","Manubrio ajustable en 4 alturas.","Fácil de transportar gracias a su sistema desmontable.","Soporta hasta 50 kg."],"specs":[{"k":"Edad recomendada","v":"2 a 8 años"},{"k":"Peso máximo","v":"50 kg"},{"k":"Altura del manubrio","v":"57 a 77 cm"},{"k":"Ruedas","v":"Luces LED sin pilas"},{"k":"Peso del producto","v":"2,5 kg"},{"k":"Medidas en uso","v":"57 × 28 × 77 cm"},{"k":"Medidas de la caja","v":"17 × 29 × 58 cm"},{"k":"Material","v":"Aluminio, polipropileno y fibra de vidrio reforzada"}],"variants":[{"c":"Azul","hex":"#2160D8","img":"img/scooter-azul.jpg","url":"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483910432?product_trigger_id=MLC60157520&picker=true&quantity=1"},{"c":"Rosado","hex":"#F3A7B9","img":"img/scooter-rosado.jpg","url":"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483895788?product_trigger_id=MLC60157518&picker=true&quantity=1"}],"gallery":[{"src":"img/scooter-uso.jpg","alt":"Niño usando el scooter TOMI azul en un parque"},{"src":"img/scooter-ajuste.jpg","alt":"Ajuste de altura del manubrio"},{"src":"img/scooter-desarmado.jpg","alt":"Scooter desmontado en dos piezas"},{"src":"img/scooter-base.jpg","alt":"Base del scooter vista desde abajo"},{"src":"img/scooter-rosado-frente.jpg","alt":"Scooter TOMI rosado de frente"}]},{"id":"triciclos","name":"Triciclo Mini Ride TOMI","navLabel":"Triciclos","eyebrow":"12 a 24 meses · 1,8 kg","sub":"Ruedas EVA 6\" · 1,8 kg","desc":"El compañero perfecto para las primeras aventuras. Invita a explorar mientras aprenden a mantener el equilibrio, y con solo 1,8 kg lo llevas fácil al parque o a casa de los tatas.","ageLabel":"12–24 meses","ageMin":1,"ageMax":2,"hMin":75,"hMax":95,"now":34990,"was":null,"guide":true,"compare":true,"specCode":"MINI-RIDE","bullets":["Ligero y resistente.","Ayuda a desarrollar equilibrio, fuerza y coordinación.","Ruedas EVA ecológicas, suaves y silenciosas.","Armado fácil y rápido, sin herramientas especiales."],"specs":[{"k":"Edad recomendada","v":"12 a 24 meses"},{"k":"Altura del niño/a","v":"75 a 95 cm aprox."},{"k":"Altura del asiento","v":"30 cm"},{"k":"Peso máximo","v":"25 kg"},{"k":"Ruedas","v":"EVA 6\""},{"k":"Peso del producto","v":"1,8 kg"},{"k":"Material","v":"PP + acero + aluminio + nylon"}],"variants":[{"c":"Menta","hex":"#7FD9C3","img":"img/triciclo.jpg","url":"https://www.mercadolibre.cl/triciclo-tomi-miniride-10-a-24-meses/up/MLCU3344743029"}],"gallery":[{"src":"img/triciclo-uso-manos.jpg","alt":"Bebé dando sus primeros pasos con el triciclo"},{"src":"img/triciclo-uso-casco.jpg","alt":"Niña con casco rosado junto al triciclo"},{"src":"img/triciclo-detalle.jpg","alt":"Detalle del asiento ergonómico"},{"src":"img/triciclo-rueda.jpg","alt":"Rueda EVA de 6 pulgadas"}]},{"id":"cascos","name":"Casco TOMI para niños","navLabel":"Cascos","eyebrow":"Talla ajustable","sub":"Talla ajustable para niños","desc":"El complemento para cada etapa: bicicleta, scooter o triciclo. Elige el color que combine con su TOMI.","ageLabel":"Todas las etapas","ageMin":1,"ageMax":8,"hMin":null,"hMax":null,"now":24990,"was":29990,"guide":true,"compare":false,"specCode":"","bullets":[],"specs":[],"variants":[{"c":"Menta","hex":"#5ED6C9","img":"img/casco-menta.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM?attributes=COLOR_SECONDARY_COLOR%3ATWVudGE%3D&picker=true&quantity=1"},{"c":"Azul","hex":"#1E9BE6","img":"img/casco-azul.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM"},{"c":"Rosado","hex":"#C987DE","img":"img/casco-rosado.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM"}],"gallery":[]}]}</script>
 <script id="tr-js">
 (()=>{
 "use strict";
@@ -424,7 +551,7 @@ const visibleProducts=()=>data.products.filter(p=>p.visible!==false);
 function render(){
   applyTheme();
   const d=data,t=d.texts,s=d.sections,P=visibleProducts(),c=d.contact;
-  const nav=P.filter(p=>p.navLabel).map(p=>`<a href="#${esc(p.id)}">${esc(p.navLabel)}</a>`).join("")+(s.compare?'<a href="#comparar">Comparar</a>':"")+(s.faq?'<a href="#preguntas">Preguntas</a>':"");
+  const nav=P.filter(p=>p.navLabel).map(p=>`<a href="#${esc(p.id)}">${esc(p.navLabel)}</a>`).join("")+(s.compare?'<a href="#comparar">Comparar</a>':"")+(s.faq?'<a href="#preguntas">Preguntas</a>':"")+(s.leadForm!==false?'<a href="#contacto">Contacto</a>':"");
   const h=t.hero;
   let html=`
 ${t.strip.filter(Boolean).length?`<div class="strip" data-edit="texts.strip"><div class="wrap">${t.strip.filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div></div>`:""}
@@ -466,6 +593,7 @@ ${t.strip.filter(Boolean).length?`<div class="strip" data-edit="texts.strip"><di
   if(s.compare&&cmpP.length>1) html+=compare(cmpP);
   if(s.community&&t.community.images.length) html+=`<section class="sec" style="padding-top:0"><div class="wrap"><div class="sec-head"><p class="eyebrow" data-edit="texts.community.eyebrow">${esc(t.community.eyebrow)}</p><h2 data-edit="texts.community.title">${esc(t.community.title)}</h2></div><div class="community">${t.community.images.map((m,i)=>`<figure>${img(m.src,m.alt,`data-edit="img:texts.community.images.${i}.src"`)}${m.caption?`<figcaption>${esc(m.caption)}</figcaption>`:""}</figure>`).join("")}</div></div></section>`;
   if(s.faq&&t.faq.items.length) html+=`<section class="sec" id="preguntas" style="padding-top:0"><div class="wrap"><div class="sec-head"><p class="eyebrow" data-edit="texts.faq.eyebrow">${esc(t.faq.eyebrow)}</p><h2 data-edit="texts.faq.title">${esc(t.faq.title)}</h2></div><div class="faq">${t.faq.items.map((f,i)=>`<details ${i===0?"open":""}><summary data-edit="texts.faq.items.${i}.q">${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("")}</div></div></section>`;
+  if(s.leadForm!==false)html+=leadFormHTML();
   html+=`</main>
 <footer class="ft"><div class="wrap"><div class="cols">
   <div><span class="logo" style="display:inline-block;background:${esc(d.brand.logoBg||"transparent")}">${d.brand.logo?`<img src="${esc(d.brand.logo)}" alt="${esc(d.brand.name)}">`:`<b>${esc(d.brand.name)}</b>`}</span><p class="claim" data-edit="texts.footer.claim">${esc(t.footer.claim)}</p></div>
@@ -531,6 +659,7 @@ function bindSite(){
     }));
     $$(".thumbs button",el).forEach(b=>b.addEventListener("click",()=>{const gm=$(".gmain",el);gm.src=b.dataset.src;gm.alt=b.dataset.alt;gm.classList.toggle("contain",b.dataset.contain==="1");$$(".thumbs button",el).forEach(x=>x.setAttribute("aria-current",x===b))}));
   });
+  bindLeadForm(root);
   const age=$("#age"),hgt=$("#height");
   if(age){const go=()=>finder(+age.value,+hgt.value);age.addEventListener("input",go);hgt.addEventListener("input",go);go()}
 }
@@ -555,7 +684,7 @@ fetch("content.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
   if(!j||!j.texts||!j.products||(j.updatedAt||0)<(DEFAULT.updatedAt||0))return;
   const s=JSON.stringify(j);if(s===published)return;
   const wasClean=JSON.stringify(data)===published;
-  published=s;if(wasClean){data=clone(j);render();if(isAdmin)refreshPanel()}else if(isAdmin)updateStatus();
+  const nj=normalize(clone(j));published=JSON.stringify(nj);if(wasClean){data=nj;render();if(isAdmin)refreshPanel()}else if(isAdmin)updateStatus();
 }).catch(()=>{});
 
 /* ================= PANEL DE ADMINISTRACIÓN ================= */
@@ -659,9 +788,9 @@ function vHome(){
   const out=[h("h2",{class:"v"},"¿Qué quieres cambiar hoy?"),h("p",{class:"vsub"},"Todo lo que cambies se ve al instante en la página. Nadie más lo ve hasta que presiones Publicar.")];
   const dr=draftInfo();
   if(dr) out.push(h("div",{class:"warnbox"},h("span",{},`Tienes cambios sin publicar guardados en este navegador (${dr}).`),h("div",{class:"row"},
-    h("button",{class:"a-btn a-primary",type:"button",style:"padding:8px 12px",on:{click:()=>{const d=JSON.parse(store.get(DRAFT)).data;data=d;lastSnap="";changed(true);render();go("home")}}},"Recuperarlos"),
+    h("button",{class:"a-btn a-primary",type:"button",style:"padding:8px 12px",on:{click:()=>{const d=JSON.parse(store.get(DRAFT)).data;data=normalize(d);lastSnap="";changed(true);render();go("home")}}},"Recuperarlos"),
     h("button",{class:"a-btn a-soft",type:"button",style:"padding:8px 12px",on:{click:()=>{store.del(DRAFT);go("home")}}},"Descartar"))));
-  out.push(h("div",{class:"tiles"},list.map(([k,t,s,ic])=>h("button",{class:"tile",type:"button",on:{click:()=>go(k)}},h("span",{class:"ic",html:ic}),h("b",{},t),h("small",{},s)))));
+  out.push(h("div",{class:"tiles"},h("button",{class:"tile tile-wide",type:"button",on:{click:openDash}},h("span",{class:"ic",html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'}),h("span",{style:"display:grid;gap:2px"},h("b",{},"Clientes y ventas"),h("small",{},"De dónde llegan, clientes potenciales y ventas")),h("span",{class:"go"},"→")),list.map(([k,t,s,ic])=>h("button",{class:"tile",type:"button",on:{click:()=>go(k)}},h("span",{class:"ic",html:ic}),h("b",{},t),h("small",{},s)))));
   out.push(h("div",{class:"tip"},"Truco: haz clic directamente sobre un texto, precio o foto de la página y te llevamos al lugar exacto para editarlo."));
   if(/^0+$/.test(waDigits().slice(3))||!waDigits())out.push(h("div",{class:"warnbox"},h("span",{},"Falta tu número real de WhatsApp. El botón verde usa un número de ejemplo."),h("div",{class:"row"},h("button",{class:"a-btn a-soft",type:"button",style:"padding:8px 12px",on:{click:()=>go("contact")}},"Agregar mi número"))));
   return out;
@@ -689,6 +818,7 @@ function vTexts(){
         h("button",{class:"mini",type:"button","aria-label":"Quitar pregunta",on:{click:()=>{data.texts.faq.items.splice(i,1);changed(true)}}},"×"))),
         fText("Pregunta",`${t}faq.items.${i}.q`),fText("Respuesta",`${t}faq.items.${i}.a`,{multi:true}))),
       h("button",{class:"add",type:"button",on:{click:()=>{data.texts.faq.items.push({q:"Nueva pregunta",a:""});changed(true)}}},"+ Agregar pregunta")],{small:data.sections.faq?"Visible":"Oculta"}),
+    grp("leadForm","Formulario de contacto",[fToggle("Mostrar esta sección","sections.leadForm",{structural:true,defOn:true}),fText("Texto pequeño",t+"leadForm.eyebrow"),fText("Título",t+"leadForm.title"),fText("Bajada",t+"leadForm.lede",{multi:true}),fText("Texto del botón",t+"leadForm.button"),h("div",{class:"hint"},"Lo que envían tus clientes aparece en Clientes y ventas → Clientes potenciales.")],{small:data.sections.leadForm!==false?"Visible":"Oculta"}),
     grp("footer","Pie de página",[fText("Frase grande",t+"footer.claim"),fText("Texto legal",t+"footer.legal"),fText("Nombre de la marca","brand.name")])];
 }
 function move(arr,i,d){const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];changed(true)}
@@ -848,7 +978,7 @@ function undo(){
   store.set(DRAFT,JSON.stringify({at:Date.now(),data}));render();refreshPanel();toast("Cambio deshecho");
 }
 function exitAdmin(){
-  isAdmin=false;const r=document.documentElement;r.classList.remove("is-admin","dev-phone","adm-hidden");
+  closeDash();isAdmin=false;const r=document.documentElement;r.classList.remove("is-admin","dev-phone","adm-hidden");
   panel?.remove();$(".adm-return")?.remove();panel=null;
   if(isDirty())toast("Tus cambios sin publicar quedan guardados como borrador en este navegador.");
   if(location.hash==="#admin")history.replaceState(null,"",location.pathname+location.search);
@@ -865,5 +995,352 @@ document.addEventListener("click",e=>{
 const route=()=>{if(location.hash==="#admin"){sess.get("tomi-admin")==="1"?(!isAdmin&&enterAdmin()):showLogin()}};
 window.addEventListener("hashchange",route);route();
 document.addEventListener("keydown",e=>{if(isAdmin&&(e.metaKey||e.ctrlKey)&&e.key==="z"&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName)){e.preventDefault();undo()}});
+/* ================= SEGUIMIENTO DE VISITAS ================= */
+const SOURCES={instagram:"Instagram",google:"Google",facebook:"Facebook",tiktok:"TikTok",whatsapp:"WhatsApp",mercadolibre:"Mercado Libre",qr:"Código QR",email:"Correo",directo:"Directo",otro:"Otro sitio"};
+const STATES=[["nuevo","Nuevo"],["conversacion","En conversación"],["vendido","Vendido"],["perdido","Perdido"]];
+const STATE_NAME=Object.fromEntries(STATES);
+const ARTIFACT_URL="https://claude.ai/artifact/UCuD6ufyse2D36uqwL9J57";
+const DAY=864e5;
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const srcName=k=>SOURCES[k]||SOURCES.otro;
+function normalize(d){d.texts.leadForm=d.texts.leadForm||clone(DEFAULT.texts.leadForm);if(d.sections.leadForm===undefined)d.sections.leadForm=true;return d}
+function normSrc(x){x=(x||"").toLowerCase();return x.includes("insta")||x==="ig"?"instagram":x.includes("facebook")||x==="fb"||x.startsWith("fb.")?"facebook":x.includes("google")?"google":x.includes("tiktok")?"tiktok":x.includes("whatsapp")||x==="wa"||x.includes("wa.me")?"whatsapp":x.includes("mercadoli")||x==="ml"?"mercadolibre":x==="qr"?"qr":x.includes("mail")?"email":null}
+function detectSource(){
+  const saved=sess.get("tomi-src");if(saved)try{return JSON.parse(saved)}catch(e){}
+  const qs=new URLSearchParams(location.search),tok=location.hash.slice(1).toLowerCase(),u=qs.get("utm_source")||"";
+  let fuente;
+  if(u)fuente=normSrc(u)||"otro";
+  else if(SOURCES[tok]&&tok!=="directo"&&tok!=="otro")fuente=tok;
+  else{let host="";try{host=new URL(document.referrer).hostname}catch(e){}
+    fuente=!host||host===location.hostname||/(^|\.)claude(usercontent)?\.(ai|com)$/.test(host)?"directo":(normSrc(host)||"otro")}
+  const o={fuente,campana:qs.get("utm_campaign")||"",dispositivo:matchMedia("(max-width:760px)").matches?"Celular":"Computador"};
+  sess.set("tomi-src",JSON.stringify(o));return o;
+}
+let dbP,userP;
+const getDb=()=>dbP||(dbP=(window.claude?.use?window.claude.use("db"):Promise.resolve(null)).catch(()=>null));
+const getUser=()=>userP||(userP=(window.claude?.use?window.claude.use("user"):Promise.resolve(null)).catch(()=>null));
+let visit=null,guided=false;
+async function startVisit(){
+  if(sess.get("tomi-admin")==="1")return;
+  const src=detectSource(),db=await getDb();if(!db)return;
+  let sid=sess.get("tomi-sid");if(!sid){sid="v"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);sess.set("tomi-sid",sid)}
+  const ref=db.collection("visitas").doc(sid),prev=sess.get("tomi-visit");
+  const d=prev?JSON.parse(prev):{at:Date.now(),dia:dayKey(Date.now()),fuente:src.fuente,campana:src.campana,dispositivo:src.dispositivo,eventos:[]};
+  try{if(!prev){await ref.set(d);sess.set("tomi-visit",JSON.stringify(d))}visit={ref,d}}catch(e){visit=null}
+}
+async function track(tipo,producto){
+  if(isAdmin||!visit)return;
+  visit.d.eventos=[...visit.d.eventos,{t:Date.now(),tipo,producto:producto||""}].slice(-40);
+  sess.set("tomi-visit",JSON.stringify(visit.d));
+  try{await visit.ref.update({eventos:visit.d.eventos})}catch(e){}
+}
+async function saveRequest(req){
+  const db=await getDb(),us=await getUser();if(!db||!us)return false;
+  let id=null;try{id=await us.id()}catch(e){}if(!id)return false;
+  const ref=db.doc("solicitudes/"+id);let items=[];
+  try{const s=await ref.get();items=(s.exists&&s.data().items)||[]}catch(e){}
+  try{await ref.set({items:[...items,req].slice(-20),actualizado:Date.now()});return true}catch(e){return false}
+}
+function leadFormHTML(){
+  const f=data.texts.leadForm,P=visibleProducts();
+  return `<section class="sec" id="contacto" style="padding-top:0"><div class="wrap"><div class="lead">
+  <div class="lead-copy"><p class="eyebrow" data-edit="texts.leadForm.eyebrow">${esc(f.eyebrow)}</p><h2 data-edit="texts.leadForm.title">${esc(f.title)}</h2><p class="lede" data-edit="texts.leadForm.lede">${esc(f.lede)}</p></div>
+  <form class="lead-form" id="leadForm" novalidate>
+    <div class="lf"><label for="lfName">Tu nombre</label><input id="lfName" autocomplete="name" required></div>
+    <div class="lf2"><div class="lf"><label for="lfPhone">Tu WhatsApp</label><input id="lfPhone" type="tel" autocomplete="tel" placeholder="+56 9 1234 5678" required></div>
+    <div class="lf"><label for="lfAge">Edad de tu peque</label><input id="lfAge" placeholder="Ej: 3 años"></div></div>
+    <div class="lf"><label for="lfProd">¿Qué te interesa?</label><select id="lfProd">${P.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("")}<option value="">Aún no sé, quiero asesoría</option></select></div>
+    <p class="lf-err" role="alert" hidden></p>
+    <button class="btn btn-primary" type="submit" data-edit="texts.leadForm.button">${esc(f.button)}</button>
+    <p class="lf-note">Usamos tus datos solo para responderte.</p>
+  </form><div class="lead-ok" hidden></div></div></div></section>`;
+}
+function bindLeadForm(root){
+  const lf=$("#leadForm",root);if(!lf)return;
+  lf.addEventListener("submit",async e=>{
+    e.preventDefault();
+    if(isAdmin){toast("Así lo ven tus clientes. Los envíos de prueba no se guardan desde el panel.");return}
+    const nombre=$("#lfName",lf).value.trim(),tel=$("#lfPhone",lf).value.trim(),pid=$("#lfProd",lf).value,edad=$("#lfAge",lf).value.trim(),err=$(".lf-err",lf);
+    if(!nombre||tel.replace(/\D/g,"").length<8){err.textContent="Escribe tu nombre y un WhatsApp válido, por ejemplo +56 9 1234 5678.";err.hidden=false;return}
+    err.hidden=true;const btn=$("button[type=submit]",lf);btn.disabled=true;btn.textContent="Enviando…";
+    const prod=data.products.find(p=>p.id===pid),src=detectSource();
+    const ok=await saveRequest({id:"w"+Date.now().toString(36),creado:Date.now(),nombre,telefono:tel,producto:prod?prod.name:"",edad,fuente:src.fuente,campana:src.campana||"",origen:"formulario"});
+    track("formulario",pid);
+    const msg=`Hola TOMI Ride, soy ${nombre}. ${prod?`Me interesa ${prod.name}.`:"Quiero asesoría para elegir."}${edad?` Mi peque tiene ${edad}.`:""}`;
+    const box=$(".lead-ok",root);
+    box.innerHTML=`<p class="eyebrow">Listo</p><h3>¡Gracias, ${esc(nombre)}!</h3><p class="lede">${ok?"Recibimos tus datos y te escribiremos pronto. Si quieres una respuesta más rápida, escríbenos por WhatsApp.":"Para que tu mensaje nos llegue, envíalo por WhatsApp con un clic."}</p>${waDigits()?`<a class="btn btn-wa" href="${esc(waLink(msg))}" target="_blank" rel="noopener">${WA_SVG}Escribir por WhatsApp</a>`:""}`;
+    lf.hidden=true;box.hidden=false;
+  });
+}
+document.addEventListener("click",e=>{
+  if(isAdmin)return;const a=e.target.closest("#site a");if(!a)return;
+  const pid=a.closest("[data-pid]")?.dataset.pid||"";
+  if(/wa\.me/.test(a.href))track("whatsapp",pid);else if(a.classList.contains("buy"))track("comprar",pid);
+});
+document.addEventListener("input",e=>{if(!isAdmin&&!guided&&e.target.matches?.("#age,#height")){guided=true;track("guia")}});
+
+/* ================= PANEL DE CLIENTES Y GESTIÓN ================= */
+const D={tab:"resumen",days:30,demo:null,demoAuto:false,real:{visitas:[],clientes:[],solicitudes:[]},loaded:false,dbOk:false,unsub:[],q:"",fsrc:"",linkSrc:"instagram",linkCamp:""};
+let DEMO=null,dtip=null;
+function demoData(){
+  if(DEMO)return DEMO;
+  let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  const pick=w=>{let r=rnd()*w.reduce((a,x)=>a+x[1],0);for(const[k,v]of w)if((r-=v)<=0)return k;return w[0][0]};
+  const SW=[["instagram",38],["google",20],["directo",16],["whatsapp",10],["facebook",8],["mercadolibre",5],["tiktok",3]];
+  const names=["Camila","Josefa","Matías","Valentina","Benjamín","Francisca","Tomás","Antonia","Ignacio","Fernanda","Diego","Catalina","Martina","Joaquín","Isidora"];
+  const now=Date.now(),visitas=[],leads=[],P=data.products;
+  for(let d=179;d>=0;d--){
+    const day=now-d*DAY,dow=new Date(day).getDay(),n=Math.round((dow===0||dow===6?30:20)+rnd()*12+(179-d)*.06);
+    for(let i=0;i<n;i++){
+      const at=day-rnd()*DAY*.9,f=pick(SW),pr=P.length?P[Math.floor(rnd()*P.length)]:null,ev=[];
+      if(rnd()<.3)ev.push({t:at,tipo:"guia",producto:""});
+      if(rnd()<(f==="google"?.18:f==="instagram"?.15:.1))ev.push({t:at,tipo:"comprar",producto:pr?.id||""});
+      if(rnd()<(f==="whatsapp"?.22:.08))ev.push({t:at,tipo:"whatsapp",producto:pr?.id||""});
+      visitas.push({at,dia:dayKey(at),fuente:f,campana:f==="instagram"&&rnd()<.4?"reels-octubre":f==="google"&&rnd()<.3?"busqueda-bicicletas":"",dispositivo:rnd()<.72?"Celular":"Computador",eventos:ev});
+      if(rnd()<.021){
+        const age=(now-at)/DAY,st=age<2?"nuevo":age<6?pick([["conversacion",3],["nuevo",2]]):pick([["conversacion",1],["vendido",4],["perdido",2]]);
+        leads.push({id:"ej"+leads.length,demo:true,creado:at,nombre:`${names[Math.floor(rnd()*names.length)]} ${String.fromCharCode(65+Math.floor(rnd()*26))}. (ejemplo)`,telefono:"+56 9 0000 00"+String(leads.length%100).padStart(2,"0"),producto:pr?.name||"",fuente:f,estado:st,monto:st==="vendido"?(pr?.now||0):null,vendidoAt:st==="vendido"?at+rnd()*3*DAY:null,notas:"",origen:rnd()<.5?"formulario":"manual"});
+      }
+    }
+  }
+  return DEMO={visitas,leads};
+}
+function dataset(){
+  if(D.demo)return demoData();
+  const leads=D.real.clientes.map(c=>({...c})),known=new Set(leads.map(l=>l.id));
+  D.real.solicitudes.forEach(s=>(s.items||[]).forEach(it=>{if(it&&it.id&&!known.has(it.id))leads.push({...it,estado:"nuevo",_sdoc:s._sdoc,web:true})}));
+  return {visitas:D.real.visitas,leads};
+}
+const soldAt=l=>l.vendidoAt||l.actualizado||l.creado;
+function metrics(ds,from,to){
+  const V=ds.visitas.filter(v=>v.at>=from&&v.at<to),ev=t=>V.reduce((a,v)=>a+(v.eventos||[]).filter(e=>e.tipo===t).length,0);
+  const L=ds.leads.filter(l=>l.creado>=from&&l.creado<to),S=ds.leads.filter(l=>l.estado==="vendido"&&soldAt(l)>=from&&soldAt(l)<to);
+  return {V,L,S,visitas:V.length,wa:ev("whatsapp"),comprar:ev("comprar"),guia:V.filter(v=>(v.eventos||[]).some(e=>e.tipo==="guia")).length,
+    accion:V.filter(v=>(v.eventos||[]).some(e=>e.tipo==="whatsapp"||e.tipo==="comprar"||e.tipo==="formulario")).length,leads:L.length,ventas:S.length,monto:S.reduce((a,l)=>a+(+l.monto||0),0)};
+}
+function bySource(m){
+  const rows={},r=k=>rows[k]=rows[k]||{k,visitas:0,wa:0,comprar:0,leads:0,ventas:0,monto:0};
+  m.V.forEach(v=>{const x=r(v.fuente||"directo");x.visitas++;(v.eventos||[]).forEach(e=>{if(e.tipo==="whatsapp")x.wa++;if(e.tipo==="comprar")x.comprar++})});
+  m.L.forEach(l=>r(l.fuente||"directo").leads++);m.S.forEach(l=>{const x=r(l.fuente||"directo");x.ventas++;x.monto+=+l.monto||0});
+  return Object.values(rows).sort((a,b)=>b.visitas-a.visitas||b.leads-a.leads);
+}
+const nf=n=>Math.round(n).toLocaleString("es-CL");
+const pct=(a,b)=>b?(a/b*100).toLocaleString("es-CL",{maximumFractionDigits:1})+"%":"—";
+const ago=t=>{const d=Math.floor((Date.now()-t)/DAY);return d<=0?"hoy":d===1?"ayer":`hace ${d} días`};
+const dShort=t=>new Date(t).toLocaleDateString("es-CL",{day:"numeric",month:"short"});
+function kpi(label,val,prev,fmt=nf){
+  const d=prev?Math.round((val-prev)/prev*100):null;
+  return `<div class="kpi"><span class="kl">${label}</span><b class="kv">${fmt(val)}</b><span class="kd ${!d?"":d>0?"up":"down"}">${d==null?"Sin datos del período anterior":d===0?`Igual que los ${D.days} días previos`:`${d>0?"▲ Subió":"▼ Bajó"} ${Math.abs(d)}% vs. ${D.days} días previos`}</span></div>`;
+}
+function barsHTML(rows,cls=""){
+  const max=Math.max(1,...rows.map(r=>r.v));
+  return rows.length?`<div class="bars ${cls}">${rows.map(r=>`<div class="bar-row" tabindex="0" data-tip="${esc(r.tip||"")}"><span class="bl">${esc(r.l)}</span><span class="bt"><i style="width:${r.v/max*100}%"></i></span><span class="bv">${r.vt??nf(r.v)}</span></div>`).join("")}</div>`:`<p class="dlist empty" style="color:var(--d-muted);margin:0">Aún no hay datos en este período.</p>`;
+}
+function banner(){
+  if(D.demo)return `<div class="dbanner demo"><span><b>Estás viendo datos de ejemplo.</b> Así se verá tu panel cuando lleguen visitas y clientes. Nada de esto es real.</span><button class="dbtn sm" type="button" data-act="real">Ver mis datos reales</button></div>`;
+  if(!D.dbOk)return `<div class="dbanner real"><span><b>No hay conexión con la base de datos.</b> Abre esta página desde claude.ai con tu cuenta para ver y guardar tus datos.</span><button class="dbtn sm" type="button" data-act="demo">Ver datos de ejemplo</button></div>`;
+  return `<div class="dbanner real"><span><b>Datos reales.</b> En esta maqueta solo se registran visitas de personas con sesión en Claude y acceso de colaborador. Cuando el sitio esté en tomiride.cl se registrarán todas.</span><button class="dbtn sm" type="button" data-act="demo">Ver datos de ejemplo</button></div>`;
+}
+function tabResumen(ds,m,p){
+  const now=Date.now(),days=[];for(let i=D.days-1;i>=0;i--){const t=now-i*DAY;days.push({k:dayKey(t),t,v:0})}
+  const idx=Object.fromEntries(days.map((d,i)=>[d.k,i]));m.V.forEach(v=>{const i=idx[dayKey(v.at)];if(i!=null)days[i].v++});
+  const src=bySource(m).slice(0,6).map(r=>({l:srcName(r.k),v:r.visitas,tip:`${srcName(r.k)}: ${nf(r.visitas)} visitas (${pct(r.visitas,m.visitas)}), ${r.leads} clientes potenciales`}));
+  const steps=[["Visitas",m.visitas],["Usaron la guía",m.guia],["Hicieron clic en comprar o WhatsApp",m.accion],["Clientes potenciales",m.leads],["Ventas",m.ventas]];
+  const funnel=steps.map(([l,v],i)=>({l,v,vt:`${nf(v)}<small>${i?pct(v,steps[i-1][1])+" del paso anterior":"100%"}</small>`,tip:`${l}: ${nf(v)}`}));
+  const interest={};m.V.forEach(v=>(v.eventos||[]).forEach(e=>{if((e.tipo==="comprar"||e.tipo==="whatsapp")&&e.producto)interest[e.producto]=(interest[e.producto]||0)+1}));
+  const prodRows=Object.entries(interest).map(([id,v])=>({l:data.products.find(p=>p.id===id)?.name||id,v,tip:`${nf(v)} clics en comprar o WhatsApp`})).sort((a,b)=>b.v-a.v).slice(0,6);
+  const pend=ds.leads.filter(l=>l.estado==="nuevo").sort((a,b)=>a.creado-b.creado).slice(0,6);
+  return `<div class="kpis">${kpi("Visitas",m.visitas,p.visitas)}${kpi("Contactos por WhatsApp",m.wa,p.wa)}${kpi("Clics en comprar",m.comprar,p.comprar)}${kpi("Clientes potenciales",m.leads,p.leads)}${kpi("Ventas",m.ventas,p.ventas)}${kpi("Monto vendido",m.monto,p.monto,clp)}</div>
+  <div class="dgrid"><section class="dcard"><h3>Visitas por día</h3><p class="sub">Últimos ${D.days} días · pasa el mouse para ver cada día</p><div class="chart" id="dArea" data-series='${esc(JSON.stringify(days.map(d=>[d.t,d.v])))}'></div></section>
+  <section class="dcard"><h3>De dónde llegan</h3><p class="sub">Visitas por origen</p>${barsHTML(src)}<button class="dbtn sm" type="button" data-tab="fuentes" style="justify-self:start">Ver detalle por origen →</button></section></div>
+  <div class="dgrid three"><section class="dcard"><h3>Embudo de ventas</h3><p class="sub">De la visita a la venta</p>${barsHTML(funnel,"funnel")}</section>
+  <section class="dcard"><h3>Pendientes de contactar</h3><p class="sub">Clientes nuevos, del más antiguo al más reciente</p><ul class="dlist">${pend.length?pend.map(l=>`<li><span><b>${esc(l.nombre)}</b><br><small style="color:var(--d-muted)">${esc(l.producto||"Sin producto")} · ${ago(l.creado)}</small></span>${waFor(l)}</li>`).join(""):`<li class="empty">No tienes clientes pendientes. ¡Bien!</li>`}</ul><button class="dbtn sm" type="button" data-tab="clientes" style="justify-self:start">Ir a clientes potenciales →</button></section>
+  <section class="dcard"><h3>Productos con más interés</h3><p class="sub">Clics en comprar o WhatsApp</p>${barsHTML(prodRows)}</section></div>`;
+}
+const waFor=l=>{const d=String(l.telefono||"").replace(/\D/g,"");return d&&!l.demo?`<a class="dbtn wa sm" href="https://wa.me/${d}?text=${encodeURIComponent(`Hola ${String(l.nombre||"").split(" ")[0]}, te escribimos de TOMI Ride.`)}" target="_blank" rel="noopener">WhatsApp</a>`:`<span class="dbtn wa sm" aria-disabled="true" style="opacity:.5">WhatsApp</span>`};
+function tabFuentes(m){
+  const rows=bySource(m),tot=rows.reduce((a,r)=>({visitas:a.visitas+r.visitas,wa:a.wa+r.wa,comprar:a.comprar+r.comprar,leads:a.leads+r.leads,ventas:a.ventas+r.ventas,monto:a.monto+r.monto}),{visitas:0,wa:0,comprar:0,leads:0,ventas:0,monto:0});
+  const max=Math.max(1,...rows.map(r=>r.visitas));
+  const dev={};m.V.forEach(v=>dev[v.dispositivo||"Celular"]=(dev[v.dispositivo||"Celular"]||0)+1);
+  const camp={};m.V.forEach(v=>{if(v.campana)camp[v.campana]=(camp[v.campana]||0)+1});
+  const best=rows.filter(r=>r.visitas>=10).sort((a,b)=>b.leads/b.visitas-a.leads/a.visitas)[0];
+  const links=linksHTML();
+  return `${best?`<div class="dbanner real" style="background:#E8F7EE;border-color:#BDE5CB;color:#14532D"><span><b>${srcName(best.k)}</b> es el origen que más convierte: ${pct(best.leads,best.visitas)} de sus visitas termina como cliente potencial.</span></div>`:""}
+  <section class="dcard"><h3>Origen de tus visitas y clientes</h3><p class="sub">Cómo llegó cada persona: redes sociales, buscadores, enlaces compartidos o escribiendo la dirección</p>
+  <div class="dtw"><table class="dtable"><thead><tr><th>Origen</th><th>Visitas</th><th>% del total</th><th>WhatsApp</th><th>Clics comprar</th><th>Clientes potenciales</th><th>Conversión</th><th>Ventas</th><th>Monto</th></tr></thead>
+  <tbody>${rows.length?rows.map(r=>`<tr><td><span class="chip">${srcName(r.k)}</span></td><td class="vb"><span><i style="width:${r.visitas/max*110}px"></i>${nf(r.visitas)}</span></td><td>${pct(r.visitas,tot.visitas)}</td><td>${nf(r.wa)}</td><td>${nf(r.comprar)}</td><td>${nf(r.leads)}</td><td>${pct(r.leads,r.visitas)}</td><td>${nf(r.ventas)}</td><td>${clp(r.monto)}</td></tr>`).join(""):`<tr><td colspan="9" style="text-align:left;color:var(--d-muted)">Aún no hay visitas en este período.</td></tr>`}</tbody>
+  <tfoot><tr><td>Total</td><td>${nf(tot.visitas)}</td><td>100%</td><td>${nf(tot.wa)}</td><td>${nf(tot.comprar)}</td><td>${nf(tot.leads)}</td><td>${pct(tot.leads,tot.visitas)}</td><td>${nf(tot.ventas)}</td><td>${clp(tot.monto)}</td></tr></tfoot></table></div></section>
+  <div class="dgrid three"><section class="dcard"><h3>Dispositivo</h3><div class="dstat">${["Celular","Computador"].map(k=>`<div><b>${pct(dev[k]||0,m.visitas)}</b><span>${k} · ${nf(dev[k]||0)} visitas</span></div>`).join("")}</div></section>
+  <section class="dcard"><h3>Campañas</h3><p class="sub">Visitas que llegaron con un enlace de campaña</p><ul class="dlist">${Object.keys(camp).length?Object.entries(camp).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<li><span>${esc(k)}</span><b>${nf(v)}</b></li>`).join(""):`<li class="empty">Sin campañas todavía. Crea un enlace abajo.</li>`}</ul></section>
+  <section class="dcard"><h3>Enlaces con seguimiento</h3><p class="sub">Usa un enlace distinto en cada red para saber de dónde llega cada cliente</p>${links}</section></div>`;
+}
+function linksHTML(){
+  const s=D.linkSrc,c=D.linkCamp.trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-");
+  const prod=`https://tomiride.cl/?utm_source=${s}${c?`&utm_campaign=${c}`:""}`;
+  return `<div class="dlinks"><div class="srcpick" role="group" aria-label="Origen">${["instagram","facebook","google","tiktok","whatsapp","qr","email"].map(k=>`<button type="button" data-src="${k}" aria-pressed="${k===s}">${srcName(k)}</button>`).join("")}</div>
+  <div class="f"><label class="lb" for="dCamp" style="font-size:.84rem;font-weight:700">Nombre de la campaña (opcional)</label><input id="dCamp" value="${esc(D.linkCamp)}" placeholder="Ej: reels-octubre"></div>
+  <div class="lb" style="font-size:.84rem;font-weight:700">Para esta maqueta</div><div class="row"><input readonly value="${esc(ARTIFACT_URL+"#"+s)}" aria-label="Enlace para la maqueta"><button class="dbtn sm" type="button" data-copy="${esc(ARTIFACT_URL+"#"+s)}">Copiar</button></div>
+  <div class="lb" style="font-size:.84rem;font-weight:700">Para tomiride.cl (cuando esté publicado)</div><div class="row"><input readonly value="${esc(prod)}" aria-label="Enlace para tomiride.cl"><button class="dbtn sm" type="button" data-copy="${esc(prod)}">Copiar</button></div></div>`;
+}
+function tabClientes(ds){
+  const q=D.q.toLowerCase(),L=ds.leads.filter(l=>(!D.fsrc||l.fuente===D.fsrc)&&(!q||`${l.nombre} ${l.telefono} ${l.producto} ${l.notas}`.toLowerCase().includes(q)));
+  const tools=`<div class="dtools"><input type="search" id="dQ" placeholder="Buscar por nombre, teléfono o producto" value="${esc(D.q)}" aria-label="Buscar clientes"><select id="dFsrc" aria-label="Filtrar por origen"><option value="">Todos los orígenes</option>${Object.entries(SOURCES).map(([k,v])=>`<option value="${k}" ${D.fsrc===k?"selected":""}>${v}</option>`).join("")}</select><button class="dbtn pri" type="button" data-act="new">+ Agregar cliente</button><button class="dbtn" type="button" data-act="csv">Descargar planilla</button></div>`;
+  if(!ds.leads.length)return tools+`<div class="dempty"><b>Aún no tienes clientes potenciales</b><span>Llegan solos desde el formulario “¿Te ayudamos a elegir?” de la página. También puedes agregarlos tú cuando te escriban por WhatsApp o Instagram.</span><button class="dbtn pri" type="button" data-act="new">+ Agregar mi primer cliente</button></div>`;
+  return tools+`<div class="kanban">${STATES.map(([k,name])=>{const col=L.filter(l=>(l.estado||"nuevo")===k).sort((a,b)=>b.creado-a.creado);const tot=col.reduce((a,l)=>a+(+l.monto||0),0);
+    return `<section class="kcol" aria-label="${name}"><h4><span class="chip st-${k}">${name}</span><small>${col.length}${k==="vendido"&&tot?" · "+clp(tot):""}</small></h4>${col.slice(0,60).map(l=>`<article class="lcard ${k==="nuevo"&&Date.now()-l.creado>DAY?"late":""}" data-lid="${esc(l.id)}" tabindex="0"><b>${esc(l.nombre||"Sin nombre")}</b><span class="pr">${esc(l.producto||"Sin producto")}${l.monto&&k==="vendido"?" · "+clp(l.monto):""}</span><span class="meta"><span class="chip">${srcName(l.fuente)}</span>${l.web?'<span class="chip st-nuevo">Desde la web</span>':""}<span>${ago(l.creado)}</span></span><span class="acts">${waFor(l)}<select data-st="${esc(l.id)}" aria-label="Cambiar estado">${STATES.map(([sk,sn])=>`<option value="${sk}" ${sk===k?"selected":""}>${sn}</option>`).join("")}</select></span></article>`).join("")}${col.length>60?`<small style="color:var(--d-muted);padding:4px">+${col.length-60} más. Usa la búsqueda.</small>`:""}</section>`}).join("")}</div>`;
+}
+function niceMax(v){const m=Math.pow(10,Math.floor(Math.log10(Math.max(v,1))));for(const s of[1,2,2.5,5,10])if(s*m>=v)return s*m;return 10*m}
+function drawArea(box){
+  const pts=JSON.parse(box.dataset.series||"[]");if(!pts.length)return;
+  const W=Math.max(280,box.clientWidth),H=230,pl=40,pr=14,pt=14,pb=28,nice=niceMax(Math.max(4,...pts.map(p=>p[1])));
+  const x=i=>pl+(W-pl-pr)*(pts.length<2?0:i/(pts.length-1)),y=v=>pt+(H-pt-pb)*(1-v/nice);
+  const line=pts.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
+  const area=`${line}L${x(pts.length-1).toFixed(1)},${y(0)}L${x(0)},${y(0)}Z`,last=pts.length-1;
+  const ticks=[0,nice/2,nice].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--d-grid)"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end">${nf(v)}</text>`).join("");
+  const xl=[0,Math.floor(last/2),last].map(i=>`<text x="${x(i)}" y="${H-8}" text-anchor="${i===0?"start":i===last?"end":"middle"}">${dShort(pts[i][0])}</text>`).join("");
+  box.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Visitas por día">${ticks}${xl}<path d="${area}" fill="var(--d-series)" fill-opacity=".12"/><path d="${line}" fill="none" stroke="var(--d-series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${x(last)}" cy="${y(pts[last][1])}" r="4.5" fill="var(--d-series)" stroke="#fff" stroke-width="2"/><line class="xh" y1="${pt}" y2="${y(0)}" stroke="var(--d-ink)" stroke-opacity=".35" visibility="hidden"/><circle class="xd" r="5" fill="var(--d-series)" stroke="#fff" stroke-width="2" visibility="hidden"/><rect x="${pl}" y="${pt}" width="${W-pl-pr}" height="${H-pt-pb}" fill="transparent" class="hit"/></svg>`;
+  const svg=$("svg",box),hit=$(".hit",svg),xh=$(".xh",svg),xd=$(".xd",svg);
+  const move=ev=>{const r=svg.getBoundingClientRect(),cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;const i=Math.max(0,Math.min(last,Math.round((cx-pl)/((W-pl-pr)/Math.max(1,last)))));
+    xh.setAttribute("x1",x(i));xh.setAttribute("x2",x(i));xh.setAttribute("visibility","visible");xd.setAttribute("cx",x(i));xd.setAttribute("cy",y(pts[i][1]));xd.setAttribute("visibility","visible");
+    showTip(`${new Date(pts[i][0]).toLocaleDateString("es-CL",{weekday:"long",day:"numeric",month:"long"})}<br><b>${nf(pts[i][1])} visitas</b>`,r.left+x(i),r.top+y(pts[i][1]))};
+  const out=()=>{xh.setAttribute("visibility","hidden");xd.setAttribute("visibility","hidden");hideTip()};
+  hit.addEventListener("mousemove",move);hit.addEventListener("touchstart",move,{passive:true});hit.addEventListener("mouseleave",out);
+}
+function showTip(html,x,y){if(!dtip){dtip=h("div",{class:"dtip",role:"tooltip"});document.body.appendChild(dtip)}dtip.innerHTML=html;dtip.hidden=false;const w=dtip.offsetWidth;dtip.style.left=Math.min(innerWidth-w-8,Math.max(8,x-w/2))+"px";dtip.style.top=Math.max(8,y-dtip.offsetHeight-12)+"px"}
+function hideTip(){if(dtip)dtip.hidden=true}
+function renderDash(){
+  const el=$(".dash");if(!el)return;
+  $$(".dtabs button",el).forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===D.tab));
+  $$(".dper button",el).forEach(b=>b.setAttribute("aria-pressed",+b.dataset.days===D.days));
+  $(".dper",el).hidden=D.tab==="clientes";
+  const main=$(".dash-main",el);
+  if(!D.loaded){main.innerHTML=`<div class="dempty"><b>Cargando tus datos…</b></div>`;return}
+  const ds=dataset(),now=Date.now(),from=now-D.days*DAY,m=metrics(ds,from,now+1),p=metrics(ds,from-D.days*DAY,from);
+  const focusId=document.activeElement?.id,selS=document.activeElement?.selectionStart;
+  main.innerHTML=banner()+(D.tab==="resumen"?tabResumen(ds,m,p):D.tab==="fuentes"?tabFuentes(m):tabClientes(ds));
+  const area=$("#dArea",main);if(area)drawArea(area);
+  if(focusId){const f=document.getElementById(focusId);if(f){f.focus();try{f.setSelectionRange(selS,selS)}catch(e){}}}
+}
+async function openDash(){
+  if($(".dash"))return;
+  const el=h("div",{class:"dash",role:"dialog","aria-label":"Clientes y gestión"},
+    h("div",{class:"dash-top"},h("div",{class:"in"},
+      h("span",{class:"ttl"},data.brand.logo?h("img",{src:data.brand.logo,alt:"",style:`background:${data.brand.logoBg||"#000"}`}):null,"Clientes y gestión"),
+      h("div",{class:"dtabs",role:"tablist"},[["resumen","Resumen"],["fuentes","De dónde llegan"],["clientes","Clientes potenciales"]].map(([k,l])=>h("button",{type:"button",role:"tab","data-tab":k},l))),
+      h("div",{class:"dper",role:"group","aria-label":"Período"},[7,30,90].map(n=>h("button",{type:"button","data-days":n},`${n} días`))),
+      h("button",{class:"dbtn",type:"button","data-act":"close"},"← Editar página"),h("button",{class:"dbtn",type:"button","data-act":"exit"},"Salir"))),
+    h("main",{class:"dash-main"}));
+  document.body.appendChild(el);document.documentElement.classList.add("dash-open");
+  el.addEventListener("click",dashClick);el.addEventListener("input",dashInput);el.addEventListener("change",dashChange);
+  el.addEventListener("mouseover",e=>{const r=e.target.closest("[data-tip]");if(r&&r.dataset.tip){const b=r.getBoundingClientRect();showTip(esc(r.dataset.tip),b.left+b.width/2,b.top)}});
+  el.addEventListener("mouseout",e=>{if(e.target.closest("[data-tip]"))hideTip()});
+  el.addEventListener("focusin",e=>{const r=e.target.closest("[data-tip]");if(r&&r.dataset.tip){const b=r.getBoundingClientRect();showTip(esc(r.dataset.tip),b.left+b.width/2,b.top)}});
+  el.addEventListener("focusout",hideTip);
+  el.addEventListener("keydown",e=>{const c=e.target.closest(".lcard");if(c&&(e.key==="Enter")&&e.target===c)openLead(c.dataset.lid)});
+  D.loaded=false;renderDash();
+  const db=await getDb();D.dbOk=!!db;
+  if(db){
+    try{D.unsub.push(db.collection("clientes").onSnapshot(s=>{D.real.clientes=s.docs.map(d=>({id:d.id,...d.data()}));realChanged()},()=>{}))}catch(e){}
+    try{D.unsub.push(db.collection("solicitudes").onSnapshot(s=>{D.real.solicitudes=s.docs.map(d=>({_sdoc:d.id,...d.data()}));realChanged()},()=>{}))}catch(e){}
+  }
+  await loadVisits();
+}
+function realChanged(){if(D.demoAuto&&(D.real.clientes.length||D.real.solicitudes.length)){D.demo=false;D.demoAuto=false}if($(".dash")&&!$(".dmodal"))renderDash()}
+async function loadVisits(){
+  const db=await getDb();
+  if(db){try{const s=await db.collection("visitas").where("at",">=",Date.now()-180*DAY).orderBy("at","desc").limit(1000).get();D.real.visitas=s.docs.map(d=>d.data())}catch(e){D.real.visitas=[]}}
+  D.loaded=true;
+  if(D.demo===null){D.demo=!D.real.visitas.length&&!D.real.clientes.length&&!D.real.solicitudes.length;D.demoAuto=D.demo}
+  renderDash();
+}
+function closeDash(){D.unsub.forEach(u=>{try{u()}catch(e){}});D.unsub=[];$(".dash")?.remove();$(".dmodal")?.remove();hideTip();document.documentElement.classList.remove("dash-open")}
+function dashClick(e){
+  const t=e.target.closest("[data-tab],[data-days],[data-act],[data-src],[data-copy],.lcard");if(!t)return;
+  if(t.dataset.tab){D.tab=t.dataset.tab;renderDash();$(".dash").scrollTop=0;return}
+  if(t.dataset.days){D.days=+t.dataset.days;renderDash();return}
+  if(t.dataset.src){D.linkSrc=t.dataset.src;renderDash();return}
+  if(t.dataset.copy){const v=t.dataset.copy;navigator.clipboard?.writeText(v).then(()=>toast("Enlace copiado")).catch(()=>{const i=t.previousElementSibling;i?.select();toast("Selecciona el enlace y cópialo")});return}
+  const a=t.dataset.act;
+  if(a==="close"){closeDash();return}
+  if(a==="exit"){closeDash();exitAdmin();return}
+  if(a==="real"){D.demo=false;D.demoAuto=false;renderDash();return}
+  if(a==="demo"){D.demo=true;D.demoAuto=false;renderDash();return}
+  if(a==="new"){if(D.demo){D.demo=false;D.demoAuto=false;renderDash()}openLead(null);return}
+  if(a==="csv"){exportCSV();return}
+  if(t.classList.contains("lcard")&&!e.target.closest("select,a"))openLead(t.dataset.lid);
+}
+function dashInput(e){
+  if(e.target.id==="dQ"){D.q=e.target.value;renderDash()}
+  if(e.target.id==="dCamp"){D.linkCamp=e.target.value;const sel=e.target.selectionStart;renderDash();const i=$("#dCamp");if(i){i.focus();i.setSelectionRange(sel,sel)}}
+}
+async function dashChange(e){
+  if(e.target.id==="dFsrc"){D.fsrc=e.target.value;renderDash();return}
+  const id=e.target.dataset.st;if(!id)return;
+  const l=dataset().leads.find(x=>x.id===id);if(!l)return;
+  if(l.demo){toast("Este es un cliente de ejemplo. Cambia a tus datos reales para gestionar.",true);renderDash();return}
+  const st=e.target.value,prod=data.products.find(p=>p.name===l.producto);
+  await saveLead({...l,estado:st,monto:st==="vendido"&&!l.monto?(prod?.now||null):l.monto});
+}
+async function saveLead(l){
+  const db=await getDb();if(!db){toast("Para guardar clientes abre esta página desde claude.ai con tu cuenta de editor.",true);return false}
+  const{web,_sdoc,demo,...doc}=l;doc.actualizado=Date.now();
+  if(doc.estado==="vendido"){if(!doc.vendidoAt)doc.vendidoAt=Date.now()}else doc.vendidoAt=null;
+  try{await db.collection("clientes").doc(l.id).set(doc);toast("Cliente guardado");return true}
+  catch(e){toast(e?.code==="invalid_argument"?"Tu cuenta no tiene permiso para guardar clientes. Pide acceso de Editor.":`No se pudo guardar (${e?.code||"error"}). Intenta de nuevo.`,true);return false}
+}
+async function deleteLead(l){
+  const db=await getDb();if(!db)return false;
+  try{
+    await db.collection("clientes").doc(l.id).delete();
+    if(l._sdoc){const s=D.real.solicitudes.find(x=>x._sdoc===l._sdoc);if(s){const{_sdoc,...rest}=s;await db.doc("solicitudes/"+l._sdoc).set({...rest,items:(s.items||[]).filter(i=>i.id!==l.id)})}}
+    toast("Cliente eliminado");return true;
+  }catch(e){toast(`No se pudo eliminar (${e?.code||"error"}).`,true);return false}
+}
+function openLead(id){
+  const ex=id?dataset().leads.find(l=>l.id===id):null;
+  const l=ex?{...ex}:{id:"c"+Date.now().toString(36),creado:Date.now(),nombre:"",telefono:"",producto:"",fuente:"instagram",estado:"nuevo",monto:null,notas:"",origen:"manual"};
+  const ro=!!l.demo;
+  const opt=(arr,cur)=>arr.map(([v,t])=>`<option value="${esc(v)}" ${v===cur?"selected":""}>${esc(t)}</option>`).join("");
+  const prods=data.products.map(p=>[p.name,p.name]);if(l.producto&&!prods.some(p=>p[0]===l.producto))prods.push([l.producto,l.producto]);
+  const ov=h("div",{class:"dmodal"});
+  ov.innerHTML=`<form novalidate><h3>${ex?"Ficha del cliente":"Nuevo cliente potencial"}</h3>
+  ${ro?`<p class="note" style="background:#FFF4DB;padding:10px;border-radius:10px;color:#6B4006">Cliente de ejemplo: no se puede editar.</p>`:""}
+  ${l.web?`<p class="note">Llegó desde el formulario de la página el ${new Date(l.creado).toLocaleString("es-CL",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})}.${l.edad?` Edad del peque: ${esc(l.edad)}.`:""}</p>`:""}
+  <div class="f"><label for="mN">Nombre</label><input id="mN" value="${esc(l.nombre)}" required></div>
+  <div class="two"><div class="f"><label for="mT">WhatsApp o teléfono</label><input id="mT" type="tel" value="${esc(l.telefono)}" placeholder="+56 9 1234 5678"></div>
+  <div class="f"><label for="mF">¿Cómo nos conoció?</label><select id="mF">${opt(Object.entries(SOURCES),l.fuente)}</select></div></div>
+  <div class="f"><label for="mP">Producto de interés</label><select id="mP"><option value="">Sin definir</option>${opt(prods,l.producto)}</select></div>
+  <div class="f"><span class="lb">Estado</span><div class="stpick" role="group" aria-label="Estado">${STATES.map(([k,n])=>`<button type="button" data-s="${k}" aria-pressed="${k===(l.estado||"nuevo")}">${n}</button>`).join("")}</div></div>
+  <div class="f" id="mMw" ${l.estado==="vendido"?"":"hidden"}><label for="mM">Monto de la venta (CLP)</label><input id="mM" inputmode="numeric" value="${l.monto??""}" placeholder="Ej: 49990"></div>
+  <div class="f"><label for="mO">Notas</label><textarea id="mO" placeholder="Ej: quiere la bici menta, la llamo el viernes">${esc(l.notas||"")}</textarea></div>
+  <p class="note" id="mErr" role="alert" hidden style="color:#B42318;font-weight:700"></p>
+  <div class="foot"><span>${ex&&!ro?`<button class="dbtn" type="button" id="mDel" style="color:#B42318">Eliminar</button><span id="mConf" hidden> ¿Seguro? <button class="dbtn sm" type="button" id="mYes" style="background:#FCE8EC;color:#B42318">Sí, eliminar</button> <button class="dbtn sm" type="button" id="mNo">No</button></span>`:""}</span>
+  <span style="display:flex;gap:8px">${waFor(l)}<button class="dbtn" type="button" id="mX">${ro?"Cerrar":"Cancelar"}</button>${ro?"":`<button class="dbtn pri" type="submit">Guardar</button>`}</span></div></form>`;
+  document.body.appendChild(ov);
+  const f=$("form",ov);let st=l.estado||"nuevo";
+  if(ro)$$("input,select,textarea",f).forEach(i=>i.disabled=true);
+  const close=()=>{ov.remove();renderDash()};
+  $("#mX",ov).addEventListener("click",close);ov.addEventListener("click",e=>{if(e.target===ov)close()});ov.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+  $$(".stpick button",ov).forEach(b=>b.addEventListener("click",()=>{if(ro)return;st=b.dataset.s;$$(".stpick button",ov).forEach(x=>x.setAttribute("aria-pressed",x===b));$("#mMw",ov).hidden=st!=="vendido";
+    if(st==="vendido"&&!$("#mM",ov).value){const p=data.products.find(p=>p.name===$("#mP",ov).value);if(p)$("#mM",ov).value=p.now}}));
+  $("#mDel",ov)?.addEventListener("click",()=>{$("#mConf",ov).hidden=false});$("#mNo",ov)?.addEventListener("click",()=>{$("#mConf",ov).hidden=true});
+  $("#mYes",ov)?.addEventListener("click",async()=>{if(await deleteLead(l))close()});
+  f.addEventListener("submit",async e=>{e.preventDefault();if(ro)return;
+    const nombre=$("#mN",ov).value.trim();if(!nombre){const er=$("#mErr",ov);er.textContent="Escribe al menos el nombre del cliente.";er.hidden=false;$("#mN",ov).focus();return}
+    const monto=$("#mM",ov).value.replace(/\D/g,"");
+    const ok=await saveLead({...l,nombre,telefono:$("#mT",ov).value.trim(),fuente:$("#mF",ov).value,producto:$("#mP",ov).value,estado:st,monto:monto?+monto:null,notas:$("#mO",ov).value.trim()});
+    if(ok)close();});
+  setTimeout(()=>$("#mN",ov).focus(),30);
+}
+async function exportCSV(){
+  const L=dataset().leads,cell=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const csv=[["Fecha","Nombre","Teléfono","Producto","Origen","Estado","Monto","Notas"].map(cell).join(";"),...L.map(l=>[new Date(l.creado).toLocaleDateString("es-CL"),l.nombre,l.telefono,l.producto,srcName(l.fuente),STATE_NAME[l.estado]||"Nuevo",l.monto||"",l.notas].map(cell).join(";"))].join("\r\n");
+  let dl=null;try{dl=window.claude?.use?await window.claude.use("downloads"):null}catch(e){}
+  if(!dl){toast("Descargar no está disponible aquí. Abre la página desde claude.ai.",true);return}
+  try{await dl.save({filename:`clientes-tomi-${dayKey(Date.now())}.csv`,data:new Blob(["﻿"+csv],{type:"text/csv"})})}catch(e){if(e?.code!=="cancelled"&&e?.code!=="declined")toast("No se pudo descargar la planilla.",true)}
+}
+addEventListener("resize",()=>{const a=$("#dArea");if(a)drawArea(a)});
+startVisit();
+
 })();
 </script>
