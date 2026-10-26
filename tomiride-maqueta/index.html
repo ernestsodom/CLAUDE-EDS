@@ -1,176 +1,153 @@
 <title>TOMI Ride Rediseño</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Bicicletas de equilibrio, scooters, triciclos y cascos TOMI para niños de 1 a 8 años. Apostando por una infancia al aire libre.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Nunito+Sans:opsz,wght@6..12,400..800&family=DM+Mono:wght@400;500&display=swap">
-<style>
-/* Layout: una "ruta de crecimiento" de 12 meses a 8 años organiza todo. Regla de edad como hilo conductor, fichas tipo etiqueta técnica, fotos reales a sangre. */
+<link id="tr-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Nunito+Sans:opsz,wght@6..12,400..800&family=DM+Mono:wght@400;500&display=swap">
+<style id="tr-css">
+/* Layout: una "ruta de crecimiento" de 12 meses a 8 años organiza el sitio; los colores y letras vienen del panel (variables abajo son los valores por defecto). */
 :root{
   --paper:#F3F7F5; --surface:#FFFFFF; --ink:#13201C; --muted:#56655F; --line:#D5E0DB;
-  --mint:#7FD9C3; --mint-ink:#11745F; --mint-soft:#DDF4EC;
-  --pink:#E8609E; --blue:#2A8AD4; --sale:#C2324F;
-  --badge-bg:#13201C; --badge-fg:#FFFFFF;
-  --f-display:"Archivo","Arial Narrow",Impact,sans-serif;
+  --mint:#7FD9C3; --mint-ink:#11745F; --mint-soft:#DDF4EC; --on-mint:#0B2A22; --sale:#C2324F;
+  --f-display:"Archivo","Arial Narrow",Impact,sans-serif; --dw:900; --dstretch:68%; --upper:uppercase; --ts:1;
   --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
   --r:18px; --wrap:1180px;
-  --shadow:0 1px 0 rgba(19,32,28,.04),0 12px 32px -18px rgba(19,32,28,.25);
+  --shadow:0 1px 0 rgba(19,32,28,.04),0 12px 32px -18px rgba(19,32,28,.28);
+  --wa:#25D366; --wa-ink:#06331A;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#0E1614; --surface:#16211E; --ink:#E6EFEB; --muted:#9DB0A8; --line:#2A3833;
-  --mint:#7FD9C3; --mint-ink:#86E0CA; --mint-soft:#183A31; --pink:#F27DB2; --blue:#5AA9E6; --sale:#FF7A90;
-  --badge-bg:#E6EFEB; --badge-fg:#0E1614; --shadow:0 12px 32px -18px rgba(0,0,0,.6); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --paper:#0E1614; --surface:#16211E; --ink:#E6EFEB; --muted:#9DB0A8; --line:#2A3833;
-  --mint:#7FD9C3; --mint-ink:#86E0CA; --mint-soft:#183A31; --pink:#F27DB2; --blue:#5AA9E6; --sale:#FF7A90;
-  --badge-bg:#E6EFEB; --badge-fg:#0E1614; --shadow:0 12px 32px -18px rgba(0,0,0,.6); color-scheme:dark}
-
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:84px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
 body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--surface)}
-img{display:block;max-width:100%}
-a{color:inherit}
-:focus-visible{outline:3px solid var(--mint-ink);outline-offset:3px;border-radius:6px}
+#site{container:site/inline-size;background:var(--paper);color:var(--ink);min-height:100vh}
+#site img{display:block;max-width:100%}
+:where(#site) a{color:inherit}
+#site :focus-visible{outline:3px solid var(--mint-ink);outline-offset:3px;border-radius:6px}
 .wrap{max-width:var(--wrap);margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1,h2,h3{font-family:var(--f-display);font-stretch:68%;font-weight:900;line-height:.95;letter-spacing:-.01em;text-wrap:balance;margin:0;text-transform:uppercase}
-h2{font-size:clamp(2.2rem,5vw,3.8rem)}
-h3{font-size:1.6rem}
-p{margin:0}
+#site h1,#site h2,#site h3{font-family:var(--f-display);font-stretch:var(--dstretch);font-weight:var(--dw);line-height:.95;letter-spacing:-.01em;text-wrap:balance;margin:0;text-transform:var(--upper)}
+#site h2{font-size:calc(clamp(2.1rem,5.4cqi,3.8rem)*var(--ts))}
+#site h3{font-size:calc(1.5rem*var(--ts))}
+#site p{margin:0}
 .eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mint-ink);font-weight:500}
 .lede{color:var(--muted);font-size:1.08rem;max-width:58ch}
-.sec{padding-block:clamp(56px,9vw,104px)}
-.sec-head{display:grid;gap:14px;margin-bottom:40px}
+.sec{padding-block:clamp(48px,8cqi,96px)}
+.sec-head{display:grid;gap:14px;margin-bottom:36px}
+.ph-empty{display:grid;place-items:center;background:var(--mint-soft);color:var(--mint-ink);font:500 .8rem var(--f-mono);width:100%;height:100%;min-height:80px}
 
-/* Botones */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;font:800 .95rem/1 var(--f-body);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform .15s,background .15s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;font:800 .95rem/1.1 var(--f-body);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform .15s;text-align:center}
 .btn:hover{transform:translateY(-1px)}
 .btn-primary{background:var(--ink);color:var(--paper)}
-.btn-mint{background:var(--mint);color:#0B2A22}
+.btn-mint{background:var(--mint);color:var(--on-mint)}
 .btn-ghost{border-color:var(--ink);color:var(--ink);background:transparent}
-.btn svg{width:16px;height:16px}
+.btn-wa{background:var(--wa);color:var(--wa-ink)}
+.btn svg{width:18px;height:18px;flex:none}
 
-/* Franja + header */
 .strip{background:var(--ink);color:var(--paper);font-size:.85rem;font-weight:700}
-.strip .wrap{display:flex;gap:28px;justify-content:center;padding-block:9px;flex-wrap:wrap;text-align:center}
-.strip span{opacity:.92}
+.strip .wrap{display:flex;gap:8px 28px;justify-content:center;padding-block:9px;flex-wrap:wrap;text-align:center}
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
-header.top .wrap{display:flex;align-items:center;gap:24px;min-height:68px}
-.logo{display:block;background:#000;border-radius:8px;padding:6px 10px;flex:none}
+header.top .wrap{display:flex;align-items:center;gap:20px;min-height:68px;position:relative}
+.logo{display:block;border-radius:8px;padding:6px 10px;flex:none;text-decoration:none}
 .logo img{height:26px;width:auto}
-nav.main{display:flex;gap:4px;margin-left:8px}
+nav.main{display:flex;gap:2px;flex-wrap:wrap}
 nav.main a{text-decoration:none;font-weight:700;font-size:.95rem;padding:8px 12px;border-radius:999px}
 nav.main a:hover{background:var(--mint-soft)}
 .top .spacer{flex:1}
 .menu-btn{display:none;background:none;border:2px solid var(--ink);border-radius:999px;color:var(--ink);font:800 .9rem var(--f-body);padding:8px 14px;cursor:pointer}
-@media (max-width:900px){
-  nav.main{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));margin:0}
+@container site (max-width:900px){
+  nav.main{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 16px 16px}
   nav.main.open{display:flex}
   nav.main a{padding:14px 12px;font-size:1.05rem}
   .menu-btn{display:inline-flex}
   .top .btn-primary{display:none}
 }
 
-/* Hero */
-.hero{padding-block:clamp(28px,5vw,64px) clamp(40px,6vw,72px)}
-.hero .wrap{display:grid;grid-template-columns:1.02fr 1fr;gap:clamp(24px,5vw,64px);align-items:center}
-.hero h1{font-size:clamp(2.8rem,7vw,5.4rem);line-height:.86}
+.hero{padding-block:clamp(28px,5cqi,64px) clamp(40px,6cqi,72px)}
+.hero .wrap{display:grid;grid-template-columns:1.02fr 1fr;gap:clamp(24px,5cqi,64px);align-items:center}
+#site .hero h1{font-size:calc(clamp(2.7rem,7cqi,5.4rem)*var(--ts));line-height:.88}
 .hero h1 em{font-style:normal;color:var(--mint-ink)}
-.hero-copy{display:grid;gap:24px;min-width:0}
+.hero-copy{display:grid;gap:22px;min-width:0}
 .hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
 .hero-facts{display:flex;gap:10px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
 .hero-facts li{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px}
 .hero-photo{position:relative;min-width:0}
-.hero-photo img{width:100%;height:auto;aspect-ratio:4/3.4;object-fit:cover;object-position:52% 60%;border-radius:28px}
-.tag{position:absolute;background:var(--surface);color:var(--ink);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);font-size:.85rem;line-height:1.3;display:grid;gap:2px}
-.tag b{font-family:var(--f-display);font-stretch:75%;font-size:1.1rem;text-transform:uppercase}
+.hero-photo img,.hero-photo .ph-empty{width:100%;height:auto;aspect-ratio:4/3.4;object-fit:cover;border-radius:calc(var(--r) + 10px)}
+.tag{position:absolute;background:var(--surface);color:var(--ink);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);font-size:.85rem;line-height:1.3;display:grid;gap:2px;text-decoration:none}
+.tag b{font-family:var(--f-display);font-stretch:var(--dstretch);font-size:1.1rem;text-transform:var(--upper)}
 .tag .mono{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
-.tag-bike{left:-14px;bottom:18%}
-.tag-bike::after{content:"";position:absolute;right:-34px;top:50%;width:34px;height:2px;background:var(--surface)}
-.tag-price{right:14px;top:14px;background:var(--mint);color:#0B2A22}
-.tag-price .mono{color:#0B2A22;opacity:.75}
-@media (max-width:820px){.hero .wrap{grid-template-columns:1fr}.tag-bike{left:12px;bottom:12px}.tag-bike::after{display:none}}
+.tag-a{left:-14px;bottom:16%}
+.tag-b{right:14px;top:14px;background:var(--mint);color:var(--on-mint)}
+.tag-b .mono{color:var(--on-mint);opacity:.75}
+@container site (max-width:820px){.hero .wrap{grid-template-columns:1fr}.tag-a{left:12px;bottom:12px}}
 
-/* Ruta de crecimiento */
 .route{background:var(--surface);border-block:1px solid var(--line)}
-.route .wrap{padding-block:28px}
-.ruler{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.stage{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center;text-decoration:none;padding:10px;border-radius:16px;transition:background .15s}
+.route .wrap{padding-block:26px}
+.ruler{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.stage{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center;text-decoration:none;padding:10px;border-radius:16px}
 .stage:hover{background:var(--mint-soft)}
-.stage img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:12px}
+.stage img,.stage .ph-empty{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:12px;min-height:0}
 .stage .age{font-family:var(--f-mono);font-size:.78rem;color:var(--mint-ink)}
-.stage .nm{font-family:var(--f-display);font-stretch:72%;font-weight:800;font-size:1.25rem;text-transform:uppercase;line-height:1}
-.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem;color:var(--muted);border-top:2px solid var(--ink);margin-top:18px;padding-top:6px;position:relative}
+.stage .nm{font-family:var(--f-display);font-stretch:var(--dstretch);font-weight:var(--dw);font-size:1.2rem;text-transform:var(--upper);line-height:1}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem;color:var(--muted);border-top:2px solid var(--ink);margin-top:18px;padding-top:6px}
 .scale span{position:relative}
 .scale span::before{content:"";position:absolute;left:50%;top:-12px;width:2px;height:8px;background:var(--ink)}
-@media (max-width:900px){.ruler{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:480px){.ruler{grid-template-columns:1fr}.scale{display:none}}
+@container site (max-width:480px){.scale{display:none}}
 
-/* Guía por edad */
-.finder{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,48px);background:var(--ink);color:var(--paper);border-radius:32px;padding:clamp(24px,4vw,48px)}
+.finder{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4cqi,48px);background:var(--ink);color:var(--paper);border-radius:calc(var(--r) + 14px);padding:clamp(22px,4cqi,48px)}
 .finder .eyebrow{color:var(--mint)}
-.finder h2{color:var(--paper)}
-.finder .lede{color:color-mix(in srgb,var(--paper) 72%,transparent)}
-.ctrl{display:grid;gap:10px;margin-top:26px}
+#site .finder h2{color:var(--paper)}
+.finder .lede{color:color-mix(in srgb,var(--paper) 72%,transparent);margin-top:14px}
+.ctrl{display:grid;gap:10px;margin-top:24px}
 .ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
-.ctrl output{font-family:var(--f-display);font-stretch:70%;font-weight:900;font-size:2.4rem;line-height:1;color:var(--mint)}
+.ctrl output{font-family:var(--f-display);font-stretch:var(--dstretch);font-weight:var(--dw);font-size:2.3rem;line-height:1;color:var(--mint)}
 .ctrl input[type=range]{width:100%;accent-color:var(--mint);height:28px}
 .ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.7rem;opacity:.6}
 .results{display:grid;gap:12px;align-content:start}
-.res{display:grid;grid-template-columns:84px 1fr auto;gap:14px;align-items:center;background:color-mix(in srgb,var(--paper) 8%,transparent);border:1px solid color-mix(in srgb,var(--paper) 14%,transparent);border-radius:18px;padding:10px 14px 10px 10px;text-decoration:none;color:inherit;transition:opacity .2s,transform .2s}
-.res img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:12px}
+.res{display:grid;grid-template-columns:84px 1fr auto;gap:14px;align-items:center;background:color-mix(in srgb,var(--paper) 8%,transparent);border:1px solid color-mix(in srgb,var(--paper) 14%,transparent);border-radius:18px;padding:10px 14px 10px 10px;text-decoration:none;color:inherit}
+.res img,.res .ph-empty{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:12px;min-height:0}
 .res .nm{font-weight:800;font-size:1.05rem;line-height:1.2}
 .res .meta{font-size:.85rem;opacity:.75}
 .res .fit{font-family:var(--f-mono);font-size:.72rem;padding:5px 10px;border-radius:999px;white-space:nowrap}
-.fit-ideal{background:var(--mint);color:#0B2A22}
+.fit-ideal{background:var(--mint);color:var(--on-mint)}
 .fit-ok{background:color-mix(in srgb,var(--paper) 18%,transparent)}
 .fit-no{border:1px dashed color-mix(in srgb,var(--paper) 35%,transparent)}
-.res.off{opacity:.38}
-@media (max-width:820px){.finder{grid-template-columns:1fr}}
-@media (max-width:440px){.res{grid-template-columns:64px 1fr}.res img{width:64px;height:64px}.res .fit{grid-column:2;justify-self:start}}
+.res.off{opacity:.4}
+@container site (max-width:820px){.finder{grid-template-columns:1fr}}
+@container site (max-width:440px){.res{grid-template-columns:64px 1fr}.res img,.res .ph-empty{width:64px;height:64px}.res .fit{grid-column:2;justify-self:start}}
 
-/* Productos */
-.grid-products{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
-@media (max-width:1060px){.grid-products{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:520px){.grid-products{grid-template-columns:1fr}}
+.grid-products{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
 .card .ph{position:relative;background:#fff;aspect-ratio:1/1}
-.card .ph img{width:100%;height:100%;object-fit:contain;padding:16px;transition:opacity .2s}
-.off-badge{position:absolute;left:12px;top:12px;background:var(--sale);color:#fff;font:800 .8rem var(--f-body);padding:5px 10px;border-radius:999px}
-.age-badge{position:absolute;right:12px;top:12px;background:var(--badge-bg);color:var(--badge-fg);font:500 .72rem var(--f-mono);padding:5px 9px;border-radius:999px}
+.card .ph img{width:100%;height:100%;object-fit:contain;padding:16px}
+.off-badge{position:absolute;left:12px;top:12px;background:var(--sale);color:#fff;font:800 .8rem var(--f-body);padding:5px 10px;border-radius:999px;z-index:1}
+.age-badge{position:absolute;right:12px;top:12px;background:var(--ink);color:var(--paper);font:500 .72rem var(--f-mono);padding:5px 9px;border-radius:999px;z-index:1}
 .card .bd{padding:16px 18px 18px;display:grid;gap:12px;flex:1;align-content:start}
-.card h3{font-size:1.45rem}
 .card .sub{color:var(--muted);font-size:.9rem;line-height:1.4}
-.swatches{display:flex;gap:8px;align-items:center}
+.swatches{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .swatches .lbl{font-size:.82rem;color:var(--muted);margin-left:4px}
 .sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 .price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
-.price .now{font-family:var(--f-display);font-stretch:75%;font-weight:900;font-size:1.9rem;line-height:1}
+.price .now{font-family:var(--f-display);font-stretch:var(--dstretch);font-weight:var(--dw);font-size:1.9rem;line-height:1}
 .price .was{color:var(--muted);text-decoration:line-through;font-size:.92rem}
 .price .cur{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
 .card .acts{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:auto}
 .card .acts .btn{min-height:44px;padding:0 16px;font-size:.88rem}
 
-/* Ficha de producto */
-.pdp{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:start}
+.pdp{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(24px,5cqi,64px);align-items:start}
 .pdp.rev .gal{order:2}
-@media (max-width:900px){.pdp{grid-template-columns:1fr}.pdp.rev .gal{order:0}}
-.gal{display:grid;gap:10px;position:sticky;top:96px}
-@media (max-width:900px){.gal{position:static}}
-.gal .main{border-radius:24px;overflow:hidden;background:#fff;aspect-ratio:1/1}
+@container site (max-width:900px){.pdp{grid-template-columns:1fr}.pdp.rev .gal{order:0}}
+.gal{display:grid;gap:10px}
+.gal .main{border-radius:calc(var(--r) + 6px);overflow:hidden;background:#fff;aspect-ratio:1/1}
 .gal .main img{width:100%;height:100%;object-fit:cover}
+.gal .main img.contain{object-fit:contain;padding:8%}
 .thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .thumbs button{padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;cursor:pointer;background:#fff;aspect-ratio:1/1}
 .thumbs button[aria-current="true"]{border-color:var(--ink)}
 .thumbs img{width:100%;height:100%;object-fit:cover}
-.info{display:grid;gap:22px;min-width:0}
-.info h2{font-size:clamp(2.4rem,5.4vw,4.2rem)}
+.info{display:grid;gap:20px;min-width:0}
+#site .info h2{font-size:calc(clamp(2.3rem,5.4cqi,4.2rem)*var(--ts))}
 .spec{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
 .spec .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--ink);color:var(--paper)}
-.spec .hd b{font-family:var(--f-display);font-stretch:72%;text-transform:uppercase;font-size:1.05rem;letter-spacing:.02em}
+.spec .hd b{font-family:var(--f-display);font-stretch:var(--dstretch);text-transform:var(--upper);font-size:1.05rem}
 .spec .hd span{font-family:var(--f-mono);font-size:.72rem;opacity:.75}
 .spec dl{margin:0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
 .spec dt,.spec dd{margin:0;padding:11px 18px;border-top:1px solid var(--line);font-size:.92rem}
@@ -179,47 +156,37 @@ nav.main a:hover{background:var(--mint-soft)}
 .spec dl>:nth-child(-n+2){border-top:0}
 .checks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .checks li{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start}
-.checks li::before{content:"";width:22px;height:22px;margin-top:2px;border-radius:50%;background:var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B2A22' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/14px no-repeat}
+.checks li::before{content:"✓";display:grid;place-items:center;width:22px;height:22px;margin-top:2px;border-radius:50%;background:var(--mint);color:var(--on-mint);font-weight:900;font-size:.8rem}
 .buyrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.note{font-size:.82rem;color:var(--muted)}
 
-/* Por qué equilibrio */
 .why{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
-.why figure{margin:0;border-radius:22px;overflow:hidden;position:relative}
+.why figure{margin:0;border-radius:calc(var(--r) + 4px);overflow:hidden;min-height:200px}
 .why figure img{width:100%;height:100%;object-fit:cover}
 .why .a{grid-column:span 5;grid-row:span 2}
 .why .b{grid-column:span 4}
 .why .c{grid-column:span 3}
-.why .d{grid-column:span 7;background:var(--mint);color:#0B2A22;border-radius:22px;padding:clamp(20px,3vw,32px);display:grid;gap:16px;align-content:center}
-.why .d h3{font-size:clamp(1.8rem,3.4vw,2.6rem)}
+.why .d{grid-column:span 7;background:var(--mint);color:var(--on-mint);border-radius:calc(var(--r) + 4px);padding:clamp(20px,3cqi,32px);display:grid;gap:16px;align-content:center}
+.why .d .eyebrow{color:var(--on-mint)}
+#site .why .d h3{font-size:calc(clamp(1.8rem,3.4cqi,2.6rem)*var(--ts))}
 .why .d ul{margin:0;padding-left:1.1em;display:grid;gap:6px}
-@media (max-width:900px){.why .a,.why .b,.why .c,.why .d{grid-column:span 12;grid-row:auto}.why .a{aspect-ratio:4/3}}
+@container site (max-width:900px){.why .a,.why .b,.why .c,.why .d{grid-column:span 12;grid-row:auto}.why .a{aspect-ratio:4/3}}
 
-/* Cascos */
-.helmets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(24px,4vw,48px);align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:32px;padding:clamp(20px,4vw,48px)}
-.helmet-stage{background:#fff;border-radius:24px;aspect-ratio:1/1}
-.helmet-stage img{width:100%;height:100%;object-fit:contain;padding:8%}
-@media (max-width:820px){.helmets{grid-template-columns:1fr}}
-
-/* Comparador */
 .cmp-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
-table.cmp{border-collapse:collapse;width:100%;min-width:720px;font-size:.92rem}
+table.cmp{border-collapse:collapse;width:100%;min-width:640px;font-size:.92rem}
 .cmp th,.cmp td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-.cmp thead th{font-family:var(--f-display);font-stretch:72%;text-transform:uppercase;font-size:1.15rem;line-height:1.05}
+.cmp thead th{font-family:var(--f-display);font-stretch:var(--dstretch);font-weight:var(--dw);text-transform:var(--upper);font-size:1.1rem;line-height:1.05}
 .cmp thead th img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:10px;margin-bottom:8px}
 .cmp tbody th{color:var(--muted);font-weight:600;width:18%}
 .cmp td{font-family:var(--f-mono);font-size:.84rem;font-variant-numeric:tabular-nums}
 .cmp tr:last-child>*{border-bottom:0}
 
-/* Comunidad */
 .community{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:220px;gap:12px}
-.community figure{margin:0;border-radius:20px;overflow:hidden;position:relative}
+.community figure{margin:0;border-radius:calc(var(--r) + 2px);overflow:hidden;position:relative}
 .community img{width:100%;height:100%;object-fit:cover}
-.community .feat{grid-column:span 2;grid-row:span 2}
+.community figure:first-child{grid-column:span 2;grid-row:span 2}
 .community figcaption{position:absolute;left:12px;bottom:12px;background:var(--surface);color:var(--ink);font-size:.8rem;font-weight:700;padding:6px 12px;border-radius:999px}
-@media (max-width:820px){.community{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:170px}}
+@container site (max-width:820px){.community{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:170px}}
 
-/* FAQ */
 .faq{display:grid;gap:10px;max-width:820px}
 .faq details{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0 20px}
 .faq summary{cursor:pointer;list-style:none;font-weight:800;font-size:1.05rem;padding:18px 0;display:flex;justify-content:space-between;gap:16px}
@@ -228,423 +195,675 @@ table.cmp{border-collapse:collapse;width:100%;min-width:720px;font-size:.92rem}
 .faq details[open] summary::after{content:"–"}
 .faq details p{padding-bottom:18px;color:var(--muted);max-width:65ch}
 
-/* Footer */
-footer{background:var(--ink);color:var(--paper);padding-block:56px 32px;margin-top:clamp(40px,6vw,72px)}
-footer .cols{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:32px}
-footer h4{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;opacity:.6;margin:0 0 12px}
-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-footer a{text-decoration:none;opacity:.9}
-footer a:hover{opacity:1;text-decoration:underline}
-footer .claim{font-family:var(--f-display);font-stretch:68%;font-weight:900;font-size:clamp(2rem,4vw,3rem);text-transform:uppercase;line-height:.95;margin-top:18px;color:var(--mint)}
-footer .legal{margin-top:40px;padding-top:20px;border-top:1px solid color-mix(in srgb,var(--paper) 18%,transparent);font-size:.8rem;opacity:.6}
-@media (max-width:820px){footer .cols{grid-template-columns:1fr 1fr}}
+footer.ft{background:var(--ink);color:var(--paper);padding-block:56px 96px;margin-top:clamp(40px,6cqi,72px)}
+footer.ft .cols{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:32px}
+footer.ft h4{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;opacity:.6;margin:0 0 12px}
+footer.ft ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+footer.ft a{text-decoration:none;opacity:.9}
+footer.ft a:hover{opacity:1;text-decoration:underline}
+footer.ft .claim{font-family:var(--f-display);font-stretch:var(--dstretch);font-weight:var(--dw);font-size:calc(clamp(1.9rem,4cqi,3rem)*var(--ts));text-transform:var(--upper);line-height:.95;margin-top:18px;color:var(--mint)}
+footer.ft .legal{margin-top:40px;padding-top:20px;border-top:1px solid color-mix(in srgb,var(--paper) 18%,transparent);font-size:.8rem;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer.ft .legal span{opacity:.6}
+@container site (max-width:820px){footer.ft .cols{grid-template-columns:1fr 1fr}}
+@container site (max-width:460px){footer.ft .cols{grid-template-columns:1fr}}
 
-/* Notas del rediseño */
-.notes-btn{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:70;background:var(--mint);color:#0B2A22;border:0;border-radius:999px;padding:12px 18px;font:800 .88rem var(--f-body);box-shadow:var(--shadow);cursor:pointer}
-.notes{position:fixed;inset:auto 0 0 auto;top:0;width:min(440px,100%);z-index:80;background:var(--surface);border-left:1px solid var(--line);box-shadow:-20px 0 50px -20px rgba(0,0,0,.35);overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 24px) max(24px,calc(env(safe-area-inset-right,0px) + 24px)) 32px 24px;display:grid;gap:18px;align-content:start}
-.notes[hidden]{display:none}
-.notes h3{font-size:1.8rem}
-.notes ol{margin:0;padding-left:1.2em;display:grid;gap:10px;font-size:.92rem}
-.notes .x{justify-self:end;background:none;border:2px solid var(--ink);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:800;cursor:pointer}
-.notes .ref{font-size:.85rem;color:var(--muted)}
+.wa-float{position:fixed;right:calc(env(safe-area-inset-right,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:55;display:flex;align-items:center;gap:10px;background:var(--wa);color:var(--wa-ink);text-decoration:none;border-radius:999px;padding:12px;box-shadow:0 10px 30px -8px rgba(6,51,26,.55);font:800 .92rem var(--f-body)}
+.wa-float svg{width:30px;height:30px;flex:none}
+.wa-float span{padding-right:8px}
+.wa-float:hover{transform:translateY(-2px)}
+@media (max-width:560px){.wa-float span{display:none}}
+
+/* ===== Panel de administración ===== */
+.adm,.adm-login,.adm-toast,.adm-return{--a-bg:#FFFFFF;--a-soft:#F2F4F3;--a-line:#E1E6E3;--a-ink:#1B2420;--a-muted:#66716C;--a-blue:#2563EB;--a-blue-soft:#E8EFFE;--a-ok:#15803D;--a-warn:#B45309;--a-red:#C2324F;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--a-ink)}
+html.is-admin{--admw:400px}
+html.is-admin body{padding-left:var(--admw)}
+html.is-admin.adm-hidden body{padding-left:0}
+html.is-admin .wa-float{right:calc(env(safe-area-inset-right,0px) + 18px)}
+html.is-admin #site [data-edit]{cursor:pointer;outline:2px dashed transparent;outline-offset:4px;transition:outline-color .15s}
+html.is-admin #site [data-edit]:hover{outline-color:#2563EB}
+html.is-admin.adm-hidden #site [data-edit]:hover{outline-color:transparent}
+html.dev-phone body{background:#DDE3E0}
+html.dev-phone #site{max-width:390px;margin:24px auto;border-radius:28px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.45);min-height:0}
+html.dev-phone #site header.top{top:0}
+.adm{position:fixed;left:0;top:0;bottom:0;width:var(--admw);z-index:90;background:var(--a-bg);border-right:1px solid var(--a-line);display:grid;grid-template-rows:auto 1fr auto;box-shadow:8px 0 30px -20px rgba(0,0,0,.3);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.adm[hidden]{display:none}
+.adm-top{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--a-line)}
+.adm-top .ttl{font-weight:800;font-size:1rem;flex:1}
+.adm-seg{display:inline-flex;background:var(--a-soft);border-radius:10px;padding:3px}
+.adm-seg button{border:0;background:none;padding:6px 9px;border-radius:8px;cursor:pointer;color:var(--a-muted);display:grid;place-items:center}
+.adm-seg button[aria-pressed="true"]{background:#fff;color:var(--a-ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.adm-seg svg{width:18px;height:18px}
+.adm-ic{border:0;background:var(--a-soft);color:var(--a-ink);border-radius:10px;padding:8px 10px;cursor:pointer;font:600 .82rem inherit;display:inline-flex;align-items:center;gap:6px}
+.adm-ic:hover{background:var(--a-line)}
+.adm-ic svg{width:16px;height:16px}
+.adm-body{overflow-y:auto;padding:18px 16px 28px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-content:start}
+.adm-body *{min-width:0}
+.adm-foot{border-top:1px solid var(--a-line);padding:12px 14px;display:grid;gap:10px;background:var(--a-bg)}
+.adm-status{font-size:.82rem;color:var(--a-muted);display:flex;align-items:center;gap:8px}
+.adm-status i{width:9px;height:9px;border-radius:50%;background:var(--a-ok);flex:none}
+.adm-status.dirty i{background:var(--a-warn)}
+.adm-actions{display:grid;grid-template-columns:auto 1fr;gap:8px}
+.a-btn{border:0;border-radius:12px;padding:12px 16px;font:700 .95rem inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.a-btn:disabled{opacity:.45;cursor:default}
+.a-primary{background:var(--a-blue);color:#fff}
+.a-primary:not(:disabled):hover{background:#1D4ED8}
+.a-soft{background:var(--a-soft);color:var(--a-ink)}
+.a-soft:not(:disabled):hover{background:var(--a-line)}
+.a-danger{background:#FCE8EC;color:var(--a-red)}
+.a-link{background:none;border:0;color:var(--a-blue);font:600 .88rem inherit;cursor:pointer;padding:4px 0;text-align:left}
+.adm h2.v{font-size:1.35rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.adm .vsub{color:var(--a-muted);font-size:.9rem;margin:-8px 0 0}
+.adm .back{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:var(--a-muted);font:600 .88rem inherit;cursor:pointer;padding:0;justify-self:start}
+.adm .back:hover{color:var(--a-ink)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{border:1px solid var(--a-line);background:#fff;border-radius:16px;padding:14px;text-align:left;cursor:pointer;display:grid;gap:8px;font:inherit;color:inherit;transition:border-color .15s,transform .15s}
+.tile:hover{border-color:var(--a-blue);transform:translateY(-1px)}
+.tile .ic{width:40px;height:40px;border-radius:12px;background:var(--a-blue-soft);color:var(--a-blue);display:grid;place-items:center;font-weight:800}
+.tile .ic svg{width:22px;height:22px}
+.tile b{font-size:1rem}
+.tile small{color:var(--a-muted);font-size:.8rem;line-height:1.35}
+.tile .dots{display:flex;gap:4px}
+.tile .dots i{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.1)}
+.tip{background:var(--a-blue-soft);border-radius:14px;padding:12px 14px;font-size:.88rem;line-height:1.45;color:#1E3A8A}
+.warnbox{background:#FEF3E2;border-radius:14px;padding:12px 14px;font-size:.88rem;line-height:1.45;color:#7C3A06;display:grid;gap:8px}
+.warnbox .row{display:flex;gap:8px;flex-wrap:wrap}
+.grp{border:1px solid var(--a-line);border-radius:16px;background:#fff;overflow:hidden}
+.grp>summary{list-style:none;cursor:pointer;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.grp>summary::-webkit-details-marker{display:none}
+.grp>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--a-muted);border-bottom:2px solid var(--a-muted);transform:rotate(45deg);margin-top:-4px;transition:transform .2s}
+.grp[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+.grp>summary small{color:var(--a-muted);font-weight:500;font-size:.8rem;margin-left:auto}
+.grp .in{padding:4px 16px 16px;display:grid;gap:14px}
+.box{border:1px solid var(--a-line);border-radius:16px;background:#fff;padding:16px;display:grid;gap:14px}
+.box>h3{margin:0;font-size:.95rem;font-weight:800}
+.fld{display:grid;gap:6px}
+.fld>label,.fld>.lb{font-size:.84rem;font-weight:700}
+.fld .hint{font-size:.78rem;color:var(--a-muted);line-height:1.35}
+.adm input[type=text],.adm input[type=url],.adm input[type=tel],.adm input[type=email],.adm textarea,.adm-login input{width:100%;border:1.5px solid var(--a-line);border-radius:10px;padding:10px 12px;font:500 .95rem inherit;color:var(--a-ink);background:#fff}
+.fld textarea{min-height:84px;resize:vertical;line-height:1.45}
+.adm input:focus,.adm textarea:focus,.adm-login input:focus{outline:none;border-color:var(--a-blue);box-shadow:0 0 0 3px var(--a-blue-soft)}
+.fld.flash input,.fld.flash textarea{animation:flash 1.2s}
+@keyframes flash{0%,40%{border-color:var(--a-blue);box-shadow:0 0 0 4px #BFD3FD}100%{}}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw-row{display:flex;align-items:center;gap:10px}
+.tgl{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.9rem;font-weight:600;cursor:pointer}
+.tgl input{appearance:none;width:44px;height:26px;border-radius:999px;background:#CBD3CF;position:relative;cursor:pointer;flex:none;transition:background .15s}
+.tgl input::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
+.tgl input:checked{background:var(--a-blue)}
+.tgl input:checked::after{left:21px}
+.lst{display:grid;gap:8px}
+.lst .it{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:start}
+.x{border:0;background:var(--a-soft);color:var(--a-muted);width:36px;height:40px;border-radius:10px;cursor:pointer;font-size:1.1rem;line-height:1}
+.x:hover{background:#FCE8EC;color:var(--a-red)}
+.add{border:1.5px dashed #B9C4BF;background:none;border-radius:12px;padding:10px;font:700 .88rem inherit;color:var(--a-blue);cursor:pointer}
+.add:hover{border-color:var(--a-blue);background:var(--a-blue-soft)}
+.pair{border:1px solid var(--a-line);border-radius:12px;padding:10px;display:grid;gap:8px;background:var(--a-soft)}
+.pair .top{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;font-weight:700;color:var(--a-muted)}
+.img-slot{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.img-slot .th{width:96px;height:96px;border-radius:12px;background:var(--a-soft) center/cover no-repeat;border:1.5px dashed transparent;display:grid;place-items:center;color:var(--a-muted);font-size:.75rem;overflow:hidden;cursor:pointer}
+.img-slot .th img{width:100%;height:100%;object-fit:cover}
+.img-slot .th.drag{border-color:var(--a-blue);background-color:var(--a-blue-soft)}
+.img-slot .ops{display:grid;gap:6px;justify-items:start}
+.img-grid{display:grid;grid-template-columns:1fr;gap:12px}
+input[type=color]{width:44px;height:40px;border:1.5px solid var(--a-line);border-radius:10px;padding:2px;background:#fff;cursor:pointer;flex:none}
+input[type=range].a-range{width:100%;accent-color:var(--a-blue)}
+.prow{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;border:1px solid var(--a-line);border-radius:14px;padding:8px 10px 8px 8px;background:#fff}
+.prow img,.prow .noimg{width:52px;height:52px;border-radius:10px;object-fit:contain;background:var(--a-soft)}
+.prow b{display:block;font-size:.92rem;line-height:1.25}
+.prow small{color:var(--a-muted);font-size:.8rem}
+.prow .ops{display:flex;gap:6px;grid-column:1/-1;flex-wrap:wrap}
+.prow .ops .blue{flex:1}
+.mini{border:0;background:var(--a-soft);border-radius:9px;min-width:34px;height:34px;cursor:pointer;font:700 .8rem inherit;color:var(--a-ink);padding:0 9px}
+.mini:hover{background:var(--a-line)}
+.mini:disabled{opacity:.35;cursor:default}
+.mini.blue{background:var(--a-blue-soft);color:var(--a-blue)}
+.presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.preset{border:2px solid var(--a-line);border-radius:14px;overflow:hidden;cursor:pointer;background:#fff;padding:0;text-align:left;font:inherit;color:inherit}
+.preset[aria-pressed="true"]{border-color:var(--a-blue)}
+.preset .bars{display:flex;height:44px}
+.preset .bars i{flex:1}
+.preset b{display:block;padding:8px 10px;font-size:.86rem}
+.fonts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fontc{border:2px solid var(--a-line);border-radius:14px;cursor:pointer;background:#fff;padding:12px;text-align:left;color:inherit;display:grid;gap:4px}
+.fontc[aria-pressed="true"]{border-color:var(--a-blue);background:var(--a-blue-soft)}
+.fontc .s{font-size:1.7rem;line-height:1.05}
+.fontc .s.body{font-size:.98rem;line-height:1.35}
+.fontc b{font:700 .8rem system-ui,sans-serif}
+.fontc small{font:500 .74rem system-ui,sans-serif;color:var(--a-muted)}
+.contrast{font-size:.78rem;color:var(--a-warn);font-weight:600}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.88rem;font-weight:600}
+.adm-login{position:fixed;inset:0;z-index:100;background:rgba(15,25,21,.55);backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px}
+.adm-login form{background:#fff;border-radius:22px;padding:28px;width:min(400px,100%);display:grid;gap:16px;box-shadow:0 30px 70px -20px rgba(0,0,0,.45)}
+.adm-login .lg{background:#000;border-radius:10px;padding:8px 12px;justify-self:start}
+.adm-login .lg img{height:28px}
+.adm-login h2{margin:0;font-size:1.4rem}
+.adm-login p{margin:0;color:var(--a-muted);font-size:.92rem}
+.adm-login .err{color:var(--a-red);font-weight:600;font-size:.88rem}
+.pw{position:relative}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--a-blue);font:700 .8rem inherit;cursor:pointer;padding:6px}
+.adm-toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);z-index:120;background:#1B2420;color:#fff;padding:12px 18px;border-radius:12px;font:600 .9rem system-ui,sans-serif;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);max-width:min(520px,calc(100% - 32px))}
+.adm-toast.bad{background:#7F1D2D}
+.adm-return{position:fixed;left:calc(env(safe-area-inset-left,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:95}
+@media (max-width:760px){
+  html.is-admin{--admw:0px}
+  html.is-admin body{padding-left:0;padding-bottom:58vh}
+  .adm{top:auto;width:100%;height:58vh;border-right:0;border-top:1px solid var(--a-line);border-radius:20px 20px 0 0;box-shadow:0 -12px 30px -16px rgba(0,0,0,.35)}
+  html.is-admin .wa-float{bottom:calc(58vh + 14px)}
+  .adm-seg{display:none}
+}
 </style>
+<div id="site"></div>
+<script id="tr-default" type="application/json">{"updatedAt":0,"brand":{"name":"TOMI Ride","logo":"img/logo.png","logoBg":"#000000"},"contact":{"whatsapp":"+56 9 0000 0000","waMessage":"Hola TOMI Ride, quiero consultar por sus productos","waLabel":"¿Dudas? Escríbenos","waShow":true,"instagram":"https://instagram.com","mercadolibre":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972","email":"","phone":""},"theme":{"preset":"menta","colors":{"bg":"#F3F7F5","surface":"#FFFFFF","ink":"#13201C","muted":"#56655F","accent":"#7FD9C3","accentInk":"#11745F","sale":"#C2324F"},"display":"Archivo","body":"Nunito Sans","upper":true,"titleScale":100,"radius":18},"sections":{"route":true,"guide":true,"benefits":true,"compare":true,"community":true,"faq":true},"texts":{"strip":["Hasta 37% de descuento en bicicletas de equilibrio","Compra protegida a través de Mercado Libre"],"navCta":"¿Cuál es para mi hijo/a?","hero":{"eyebrow":"Bicicletas de equilibrio · Scooters · Triciclos","title":"Grandes momentos empiezan con","titleAccent":"pequeños pasos… y ruedas","lede":"Vehículos livianos y fáciles de armar para niños de 1 a 8 años. Apostando por una infancia al aire libre.","cta1":"Encuentra su primera TOMI","cta2":"Ver productos","facts":["Bicicleta 2,9 kg","Triciclo 1,8 kg","Armado sin herramientas"],"image":"img/hero-tomi.jpg","imageAlt":"Niño sonriente con su bicicleta de equilibrio TOMI color menta","focusY":60,"tagASmall":"2 a 5 años · 80–105 cm","tagABig":"Menta · Aro 12\"","tagBSmall":"Bicicleta de equilibrio","tagBBig":"$49.990"},"guide":{"eyebrow":"Guía por edad y altura","title":"¿Cuál es la TOMI para tu peque?","lede":"Mueve los controles y te mostramos qué le queda bien hoy, según las medidas de cada producto."},"catalog":{"eyebrow":"Catálogo","title":"Conoce nuestros productos"},"benefits":{"eyebrow":"Más que una bici","title":"Su primera gran aventura","items":["Mejora el equilibrio y la coordinación motora.","Refuerza la confianza e independencia al avanzar por sí mismos.","Fortalece la motricidad y los músculos de piernas y brazos.","Es una forma divertida y segura de estar activos al aire libre."],"images":[{"src":"img/bici-uso-salto.jpg","alt":"Niña con casco avanzando en su bicicleta de equilibrio"},{"src":"img/tomados-mano.jpg","alt":"Niños caminando de la mano junto a una bicicleta"},{"src":"img/bici-rosada-detalle.jpg","alt":"Detalle de la bicicleta rosada TOMI Bikes"}]},"compare":{"eyebrow":"Lado a lado","title":"Compara y elige"},"community":{"eyebrow":"Comunidad TOMI","title":"Infancia al aire libre","images":[{"src":"img/hero-tomi.jpg","alt":"Niño con su bicicleta de equilibrio TOMI menta","caption":"Primeras rodadas en casa"},{"src":"img/grupo-escalera.jpg","alt":"Grupo de niños con bicicletas TOMI en una escalera","caption":""},{"src":"img/parque.jpg","alt":"Niños con scooters y bicicletas en un parque","caption":""},{"src":"img/triciclo-uso-dos.jpg","alt":"Dos niñas jugando con bicicleta y triciclo","caption":""},{"src":"img/grupo-fila.jpg","alt":"Niños en fila con sus vehículos TOMI","caption":""}]},"faq":{"eyebrow":"Antes de comprar","title":"Preguntas frecuentes","items":[{"q":"¿Desde qué edad puede usar una TOMI?","a":"Desde los 12 meses con el Triciclo Mini Ride (75 a 95 cm de altura). Entre 2 y 5 años la bicicleta de equilibrio aro 12\" (80 a 105 cm), y entre 2 y 8 años el Scooter BJ, que soporta hasta 50 kg."},{"q":"¿Necesito herramientas para armarlos?","a":"No. El scooter se arma en segundos sin herramientas y el triciclo se arma de forma rápida sin herramientas especiales."},{"q":"¿Por qué una bicicleta sin pedales?","a":"La bicicleta de equilibrio es el primer paso antes de la bici con pedales: mejora el equilibrio y la coordinación, y refuerza la confianza al avanzar por sí mismos."},{"q":"¿Las luces del scooter usan pilas?","a":"No. Las ruedas tienen luces LED que se encienden con el movimiento y funcionan sin pilas."},{"q":"¿Dónde compro?","a":"En nuestras publicaciones oficiales de Mercado Libre, con el pago y despacho de la plataforma. Si tienes dudas, escríbenos por WhatsApp."}]},"footer":{"claim":"Apostando por una infancia al aire libre","legal":"© TOMI Ride · tomiride.cl · Precios en pesos chilenos (CLP)."}},"products":[{"id":"bicicletas","name":"Bicicleta de equilibrio TOMI","navLabel":"Bicicletas","eyebrow":"2 a 5 años · Aro 12\"","sub":"Aro 12\" · 2,9 kg · sin pedales","desc":"Diseño sin pedales, ideal como primer paso antes de una bici con rueditas. Favorece la motricidad y el equilibrio, y con 2,9 kg es súper liviana.","ageLabel":"2–5 años","ageMin":2,"ageMax":5,"hMin":80,"hMax":105,"now":49990,"was":79990,"guide":true,"compare":true,"specCode":"BICI-EQ-12","bullets":["Favorece la motricidad y el equilibrio.","Primer paso antes de una bici con rueditas.","Súper liviana: 2,9 kg."],"specs":[{"k":"Edad recomendada","v":"2 a 5 años"},{"k":"Altura del niño/a","v":"80 a 105 cm"},{"k":"Altura del asiento","v":"30 a 40 cm"},{"k":"Peso máximo","v":"30 kg"},{"k":"Ruedas","v":"Aro 12\""},{"k":"Peso del producto","v":"2,9 kg"},{"k":"Material","v":"PP + acero inoxidable"}],"variants":[{"c":"Menta","hex":"#7FD9C3","img":"img/bici-menta.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972?picker=true&quantity=1"},{"c":"Azul","hex":"#2BA3DC","img":"img/bici-azul.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349598642"},{"c":"Rosada","hex":"#E8559B","img":"img/bici-rosada.jpg","url":"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3343607261?picker=true&quantity=1"}],"gallery":[{"src":"img/bici-uso-nina.jpg","alt":"Niña sentada en una bicicleta de equilibrio TOMI menta"},{"src":"img/bici-uso-salto.jpg","alt":"Niña bajando un escalón en su bicicleta de equilibrio"},{"src":"img/bici-rueda.jpg","alt":"Detalle de la rueda aro 12"},{"src":"img/bici-detalle-logo.jpg","alt":"Detalle del logo en el cuadro"},{"src":"img/bici-uso-escalera.jpg","alt":"Dos niñas con bicicletas TOMI en una escalera"}]},{"id":"scooters","name":"Scooter BJ TOMI","navLabel":"Scooters","eyebrow":"2 a 8 años · hasta 50 kg","sub":"Manubrio ajustable · luces LED sin pilas","desc":"Crece con tu peque: el manubrio se ajusta en 4 alturas y las ruedas tienen luces LED que funcionan sin pilas.","ageLabel":"2–8 años","ageMin":2,"ageMax":8,"hMin":null,"hMax":null,"now":39990,"was":49990,"guide":true,"compare":true,"specCode":"SCOOTER-BJ","bullets":["Se arma en segundos, sin herramientas.","Ruedas con luces LED que funcionan sin pilas.","Manubrio ajustable en 4 alturas.","Fácil de transportar gracias a su sistema desmontable.","Soporta hasta 50 kg."],"specs":[{"k":"Edad recomendada","v":"2 a 8 años"},{"k":"Peso máximo","v":"50 kg"},{"k":"Altura del manubrio","v":"57 a 77 cm"},{"k":"Ruedas","v":"Luces LED sin pilas"},{"k":"Peso del producto","v":"2,5 kg"},{"k":"Medidas en uso","v":"57 × 28 × 77 cm"},{"k":"Medidas de la caja","v":"17 × 29 × 58 cm"},{"k":"Material","v":"Aluminio, polipropileno y fibra de vidrio reforzada"}],"variants":[{"c":"Azul","hex":"#2160D8","img":"img/scooter-azul.jpg","url":"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483910432?product_trigger_id=MLC60157520&picker=true&quantity=1"},{"c":"Rosado","hex":"#F3A7B9","img":"img/scooter-rosado.jpg","url":"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483895788?product_trigger_id=MLC60157518&picker=true&quantity=1"}],"gallery":[{"src":"img/scooter-uso.jpg","alt":"Niño usando el scooter TOMI azul en un parque"},{"src":"img/scooter-ajuste.jpg","alt":"Ajuste de altura del manubrio"},{"src":"img/scooter-desarmado.jpg","alt":"Scooter desmontado en dos piezas"},{"src":"img/scooter-base.jpg","alt":"Base del scooter vista desde abajo"},{"src":"img/scooter-rosado-frente.jpg","alt":"Scooter TOMI rosado de frente"}]},{"id":"triciclos","name":"Triciclo Mini Ride TOMI","navLabel":"Triciclos","eyebrow":"12 a 24 meses · 1,8 kg","sub":"Ruedas EVA 6\" · 1,8 kg","desc":"El compañero perfecto para las primeras aventuras. Invita a explorar mientras aprenden a mantener el equilibrio, y con solo 1,8 kg lo llevas fácil al parque o a casa de los tatas.","ageLabel":"12–24 meses","ageMin":1,"ageMax":2,"hMin":75,"hMax":95,"now":34990,"was":null,"guide":true,"compare":true,"specCode":"MINI-RIDE","bullets":["Ligero y resistente.","Ayuda a desarrollar equilibrio, fuerza y coordinación.","Ruedas EVA ecológicas, suaves y silenciosas.","Armado fácil y rápido, sin herramientas especiales."],"specs":[{"k":"Edad recomendada","v":"12 a 24 meses"},{"k":"Altura del niño/a","v":"75 a 95 cm aprox."},{"k":"Altura del asiento","v":"30 cm"},{"k":"Peso máximo","v":"25 kg"},{"k":"Ruedas","v":"EVA 6\""},{"k":"Peso del producto","v":"1,8 kg"},{"k":"Material","v":"PP + acero + aluminio + nylon"}],"variants":[{"c":"Menta","hex":"#7FD9C3","img":"img/triciclo.jpg","url":"https://www.mercadolibre.cl/triciclo-tomi-miniride-10-a-24-meses/up/MLCU3344743029"}],"gallery":[{"src":"img/triciclo-uso-manos.jpg","alt":"Bebé dando sus primeros pasos con el triciclo"},{"src":"img/triciclo-uso-casco.jpg","alt":"Niña con casco rosado junto al triciclo"},{"src":"img/triciclo-detalle.jpg","alt":"Detalle del asiento ergonómico"},{"src":"img/triciclo-rueda.jpg","alt":"Rueda EVA de 6 pulgadas"}]},{"id":"cascos","name":"Casco TOMI para niños","navLabel":"Cascos","eyebrow":"Talla ajustable","sub":"Talla ajustable para niños","desc":"El complemento para cada etapa: bicicleta, scooter o triciclo. Elige el color que combine con su TOMI.","ageLabel":"Todas las etapas","ageMin":1,"ageMax":8,"hMin":null,"hMax":null,"now":24990,"was":29990,"guide":true,"compare":false,"specCode":"","bullets":[],"specs":[],"variants":[{"c":"Menta","hex":"#5ED6C9","img":"img/casco-menta.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM?attributes=COLOR_SECONDARY_COLOR%3ATWVudGE%3D&picker=true&quantity=1"},{"c":"Azul","hex":"#1E9BE6","img":"img/casco-azul.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM"},{"c":"Rosado","hex":"#C987DE","img":"img/casco-rosado.jpg","url":"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM"}],"gallery":[]}]}</script>
+<script id="tr-js">
+(()=>{
+"use strict";
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clp=n=>"$"+Math.round(+n||0).toLocaleString("es-CL");
+const clone=o=>JSON.parse(JSON.stringify(o));
+const TITLE="TOMI Ride Rediseño";
+const PASS_HASH="f46c3a313c9003cabf5392a33159ddc54b35877308030da1169021eada954bb0";
+const RESET=':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}';
+const DEFAULT=JSON.parse($("#tr-default").textContent);
+let data=clone(DEFAULT), published=JSON.stringify(data), isAdmin=false;
 
-<div class="strip"><div class="wrap">
-  <span>Hasta 37% de descuento en bicicletas de equilibrio</span>
-  <span>Compra protegida a través de Mercado Libre</span>
-</div></div>
+/* ---------- Tipografías y paletas disponibles ---------- */
+const FONTS={display:{
+  "Archivo":{q:"Archivo:wdth,wght@62..125,400..900",w:900,st:"68%",note:"Condensada y fuerte (actual)"},
+  "Anton":{q:"Anton",w:400,note:"Alta y compacta"},
+  "Bebas Neue":{q:"Bebas+Neue",w:400,note:"Estilo afiche"},
+  "Fredoka":{q:"Fredoka:wght@400..700",w:700,note:"Redondeada y amigable"},
+  "Baloo 2":{q:"Baloo+2:wght@400..800",w:800,note:"Juguetona"},
+  "Lilita One":{q:"Lilita+One",w:400,note:"Gruesa y divertida"},
+  "Bricolage Grotesque":{q:"Bricolage+Grotesque:opsz,wght@12..96,400..800",w:800,note:"Moderna con carácter"},
+  "Lato":{q:"Lato:wght@400;700;900",w:900,note:"La del sitio antiguo"}},
+ body:{
+  "Nunito Sans":{q:"Nunito+Sans:opsz,wght@6..12,400..800",note:"Suave y legible (actual)"},
+  "Lato":{q:"Lato:wght@400;700;900",note:"La del sitio antiguo"},
+  "Figtree":{q:"Figtree:wght@400..800",note:"Limpia y actual"},
+  "Quicksand":{q:"Quicksand:wght@400..700",note:"Redondeada"},
+  "Poppins":{q:"Poppins:wght@400;600;700;800",note:"Geométrica"},
+  "DM Sans":{q:"DM+Sans:opsz,wght@9..40,400..800",note:"Sobria"}}};
+const MONO="DM+Mono:wght@400;500";
+const fontURL=qs=>"https://fonts.googleapis.com/css2?"+[...new Set(qs)].map(q=>"family="+q).join("&")+"&display=swap";
+const siteFontURL=t=>fontURL([(FONTS.display[t.display]||FONTS.display.Archivo).q,(FONTS.body[t.body]||FONTS.body["Nunito Sans"]).q,MONO]);
+const PRESETS={
+  menta:{name:"Menta TOMI",c:{bg:"#F3F7F5",surface:"#FFFFFF",ink:"#13201C",muted:"#56655F",accent:"#7FD9C3",accentInk:"#11745F",sale:"#C2324F"}},
+  chicle:{name:"Rosa chicle",c:{bg:"#FFF5F8",surface:"#FFFFFF",ink:"#2B1420",muted:"#735763",accent:"#F59BC0",accentInk:"#B0306B",sale:"#C2324F"}},
+  cielo:{name:"Cielo azul",c:{bg:"#F2F7FD",surface:"#FFFFFF",ink:"#0F1E33",muted:"#52627A",accent:"#8EC5F5",accentInk:"#1F5FAE",sale:"#D2423A"}},
+  bosque:{name:"Bosque",c:{bg:"#F4F5EE",surface:"#FFFFFF",ink:"#1C2414",muted:"#5D6650",accent:"#B8D86B",accentInk:"#4D6B12",sale:"#B8432B"}},
+  sol:{name:"Arena y sol",c:{bg:"#FBF6EC",surface:"#FFFFFF",ink:"#2A1F12",muted:"#6F6150",accent:"#FFC857",accentInk:"#A35B00",sale:"#C2324F"}},
+  noche:{name:"Noche",c:{bg:"#101816",surface:"#18231F",ink:"#E8F0EC",muted:"#9DB0A8",accent:"#7FD9C3",accentInk:"#86E0CA",sale:"#FF7A90"}}};
+const COLOR_LABELS=[["bg","Fondo de la página","El color detrás de todo"],["surface","Tarjetas y barra superior","Fondo de productos, preguntas y menú"],["ink","Texto y bandas oscuras","Títulos, textos, botón principal y pie de página"],["muted","Texto secundario","Descripciones y detalles"],["accent","Color principal","Botones destacados, etiquetas y bloque de beneficios"],["accentInk","Destacado en títulos","Palabras resaltadas y etiquetas pequeñas"],["sale","Ofertas","Etiqueta de % de descuento"]];
 
+/* ---------- Utilidades de color ---------- */
+function lum(hex){const m=/^#?([\da-f]{6})$/i.exec(hex||"");if(!m)return 1;const n=parseInt(m[1],16);return [n>>16,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0)}
+const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+const onColor=bg=>contrast(bg,"#FFFFFF")>=contrast(bg,"#0B1A15")?"#FFFFFF":"#0B1A15";
+
+/* ---------- Tema ---------- */
+function applyTheme(){
+  const t=data.theme,c=t.colors,r=document.documentElement.style,df=FONTS.display[t.display]||FONTS.display.Archivo;
+  const set=(k,v)=>r.setProperty(k,v);
+  set("--paper",c.bg);set("--surface",c.surface);set("--ink",c.ink);set("--muted",c.muted);
+  set("--line",`color-mix(in srgb,${c.ink} 14%,${c.bg})`);set("--mint",c.accent);set("--mint-ink",c.accentInk);
+  set("--mint-soft",`color-mix(in srgb,${c.accent} 26%,${c.surface})`);set("--on-mint",onColor(c.accent));set("--sale",c.sale);
+  set("--f-display",`"${t.display}","Arial Narrow",Impact,sans-serif`);set("--dw",df.w);set("--dstretch",df.st||"100%");
+  set("--f-body",`"${t.body}",system-ui,-apple-system,"Segoe UI",sans-serif`);
+  set("--upper",t.upper?"uppercase":"none");set("--ts",(t.titleScale||100)/100);set("--r",(t.radius??18)+"px");
+  const link=$("#tr-fonts"),u=siteFontURL(t);if(link&&link.getAttribute("href")!==u)link.setAttribute("href",u);
+}
+
+/* ---------- Render del sitio ---------- */
+const img=(src,alt,attrs="")=>src?`<img src="${esc(src)}" alt="${esc(alt)}" ${attrs}>`:`<div class="ph-empty" ${attrs}>Sin foto</div>`;
+const waDigits=()=>String(data.contact.whatsapp||"").replace(/\D/g,"");
+const waLink=msg=>`https://wa.me/${waDigits()}?text=${encodeURIComponent(msg||data.contact.waMessage||"")}`;
+const WA_SVG='<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.9 2 6.9L3.2 29l6.5-1.7c1.9 1 4.1 1.6 6.3 1.6 7.2 0 13-5.7 13-12.8S23.2 3 16 3zm0 23.5c-2 0-3.9-.5-5.6-1.5l-.4-.2-3.9 1 1-3.7-.3-.4c-1.1-1.7-1.7-3.7-1.7-5.8C5.1 9.9 10 5.2 16 5.2s10.9 4.7 10.9 10.6S22 26.5 16 26.5zm6-7.9c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.7s1.2 3.2 1.4 3.4c.2.2 2.4 3.6 5.8 5 .8.3 1.4.5 1.9.7.8.3 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg>';
+const visibleProducts=()=>data.products.filter(p=>p.visible!==false);
+
+function render(){
+  applyTheme();
+  const d=data,t=d.texts,s=d.sections,P=visibleProducts(),c=d.contact;
+  const nav=P.filter(p=>p.navLabel).map(p=>`<a href="#${esc(p.id)}">${esc(p.navLabel)}</a>`).join("")+(s.compare?'<a href="#comparar">Comparar</a>':"")+(s.faq?'<a href="#preguntas">Preguntas</a>':"");
+  const h=t.hero;
+  let html=`
+${t.strip.filter(Boolean).length?`<div class="strip" data-edit="texts.strip"><div class="wrap">${t.strip.filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div></div>`:""}
 <header class="top"><div class="wrap">
-  <a class="logo" href="#inicio" aria-label="TOMI Ride, inicio"><img src="img/logo.png" alt="TOMI"></a>
-  <nav class="main" id="nav" aria-label="Principal">
-    <a href="#bicicletas">Bicicletas</a>
-    <a href="#scooters">Scooters</a>
-    <a href="#triciclos">Triciclos</a>
-    <a href="#cascos">Cascos</a>
-    <a href="#comparar">Comparar</a>
-    <a href="#preguntas">Preguntas</a>
-  </nav>
+  <a class="logo" href="#inicio" style="background:${esc(d.brand.logoBg||"transparent")}" data-edit="img:brand.logo" aria-label="${esc(d.brand.name)}, inicio">${d.brand.logo?`<img src="${esc(d.brand.logo)}" alt="${esc(d.brand.name)}">`:`<b>${esc(d.brand.name)}</b>`}</a>
+  <nav class="main" aria-label="Principal">${nav}</nav>
   <div class="spacer"></div>
-  <a class="btn btn-primary" href="#guia">¿Cuál es para mi hijo/a?</a>
-  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="nav">Menú</button>
+  ${s.guide?`<a class="btn btn-primary" href="#guia" data-edit="texts.navCta">${esc(t.navCta)}</a>`:""}
+  <button class="menu-btn" type="button" aria-expanded="false">Menú</button>
 </div></header>
-
 <main id="inicio">
 <section class="hero"><div class="wrap">
   <div class="hero-copy">
-    <p class="eyebrow">Bicicletas de equilibrio · Scooters · Triciclos</p>
-    <h1>Grandes momentos empiezan con <em>pequeños pasos… y ruedas</em></h1>
-    <p class="lede">Vehículos livianos y fáciles de armar para niños de 1 a 8 años. Apostando por una infancia al aire libre.</p>
+    <p class="eyebrow" data-edit="texts.hero.eyebrow">${esc(h.eyebrow)}</p>
+    <h1 data-edit="texts.hero.title">${esc(h.title)} <em>${esc(h.titleAccent)}</em></h1>
+    <p class="lede" data-edit="texts.hero.lede">${esc(h.lede)}</p>
     <div class="hero-ctas">
-      <a class="btn btn-mint" href="#guia">Encuentra su primera TOMI</a>
-      <a class="btn btn-ghost" href="#productos">Ver productos</a>
+      ${h.cta1?`<a class="btn btn-mint" href="${s.guide?"#guia":"#productos"}" data-edit="texts.hero.cta1">${esc(h.cta1)}</a>`:""}
+      ${h.cta2?`<a class="btn btn-ghost" href="#productos" data-edit="texts.hero.cta2">${esc(h.cta2)}</a>`:""}
     </div>
-    <ul class="hero-facts">
-      <li>Bicicleta 2,9 kg</li><li>Triciclo 1,8 kg</li><li>Armado sin herramientas</li>
-    </ul>
+    ${h.facts.filter(Boolean).length?`<ul class="hero-facts" data-edit="texts.hero.facts">${h.facts.filter(Boolean).map(f=>`<li>${esc(f)}</li>`).join("")}</ul>`:""}
   </div>
   <div class="hero-photo">
-    <img src="img/hero-tomi.jpg" alt="Niño sonriente con su bicicleta de equilibrio TOMI color menta en un patio de tierra al atardecer" width="1600" height="1200">
-    <a class="tag tag-price" href="#bicicletas"><span class="mono">Bicicleta de equilibrio</span><b>$49.990</b></a>
-    <div class="tag tag-bike"><b>Menta · Aro 12"</b><span class="mono">2 a 5 años · 80–105 cm</span></div>
+    ${img(h.image,h.imageAlt,`data-edit="img:texts.hero.image" style="object-position:50% ${+h.focusY||50}%"`)}
+    ${h.tagBBig||h.tagBSmall?`<a class="tag tag-b" href="#productos" data-edit="texts.hero.tagBBig"><span class="mono">${esc(h.tagBSmall)}</span><b>${esc(h.tagBBig)}</b></a>`:""}
+    ${h.tagABig||h.tagASmall?`<div class="tag tag-a" data-edit="texts.hero.tagABig"><b>${esc(h.tagABig)}</b><span class="mono">${esc(h.tagASmall)}</span></div>`:""}
   </div>
-</div></section>
-
-<section class="route" aria-label="Ruta de crecimiento"><div class="wrap">
-  <div class="ruler">
-    <a class="stage" href="#triciclos"><img src="img/triciclo.jpg" alt=""><div><div class="age">12–24 meses</div><div class="nm">Triciclo Mini Ride</div></div></a>
-    <a class="stage" href="#bicicletas"><img src="img/bici-menta.jpg" alt=""><div><div class="age">2–5 años</div><div class="nm">Bici de equilibrio</div></div></a>
-    <a class="stage" href="#scooters"><img src="img/scooter-azul.jpg" alt=""><div><div class="age">2–8 años</div><div class="nm">Scooter BJ</div></div></a>
-    <a class="stage" href="#cascos"><img src="img/casco-menta.jpg" alt=""><div><div class="age">Siempre</div><div class="nm">Casco ajustable</div></div></a>
-  </div>
-  <div class="scale" aria-hidden="true"><span>1 año</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8 años</span></div>
-</div></section>
-
-<section class="sec" id="guia"><div class="wrap">
-  <div class="finder">
-    <div>
-      <p class="eyebrow">Guía por edad y altura</p>
-      <h2>¿Cuál es la TOMI para tu peque?</h2>
-      <p class="lede" style="margin-top:14px">Mueve los controles y te mostramos qué le queda bien hoy, según las medidas de cada producto.</p>
-      <div class="ctrl">
-        <label for="age">Edad <output id="ageOut" for="age">3 años</output></label>
-        <input type="range" id="age" min="1" max="8" step="0.5" value="3">
-        <div class="ticks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
-      </div>
-      <div class="ctrl">
-        <label for="height">Altura <output id="hOut" for="height">95 cm</output></label>
-        <input type="range" id="height" min="70" max="130" step="1" value="95">
-        <div class="ticks" aria-hidden="true"><span>70</span><span>85</span><span>100</span><span>115</span><span>130 cm</span></div>
-      </div>
-    </div>
-    <div class="results" id="results" aria-live="polite"></div>
-  </div>
-</div></section>
-
-<section class="sec" id="productos" style="padding-top:0"><div class="wrap">
-  <div class="sec-head">
-    <p class="eyebrow">Catálogo</p>
-    <h2>Conoce nuestros productos</h2>
-  </div>
-  <div class="grid-products" id="grid"></div>
-</div></section>
-
-<section class="sec" id="bicicletas" style="padding-top:0"><div class="wrap">
-  <div class="pdp">
-    <div class="gal" data-gal>
-      <div class="main"><img src="img/bici-uso-nina.jpg" alt="Niña sentada en una bicicleta de equilibrio TOMI menta"></div>
-      <div class="thumbs">
-        <button aria-current="true" data-src="img/bici-uso-nina.jpg" data-alt="Niña sentada en una bicicleta de equilibrio TOMI menta"><img src="img/bici-uso-nina.jpg" alt=""></button>
-        <button data-src="img/bici-uso-salto.jpg" data-alt="Niña bajando un escalón en su bicicleta de equilibrio"><img src="img/bici-uso-salto.jpg" alt=""></button>
-        <button data-src="img/bici-rueda.jpg" data-alt="Detalle de la rueda aro 12 de la bicicleta"><img src="img/bici-rueda.jpg" alt=""></button>
-        <button data-src="img/bici-detalle-logo.jpg" data-alt="Detalle del logo T en el cuadro"><img src="img/bici-detalle-logo.jpg" alt=""></button>
-        <button data-src="img/bici-uso-escalera.jpg" data-alt="Dos niñas con bicicletas TOMI en una escalera"><img src="img/bici-uso-escalera.jpg" alt=""></button>
-      </div>
-    </div>
-    <div class="info">
-      <p class="eyebrow">2 a 5 años · Aro 12"</p>
-      <h2>Bicicleta de equilibrio TOMI</h2>
-      <p class="lede">Diseño sin pedales, ideal como primer paso antes de una bici con rueditas. Favorece la motricidad y el equilibrio, y con 2,9 kg es súper liviana.</p>
-      <div class="price"><span class="now">$49.990</span><span class="was">$79.990</span><span class="cur">CLP</span></div>
-      <div class="buyrow">
-        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972?picker=true&quantity=1">Comprar Menta ↗</a>
-        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349598642">Azul ↗</a>
-        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3343607261?picker=true&quantity=1">Rosada ↗</a>
-      </div>
-      <div class="spec">
-        <div class="hd"><b>Ficha técnica</b><span>BICI-EQ-12</span></div>
-        <dl>
-          <dt>Edad recomendada</dt><dd>2 a 5 años</dd>
-          <dt>Altura del niño/a</dt><dd>80 a 105 cm</dd>
-          <dt>Altura del asiento</dt><dd>30 a 40 cm</dd>
-          <dt>Peso máximo de uso</dt><dd>30 kg</dd>
-          <dt>Aro</dt><dd>12"</dd>
-          <dt>Peso del producto</dt><dd>2,9 kg</dd>
-          <dt>Material</dt><dd>PP + acero inoxidable</dd>
-          <dt>Colores</dt><dd>Menta, azul y rosado</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-</div></section>
-
-<section class="sec" style="padding-top:0" aria-labelledby="whyT"><div class="wrap">
-  <div class="why">
-    <figure class="a"><img src="img/bici-uso-salto.jpg" alt="Niña con casco avanzando en su bicicleta de equilibrio"></figure>
-    <figure class="b"><img src="img/tomados-mano.jpg" alt="Niños caminando de la mano junto a una bicicleta"></figure>
-    <figure class="c"><img src="img/bici-rosada-detalle.jpg" alt="Detalle de la bicicleta rosada TOMI Bikes"></figure>
-    <div class="d">
-      <p class="eyebrow" style="color:#0B2A22">Más que una bici</p>
-      <h3 id="whyT">Su primera gran aventura</h3>
-      <ul>
-        <li>Mejora el equilibrio y la coordinación motora.</li>
-        <li>Refuerza la confianza e independencia al avanzar por sí mismos.</li>
-        <li>Fortalece la motricidad y los músculos de piernas y brazos.</li>
-        <li>Es una forma divertida y segura de estar activos al aire libre.</li>
-      </ul>
-    </div>
-  </div>
-</div></section>
-
-<section class="sec" id="scooters" style="padding-top:0"><div class="wrap">
-  <div class="pdp rev">
-    <div class="gal" data-gal>
-      <div class="main"><img src="img/scooter-uso.jpg" alt="Niño usando el scooter TOMI azul en un parque"></div>
-      <div class="thumbs">
-        <button aria-current="true" data-src="img/scooter-uso.jpg" data-alt="Niño usando el scooter TOMI azul en un parque"><img src="img/scooter-uso.jpg" alt=""></button>
-        <button data-src="img/scooter-ajuste.jpg" data-alt="Ajuste de altura del manubrio del scooter"><img src="img/scooter-ajuste.jpg" alt=""></button>
-        <button data-src="img/scooter-desarmado.jpg" data-alt="Scooter desmontado en dos piezas para transportarlo"><img src="img/scooter-desarmado.jpg" alt=""></button>
-        <button data-src="img/scooter-base.jpg" data-alt="Base del scooter vista desde abajo"><img src="img/scooter-base.jpg" alt=""></button>
-        <button data-src="img/scooter-rosado-frente.jpg" data-alt="Scooter TOMI rosado de frente"><img src="img/scooter-rosado-frente.jpg" alt=""></button>
-      </div>
-    </div>
-    <div class="info">
-      <p class="eyebrow">2 a 8 años · hasta 50 kg</p>
-      <h2>Scooter BJ TOMI</h2>
-      <p class="lede">Crece con tu peque: el manubrio se ajusta en 4 alturas y las ruedas tienen luces LED que funcionan sin pilas.</p>
-      <div class="price"><span class="now">$39.990</span><span class="was">$49.990</span><span class="cur">CLP</span></div>
-      <div class="buyrow">
-        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483910432?product_trigger_id=MLC60157520&picker=true&quantity=1">Comprar Azul ↗</a>
-        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483895788?product_trigger_id=MLC60157518&picker=true&quantity=1">Rosado ↗</a>
-      </div>
-      <ul class="checks">
-        <li>Se arma en segundos, sin herramientas.</li>
-        <li>Ruedas con luces LED que funcionan sin pilas.</li>
-        <li>Manubrio ajustable en 4 alturas.</li>
-        <li>Fácil de transportar gracias a su sistema desmontable.</li>
-        <li>Soporta hasta 50 kg.</li>
-      </ul>
-      <div class="spec">
-        <div class="hd"><b>Ficha técnica</b><span>SCOOTER-BJ</span></div>
-        <dl>
-          <dt>Edad recomendada</dt><dd>2 a 8 años</dd>
-          <dt>Carga máxima</dt><dd>50 kg</dd>
-          <dt>Altura del manubrio</dt><dd>57 a 77 cm</dd>
-          <dt>Peso</dt><dd>2,5 kg</dd>
-          <dt>Medidas en uso</dt><dd>57 × 28 × 77 cm</dd>
-          <dt>Medidas de la caja</dt><dd>17 × 29 × 58 cm</dd>
-          <dt>Material</dt><dd>Aluminio, polipropileno y fibra de vidrio reforzada</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-</div></section>
-
-<section class="sec" id="triciclos" style="padding-top:0"><div class="wrap">
-  <div class="pdp">
-    <div class="gal" data-gal>
-      <div class="main"><img src="img/triciclo-uso-manos.jpg" alt="Bebé dando sus primeros pasos con el triciclo Mini Ride"></div>
-      <div class="thumbs">
-        <button aria-current="true" data-src="img/triciclo-uso-manos.jpg" data-alt="Bebé dando sus primeros pasos con el triciclo Mini Ride"><img src="img/triciclo-uso-manos.jpg" alt=""></button>
-        <button data-src="img/triciclo-uso-casco.jpg" data-alt="Niña con casco rosado junto al triciclo"><img src="img/triciclo-uso-casco.jpg" alt=""></button>
-        <button data-src="img/triciclo.jpg" data-alt="Triciclo Mini Ride TOMI menta"><img src="img/triciclo.jpg" alt=""></button>
-        <button data-src="img/triciclo-detalle.jpg" data-alt="Detalle del asiento ergonómico y el cuadro"><img src="img/triciclo-detalle.jpg" alt=""></button>
-        <button data-src="img/triciclo-rueda.jpg" data-alt="Rueda EVA de 6 pulgadas"><img src="img/triciclo-rueda.jpg" alt=""></button>
-      </div>
-    </div>
-    <div class="info">
-      <p class="eyebrow">12 a 24 meses · 1,8 kg</p>
-      <h2>Triciclo Mini Ride TOMI</h2>
-      <p class="lede">El compañero perfecto para las primeras aventuras. Invita a explorar mientras aprenden a mantener el equilibrio, y con solo 1,8 kg lo llevas fácil al parque o a casa de los tatas.</p>
-      <div class="price"><span class="now">$34.990</span><span class="cur">CLP</span></div>
-      <div class="buyrow">
-        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.mercadolibre.cl/triciclo-tomi-miniride-10-a-24-meses/up/MLCU3344743029">Comprar en Mercado Libre ↗</a>
-      </div>
-      <ul class="checks">
-        <li>Ligero y resistente.</li>
-        <li>Ayuda a desarrollar equilibrio, fuerza y coordinación.</li>
-        <li>Ruedas EVA ecológicas, suaves y silenciosas.</li>
-        <li>Armado fácil y rápido, sin herramientas especiales.</li>
-      </ul>
-      <div class="spec">
-        <div class="hd"><b>Ficha técnica</b><span>MINI-RIDE</span></div>
-        <dl>
-          <dt>Edad recomendada</dt><dd>12 a 24 meses</dd>
-          <dt>Altura del niño/a</dt><dd>75 a 95 cm aprox.</dd>
-          <dt>Altura del asiento</dt><dd>30 cm</dd>
-          <dt>Peso máximo</dt><dd>25 kg</dd>
-          <dt>Ruedas</dt><dd>EVA 6"</dd>
-          <dt>Peso del producto</dt><dd>1,8 kg</dd>
-          <dt>Material</dt><dd>PP + acero + aluminio + nylon</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-</div></section>
-
-<section class="sec" id="cascos" style="padding-top:0"><div class="wrap">
-  <div class="helmets">
-    <div class="helmet-stage"><img id="helmetImg" src="img/casco-menta.jpg" alt="Casco TOMI menta"></div>
-    <div class="info">
-      <p class="eyebrow">Talla ajustable</p>
-      <h2>Casco TOMI para niños</h2>
-      <p class="lede">El complemento para cada etapa: bicicleta, scooter o triciclo. Elige el color que combine con su TOMI.</p>
-      <div class="swatches" role="group" aria-label="Color del casco" id="helmetSw"></div>
-      <div class="price"><span class="now">$24.990</span><span class="was">$29.990</span><span class="cur">CLP</span></div>
-      <div class="buyrow"><a class="btn btn-primary" id="helmetBuy" target="_blank" rel="noopener" href="#">Comprar casco ↗</a></div>
-    </div>
-  </div>
-</div></section>
-
-<section class="sec" id="comparar" style="padding-top:0"><div class="wrap">
-  <div class="sec-head"><p class="eyebrow">Lado a lado</p><h2>Compara y elige</h2></div>
-  <div class="cmp-wrap">
-    <table class="cmp">
-      <thead><tr><th scope="col"></th>
-        <th scope="col"><img src="img/triciclo.jpg" alt=""><br>Triciclo Mini Ride</th>
-        <th scope="col"><img src="img/bici-menta.jpg" alt=""><br>Bici de equilibrio</th>
-        <th scope="col"><img src="img/scooter-azul.jpg" alt=""><br>Scooter BJ</th></tr></thead>
-      <tbody>
-        <tr><th scope="row">Edad</th><td>12–24 meses</td><td>2–5 años</td><td>2–8 años</td></tr>
-        <tr><th scope="row">Altura del niño/a</th><td>75–95 cm</td><td>80–105 cm</td><td>Manubrio 57–77 cm</td></tr>
-        <tr><th scope="row">Peso máximo</th><td>25 kg</td><td>30 kg</td><td>50 kg</td></tr>
-        <tr><th scope="row">Peso del producto</th><td>1,8 kg</td><td>2,9 kg</td><td>2,5 kg</td></tr>
-        <tr><th scope="row">Ruedas</th><td>EVA 6"</td><td>Aro 12"</td><td>Luces LED sin pilas</td></tr>
-        <tr><th scope="row">Colores</th><td>Menta</td><td>Menta, azul, rosado</td><td>Azul, rosado</td></tr>
-        <tr><th scope="row">Precio</th><td>$34.990</td><td>$49.990</td><td>$39.990</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div></section>
-
-<section class="sec" style="padding-top:0" aria-labelledby="comT"><div class="wrap">
-  <div class="sec-head"><p class="eyebrow">Comunidad TOMI</p><h2 id="comT">Infancia al aire libre</h2></div>
-  <div class="community">
-    <figure class="feat"><img src="img/hero-tomi.jpg" alt="Niño con su bicicleta de equilibrio TOMI menta" style="object-position:50% 55%;height:100%"><figcaption>Primeras rodadas en casa</figcaption></figure>
-    <figure><img src="img/grupo-escalera.jpg" alt="Grupo de niños con bicicletas TOMI en una escalera"></figure>
-    <figure><img src="img/parque.jpg" alt="Niños con scooters y bicicletas en un parque"></figure>
-    <figure><img src="img/triciclo-uso-dos.jpg" alt="Dos niñas jugando con bicicleta y triciclo"></figure>
-    <figure><img src="img/grupo-fila.jpg" alt="Niños en fila con sus vehículos TOMI"></figure>
-  </div>
-</div></section>
-
-<section class="sec" id="preguntas" style="padding-top:0"><div class="wrap">
-  <div class="sec-head"><p class="eyebrow">Antes de comprar</p><h2>Preguntas frecuentes</h2></div>
-  <div class="faq">
-    <details open><summary>¿Desde qué edad puede usar una TOMI?</summary><p>Desde los 12 meses con el Triciclo Mini Ride (75 a 95 cm de altura). Entre 2 y 5 años la bicicleta de equilibrio aro 12" (80 a 105 cm), y entre 2 y 8 años el Scooter BJ, que soporta hasta 50 kg.</p></details>
-    <details><summary>¿Necesito herramientas para armarlos?</summary><p>No. El scooter se arma en segundos sin herramientas y el triciclo se arma de forma rápida sin herramientas especiales.</p></details>
-    <details><summary>¿Por qué una bicicleta sin pedales?</summary><p>La bicicleta de equilibrio es el primer paso antes de la bici con pedales: mejora el equilibrio y la coordinación, y refuerza la confianza al avanzar por sí mismos.</p></details>
-    <details><summary>¿Las luces del scooter usan pilas?</summary><p>No. Las ruedas tienen luces LED que se encienden con el movimiento y funcionan sin pilas.</p></details>
-    <details><summary>¿Dónde compro?</summary><p>Todas las compras se realizan en nuestras publicaciones oficiales de Mercado Libre, con el pago y despacho que ofrece la plataforma.</p></details>
-  </div>
-</div></section>
-</main>
-
-<footer><div class="wrap">
-  <div class="cols">
-    <div>
-      <span class="logo" style="display:inline-block"><img src="img/logo.png" alt="TOMI"></span>
-      <p class="claim">Apostando por una infancia al aire libre</p>
-    </div>
-    <div><h4>Productos</h4><ul><li><a href="#bicicletas">Bicicletas de equilibrio</a></li><li><a href="#scooters">Scooters</a></li><li><a href="#triciclos">Triciclos</a></li><li><a href="#cascos">Cascos</a></li></ul></div>
-    <div><h4>Ayuda</h4><ul><li><a href="#guia">Guía por edad</a></li><li><a href="#comparar">Comparar productos</a></li><li><a href="#preguntas">Preguntas frecuentes</a></li></ul></div>
-    <div><h4>Síguenos</h4><ul><li><a href="https://instagram.com" target="_blank" rel="noopener">Instagram ↗</a></li><li><a href="https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972" target="_blank" rel="noopener">Mercado Libre ↗</a></li></ul></div>
-  </div>
-  <p class="legal">© TOMI Ride · tomiride.cl · Precios en pesos chilenos (CLP) tomados del sitio actual.</p>
-</div></footer>
-
-<button class="notes-btn" id="notesBtn" aria-expanded="false" aria-controls="notes">Notas del rediseño</button>
-<aside class="notes" id="notes" hidden aria-label="Notas del rediseño">
-  <button class="x" id="notesX">Cerrar</button>
-  <p class="eyebrow">Maqueta · propuesta</p>
-  <h3>Qué cambiamos y por qué</h3>
-  <ol>
-    <li><b>Guía por edad y altura.</b> El sitio actual obligaba a abrir cada ficha para saber si un producto servía. Ahora se responde en un paso, con las medidas reales de cada producto.</li>
-    <li><b>Selector de color en la tarjeta.</b> Antes había una tarjeta por color (8 tarjetas para 4 productos). Ahora una por producto, con muestras de color que cambian foto y enlace de compra.</li>
-    <li><b>Descuento visible.</b> Se calcula el % de ahorro (20 %, 37 %, 17 %) en vez de mostrar solo dos precios.</li>
-    <li><b>Una sola página con navegación fija.</b> Las 3 subpáginas de Google Sites quedan integradas como fichas con galería, ficha técnica y botones de compra por color.</li>
-    <li><b>Comparador y preguntas frecuentes</b> armados con los datos del sitio, para resolver dudas antes de ir a Mercado Libre.</li>
-    <li><b>Enlaces directos.</b> Se quitan las redirecciones de google.com/url y se corrige un error: en la página de scooters, "Comprar Azul" llevaba a la bicicleta.</li>
-    <li><b>Fotos reales primero.</b> Hero con foto de uso real, galería de comunidad y tema claro/oscuro.</li>
-  </ol>
-  <p class="ref"><b>Referencias del rubro:</b> woom (bicicletas infantiles con premios iF Design y Red Dot; su modelo WOW obtuvo el iF Design Award 2026) y Early Rider: guía por talla, fichas técnicas claras y fotografía de uso real.</p>
-  <p class="ref"><b>Pendiente para el cliente:</b> el enlace de Instagram del sitio actual apunta a instagram.com sin cuenta; falta el usuario real.</p>
-</aside>
-
-<script>
-const ML={
-  bici:{menta:"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349612972?picker=true&quantity=1",azul:"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3349598642",rosada:"https://www.mercadolibre.cl/bicicleta-de-equilibrio-tomi-aro-12-de-2-a-5-anos/up/MLCU3343607261?picker=true&quantity=1"},
-  scooter:{azul:"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483910432?product_trigger_id=MLC60157520&picker=true&quantity=1",rosado:"https://www.mercadolibre.cl/scooter-ninos-tomi-tamano-ajustable-2-a-8-anos/up/MLCU4483895788?product_trigger_id=MLC60157518&picker=true&quantity=1"},
-  tri:"https://www.mercadolibre.cl/triciclo-tomi-miniride-10-a-24-meses/up/MLCU3344743029",
-  casco:"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM",
-  cascoMenta:"https://articulo.mercadolibre.cl/MLC-1665004199-casco-ninos-marca-tomi-talla-ajustable-_JM?attributes=COLOR_SECONDARY_COLOR%3ATWVudGE%3D&picker=true&quantity=1"
-};
-const P=[
-  {id:"bicicletas",name:"Bicicleta de equilibrio",sub:"Aro 12\" · 2,9 kg · sin pedales",age:"2–5 años",now:49990,was:79990,
-   v:[{c:"Menta",hex:"#7FD9C3",img:"img/bici-menta.jpg",url:ML.bici.menta},{c:"Azul",hex:"#2BA3DC",img:"img/bici-azul.jpg",url:ML.bici.azul},{c:"Rosada",hex:"#E8559B",img:"img/bici-rosada.jpg",url:ML.bici.rosada}]},
-  {id:"scooters",name:"Scooter BJ",sub:"Manubrio ajustable · luces LED sin pilas",age:"2–8 años",now:39990,was:49990,
-   v:[{c:"Azul",hex:"#2160D8",img:"img/scooter-azul.jpg",url:ML.scooter.azul},{c:"Rosado",hex:"#F3A7B9",img:"img/scooter-rosado.jpg",url:ML.scooter.rosado}]},
-  {id:"triciclos",name:"Triciclo Mini Ride",sub:"Ruedas EVA 6\" · 1,8 kg",age:"12–24 m",now:34990,
-   v:[{c:"Menta",hex:"#7FD9C3",img:"img/triciclo.jpg",url:ML.tri}]},
-  {id:"cascos",name:"Casco ajustable",sub:"Talla ajustable para niños",age:"Todas",now:24990,was:29990,
-   v:[{c:"Menta",hex:"#5ED6C9",img:"img/casco-menta.jpg",url:ML.cascoMenta},{c:"Azul",hex:"#1E9BE6",img:"img/casco-azul.jpg",url:ML.casco},{c:"Rosado",hex:"#C987DE",img:"img/casco-rosado.jpg",url:ML.casco}]}
-];
-const clp=n=>"$"+n.toLocaleString("es-CL");
-
-const grid=document.getElementById("grid");
-P.forEach(p=>{
-  const off=p.was?Math.round((1-p.now/p.was)*100):0;
-  const el=document.createElement("article");el.className="card";
-  el.innerHTML=`<div class="ph">${off?`<span class="off-badge">-${off}%</span>`:""}<span class="age-badge">${p.age}</span><img alt="${p.name} ${p.v[0].c}" src="${p.v[0].img}" loading="lazy"></div>
-  <div class="bd"><h3>${p.name}</h3><p class="sub">${p.sub}</p>
-  <div class="swatches" role="group" aria-label="Color">${p.v.map((v,i)=>`<button class="sw" style="background:${v.hex}" aria-label="${v.c}" aria-pressed="${i===0}" data-i="${i}"></button>`).join("")}<span class="lbl">${p.v[0].c}</span></div>
-  <div class="price"><span class="now">${clp(p.now)}</span>${p.was?`<span class="was">${clp(p.was)}</span>`:""}<span class="cur">CLP</span></div>
-  <div class="acts"><a class="btn btn-primary buy" target="_blank" rel="noopener" href="${p.v[0].url}">Comprar ↗</a><a class="btn btn-ghost" href="#${p.id}">Ficha</a></div></div>`;
-  const img=el.querySelector(".ph img"),lbl=el.querySelector(".lbl"),buy=el.querySelector(".buy");
-  el.querySelectorAll(".sw").forEach(b=>b.addEventListener("click",()=>{
-    const v=p.v[+b.dataset.i];
-    el.querySelectorAll(".sw").forEach(x=>x.setAttribute("aria-pressed",x===b));
-    img.src=v.img;img.alt=`${p.name} ${v.c}`;lbl.textContent=v.c;buy.href=v.url;
-  }));
-  grid.appendChild(el);
-});
-
-// Cascos
-const H=P[3],hsw=document.getElementById("helmetSw"),himg=document.getElementById("helmetImg"),hbuy=document.getElementById("helmetBuy");
-H.v.forEach((v,i)=>{const b=document.createElement("button");b.className="sw";b.style.background=v.hex;b.setAttribute("aria-label",v.c);b.setAttribute("aria-pressed",i===0);
-  b.addEventListener("click",()=>{hsw.querySelectorAll(".sw").forEach(x=>x.setAttribute("aria-pressed",x===b));himg.src=v.img;himg.alt="Casco TOMI "+v.c.toLowerCase();hbuy.href=v.url;hbuy.textContent="Comprar casco "+v.c.toLowerCase()+" ↗";hsw.querySelector(".lbl").textContent=v.c});hsw.appendChild(b)});
-const hl=document.createElement("span");hl.className="lbl";hl.textContent=H.v[0].c;hsw.appendChild(hl);
-hbuy.href=H.v[0].url;hbuy.textContent="Comprar casco menta ↗";
-
-// Galerías
-document.querySelectorAll("[data-gal]").forEach(g=>{
-  const main=g.querySelector(".main img");
-  g.querySelectorAll(".thumbs button").forEach(b=>{b.setAttribute("aria-label",b.dataset.alt);b.addEventListener("click",()=>{
-    main.src=b.dataset.src;main.alt=b.dataset.alt;g.querySelectorAll(".thumbs button").forEach(x=>x.setAttribute("aria-current",x===b))})})
-});
-
-// Guía por edad y altura (rangos del sitio actual)
-const R=[
-  {name:"Triciclo Mini Ride",img:"img/triciclo.jpg",href:"#triciclos",a:[1,2],h:[75,95],note:"12–24 meses · 75–95 cm"},
-  {name:"Bicicleta de equilibrio",img:"img/bici-menta.jpg",href:"#bicicletas",a:[2,5],h:[80,105],note:"2–5 años · 80–105 cm"},
-  {name:"Scooter BJ",img:"img/scooter-azul.jpg",href:"#scooters",a:[2,8],h:null,note:"2–8 años · hasta 50 kg"},
-  {name:"Casco ajustable",img:"img/casco-menta.jpg",href:"#cascos",a:[1,8],h:null,note:"Recomendado en cualquier etapa"}
-];
-const age=document.getElementById("age"),hgt=document.getElementById("height"),out=document.getElementById("results");
-function render(){
-  const a=+age.value,h=+hgt.value;
-  document.getElementById("ageOut").textContent=a===1?"1 año":(a+" años").replace(".5"," ½");
-  document.getElementById("hOut").textContent=h+" cm";
-  const rows=R.map(r=>{
-    const okA=a>=r.a[0]&&a<=r.a[1],okH=!r.h||(h>=r.h[0]&&h<=r.h[1]);
-    let fit,cls,rank;
-    if(okA&&okH){fit=r.name.startsWith("Casco")?"Siempre":"Ideal";cls=r.name.startsWith("Casco")?"fit-ok":"fit-ideal";rank=r.name.startsWith("Casco")?1:0}
-    else if(okA||okH&&r.h&&Math.abs(a-(a<r.a[0]?r.a[0]:r.a[1]))<=.5){fit="Revisa medidas";cls="fit-ok";rank=2}
-    else{fit=a<r.a[0]?"Más adelante":"Ya lo superó";cls="fit-no";rank=3}
-    return {r,fit,cls,rank};
-  }).sort((x,y)=>x.rank-y.rank);
-  out.innerHTML=rows.map(({r,fit,cls,rank})=>`<a class="res${rank===3?" off":""}" href="${r.href}"><img src="${r.img}" alt=""><div><div class="nm">${r.name}</div><div class="meta">${r.note}</div></div><span class="fit ${cls}">${fit}</span></a>`).join("");
+</div></section>`;
+  if(s.route&&P.length) html+=`<section class="route" aria-label="Ruta de crecimiento"><div class="wrap"><div class="ruler">${P.map(p=>`<a class="stage" href="#${esc(p.id)}">${img(p.variants[0]?.img,"")}<div><div class="age">${esc(p.ageLabel)}</div><div class="nm">${esc(p.navLabel||p.name)}</div></div></a>`).join("")}</div><div class="scale" aria-hidden="true"><span>1 año</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8 años</span></div></div></section>`;
+  if(s.guide) html+=`<section class="sec" id="guia"><div class="wrap"><div class="finder"><div>
+    <p class="eyebrow" data-edit="texts.guide.eyebrow">${esc(t.guide.eyebrow)}</p><h2 data-edit="texts.guide.title">${esc(t.guide.title)}</h2><p class="lede" data-edit="texts.guide.lede">${esc(t.guide.lede)}</p>
+    <div class="ctrl"><label for="age">Edad <output id="ageOut" for="age"></output></label><input type="range" id="age" min="1" max="8" step="0.5" value="3"><div class="ticks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div></div>
+    <div class="ctrl"><label for="height">Altura <output id="hOut" for="height"></output></label><input type="range" id="height" min="70" max="130" step="1" value="95"><div class="ticks" aria-hidden="true"><span>70</span><span>85</span><span>100</span><span>115</span><span>130 cm</span></div></div>
+  </div><div class="results" id="results" aria-live="polite"></div></div></div></section>`;
+  html+=`<section class="sec" id="productos" ${s.guide?'style="padding-top:0"':""}><div class="wrap"><div class="sec-head"><p class="eyebrow" data-edit="texts.catalog.eyebrow">${esc(t.catalog.eyebrow)}</p><h2 data-edit="texts.catalog.title">${esc(t.catalog.title)}</h2></div><div class="grid-products">${P.map(card).join("")}</div></div></section>`;
+  P.forEach((p,i)=>{html+=pdp(p,i);if(i===0&&s.benefits)html+=benefits()});
+  if(!P.length&&s.benefits)html+=benefits();
+  const cmpP=P.filter(p=>p.compare);
+  if(s.compare&&cmpP.length>1) html+=compare(cmpP);
+  if(s.community&&t.community.images.length) html+=`<section class="sec" style="padding-top:0"><div class="wrap"><div class="sec-head"><p class="eyebrow" data-edit="texts.community.eyebrow">${esc(t.community.eyebrow)}</p><h2 data-edit="texts.community.title">${esc(t.community.title)}</h2></div><div class="community">${t.community.images.map((m,i)=>`<figure>${img(m.src,m.alt,`data-edit="img:texts.community.images.${i}.src"`)}${m.caption?`<figcaption>${esc(m.caption)}</figcaption>`:""}</figure>`).join("")}</div></div></section>`;
+  if(s.faq&&t.faq.items.length) html+=`<section class="sec" id="preguntas" style="padding-top:0"><div class="wrap"><div class="sec-head"><p class="eyebrow" data-edit="texts.faq.eyebrow">${esc(t.faq.eyebrow)}</p><h2 data-edit="texts.faq.title">${esc(t.faq.title)}</h2></div><div class="faq">${t.faq.items.map((f,i)=>`<details ${i===0?"open":""}><summary data-edit="texts.faq.items.${i}.q">${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("")}</div></div></section>`;
+  html+=`</main>
+<footer class="ft"><div class="wrap"><div class="cols">
+  <div><span class="logo" style="display:inline-block;background:${esc(d.brand.logoBg||"transparent")}">${d.brand.logo?`<img src="${esc(d.brand.logo)}" alt="${esc(d.brand.name)}">`:`<b>${esc(d.brand.name)}</b>`}</span><p class="claim" data-edit="texts.footer.claim">${esc(t.footer.claim)}</p></div>
+  <div><h4>Productos</h4><ul>${P.map(p=>`<li><a href="#${esc(p.id)}">${esc(p.navLabel||p.name)}</a></li>`).join("")}</ul></div>
+  <div><h4>Ayuda</h4><ul>${s.guide?'<li><a href="#guia">Guía por edad</a></li>':""}${s.compare?'<li><a href="#comparar">Comparar productos</a></li>':""}${s.faq?'<li><a href="#preguntas">Preguntas frecuentes</a></li>':""}</ul></div>
+  <div data-edit="contact.whatsapp"><h4>Contacto</h4><ul>
+    ${waDigits()?`<li><a href="${esc(waLink())}" target="_blank" rel="noopener">WhatsApp ${esc(c.whatsapp)}</a></li>`:""}
+    ${c.phone?`<li><span>Teléfono ${esc(c.phone)}</span></li>`:""}
+    ${c.email?`<li><span>${esc(c.email)}</span></li>`:""}
+    ${c.instagram?`<li><a href="${esc(c.instagram)}" target="_blank" rel="noopener">Instagram ↗</a></li>`:""}
+    ${c.mercadolibre?`<li><a href="${esc(c.mercadolibre)}" target="_blank" rel="noopener">Mercado Libre ↗</a></li>`:""}
+  </ul></div>
+</div><p class="legal"><span data-edit="texts.footer.legal">${esc(t.footer.legal)}</span><a href="#admin" id="toAdmin">Administrar sitio</a></p></div></footer>
+${c.waShow&&waDigits()?`<a class="wa-float" href="${esc(waLink())}" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp" data-edit="contact.waLabel">${WA_SVG}<span>${esc(c.waLabel||"WhatsApp")}</span></a>`:""}`;
+  $("#site").innerHTML=html;
+  bindSite();
 }
-age.addEventListener("input",render);hgt.addEventListener("input",render);render();
+function priceHTML(p,edit){const off=p.was&&+p.was>+p.now;return `<div class="price" ${edit?`data-edit="p:${esc(p.id)}"`:""}><span class="now">${clp(p.now)}</span>${off?`<span class="was">${clp(p.was)}</span>`:""}<span class="cur">CLP</span></div>`}
+function swatches(p){return p.variants.length>1?`<div class="swatches" role="group" aria-label="Color">${p.variants.map((v,i)=>`<button type="button" class="sw" style="background:${esc(v.hex)}" aria-label="${esc(v.c)}" aria-pressed="${i===0}" data-i="${i}"></button>`).join("")}<span class="lbl">${esc(p.variants[0].c)}</span></div>`:""}
+function card(p){
+  const v=p.variants[0]||{},off=p.was&&+p.was>+p.now?Math.round((1-p.now/p.was)*100):0;
+  return `<article class="card" data-pid="${esc(p.id)}"><div class="ph">${off?`<span class="off-badge">-${off}%</span>`:""}${p.ageLabel?`<span class="age-badge">${esc(p.ageLabel)}</span>`:""}${img(v.img,`${p.name} ${v.c||""}`,`class="vimg" data-edit="p:${esc(p.id)}" loading="lazy"`)}</div>
+  <div class="bd"><h3 data-edit="p:${esc(p.id)}">${esc(p.name)}</h3>${p.sub?`<p class="sub">${esc(p.sub)}</p>`:""}${swatches(p)}${priceHTML(p,true)}
+  <div class="acts"><a class="btn btn-primary buy" target="_blank" rel="noopener" href="${esc(v.url||"#")}">Comprar ↗</a><a class="btn btn-ghost" href="#${esc(p.id)}">Ficha</a></div></div></article>`;
+}
+function pdp(p,i){
+  const v=p.variants[0]||{},pics=[...p.variants.filter(x=>x.img).map(x=>({src:x.img,alt:`${p.name} ${x.c}`,product:1})),...p.gallery.filter(g=>g.src)];
+  const first=p.gallery.find(g=>g.src)||pics[0];
+  const main=first||{src:"",alt:""};
+  return `<section class="sec" id="${esc(p.id)}" style="padding-top:0" data-pid="${esc(p.id)}"><div class="wrap"><div class="pdp ${i%2?"rev":""}">
+  <div class="gal"><div class="main">${img(main.src,main.alt,`class="gmain${main.product?" contain":""}" data-edit="p:${esc(p.id)}"`)}</div>
+  ${pics.length>1?`<div class="thumbs">${pics.slice(0,10).map(g=>`<button type="button" aria-label="${esc(g.alt)}" aria-current="${g===main}" data-src="${esc(g.src)}" data-alt="${esc(g.alt)}" data-contain="${g.product?1:0}"><img src="${esc(g.src)}" alt=""></button>`).join("")}</div>`:""}</div>
+  <div class="info">${p.eyebrow?`<p class="eyebrow">${esc(p.eyebrow)}</p>`:""}<h2 data-edit="p:${esc(p.id)}">${esc(p.name)}</h2>${p.desc?`<p class="lede">${esc(p.desc)}</p>`:""}
+  ${swatches(p)}${priceHTML(p,true)}
+  <div class="buyrow"><a class="btn btn-primary buy" target="_blank" rel="noopener" href="${esc(v.url||"#")}">${p.variants.length>1?`Comprar ${esc(v.c)} ↗`:"Comprar en Mercado Libre ↗"}</a>${waDigits()?`<a class="btn btn-wa" target="_blank" rel="noopener" href="${esc(waLink(`Hola TOMI Ride, quiero consultar por ${p.name}`))}">${WA_SVG}Consultar</a>`:""}</div>
+  ${p.bullets.filter(Boolean).length?`<ul class="checks">${p.bullets.filter(Boolean).map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`:""}
+  ${p.specs.filter(x=>x.k||x.v).length?`<div class="spec"><div class="hd"><b>Ficha técnica</b><span>${esc(p.specCode)}</span></div><dl>${p.specs.filter(x=>x.k||x.v).map(x=>`<dt>${esc(x.k)}</dt><dd>${esc(x.v)}</dd>`).join("")}</dl></div>`:""}
+  </div></div></div></section>`;
+}
+function benefits(){const b=data.texts.benefits,im=b.images;return `<section class="sec" style="padding-top:0"><div class="wrap"><div class="why">
+  <figure class="a">${img(im[0]?.src,im[0]?.alt,'data-edit="img:texts.benefits.images.0.src"')}</figure><figure class="b">${img(im[1]?.src,im[1]?.alt,'data-edit="img:texts.benefits.images.1.src"')}</figure><figure class="c">${img(im[2]?.src,im[2]?.alt,'data-edit="img:texts.benefits.images.2.src"')}</figure>
+  <div class="d"><p class="eyebrow" data-edit="texts.benefits.eyebrow">${esc(b.eyebrow)}</p><h3 data-edit="texts.benefits.title">${esc(b.title)}</h3><ul data-edit="texts.benefits.items">${b.items.filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div></div></section>`}
+function compare(P){
+  const counts={};P.forEach(p=>new Set(p.specs.map(s=>s.k.trim()).filter(Boolean)).forEach(k=>counts[k]=(counts[k]||0)+1));
+  const keys=Object.keys(counts).filter(k=>counts[k]>1&&k!=="Edad recomendada");
+  const val=(p,k)=>esc(p.specs.find(s=>s.k.trim()===k)?.v||"—");
+  const rows=[["Edad",p=>esc(p.ageLabel||"—")],...keys.map(k=>[k,p=>val(p,k)]),["Colores",p=>esc(p.variants.map(v=>v.c).join(", "))],["Precio",p=>clp(p.now)]];
+  const t=data.texts.compare;
+  return `<section class="sec" id="comparar" style="padding-top:0"><div class="wrap"><div class="sec-head"><p class="eyebrow" data-edit="texts.compare.eyebrow">${esc(t.eyebrow)}</p><h2 data-edit="texts.compare.title">${esc(t.title)}</h2></div><div class="cmp-wrap"><table class="cmp"><thead><tr><th scope="col"></th>${P.map(p=>`<th scope="col">${p.variants[0]?.img?`<img src="${esc(p.variants[0].img)}" alt="">`:""}<br>${esc(p.navLabel||p.name)}</th>`).join("")}</tr></thead><tbody>${rows.map(([k,f])=>`<tr><th scope="row">${esc(k)}</th>${P.map(p=>`<td>${f(p)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div></section>`;
+}
+function bindSite(){
+  const root=$("#site");
+  const mb=$(".menu-btn",root),nav=$("nav.main",root);
+  mb?.addEventListener("click",()=>{const o=nav.classList.toggle("open");mb.setAttribute("aria-expanded",o)});
+  $$("a",nav).forEach(a=>a.addEventListener("click",()=>{nav.classList.remove("open");mb.setAttribute("aria-expanded","false")}));
+  $$("[data-pid]",root).forEach(el=>{
+    const p=data.products.find(x=>x.id===el.dataset.pid);if(!p)return;
+    $$(".sw",el).forEach(b=>b.addEventListener("click",()=>{
+      const v=p.variants[+b.dataset.i];$$(".sw",el).forEach(x=>x.setAttribute("aria-pressed",x===b));
+      $(".swatches .lbl",el).textContent=v.c;const buy=$(".buy",el);if(buy){buy.href=v.url||"#";if(el.tagName==="SECTION"&&p.variants.length>1)buy.textContent=`Comprar ${v.c} ↗`}
+      const vi=$(".vimg",el);if(vi&&v.img){vi.src=v.img;vi.alt=`${p.name} ${v.c}`}
+      const gm=$(".gmain",el);if(gm&&v.img){gm.src=v.img;gm.alt=`${p.name} ${v.c}`;gm.classList.add("contain");$$(".thumbs button",el).forEach(x=>x.setAttribute("aria-current",x.dataset.src===v.img))}
+    }));
+    $$(".thumbs button",el).forEach(b=>b.addEventListener("click",()=>{const gm=$(".gmain",el);gm.src=b.dataset.src;gm.alt=b.dataset.alt;gm.classList.toggle("contain",b.dataset.contain==="1");$$(".thumbs button",el).forEach(x=>x.setAttribute("aria-current",x===b))}));
+  });
+  const age=$("#age"),hgt=$("#height");
+  if(age){const go=()=>finder(+age.value,+hgt.value);age.addEventListener("input",go);hgt.addEventListener("input",go);go()}
+}
+function finder(a,h){
+  $("#ageOut").textContent=a===1?"1 año":(a+" años").replace(".5"," ½");$("#hOut").textContent=h+" cm";
+  const rows=visibleProducts().filter(p=>p.guide).map(p=>{
+    const lo=+p.ageMin,hi=+p.ageMax,okA=a>=lo&&a<=hi,hasH=p.hMin!=null&&p.hMax!=null&&p.hMin!==""&&p.hMax!=="",okH=!hasH||(h>=+p.hMin&&h<=+p.hMax);
+    let fit,cls,rank;
+    if(okA&&okH){fit="Ideal";cls="fit-ideal";rank=0}
+    else if(okA){fit="Revisa la altura";cls="fit-ok";rank=1}
+    else if(Math.min(Math.abs(a-lo),Math.abs(a-hi))<=.5){fit="Revisa medidas";cls="fit-ok";rank=2}
+    else{fit=a<lo?"Más adelante":"Ya lo superó";cls="fit-no";rank=3}
+    const note=[p.ageLabel,hasH?`${p.hMin}–${p.hMax} cm`:""].filter(Boolean).join(" · ");
+    return {p,fit,cls,rank,note};
+  }).sort((x,y)=>x.rank-y.rank);
+  $("#results").innerHTML=rows.map(r=>`<a class="res${r.rank===3?" off":""}" href="#${esc(r.p.id)}">${img(r.p.variants[0]?.img,"")}<div><div class="nm">${esc(r.p.name)}</div><div class="meta">${esc(r.note)}</div></div><span class="fit ${r.cls}">${r.fit}</span></a>`).join("");
+}
 
-// Menú móvil
-const mb=document.getElementById("menuBtn"),nav=document.getElementById("nav");
-mb.addEventListener("click",()=>{const o=nav.classList.toggle("open");mb.setAttribute("aria-expanded",o)});
-nav.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{nav.classList.remove("open");mb.setAttribute("aria-expanded",false)}));
+/* ---------- Carga de contenido publicado ---------- */
+render();
+fetch("content.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
+  if(!j||!j.texts||!j.products||(j.updatedAt||0)<(DEFAULT.updatedAt||0))return;
+  const s=JSON.stringify(j);if(s===published)return;
+  const wasClean=JSON.stringify(data)===published;
+  published=s;if(wasClean){data=clone(j);render();if(isAdmin)refreshPanel()}else if(isAdmin)updateStatus();
+}).catch(()=>{});
 
-// Notas
-const nb=document.getElementById("notesBtn"),nt=document.getElementById("notes");
-const setN=o=>{nt.hidden=!o;nb.setAttribute("aria-expanded",o)};
-nb.addEventListener("click",()=>setN(nt.hidden));document.getElementById("notesX").addEventListener("click",()=>setN(false));
-document.addEventListener("keydown",e=>{if(e.key==="Escape")setN(false)});
+/* ================= PANEL DE ADMINISTRACIÓN ================= */
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const sess={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}}};
+const DRAFT="tomi-borrador";
+let view="home",panel,undoStack=[],lastSnap="",snapT,renderT;
+const getP=(path,o=data)=>path.split(".").reduce((a,k)=>a==null?a:a[k],o);
+function setP(path,val){const ks=path.split(".");let o=data;ks.slice(0,-1).forEach(k=>o=o[k]);o[ks.at(-1)]=val}
+function changed(structural){
+  clearTimeout(renderT);renderT=setTimeout(render,structural?0:60);
+  store.set(DRAFT,JSON.stringify({at:Date.now(),data}));
+  clearTimeout(snapT);snapT=setTimeout(()=>{const cur=JSON.stringify(data);if(cur!==lastSnap){undoStack.push(lastSnap);if(undoStack.length>60)undoStack.shift();lastSnap=cur;updateStatus()}},450);
+  updateStatus();
+  if(structural)refreshPanel();
+}
+const isDirty=()=>JSON.stringify(data)!==published;
+function updateStatus(){
+  if(!panel)return;const st=$(".adm-status",panel),d=isDirty();
+  st.classList.toggle("dirty",d);$("span",st).textContent=d?"Tienes cambios sin publicar":"Todo publicado";
+  $("#aPublish").disabled=!d;$("#aUndo").disabled=!undoStack.length&&JSON.stringify(data)===lastSnap;
+}
+let toastT;
+function toast(msg,bad){let t=$(".adm-toast");if(!t){t=document.createElement("div");t.className="adm-toast";t.setAttribute("role","status");document.body.appendChild(t)}t.textContent=msg;t.classList.toggle("bad",!!bad);t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,bad?6000:3200)}
+const h=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==="on")for(const[ev,fn]of Object.entries(v))e.addEventListener(ev,fn);else if(k==="html")e.innerHTML=v;else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v)}kids.flat().forEach(c=>c!=null&&e.append(c.nodeType?c:document.createTextNode(c)));return e};
+const ICON={
+  text:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6V4h16v2M12 4v16M8 20h8"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>',
+  image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a1 1 0 01-1 1A16 16 0 014 5a1 1 0 011-1z"/></svg>',
+  desk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+  mob:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg>'};
+
+/* --- Campos reutilizables --- */
+let fid=0;
+function fText(label,path,o={}){
+  const id="f"+(++fid),inp=o.multi?h("textarea",{id,rows:o.rows||3}):h("input",{id,type:o.type||"text",placeholder:o.ph||"",inputmode:o.num?"numeric":null});
+  const v=getP(path);inp.value=o.num?(v==null||v===""?"":String(v)):(v??"");
+  inp.addEventListener("input",()=>{let val=inp.value;if(o.num){val=val.replace(/[^\d.,]/g,"").replace(",",".");val=val===""?null:+val;}setP(path,val);changed()});
+  return h("div",{class:"fld","data-path":path},h("label",{for:id},label),inp,o.hint?h("div",{class:"hint"},o.hint):null);
+}
+function fToggle(label,path,o={}){const inp=h("input",{type:"checkbox",role:"switch"});inp.checked=o.defOn?getP(path)!==false:!!getP(path);inp.addEventListener("change",()=>{setP(path,inp.checked);changed(o.structural)});return h("label",{class:"tgl"},h("span",{},label),inp)}
+function fList(label,path,o={}){
+  const arr=getP(path),wrap=h("div",{class:"lst"});
+  arr.forEach((v,i)=>{const inp=h("input",{type:"text",value:v,"aria-label":`${label} ${i+1}`});inp.value=v;inp.addEventListener("input",()=>{arr[i]=inp.value;changed()});
+    wrap.append(h("div",{class:"it"},inp,h("button",{class:"x",type:"button","aria-label":"Quitar",title:"Quitar",on:{click:()=>{arr.splice(i,1);changed(true)}}},"×")))});
+  wrap.append(h("button",{class:"add",type:"button",on:{click:()=>{arr.push("");changed(true);setTimeout(()=>{const ins=$$(`[data-path="${path}"] input`,panel);ins.at(-1)?.focus()},0)}}},"+ "+(o.add||"Agregar")));
+  return h("div",{class:"fld","data-path":path},h("div",{class:"lb"},label),o.hint?h("div",{class:"hint"},o.hint):null,wrap);
+}
+async function shrink(file){
+  if(file.type==="image/svg+xml"||file.type==="image/gif"||(file.type==="image/png"&&file.size<350000))return file;
+  try{const bm=await createImageBitmap(file),k=Math.min(1,1600/Math.max(bm.width,bm.height)),cv=document.createElement("canvas");cv.width=Math.round(bm.width*k);cv.height=Math.round(bm.height*k);cv.getContext("2d").drawImage(bm,0,0,cv.width,cv.height);
+    return await new Promise(r=>cv.toBlob(b=>r(b||file),"image/jpeg",.84));}catch(e){return file}
+}
+const toDataURL=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)});
+let assetsP;
+async function storeImage(file){
+  if(!file||!/^image\//.test(file.type)){toast("Ese archivo no es una imagen. Usa JPG, PNG o WEBP.",true);return null}
+  toast("Subiendo imagen…");const blob=await shrink(file);
+  try{assetsP=assetsP||(window.claude?.use?window.claude.use("assets"):Promise.resolve(null));const a=await assetsP;if(a){const r=await a.upload(blob);toast("Imagen lista");return r.url}}catch(e){}
+  const u=await toDataURL(blob);toast("Imagen lista");return u;
+}
+function fImage(label,path,o={}){
+  const th=h("div",{class:"th",tabindex:0,role:"button","aria-label":"Cambiar imagen"});
+  const paint=()=>{const v=getP(path);th.innerHTML=v?`<img src="${esc(v)}" alt="">`:"Sin foto";if(o.bg)th.style.background=getP(o.bg)||""};
+  paint();
+  const pick=()=>{const inp=h("input",{type:"file",accept:"image/*"});inp.addEventListener("change",async()=>{const u=await storeImage(inp.files[0]);if(u){setP(path,u);paint();changed()}});inp.click()};
+  th.addEventListener("click",pick);th.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick()}});
+  th.addEventListener("dragover",e=>{e.preventDefault();th.classList.add("drag")});th.addEventListener("dragleave",()=>th.classList.remove("drag"));
+  th.addEventListener("drop",async e=>{e.preventDefault();th.classList.remove("drag");const u=await storeImage(e.dataTransfer.files[0]);if(u){setP(path,u);paint();changed()}});
+  const urlBox=h("div",{hidden:true});
+  const urlIn=h("input",{type:"url",placeholder:"https://…"});urlIn.addEventListener("change",()=>{setP(path,urlIn.value.trim());paint();changed()});
+  urlBox.append(urlIn);
+  const ops=h("div",{class:"ops"},h("b",{style:"font-size:.84rem"},label),
+    h("button",{class:"a-btn a-soft",type:"button",style:"padding:8px 12px;font-size:.84rem",on:{click:pick}},"Cambiar imagen"),
+    h("button",{class:"a-link",type:"button",on:{click:()=>{urlBox.hidden=!urlBox.hidden;urlIn.value=(getP(path)||"").startsWith("data:")?"":getP(path)||""}}},"Usar un enlace"),
+    o.alt?h("div",{class:"fld",style:"width:100%"},h("input",{type:"text",placeholder:"Descripción (para buscadores)",value:getP(o.alt)||"",on:{input:e=>{setP(o.alt,e.target.value);changed()}}})):null,
+    o.remove?h("button",{class:"a-link",type:"button",style:"color:#C2324F",on:{click:o.remove}},"Quitar"):null,urlBox);
+  return h("div",{class:"img-slot fld","data-path":path,"data-img":path},th,ops);
+}
+function fColor(path,label,hint){
+  const id="f"+(++fid),c=h("input",{type:"color",id,value:getP(path)}),tx=h("input",{type:"text",value:getP(path),"aria-label":label+" (código)",style:"font-family:ui-monospace,monospace"});
+  const sync=v=>{if(!/^#[\da-f]{6}$/i.test(v))return;setP(path,v);data.theme.preset="custom";c.value=v;tx.value=v;changed();checkContrast()};
+  c.addEventListener("input",()=>sync(c.value));tx.addEventListener("change",()=>sync(tx.value.trim()));
+  return h("div",{class:"fld"},h("label",{for:id},label),h("div",{class:"sw-row"},c,tx),hint?h("div",{class:"hint"},hint):null);
+}
+function checkContrast(){const el=$("#aContrast",panel);if(!el)return;const c=data.theme.colors,r=contrast(c.ink,c.bg),r2=contrast(c.muted,c.bg);el.textContent=r<4.5?"Atención: el texto y el fondo se parecen mucho, puede costar leer.":r2<3?"Atención: el texto secundario se lee con dificultad sobre el fondo.":"";}
+
+/* --- Vistas --- */
+const header=(title,sub,back="home")=>[h("button",{class:"back",type:"button",on:{click:()=>go(back)}},"← Volver"),h("h2",{class:"v"},title),sub?h("p",{class:"vsub"},sub):null];
+function vHome(){
+  const c=data.theme.colors,list=[
+    ["texts","Textos","Títulos, frases, preguntas y secciones",ICON.text],
+    ["products","Productos",`${data.products.length} productos · precios y colores`,ICON.box],
+    ["images","Imágenes","Logo, portada y galerías",ICON.image],
+    ["contact","Contacto","WhatsApp, Instagram y correo",ICON.phone],
+    ["colors","Colores","Paletas listas o a tu gusto",`<span class="dots">${["bg","ink","accent","accentInk"].map(k=>`<i style="background:${c[k]}"></i>`).join("")}</span>`],
+    ["fonts","Tipografía","Letras de títulos y textos",`<span style="font-family:'${esc(data.theme.display)}';font-size:1.15rem">Aa</span>`]];
+  const out=[h("h2",{class:"v"},"¿Qué quieres cambiar hoy?"),h("p",{class:"vsub"},"Todo lo que cambies se ve al instante en la página. Nadie más lo ve hasta que presiones Publicar.")];
+  const dr=draftInfo();
+  if(dr) out.push(h("div",{class:"warnbox"},h("span",{},`Tienes cambios sin publicar guardados en este navegador (${dr}).`),h("div",{class:"row"},
+    h("button",{class:"a-btn a-primary",type:"button",style:"padding:8px 12px",on:{click:()=>{const d=JSON.parse(store.get(DRAFT)).data;data=d;lastSnap="";changed(true);render();go("home")}}},"Recuperarlos"),
+    h("button",{class:"a-btn a-soft",type:"button",style:"padding:8px 12px",on:{click:()=>{store.del(DRAFT);go("home")}}},"Descartar"))));
+  out.push(h("div",{class:"tiles"},list.map(([k,t,s,ic])=>h("button",{class:"tile",type:"button",on:{click:()=>go(k)}},h("span",{class:"ic",html:ic}),h("b",{},t),h("small",{},s)))));
+  out.push(h("div",{class:"tip"},"Truco: haz clic directamente sobre un texto, precio o foto de la página y te llevamos al lugar exacto para editarlo."));
+  if(/^0+$/.test(waDigits().slice(3))||!waDigits())out.push(h("div",{class:"warnbox"},h("span",{},"Falta tu número real de WhatsApp. El botón verde usa un número de ejemplo."),h("div",{class:"row"},h("button",{class:"a-btn a-soft",type:"button",style:"padding:8px 12px",on:{click:()=>go("contact")}},"Agregar mi número"))));
+  return out;
+}
+function draftInfo(){const raw=store.get(DRAFT);if(!raw)return null;try{const d=JSON.parse(raw);if(JSON.stringify(d.data)===published||JSON.stringify(d.data)===JSON.stringify(data))return null;return new Date(d.at).toLocaleString("es-CL",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){return null}}
+const grp=(key,title,kids,o={})=>{const d=h("details",{class:"grp","data-grp":key,open:o.open},h("summary",{},title,o.small?h("small",{},o.small):null),h("div",{class:"in"},kids));return d};
+function vTexts(){
+  const t="texts.";
+  return [...header("Textos","Abre una sección y escribe. Lo ves cambiar en la página mientras escribes."),
+    grp("strip","Barra superior de avisos",[fList("Mensajes","texts.strip",{add:"Agregar mensaje",hint:"Se muestran en la franja oscura de arriba. Déjala vacía para ocultarla."}),fText("Botón del menú","texts.navCta")]),
+    grp("hero","Portada",[fText("Texto pequeño sobre el título",t+"hero.eyebrow"),fText("Título",t+"hero.title"),fText("Final del título (va en color)",t+"hero.titleAccent"),fText("Bajada",t+"hero.lede",{multi:true}),
+      h("div",{class:"row2"},fText("Botón 1",t+"hero.cta1"),fText("Botón 2",t+"hero.cta2")),fList("Datos destacados",t+"hero.facts",{add:"Agregar dato"}),
+      h("div",{class:"row2"},fText("Etiqueta verde: arriba",t+"hero.tagBSmall"),fText("Etiqueta verde: grande",t+"hero.tagBBig")),
+      h("div",{class:"row2"},fText("Etiqueta blanca: grande",t+"hero.tagABig"),fText("Etiqueta blanca: abajo",t+"hero.tagASmall"))]),
+    grp("route","Ruta por edades",[fToggle("Mostrar esta sección","sections.route",{structural:true}),h("div",{class:"hint"},"Se arma sola con tus productos y su edad.")],{small:data.sections.route?"Visible":"Oculta"}),
+    grp("guide","Guía por edad",[fToggle("Mostrar esta sección","sections.guide",{structural:true}),fText("Texto pequeño",t+"guide.eyebrow"),fText("Título",t+"guide.title"),fText("Bajada",t+"guide.lede",{multi:true})],{small:data.sections.guide?"Visible":"Oculta"}),
+    grp("catalog","Catálogo",[fText("Texto pequeño",t+"catalog.eyebrow"),fText("Título",t+"catalog.title")]),
+    grp("benefits","Beneficios",[fToggle("Mostrar esta sección","sections.benefits",{structural:true}),fText("Texto pequeño",t+"benefits.eyebrow"),fText("Título",t+"benefits.title"),fList("Beneficios",t+"benefits.items",{add:"Agregar beneficio"})],{small:data.sections.benefits?"Visible":"Oculta"}),
+    grp("compare","Comparador",[fToggle("Mostrar esta sección","sections.compare",{structural:true}),fText("Texto pequeño",t+"compare.eyebrow"),fText("Título",t+"compare.title"),h("div",{class:"hint"},"Elige qué productos aparecen desde Productos → “Mostrar en el comparador”.")],{small:data.sections.compare?"Visible":"Oculta"}),
+    grp("community","Comunidad (galería)",[fToggle("Mostrar esta sección","sections.community",{structural:true}),fText("Texto pequeño",t+"community.eyebrow"),fText("Título",t+"community.title"),h("button",{class:"a-link",type:"button",on:{click:()=>go("images")}},"Cambiar las fotos →")],{small:data.sections.community?"Visible":"Oculta"}),
+    grp("faq","Preguntas frecuentes",[fToggle("Mostrar esta sección","sections.faq",{structural:true}),fText("Texto pequeño",t+"faq.eyebrow"),fText("Título",t+"faq.title"),
+      ...data.texts.faq.items.map((f,i)=>h("div",{class:"pair"},h("div",{class:"top"},`Pregunta ${i+1}`,h("span",{},
+        h("button",{class:"mini",type:"button",disabled:i===0,"aria-label":"Subir",on:{click:()=>{move(data.texts.faq.items,i,-1)}}},"↑")," ",
+        h("button",{class:"mini",type:"button",disabled:i===data.texts.faq.items.length-1,"aria-label":"Bajar",on:{click:()=>{move(data.texts.faq.items,i,1)}}},"↓")," ",
+        h("button",{class:"mini",type:"button","aria-label":"Quitar pregunta",on:{click:()=>{data.texts.faq.items.splice(i,1);changed(true)}}},"×"))),
+        fText("Pregunta",`${t}faq.items.${i}.q`),fText("Respuesta",`${t}faq.items.${i}.a`,{multi:true}))),
+      h("button",{class:"add",type:"button",on:{click:()=>{data.texts.faq.items.push({q:"Nueva pregunta",a:""});changed(true)}}},"+ Agregar pregunta")],{small:data.sections.faq?"Visible":"Oculta"}),
+    grp("footer","Pie de página",[fText("Frase grande",t+"footer.claim"),fText("Texto legal",t+"footer.legal"),fText("Nombre de la marca","brand.name")])];
+}
+function move(arr,i,d){const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];changed(true)}
+function vProducts(){
+  const P=data.products;
+  return [...header("Productos","Ordena, edita, oculta o agrega productos. Los cambios de precio se ven al tiro."),
+    ...P.map((p,i)=>{
+      const conf=h("div",{class:"confirm",hidden:true},"¿Eliminar este producto?",h("button",{class:"a-btn a-danger",type:"button",style:"padding:6px 12px",on:{click:()=>{P.splice(i,1);changed(true);toast("Producto eliminado. Puedes deshacerlo.")}}},"Sí, eliminar"),h("button",{class:"a-btn a-soft",type:"button",style:"padding:6px 12px",on:{click:()=>conf.hidden=true}},"No"));
+      return h("div",{style:"display:grid;gap:6px"},h("div",{class:"prow"},p.variants[0]?.img?h("img",{src:p.variants[0].img,alt:""}):h("div",{class:"noimg"}),
+        h("div",{},h("b",{},p.name),h("small",{},`${clp(p.now)}${p.visible===false?" · Oculto":""}`)),
+        h("div",{class:"ops"},h("button",{class:"mini",type:"button",disabled:i===0,"aria-label":"Subir",title:"Subir",on:{click:()=>move(P,i,-1)}},"↑"),h("button",{class:"mini",type:"button",disabled:i===P.length-1,"aria-label":"Bajar",title:"Bajar",on:{click:()=>move(P,i,1)}},"↓"),
+          h("button",{class:"mini blue",type:"button",on:{click:()=>go("product:"+p.id)}},"Editar"),
+          h("button",{class:"mini",type:"button","aria-label":"Duplicar",title:"Duplicar",on:{click:()=>{const n=clone(p);n.id="p"+Date.now().toString(36);n.name+=" (copia)";P.splice(i+1,0,n);changed(true);toast("Producto duplicado")}}},"⧉"),
+          h("button",{class:"mini","aria-label":"Eliminar",title:"Eliminar",type:"button",on:{click:()=>conf.hidden=false}},"Borrar"))),conf);
+    }),
+    h("button",{class:"add",type:"button",on:{click:()=>{const id="p"+Date.now().toString(36);P.push({id,name:"Nuevo producto",navLabel:"",eyebrow:"",sub:"",desc:"",ageLabel:"",ageMin:2,ageMax:5,hMin:null,hMax:null,now:19990,was:null,guide:false,compare:false,specCode:"",bullets:[],specs:[],variants:[{c:"Único",hex:"#7FD9C3",img:"",url:""}],gallery:[]});changed();go("product:"+id)}}},"+ Agregar producto")];
+}
+function vProduct(id){
+  const i=data.products.findIndex(p=>p.id===id);if(i<0)return vProducts();
+  const p=data.products[i],b=`products.${i}.`;
+  const variants=p.variants.map((v,j)=>h("div",{class:"pair"},h("div",{class:"top"},`Color ${j+1}`,p.variants.length>1?h("button",{class:"mini",type:"button","aria-label":"Quitar color",on:{click:()=>{p.variants.splice(j,1);changed(true)}}},"×"):null),
+    h("div",{class:"row2"},fText("Nombre del color",`${b}variants.${j}.c`),(()=>{const c=h("input",{type:"color",value:v.hex,"aria-label":"Color de la muestra"});c.addEventListener("input",()=>{v.hex=c.value;changed()});return h("div",{class:"fld"},h("div",{class:"lb"},"Muestra"),c)})()),
+    fImage("Foto de este color",`${b}variants.${j}.img`),fText("Enlace de compra (Mercado Libre)",`${b}variants.${j}.url`,{type:"url",ph:"https://www.mercadolibre.cl/…"})));
+  return [...header(p.name||"Producto","Edita los datos y mira el resultado a la derecha.","products"),
+    h("div",{class:"box"},h("h3",{},"Lo básico"),fText("Nombre",b+"name"),fText("Nombre corto en el menú",b+"navLabel",{hint:"Déjalo vacío para no mostrarlo en el menú."}),fText("Frase corta (en la tarjeta)",b+"sub"),fText("Texto pequeño sobre el título",b+"eyebrow"),fText("Descripción",b+"desc",{multi:true,rows:4}),fToggle("Mostrar en la página",`${b}visible`,{structural:true,defOn:true})),
+    h("div",{class:"box"},h("h3",{},"Precio"),h("div",{class:"row2"},fText("Precio actual",b+"now",{num:true,hint:"Solo números, ej: 49990"}),fText("Precio antes (opcional)",b+"was",{num:true,hint:"Si lo llenas, se muestra el % de descuento."}))),
+    h("div",{class:"box"},h("h3",{},"Colores y compra"),...variants,h("button",{class:"add",type:"button",on:{click:()=>{p.variants.push({c:"Nuevo color",hex:"#CCCCCC",img:"",url:p.variants[0]?.url||""});changed(true)}}},"+ Agregar color")),
+    h("div",{class:"box"},h("h3",{},"Fotos de la ficha"),h("div",{class:"hint"},"Estas fotos aparecen en la galería del producto, después de las fotos de cada color."),
+      ...p.gallery.map((g,j)=>fImage(`Foto ${j+1}`,`${b}gallery.${j}.src`,{alt:`${b}gallery.${j}.alt`,remove:()=>{p.gallery.splice(j,1);changed(true)}})),
+      h("button",{class:"add",type:"button",on:{click:()=>{p.gallery.push({src:"",alt:""});changed(true)}}},"+ Agregar foto")),
+    h("div",{class:"box"},h("h3",{},"Edad y tamaño"),fText("Etiqueta de edad",b+"ageLabel",{ph:"Ej: 2–5 años"}),h("div",{class:"row2"},fText("Edad desde (años)",b+"ageMin",{num:true}),fText("Edad hasta (años)",b+"ageMax",{num:true})),h("div",{class:"row2"},fText("Altura desde (cm)",b+"hMin",{num:true}),fText("Altura hasta (cm)",b+"hMax",{num:true})),h("div",{class:"hint"},"La guía usa estos números para recomendar el producto. Para 12 meses escribe 1."),fToggle("Mostrar en la guía por edad",b+"guide",{structural:true}),fToggle("Mostrar en el comparador",b+"compare",{structural:true})),
+    h("div",{class:"box"},h("h3",{},"Características"),fList("Lista con ✓",b+"bullets",{add:"Agregar característica"})),
+    h("div",{class:"box"},h("h3",{},"Ficha técnica"),fText("Código (opcional)",b+"specCode"),...p.specs.map((s,j)=>h("div",{class:"it",style:"display:grid;grid-template-columns:1fr 1fr auto;gap:6px"},
+      h("input",{type:"text",value:s.k,placeholder:"Dato","aria-label":"Dato",on:{input:e=>{s.k=e.target.value;changed()}}}),h("input",{type:"text",value:s.v,placeholder:"Valor","aria-label":"Valor",on:{input:e=>{s.v=e.target.value;changed()}}}),
+      h("button",{class:"x",type:"button","aria-label":"Quitar fila",on:{click:()=>{p.specs.splice(j,1);changed(true)}}},"×"))),
+      h("button",{class:"add",type:"button",on:{click:()=>{p.specs.push({k:"",v:""});changed(true)}}},"+ Agregar fila")),
+    (()=>{const conf=h("div",{class:"confirm",hidden:true},"¿Seguro?",h("button",{class:"a-btn a-danger",type:"button",style:"padding:6px 12px",on:{click:()=>{data.products.splice(i,1);changed();go("products");toast("Producto eliminado. Puedes deshacerlo.")}}},"Sí, eliminar"),h("button",{class:"a-btn a-soft",type:"button",style:"padding:6px 12px",on:{click:()=>conf.hidden=true}},"No"));
+      return h("div",{style:"display:grid;gap:8px"},h("button",{class:"a-btn a-danger",type:"button",on:{click:()=>conf.hidden=false}},"Eliminar producto"),conf)})()];
+}
+function vImages(){
+  const ci=data.texts.community.images;
+  return [...header("Imágenes","Haz clic en una foto o arrastra una nueva encima para cambiarla."),
+    h("div",{class:"box"},h("h3",{},"Logo"),fImage("Logo","brand.logo",{bg:"brand.logoBg"}),(()=>{const c=h("input",{type:"color",value:data.brand.logoBg||"#000000","aria-label":"Fondo del logo"});c.addEventListener("input",()=>{data.brand.logoBg=c.value;changed()});return h("div",{class:"fld"},h("div",{class:"lb"},"Color de fondo del logo"),h("div",{class:"sw-row"},c,h("button",{class:"a-link",type:"button",on:{click:()=>{data.brand.logoBg="transparent";changed(true)}}},"Sin fondo")))})()),
+    h("div",{class:"box"},h("h3",{},"Foto de portada"),fImage("Portada","texts.hero.image",{alt:"texts.hero.imageAlt"}),(()=>{const r=h("input",{type:"range",class:"a-range",min:0,max:100,value:data.texts.hero.focusY??50,"aria-label":"Encuadre vertical"});r.addEventListener("input",()=>{data.texts.hero.focusY=+r.value;changed()});return h("div",{class:"fld"},h("div",{class:"lb"},"Encuadre (mover la foto arriba o abajo)"),r)})()),
+    h("div",{class:"box"},h("h3",{},"Beneficios (3 fotos)"),...[0,1,2].map(j=>fImage(`Foto ${j+1}`,`texts.benefits.images.${j}.src`,{alt:`texts.benefits.images.${j}.alt`}))),
+    h("div",{class:"box"},h("h3",{},"Comunidad"),h("div",{class:"hint"},"La primera foto se muestra grande."),...ci.map((m,j)=>h("div",{class:"pair"},fImage(`Foto ${j+1}`,`texts.community.images.${j}.src`,{alt:`texts.community.images.${j}.alt`,remove:()=>{ci.splice(j,1);changed(true)}}),fText("Leyenda (opcional)",`texts.community.images.${j}.caption`))),
+      h("button",{class:"add",type:"button",on:{click:()=>{ci.push({src:"",alt:"",caption:""});changed(true)}}},"+ Agregar foto")),
+    h("div",{class:"tip"},"Las fotos de cada producto se cambian en Productos → Editar."),h("button",{class:"a-btn a-soft",type:"button",on:{click:()=>go("products")}},"Ir a Productos")];
+}
+function vContact(){
+  return [...header("Contacto","Cómo te encuentran tus clientes."),
+    h("div",{class:"box"},h("h3",{},"WhatsApp"),fText("Número","contact.whatsapp",{type:"tel",ph:"+56 9 1234 5678",hint:"Con código de país. Ej: +56 9 1234 5678"}),fText("Mensaje que llega escrito","contact.waMessage",{multi:true,rows:2}),fText("Texto del botón","contact.waLabel"),fToggle("Mostrar botón flotante de WhatsApp","contact.waShow",{structural:true}),
+      h("a",{class:"a-link",href:waLink(),target:"_blank",rel:"noopener",id:"waTest"},"Probar el enlace ↗")),
+    h("div",{class:"box"},h("h3",{},"Redes y tienda"),fText("Instagram (enlace)","contact.instagram",{type:"url",ph:"https://instagram.com/tomiride"}),fText("Tienda en Mercado Libre (enlace)","contact.mercadolibre",{type:"url"})),
+    h("div",{class:"box"},h("h3",{},"Otros datos"),fText("Correo","contact.email",{type:"email",ph:"hola@tomiride.cl"}),fText("Teléfono","contact.phone",{type:"tel"}),h("div",{class:"hint"},"Si dejas un dato vacío, no aparece en la página."))];
+}
+function vColors(){
+  const t=data.theme;
+  return [...header("Colores","Elige una paleta lista o ajusta cada color."),
+    h("div",{class:"presets"},Object.entries(PRESETS).map(([k,p])=>h("button",{class:"preset",type:"button","aria-pressed":t.preset===k?"true":"false",on:{click:()=>{t.preset=k;t.colors={...p.c};changed(true)}}},h("span",{class:"bars",html:["bg","surface","ink","accent","accentInk"].map(c=>`<i style="background:${p.c[c]}"></i>`).join("")}),h("b",{},p.name)))),
+    h("div",{class:"box"},h("h3",{},"Ajustar a mi gusto"),h("div",{class:"contrast",id:"aContrast"}),...COLOR_LABELS.map(([k,l,hint])=>fColor("theme.colors."+k,l,hint)))];
+}
+function vFonts(){
+  const t=data.theme;
+  const card=(kind,name,f)=>h("button",{class:"fontc",type:"button","aria-pressed":t[kind]===name?"true":"false",on:{click:()=>{t[kind]=name;changed(true)}}},
+    h("span",{class:"s"+(kind==="body"?" body":""),style:`font-family:'${name}',sans-serif;font-weight:${kind==="display"?f.w:400};${kind==="display"&&f.st?`font-stretch:${f.st};`:""}${kind==="display"&&t.upper?"text-transform:uppercase":""}`},kind==="display"?"Pequeños pasos":"Vehículos livianos y fáciles de armar."),h("b",{},name),h("small",{},f.note));
+  const rng=(label,path,min,max,unit)=>{const r=h("input",{type:"range",class:"a-range",min,max,value:getP(path),"aria-label":label}),o=h("b",{},getP(path)+unit);r.addEventListener("input",()=>{setP(path,+r.value);o.textContent=r.value+unit;changed()});return h("div",{class:"fld"},h("div",{class:"lb",style:"display:flex;justify-content:space-between"},label,o),r)};
+  return [...header("Tipografía","Toca una opción y mira cómo cambia la página."),
+    h("div",{class:"box"},h("h3",{},"Letra de los títulos"),h("div",{class:"fonts"},Object.entries(FONTS.display).map(([n,f])=>card("display",n,f))),fToggle("Títulos en MAYÚSCULAS","theme.upper",{structural:true}),rng("Tamaño de los títulos","theme.titleScale",80,125,"%")),
+    h("div",{class:"box"},h("h3",{},"Letra de los textos"),h("div",{class:"fonts"},Object.entries(FONTS.body).map(([n,f])=>card("body",n,f)))),
+    h("div",{class:"box"},h("h3",{},"Esquinas"),rng("Redondez de tarjetas y fotos","theme.radius",0,32,"px"))];
+}
+function go(v){view=v;refreshPanel();$(".adm-body",panel).scrollTop=0}
+function refreshPanel(){
+  if(!panel)return;const body=$(".adm-body",panel),sc=body.scrollTop,openG=$$("details.grp[open]",body).map(d=>d.dataset.grp);
+  const kids=view==="home"?vHome():view==="texts"?vTexts():view==="products"?vProducts():view.startsWith("product:")?vProduct(view.slice(8)):view==="images"?vImages():view==="contact"?vContact():view==="colors"?vColors():vFonts();
+  body.replaceChildren(...kids.filter(Boolean));
+  $$("details.grp",body).forEach(d=>{if(openG.includes(d.dataset.grp))d.open=true});
+  body.scrollTop=sc;checkContrast();updateStatus();
+  const wt=$("#waTest",panel);if(wt)wt.href=waLink();
+}
+function focusPath(path){
+  requestAnimationFrame(()=>{const f=$(`[data-path="${CSS.escape(path)}"]`,panel);if(!f)return;const g=f.closest("details");if(g)g.open=true;f.scrollIntoView({block:"center",behavior:"smooth"});f.classList.add("flash");setTimeout(()=>f.classList.remove("flash"),1300);$("input,textarea",f)?.focus({preventScroll:true})});
+}
+function openEditorFor(key){
+  if(document.documentElement.classList.contains("adm-hidden"))return;
+  if(key.startsWith("p:")){go("product:"+key.slice(2));return}
+  if(key.startsWith("img:")){const path=key.slice(4);if(path==="brand.logo"||path.startsWith("texts.")){go("images");focusPath(path)}return}
+  if(key.startsWith("contact.")){go("contact");focusPath(key);return}
+  go("texts");
+  let p=key;if(key.startsWith("texts.faq.items.")){}else if(/\.\d+$/.test(key))p=key.replace(/\.\d+$/,"");
+  focusPath(p);
+}
+
+/* --- Publicar --- */
+function buildHtml(d){
+  const json=JSON.stringify(d).replace(/</g,"\\u003c");
+  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+RESET+'</style></head><body>'+
+    `<title>${esc(TITLE)}</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link id="tr-fonts" rel="stylesheet" href="${esc(siteFontURL(d.theme))}">\n<style id="tr-css">${$("#tr-css").textContent}</style>\n<div id="site"></div>\n<script id="tr-default" type="application/json">${json}<\/script>\n<script id="tr-js">${$("#tr-js").textContent}<\/script>\n</body></html>`;
+}
+async function publish(){
+  const btn=$("#aPublish");btn.disabled=true;btn.textContent="Publicando…";
+  const done=()=>{btn.textContent="Publicar cambios";updateStatus()};
+  let art=null;try{art=window.claude?.use?await window.claude.use("artifact"):null}catch(e){}
+  if(!art){toast("Para publicar, abre esta página desde claude.ai con tu cuenta de editor. Tus cambios quedan guardados como borrador.",true);done();return}
+  const d=clone(data);d.updatedAt=Date.now();const json=JSON.stringify(d);
+  store.set(DRAFT,JSON.stringify({at:Date.now(),data}));
+  try{
+    try{await art.publish({"content.json":{content:json,contentType:"application/json"}})}
+    catch(e){if(e&&(e.code==="capability_disabled"||e.code==="read_only_path"))await art.publish(buildHtml(d));else throw e}
+    data=d;published=json;lastSnap=json;undoStack=[];store.del(DRAFT);toast("¡Publicado! Tus visitantes ya ven los cambios.");
+  }catch(e){
+    const m={not_writer:"Tu cuenta puede ver esta página pero no publicarla. Pide acceso de Editor al dueño.",not_granted:"Tu cuenta no tiene permiso para publicar. Pide acceso de Editor al dueño.",conflict:"Alguien publicó una versión más nueva. La página se recargará; tus cambios quedan como borrador.",rate_limited:"Publicaste hace muy poco. Espera unos segundos y vuelve a intentar.",too_large:"La página quedó muy pesada. Usa fotos más livianas e intenta de nuevo.",consent_required:"Acepta el permiso para publicar e intenta de nuevo."};
+    toast(m[e?.code]||`No se pudo publicar (${e?.code||"error"}). Tus cambios siguen guardados como borrador.`,true);
+  }
+  done();
+}
+
+/* --- Entrar / salir --- */
+async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function showLogin(){
+  if(isAdmin||$(".adm-login"))return;
+  const err=h("p",{class:"err",hidden:true,role:"alert"},"Clave incorrecta. Revisa mayúsculas y minúsculas.");
+  const pw=h("input",{type:"password",id:"admPass",autocomplete:"current-password",required:true});
+  const eye=h("button",{type:"button",on:{click:()=>{pw.type=pw.type==="password"?"text":"password";eye.textContent=pw.type==="password"?"Ver":"Ocultar"}}},"Ver");
+  const ov=h("div",{class:"adm-login"},h("form",{on:{submit:async e=>{e.preventDefault();if(await sha(pw.value)===PASS_HASH){sess.set("tomi-admin","1");ov.remove();enterAdmin()}else{err.hidden=false;pw.select()}}}},
+    h("span",{class:"lg",style:`background:${esc(data.brand.logoBg||"#000")}`},data.brand.logo?h("img",{src:data.brand.logo,alt:data.brand.name}):data.brand.name),
+    h("h2",{},"Panel de administración"),h("p",{},"Ingresa la clave para editar tu página."),
+    h("div",{class:"fld"},h("label",{for:"admPass"},"Clave"),h("div",{class:"pw"},pw,eye)),err,
+    h("button",{class:"a-btn a-primary",type:"submit"},"Entrar"),
+    h("button",{class:"a-link",type:"button",style:"justify-self:center",on:{click:()=>{ov.remove();if(location.hash==="#admin")history.replaceState(null,"",location.pathname+location.search)}}},"Volver a la página")));
+  document.body.appendChild(ov);setTimeout(()=>pw.focus(),50);
+}
+function enterAdmin(){
+  isAdmin=true;const root=document.documentElement;root.classList.add("is-admin");
+  if(!$("#tr-fonts-all")){const l=h("link",{id:"tr-fonts-all",rel:"stylesheet",href:fontURL([...Object.values(FONTS.display),...Object.values(FONTS.body)].map(f=>f.q))});document.head.appendChild(l)}
+  lastSnap=JSON.stringify(data);
+  const seg=h("div",{class:"adm-seg",role:"group","aria-label":"Vista previa"},
+    h("button",{type:"button","aria-pressed":"true",title:"Computador","aria-label":"Ver como computador",html:ICON.desk,on:{click:e=>dev(false,e.currentTarget)}}),
+    h("button",{type:"button","aria-pressed":"false",title:"Celular","aria-label":"Ver como celular",html:ICON.mob,on:{click:e=>dev(true,e.currentTarget)}}));
+  function dev(ph,b){root.classList.toggle("dev-phone",ph);$$("button",seg).forEach(x=>x.setAttribute("aria-pressed",x===b))}
+  panel=h("aside",{class:"adm","aria-label":"Panel de administración"},
+    h("div",{class:"adm-top"},h("span",{class:"ttl"},"Editor de tu página"),seg,
+      h("button",{class:"adm-ic",type:"button",title:"Ver como visitante",html:ICON.eye+"<span>Ver</span>",on:{click:()=>{root.classList.add("adm-hidden");panel.hidden=true;ret.hidden=false}}}),
+      h("button",{class:"adm-ic",type:"button",on:{click:exitAdmin}},"Salir")),
+    h("div",{class:"adm-body"}),
+    h("div",{class:"adm-foot"},h("div",{class:"adm-status"},h("i"),h("span",{})),
+      h("div",{class:"adm-actions"},h("button",{class:"a-btn a-soft",id:"aUndo",type:"button",title:"Deshacer",html:ICON.undo.replace("<svg",'<svg width="18" height="18"')+"Deshacer",on:{click:undo}}),
+        h("button",{class:"a-btn a-primary",id:"aPublish",type:"button",on:{click:publish}},"Publicar cambios"))));
+  const ret=h("button",{class:"adm-return a-btn a-primary",type:"button",hidden:true,on:{click:()=>{root.classList.remove("adm-hidden");panel.hidden=false;ret.hidden=true}}},"← Volver al editor");
+  document.body.append(panel,ret);
+  go("home");
+}
+function undo(){
+  const cur=JSON.stringify(data);
+  if(cur!==lastSnap){data=JSON.parse(lastSnap)}else if(undoStack.length){lastSnap=undoStack.pop();data=JSON.parse(lastSnap)}else return;
+  store.set(DRAFT,JSON.stringify({at:Date.now(),data}));render();refreshPanel();toast("Cambio deshecho");
+}
+function exitAdmin(){
+  isAdmin=false;const r=document.documentElement;r.classList.remove("is-admin","dev-phone","adm-hidden");
+  panel?.remove();$(".adm-return")?.remove();panel=null;
+  if(isDirty())toast("Tus cambios sin publicar quedan guardados como borrador en este navegador.");
+  if(location.hash==="#admin")history.replaceState(null,"",location.pathname+location.search);
+}
+
+/* Clic en la página para editar */
+document.addEventListener("click",e=>{
+  if(e.target.closest("#toAdmin")){e.preventDefault();sess.get("tomi-admin")==="1"?enterAdmin():showLogin();return}
+  if(!isAdmin||document.documentElement.classList.contains("adm-hidden"))return;
+  const t=e.target.closest("#site [data-edit]");if(!t)return;
+  if(e.target.closest("button.sw,.thumbs button,input,summary")&&!e.target.closest("summary[data-edit]"))return;
+  e.preventDefault();e.stopPropagation();openEditorFor(t.dataset.edit);
+},true);
+const route=()=>{if(location.hash==="#admin"){sess.get("tomi-admin")==="1"?(!isAdmin&&enterAdmin()):showLogin()}};
+window.addEventListener("hashchange",route);route();
+document.addEventListener("keydown",e=>{if(isAdmin&&(e.metaKey||e.ctrlKey)&&e.key==="z"&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName)){e.preventDefault();undo()}});
+})();
 </script>
