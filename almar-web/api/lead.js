@@ -1,4 +1,5 @@
 import { db, body, clip, json, classifySource } from './_lib.js';
+import { notifyLead, originOf } from './_notify.js';
 
 // Solicitudes de presupuesto desde el formulario de contacto.
 export default async function handler(req, res) {
@@ -14,8 +15,11 @@ export default async function handler(req, res) {
     const sql = db();
     const dup = await sql`SELECT 1 FROM leads WHERE email = ${email} AND created_at > now() - interval '1 minute' LIMIT 1`;
     if (!dup.length) {
-      await sql`INSERT INTO leads (nombre, email, whatsapp, tipo, fecha, lugar, mensaje, source)
-        VALUES (${nombre}, ${email}, ${clip(b.whatsapp, 40)}, ${clip(b.tipo, 40)}, ${clip(b.fecha, 20)}, ${clip(b.lugar, 160)}, ${clip(b.mensaje, 4000)}, ${source})`;
+      const [lead] = await sql`INSERT INTO leads (nombre, email, whatsapp, tipo, fecha, lugar, mensaje, source)
+        VALUES (${nombre}, ${email}, ${clip(b.whatsapp, 40)}, ${clip(b.tipo, 40)}, ${clip(b.fecha, 20)}, ${clip(b.lugar, 160)}, ${clip(b.mensaje, 4000)}, ${source})
+        RETURNING *`;
+      // Aviso inmediato por WhatsApp; se espera aquí porque la función se congela al responder.
+      await notifyLead(lead, originOf(req));
     }
     json(res, 200, { ok: true });
   } catch (e) {

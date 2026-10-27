@@ -1,4 +1,5 @@
 import { db, body, clip, json, isAdmin } from './_lib.js';
+import { getNotifySettings, saveNotifySettings, sendWhatsApp, notifyLead, originOf } from './_notify.js';
 
 const KEY = /^[a-z0-9_]{1,40}$/;
 const STATUSES = new Set(['nuevo', 'contactado', 'cotizado', 'cerrado', 'descartado']);
@@ -68,6 +69,29 @@ export default async function handler(req, res) {
       if (!Number.isInteger(id)) return json(res, 400, { error: 'Solicitud inválida.' });
       await sql`DELETE FROM leads WHERE id = ${id}`;
       return json(res, 200, { ok: true });
+    }
+    // Avisos de cotizaciones por WhatsApp (la apikey nunca se devuelve completa)
+    if (req.method === 'GET' && action === 'notify') {
+      const s = await getNotifySettings();
+      return json(res, 200, { enabled: s.enabled, phone: s.phone, hasKey: !!s.apikey, keyHint: s.apikey ? '••••' + s.apikey.slice(-3) : '' });
+    }
+    if (req.method === 'POST' && action === 'notify') {
+      const b = body(req);
+      await saveNotifySettings({ enabled: b.enabled === undefined ? undefined : !!b.enabled, phone: b.phone, apikey: b.apikey });
+      return json(res, 200, { ok: true });
+    }
+    if (req.method === 'POST' && action === 'notify-test') {
+      const s = await getNotifySettings();
+      const r = await sendWhatsApp('*✅ Prueba de avisos · Almar Fotografía*\nAsí llegarán los avisos cuando alguien cotice directamente en el formulario de la página.', { ...s, enabled: true });
+      return json(res, r.ok ? 200 : 400, r.ok ? { ok: true } : { error: `No se pudo enviar (${r.detail}). Revisa el número y la apikey.` });
+    }
+    if (req.method === 'POST' && action === 'lead-notify') {
+      const { id } = body(req);
+      const rows = Number.isInteger(id) ? await sql`SELECT * FROM leads WHERE id = ${id}` : [];
+      if (!rows.length) return json(res, 404, { error: 'Solicitud no encontrada.' });
+      const r = await notifyLead(rows[0], originOf(req));
+      const [lead] = await sql`SELECT * FROM leads WHERE id = ${id}`;
+      return json(res, r.ok ? 200 : 400, r.ok ? { lead } : { lead, error: `Aviso no enviado (${r.detail}).` });
     }
     return json(res, 404, { error: 'Acción desconocida.' });
   } catch (e) {

@@ -222,6 +222,11 @@ function renderLeads() {
   $('#lsearch').oninput = (e) => { lquery = e.target.value; const pos = e.target.selectionStart; renderLeads(); const s = $('#lsearch'); s.focus(); s.setSelectionRange(pos, pos); };
   $('#csv').onclick = exportCsv;
 }
+function notifyChip(l) {
+  if (!l.notify_status) return '<span class="nchip">Sin aviso por WhatsApp</span>';
+  if (l.notify_status === 'enviado') return `<span class="nchip ok">${ICON.wa}Aviso enviado a tu WhatsApp${l.notify_at ? ' · ' + ago(l.notify_at) : ''}</span>`;
+  return `<span class="nchip bad" title="${esc(l.notify_status)}">${ICON.wa}Aviso no enviado: ${esc(l.notify_status === 'sin configurar' ? 'falta configurar' : l.notify_status)}</span>`;
+}
 function leadCard(l) {
   const wa = waOf(l);
   const first = esc((l.nombre || '').split(' ')[0]);
@@ -231,6 +236,7 @@ function leadCard(l) {
     <div><h3>${esc(l.nombre)} <span class="pill ${esc(l.status)}">${esc(cap(l.status))}</span>${l.tipo ? `<span class="pill tipo">${esc(l.tipo)}</span>` : ''}</h3>
       <div class="meta"><span>Recibido ${ago(l.created_at)}</span>${l.fecha ? `<span>Evento: <b>${esc(fdate(l.fecha))}</b></span>` : ''}${l.lugar ? `<span>Lugar: ${esc(l.lugar)}</span>` : ''}<span class="srcmini">${LOGO[l.source] || ''}${esc(SRCNAME[l.source] || 'Directo')}</span></div>
       ${l.mensaje ? `<div class="msg">${esc(l.mensaje)}</div>` : ''}
+      <div class="nrow">${notifyChip(l)}<button class="btn ghost" type="button" data-renotify>${l.notify_status === 'enviado' ? 'Reenviar aviso' : 'Enviar aviso por WhatsApp'}</button></div>
     </div>
     <div class="contact"><span>Correo</span><a href="mailto:${esc(l.email)}">${esc(l.email)}</a>${l.whatsapp ? `<span>WhatsApp</span><span style="text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--ink);font-weight:400">${esc(l.whatsapp)}</span>` : ''}
       <textarea placeholder="Notas internas (ej: le envié propuesta el lunes)" data-notes>${esc(l.notas || '')}</textarea></div>
@@ -253,6 +259,13 @@ view.addEventListener('focusout', async (e) => {
   try { const { lead } = await api('/api/admin?action=lead', { method: 'POST', body: JSON.stringify({ id, notas: ta.value }) }); Object.assign(l, lead); toast('Nota guardada'); } catch (ex) { toast(ex.message); }
 });
 view.addEventListener('click', async (e) => {
+  const rn = e.target.closest('[data-renotify]');
+  if (rn) {
+    const id = +rn.closest('[data-id]').dataset.id; rn.disabled = true; rn.textContent = 'Enviando…';
+    try { const { lead } = await api('/api/admin?action=lead-notify', { method: 'POST', body: JSON.stringify({ id }) }); LEADS = LEADS.map((l) => (l.id === id ? lead : l)); renderLeads(); toast('Aviso enviado a tu WhatsApp'); }
+    catch (ex) { toast(ex.message); try { LEADS = (await api('/api/admin?action=leads')).leads; renderLeads(); } catch {} }
+    return;
+  }
   const del = e.target.closest('[data-del]'); if (!del) return;
   if (del.dataset.confirm !== '1') { del.dataset.confirm = '1'; del.innerHTML = '¿Seguro? Toca de nuevo'; setTimeout(() => { if (del.isConnected) { del.dataset.confirm = ''; del.innerHTML = ICON.trash + 'Eliminar'; } }, 4000); return; }
   const id = +del.closest('[data-id]').dataset.id;
@@ -332,6 +345,51 @@ function renderContactView(g, fieldsHtml, nChanged) {
   };
   updateWaPreview();
   bindFields(() => renderTexts('contacto'));
+  view.insertAdjacentHTML('beforeend', '<div class="card" id="notifyCard" style="margin-top:16px"><div class="skel"></div></div>');
+  renderNotifyCard();
+}
+
+/* ---------- Avisos de cotizaciones por WhatsApp ---------- */
+async function renderNotifyCard() {
+  const box = $('#notifyCard'); if (!box) return;
+  let s;
+  try { s = await api('/api/admin?action=notify'); } catch (ex) { box.innerHTML = `<div class="empty">${esc(ex.message)}</div>`; return; }
+  const phone = s.phone || String(val('whatsapp') || '').replace(/\D/g, '');
+  const state = !s.enabled ? ['descartado', 'Desactivado'] : s.hasKey && s.phone ? ['cerrado', 'Activo'] : ['contactado', 'Falta configurar'];
+  box.innerHTML = `<h2>Avisos de cotizaciones por WhatsApp <span class="pill ${state[0]}">${state[1]}</span></h2>
+  <p class="sub">Cada vez que alguien cotice en el formulario de la página, te llega al instante un WhatsApp con su nombre, evento, fecha, lugar, contacto y mensaje.</p>
+  <div class="grid g-2">
+    <div class="fields">
+      <label class="switch"><input type="checkbox" id="nEnabled" ${s.enabled ? 'checked' : ''}><span>Enviarme un aviso por cada cotización</span></label>
+      <div class="field"><label for="nPhone">Tu WhatsApp para recibir los avisos</label><input id="nPhone" inputmode="numeric" value="${esc(phone)}" placeholder="56912345678"><small>Con código de país, solo números.</small></div>
+      <div class="field"><label for="nKey">Clave del servicio de avisos (apikey)</label><input id="nKey" type="password" autocomplete="off" placeholder="${s.hasKey ? 'Guardada ' + esc(s.keyHint) + ' · escribe para cambiarla' : 'Pega aquí la clave que te envía el bot'}"></div>
+      <ol class="steps-ol">
+        <li>Abre <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" rel="noopener">la guía de CallMeBot ↗</a> y guarda en los contactos de tu teléfono el número del bot que aparece ahí.</li>
+        <li>Desde tu WhatsApp, envíale este mensaje: <code>I allow callmebot to send me messages</code></li>
+        <li>El bot te responde con tu <b>APIKEY</b>: pégala arriba y guarda.</li>
+        <li>Toca <b>Enviar mensaje de prueba</b> para confirmar que llega.</li>
+      </ol>
+      <div class="err" id="nErr" role="alert"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" type="button" id="nSave">Guardar</button><button class="btn" type="button" id="nTest" ${s.hasKey ? '' : 'disabled'}>${ICON.wa}Enviar mensaje de prueba</button></div>
+    </div>
+    <div><span class="lbl">Así te llegará el aviso</span>
+      <div class="wabubble"><b>🔔 Nueva cotización desde la página web</b><br>Alguien cotizó <b>directamente en el formulario</b> de tu sitio.<br><br>👤 <b>Nombre:</b> Camila Rojas<br>🎉 <b>Evento:</b> Matrimonio<br>📅 <b>Fecha:</b> sábado, 13 de marzo de 2027<br>📍 <b>Lugar:</b> Viña Casas del Bosque<br>✉️ <b>Correo:</b> camila.rojas@gmail.com<br>📱 <b>WhatsApp:</b> 9 8765 4321<br><br>💬 <b>Solicitud:</b><br>Nos casamos en marzo, unas 120 personas…<br><br>🔎 <b>Llegó desde:</b> Instagram<br>↩️ Responder: wa.me/56987654321<br>📋 Ver en el panel: …/admin#presupuestos<span class="t">12:41 ✓✓</span></div>
+    </div>
+  </div>`;
+  const err = $('#nErr');
+  $('#nSave').onclick = async () => {
+    err.textContent = '';
+    const p = $('#nPhone').value.replace(/\D/g, '');
+    if ($('#nEnabled').checked && !/^\d{10,15}$/.test(p)) { err.textContent = 'Escribe tu número con código de país, por ejemplo 56912345678.'; $('#nPhone').focus(); return; }
+    try { await api('/api/admin?action=notify', { method: 'POST', body: JSON.stringify({ enabled: $('#nEnabled').checked, phone: p, apikey: $('#nKey').value.trim() }) }); toast('Avisos guardados'); renderNotifyCard(); }
+    catch (ex) { err.textContent = ex.message; }
+  };
+  $('#nTest').onclick = async () => {
+    err.textContent = ''; const b = $('#nTest'); b.disabled = true; b.textContent = 'Enviando…';
+    try { await api('/api/admin?action=notify-test', { method: 'POST' }); toast('Mensaje de prueba enviado: revisa tu WhatsApp'); }
+    catch (ex) { err.textContent = ex.message; }
+    finally { b.disabled = false; b.innerHTML = ICON.wa + 'Enviar mensaje de prueba'; }
+  };
 }
 
 /* ---------- Categorías ---------- */
