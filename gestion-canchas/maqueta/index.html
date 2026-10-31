@@ -375,6 +375,42 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .stages li.stg .dot.cur { border-color: var(--sc); color: var(--sc) }
 .stages li.stg.cur .btn.primary { background: var(--sc); border-color: var(--sc); color: #0d0d0d }
 .qaccess { display: grid; gap: 10px; padding: 0 12px 12px }
+
+/* Proyectos: cronograma por fechas, Gantt consolidado y calendario anual */
+.kpis { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) }
+.gbar.est { background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(127, 127, 127, .3) 6px 8px); text-shadow: 0 0 3px var(--surface2), 0 0 2px var(--surface2) }
+.gbar.cur.est { text-shadow: none }
+.gbase { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; background: var(--bad); z-index: 3; border-radius: 2px }
+.gall .grow { grid-template-columns: 210px 1fr }
+.gall .gaxis { grid-template-columns: 210px 1fr }
+.gall .gbar.gs { top: 6px; bottom: 6px; padding: 0; min-width: 3px; border-radius: 3px }
+.gall .gbar.clash { box-shadow: 0 0 0 2px var(--bad); top: 3px; bottom: 3px }
+.glabel { all: unset; cursor: pointer; display: grid; min-width: 0; font-size: 12px; font-weight: 600 }
+.glabel span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: inherit }
+.glabel .small { font-weight: 400 }
+.glabel:hover > span:first-child { color: var(--accent) }
+.glabel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.legend i.hatch { background: repeating-linear-gradient(135deg, var(--surface2) 0 3px, var(--muted) 3px 5px) }
+.clashes { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--bad); border-radius: 8px; background: color-mix(in srgb, var(--bad) 10%, transparent); font-size: 13px }
+.clashes ul { margin: 4px 0 0; padding-left: 18px }
+.pcard.late { outline: 2px solid var(--bad); outline-offset: 2px }
+.closedsec > summary { cursor: pointer; list-style: none }
+.closedsec > summary::-webkit-details-marker { display: none }
+.closedsec > summary h3::before { content: '▸ '; color: var(--muted) }
+.closedsec[open] > summary h3::before { content: '▾ ' }
+.plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px }
+.plan > div { background: var(--surface2); border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px }
+.tag.real { color: var(--ok); border-color: var(--ok) }
+.tag.est { border-style: dashed }
+.kv.fechas dd { display: flex; gap: 6px; align-items: center }
+.calyear { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.calyear .mc { background: var(--surface); min-height: 118px; padding: 8px; display: flex; flex-direction: column; gap: 4px; min-width: 0 }
+.calyear .mc.today { box-shadow: inset 0 0 0 2px var(--lamp) }
+.calyear .mh { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-bottom: 2px }
+.calyear .mh b { font-family: var(--f-display); text-transform: capitalize; font-weight: 500 }
+.calyear .ev { background: var(--surface2); color: var(--fg); border-left: 4px solid; border-radius: 3px; padding: 3px 6px }
+.calyear .ev:hover { background: var(--line) }
+@media (max-width: 760px) { .calyear { grid-template-columns: repeat(2, minmax(0, 1fr)) } .gall .grow, .gall .gaxis { grid-template-columns: 130px 1fr } }
 </style>
 
 <div class="app">
@@ -427,14 +463,19 @@ const uid = p => p + Math.random().toString(36).slice(2, 8);
 
 /* ===================== Catálogos ===================== */
 const TIPOS = { panoramica: 'Panorámica', semi: 'Semi panorámica', estandar: 'Estándar' };
+// Cada etapa tiene una fecha de inicio y una duración en días (los hitos duran 1 día). La fecha de retiro de carga
+// (salida y transporte) es el ancla: producción y diseño definitivo se calculan hacia atrás; entrega, instalación y
+// habilitación, hacia adelante. Cada fecha queda marcada como estimada o real.
 const STAGES = [
-  { key: 'venta', nombre: 'Venta cerrada', off: 0, len: 1, color: '#6b7280' },
-  { key: 'construccion', nombre: 'En construcción', off: 2, len: 20, color: '#e9a23b' },
-  { key: 'salida', nombre: 'Salida y transporte', off: 22, len: 5, color: '#8b6cf0' },
-  { key: 'entrega', nombre: 'Entrega en obra', off: 27, len: 1, color: '#3b9bea' },
-  { key: 'instalacion', nombre: 'Instalación', off: 28, len: 5, color: '#41d7a7' },
-  { key: 'habilitada', nombre: 'Cancha habilitada', off: 33, len: 1, color: '#1f9d63' }
+  { key: 'venta', nombre: 'Venta cerrada', dur: 1, color: '#6b7280' },
+  { key: 'diseno', nombre: 'Definición de diseño definitivo', dur: 7, color: '#c08bd9' },
+  { key: 'construccion', nombre: 'Producción', dur: 20, color: '#e9a23b' },
+  { key: 'salida', nombre: 'Salida y transporte', dur: 5, color: '#8b6cf0' },
+  { key: 'entrega', nombre: 'Entrega en obra', dur: 1, color: '#3b9bea' },
+  { key: 'instalacion', nombre: 'Instalación', dur: 14, color: '#41d7a7' },
+  { key: 'habilitada', nombre: 'Cancha habilitada', dur: 1, color: '#1f9d63' }
 ];
+const MILESTONE = k => ['venta', 'entrega', 'habilitada'].includes(k);
 const DEAL_STAGES = [
   { key: 'nuevo', nombre: 'Nuevo contacto', cls: 'st-mut' },
   { key: 'propuesta', nombre: 'Propuesta enviada', cls: 'st-acc' },
@@ -460,16 +501,36 @@ const CITIES = [
   ['Corrientes', 'Corrientes', -27.47, -58.83], ['Misiones', 'Posadas', -27.37, -55.90],
   ['Chaco', 'Resistencia', -27.45, -58.99], ['Santiago del Estero', 'Santiago del Estero', -27.79, -64.26],
   ['Buenos Aires', 'Chascomús', -35.58, -58.01], ['Buenos Aires', 'Balcarce', -37.85, -58.26], ['Buenos Aires', 'Tortuguita', -34.47, -58.75],
-  ['Mendoza', 'Luján de Cuyo', -33.04, -68.88], ['Uruguay', 'Montevideo (a confirmar)', -34.90, -56.16]
+  ['Mendoza', 'Luján de Cuyo', -33.04, -68.88], ['Uruguay', 'Montevideo (a confirmar)', -34.90, -56.16],
+  ['Catamarca', 'San Fernando del Valle de Catamarca', -28.47, -65.78], ['Formosa', 'Formosa', -26.18, -58.17],
+  ['La Rioja', 'La Rioja', -29.41, -66.86], ['La Pampa', 'Santa Rosa', -36.62, -64.29], ['Chubut', 'Rawson', -43.30, -65.10],
+  ['Río Negro', 'Viedma', -40.81, -62.99], ['Buenos Aires', 'Luján', -34.57, -59.10]
 ].map(([prov, ciudad, lat, lon]) => ({ prov, ciudad, lat, lon }));
 const cityOf = name => CITIES.find(c => c.ciudad === name) || CITIES[0];
-const PROVINCIAS = [...new Set(CITIES.map(c => c.prov))].sort();
+// Las 23 provincias, la Ciudad Autónoma de Buenos Aires y Uruguay, con un punto de referencia (su capital) para el mapa.
+const PROV_CENTRO = {
+  'Buenos Aires': [-34.92, -57.95], 'Catamarca': [-28.47, -65.78], 'Chaco': [-27.45, -58.99], 'Chubut': [-43.30, -65.10],
+  'Ciudad Autónoma de Buenos Aires': [-34.60, -58.38], 'Córdoba': [-31.42, -64.18], 'Corrientes': [-27.47, -58.83], 'Entre Ríos': [-31.73, -60.53],
+  'Formosa': [-26.18, -58.17], 'Jujuy': [-24.19, -65.30], 'La Pampa': [-36.62, -64.29], 'La Rioja': [-29.41, -66.86], 'Mendoza': [-32.89, -68.84],
+  'Misiones': [-27.37, -55.90], 'Neuquén': [-38.95, -68.06], 'Río Negro': [-40.81, -62.99], 'Salta': [-24.78, -65.41], 'San Juan': [-31.54, -68.53],
+  'San Luis': [-33.30, -66.34], 'Santa Cruz': [-51.62, -69.22], 'Santa Fe': [-31.63, -60.70], 'Santiago del Estero': [-27.79, -64.26],
+  'Tierra del Fuego': [-54.80, -68.30], 'Tucumán': [-26.82, -65.22], 'Uruguay': [-34.90, -56.16]
+};
+const PROVINCIAS = Object.keys(PROV_CENTRO).sort((a, b) => a.localeCompare(b, 'es'));
+// Ubicación de una ciudad escrita libremente: si es una ciudad conocida se usan sus coordenadas; si no, las de su provincia.
+const sinTildes = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+function locate(prov, ciudad) {
+  const k = sinTildes(ciudad), c = CITIES.find(x => sinTildes(x.ciudad) === k && (!prov || x.prov === prov)) || (!prov && CITIES.find(x => sinTildes(x.ciudad) === k));
+  if (c) return { prov: c.prov, ciudad: String(ciudad || '').trim() || c.ciudad, lat: c.lat, lon: c.lon };
+  const pc = PROV_CENTRO[prov] || PROV_CENTRO['Ciudad Autónoma de Buenos Aires'];
+  return { prov: PROV_CENTRO[prov] ? prov : 'Ciudad Autónoma de Buenos Aires', ciudad: String(ciudad || '').trim(), lat: pc[0], lon: pc[1] };
+}
 
 const CESPED_OPC = [['Azul', '#1f6fd1'], ['Celeste', '#3a9be0'], ['Verde', '#2e7d4f'], ['Gris', '#8e949a'], ['Negro', '#26292d'], ['Rojo', '#b8362c'], ['Terracota', '#c4553a']];
 
 /* ===================== Datos reales (ATILA_Padel_Planificacion_2026.xlsx, hoja CRONOGRAMA) ===================== */
 function schedule(venta) {
-  return STAGES.map(s => ({ key: s.key, inicio: addDays(venta, s.off), fin: addDays(venta, s.off + s.len - 1), estado: 'pendiente', hecho: '' }));
+  return newPlan(venta).etapas;
 }
 function autoState(p) {
   p.etapas.forEach(e => {
@@ -482,7 +543,7 @@ function autoState(p) {
 function scheduleFromMonths(prod, log) {
   const end = ym => { const [y, m] = ym.split('-').map(Number); return isoOf(new Date(y, m, 0)); };
   const d = (ym, day) => `${ym}-${pad(day)}`;
-  const s = { venta: [addDays(d(prod, 1), -1), addDays(d(prod, 1), -1)], construccion: [d(prod, 1), end(prod)], salida: [d(log, 1), d(log, 5)],
+  const s = { venta: [addDays(d(prod, 1), -1), addDays(d(prod, 1), -1)], diseno: [d(prod, 1), d(prod, 1)], construccion: [d(prod, 1), end(prod)], salida: [d(log, 1), d(log, 5)],
     entrega: [d(log, 6), d(log, 6)], instalacion: [d(log, 7), d(log, 20)], habilitada: [d(log, 21), d(log, 21)] };
   return STAGES.map(st => ({ key: st.key, inicio: s[st.key][0], fin: s[st.key][1], estado: 'pendiente', hecho: '' }));
 }
@@ -530,7 +591,8 @@ function seed() {
     p.traza.push({ f: TODAY, t: 'Importado desde ATILA_Padel_Planificacion_2026.xlsx (hoja CRONOGRAMA).' });
     p.traza.push({ f: TODAY, t: `Status informado: ${status}.` });
     p.traza.push({ f: TODAY, t: instHecha ? `Cronograma: logística + instalación ${fmtY(instHecha)}.` : `Cronograma: producción en ${MESES[+prod.slice(5) - 1]} ${prod.slice(0, 4)}, logística + instalación en ${MESES[+log.slice(5) - 1]} ${log.slice(0, 4)}. Días estimados.` });
-    if (!instHecha) p.traza.push({ f: TODAY, t: 'Venta cerrada: el Excel no informa la fecha de venta; se registra la fecha de importación.' });
+    if (!instHecha) p.traza.push({ f: TODAY, t: 'Venta cerrada: el Excel no informa la fecha de venta; queda como fecha estimada (fecha de importación).' });
+    normProject(p, false);
     return p;
   });
   return { v: 4, models, deals: [], projects };
@@ -575,6 +637,8 @@ async function loadAll() {
   S = b.state;
   if (b.me.rol !== 'cliente' && !S.models.length && (b.me.rol === 'superadmin' || b.me.negocios.includes('atila'))) { const seeded = seed(); markSaved(); S = { ...seeded, quoteSeq: 0 }; queueSync(); }
   else { migrarTipos(); markSaved(); }
+  // Textos con codificación equivocada y proyectos del formato anterior se corrigen y, si es equipo de Atila, se guardan.
+  if (prepararDatos() && (b.me.rol === 'superadmin' || (b.me.rol === 'usuario' && b.me.negocios.includes('atila')))) queueSync();
 }
 function endSession() { API.token = null; try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} UI.userId = null; UI.unlocked = {}; UI.qKey = null; USERS = []; render(); }
 // Cierre por inactividad: sin clics ni teclas durante 1 hora la sesión se cierra (en todas las pestañas).
@@ -615,7 +679,7 @@ function locSesClose(l) {
 }
 async function boot() {
   if (location.protocol.startsWith('http')) try { const r = await fetch('/api/ping', { cache: 'no-store' }); API.on = r.ok && (await r.json()).ok === true; } catch (e) { API.on = false; }
-  if (!API.on) { await initUsers(); render(); checkIdle(); return; }
+  if (!API.on) { if (prepararDatos()) try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} await initUsers(); render(); checkIdle(); return; }
   const cot = new URLSearchParams(location.search).get('cot'); if (cot) { UI.publicCot = cot; S = { v: 4, models: [], deals: [], projects: [], quoteSeq: 0 }; render(); return; }
   S = { v: 4, models: [], deals: [], projects: [], quoteSeq: 0 };
   try { API.token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
@@ -650,14 +714,78 @@ const project = id => S.projects.find(p => p.id === id);
 function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => el.hidden = true, 2400); }
 
 /* ===================== Estado de proyectos ===================== */
-function isLate(e) { return e.estado !== 'completada' && e.fin < TODAY; }
-function current(p) { return p.etapas.find(e => e.estado !== 'completada') || null; }
+// Reparación de textos guardados con la codificación equivocada (UTF-8 leído como Latin-1/Windows-1252: «ChascomÃºs» → «Chascomús»).
+// Se corrige cada secuencia dañada por separado, así un texto con partes sanas y partes dañadas queda bien.
+const CP1252 = '€\x81‚ƒ„…†‡ˆ‰Š‹Œ\x8dŽ\x8f\x90‘’“”•–—˜™š›œ\x9džŸ';
+const MOJI_RUN = /[Â-ô][\u0080-¿ŒœŠšŸŽžƒˆ˜–-™]{1,3}/g;
+function fixMojibake(s) {
+  if (typeof s !== 'string' || s.length > 20000) return s;
+  for (let k = 0; k < 3; k++) {
+    const n = s.replace(MOJI_RUN, run => {
+      const b = [];
+      for (const ch of run) { const c = ch.charCodeAt(0), j = CP1252.indexOf(ch); if (c < 256) b.push(c); else if (j >= 0) b.push(0x80 + j); else return run; }
+      try { return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(b)); } catch (e) { return run; }
+    });
+    if (n === s) break; s = n;
+  }
+  return s;
+}
+function fixDeep(o) { return Array.isArray(o) ? o.map(fixDeep) : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, fixDeep(v)])) : fixMojibake(o); }
+
+function stOf(p, k) { return p.etapas.find(e => e.key === k); }
+// Recalcula el cronograma desde la fecha de retiro de carga. Las fechas confirmadas como reales no se mueven.
+function replan(p) {
+  const by = k => stOf(p, k), finDe = e => addDays(e.inicio, e.dur - 1), sal = by('salida');
+  let next = sal.inicio;
+  ['construccion', 'diseno'].forEach(k => { const e = by(k); if (!e.real) e.inicio = addDays(next, -e.dur); e.fin = finDe(e); next = e.inicio; });
+  sal.fin = finDe(sal);
+  let cur = addDays(sal.fin, 1);
+  ['entrega', 'instalacion', 'habilitada'].forEach(k => { const e = by(k); if (!e.real) e.inicio = cur; e.fin = finDe(e); cur = addDays(e.fin, 1); });
+  const v = by('venta'); v.dur = 1; v.fin = v.inicio;
+}
+// Plan nuevo al cerrar una venta: con la entrega en obra deseada se fija el retiro de carga; sin ella, se usan las duraciones por defecto.
+function newPlan(venta, entrega) {
+  const p = { etapas: STAGES.map(s => ({ key: s.key, inicio: venta, fin: venta, dur: s.dur, real: false })) };
+  const sal = stOf(p, 'salida'), pre = stOf(p, 'diseno').dur + stOf(p, 'construccion').dur;
+  sal.inicio = entrega ? addDays(entrega, -sal.dur) : addDays(venta, 1 + pre);
+  replan(p); return p;
+}
+// Convierte proyectos del formato anterior (rango desde/hasta y estado marcado a mano) al cronograma por fechas.
+function normProject(p, conNota) {
+  if (p.plan === 2) return false;
+  const old = Object.fromEntries((p.etapas || []).map(e => [e.key, e]));
+  const realOld = e => !!e && (p.dealId ? e.estado === 'completada' : p.estadoObra === 'Listo instalado');
+  p.etapas = STAGES.map(s => { const o = old[s.key];
+    if (!o || s.key === 'diseno') return { key: s.key, inicio: '', fin: '', dur: s.dur, real: false };
+    return { key: s.key, inicio: o.inicio, fin: o.fin, dur: MILESTONE(s.key) ? 1 : Math.max(1, diffDays(o.inicio, o.fin) + 1), real: s.key === 'venta' ? !!p.dealId : realOld(o) }; });
+  const ds = stOf(p, 'diseno'), pr = stOf(p, 'construccion');
+  ds.inicio = addDays(pr.inicio, -ds.dur); ds.real = pr.real;
+  replan(p);
+  p.instalBase = p.instalBase || stOf(p, 'instalacion').inicio;
+  p.plan = 2;
+  if (conNota) (p.traza = p.traza || []).push({ f: TODAY, t: `Cronograma actualizado: una fecha por etapa con su duración, cada una marcada como estimada o real; se agrega la definición del diseño definitivo. Fecha de venta ${stOf(p, 'venta').real ? 'real' : 'estimada'}.` });
+  return true;
+}
+// Prepara los datos cargados: repara textos y actualiza proyectos al cronograma por fechas. Devuelve true si algo cambió.
+function prepararDatos() {
+  const antes = JSON.stringify(S);
+  S = fixDeep(S);
+  S.projects.forEach(p => normProject(p, true));
+  return JSON.stringify(S) !== antes;
+}
+// El estado de cada etapa sale solo de las fechas: tarjetas, contadores, Gantt y calendario usan la misma regla.
+function stState(e) { return e.fin < TODAY ? 'completada' : e.inicio <= TODAY ? 'en_curso' : 'pendiente'; }
+const sinConfirmar = e => !e.real && e.fin < TODAY;
+function current(p) { return p.etapas.find(e => stState(e) !== 'completada') || null; }
+const isClosed = p => !current(p);
+// Atraso: días que la instalación se corrió respecto de la fecha comprometida al cierre de la venta.
+function atraso(p) { const i = stOf(p, 'instalacion'); return p.instalBase && !isClosed(p) ? Math.max(0, diffDays(p.instalBase, i.inicio)) : 0; }
 function pStatus(p) {
-  const c = current(p);
+  const c = current(p), d = atraso(p);
   if (!c) return { txt: 'Cancha habilitada', cls: 'st-ok', key: 'fin' };
-  if (p.etapas.some(isLate)) return { txt: `${stageName(c.key)} · atrasada`, cls: 'st-bad', key: c.key };
-  if (c.estado === 'pendiente') return { txt: `${stageName(c.key)} desde ${fmt(c.inicio)}`, cls: 'st-mut', key: c.key };
-  return { txt: stageName(c.key), cls: 'st-acc', key: c.key };
+  const pend = stState(c) === 'pendiente', txt = pend ? `${stageName(c.key)} desde ${fmt(c.inicio)}` : stageName(c.key);
+  if (d) return { txt: `${txt} · atraso ${d} día${d === 1 ? '' : 's'}`, cls: 'st-bad', key: c.key };
+  return { txt, cls: pend ? 'st-mut' : 'st-acc', key: c.key };
 }
 function stageColor(k) { return (STAGES.find(s => s.key === k) || { color: '#2ea86a' }).color; }
 
@@ -1094,9 +1222,9 @@ function renderNav() {
   $('#brandSub').textContent = UI.profile === 'atila' ? 'Gestión de entregas · Argentina' : 'Perfil en preparación';
   if (UI.profile !== 'atila') { $('#nav').innerHTML = `<button data-act="view" data-id="inicio" ${['usuarios', 'clave'].includes(UI.view) ? '' : 'aria-current="page"'}>${icon('M3 12l9-8 9 8M5 10v10h14V10')}Inicio</button>${adminItem}`; return; }
   const active = S.deals.filter(d => !['cerrada', 'perdida'].includes(d.etapa)).length, nuevas = S.deals.filter(d => d.portal && !d.aceptada).length;
-  const live = S.projects.filter(p => current(p)).length;
+  const nAbiertos = S.projects.filter(p => !isClosed(p)).length;
   $('#nav').innerHTML = VIEWS_ATILA.filter(v => canModule(v.id)).map(v => `<button data-act="view" data-id="${v.id}" ${UI.view === v.id ? 'aria-current="page"' : ''}>${icon(v.icon)}${v.name}${
-    v.id === 'bandeja' ? `<span class="count${nuevas ? ' hot' : ''}" title="${nuevas ? nuevas + ' solicitud(es) nueva(s) del portal' : ''}">${active}</span>` : v.id === 'clientes' ? `<span class="count">${clientes().length}</span>` : v.id === 'proyectos' ? `<span class="count">${live}</span>` : ''}</button>`).join('') + adminItem;
+    v.id === 'bandeja' ? `<span class="count${nuevas ? ' hot' : ''}" title="${nuevas ? nuevas + ' solicitud(es) nueva(s) del portal' : ''}">${active}</span>` : v.id === 'clientes' ? `<span class="count">${clientes().length}</span>` : v.id === 'proyectos' ? `<span class="count" title="${S.projects.length} proyectos: ${nAbiertos} abiertos · ${S.projects.length - nAbiertos} cerrados">${S.projects.length}</span>` : ''}</button>`).join('') + adminItem;
 }
 
 function vCotPublica() {
@@ -1151,50 +1279,84 @@ function vEuropa() {
 /* ---------- Proyectos ---------- */
 // Estado de la tarjeta de proyecto: define el color de toda la tarjeta.
 const CARD_STATES = {
-  espera: { label: 'Por iniciar producción', c: '#3a3f44', t: '#f2f2f2' },
-  construccion: { label: 'En construcción', c: '#e9a23b', t: '#0d0d0d' },
+  espera: { label: 'Diseño / por iniciar producción', c: '#3a3f44', t: '#f2f2f2' },
+  construccion: { label: 'En producción', c: '#e9a23b', t: '#0d0d0d' },
   transito: { label: 'Saliendo / en tránsito', c: '#8b6cf0', t: '#ffffff' },
   instalacion: { label: 'En instalación', c: '#41d7a7', t: '#0d0d0d' },
-  fin: { label: 'Cancha habilitada', c: '#1f9d63', t: '#ffffff' },
-  atraso: { label: 'Con atraso', c: '#e5564b', t: '#ffffff' }
+  fin: { label: 'Cerrado (cancha habilitada)', c: '#1f9d63', t: '#ffffff' }
 };
 function cardState(p) {
   const c = current(p);
   if (!c) return 'fin';
-  if (p.etapas.some(isLate)) return 'atraso';
-  if (c.estado === 'pendiente' || c.key === 'venta') return 'espera';
+  if (c.key === 'venta' || c.key === 'diseno' || (c.key === 'construccion' && stState(c) === 'pendiente')) return 'espera';
+  if (c.key === 'construccion') return 'construccion';
   if (c.key === 'salida' || c.key === 'entrega') return 'transito';
-  if (c.key === 'habilitada') return 'instalacion';
-  return c.key;
+  return 'instalacion';
+}
+const estTag = e => `<span class="tag ${e.real ? 'real' : 'est'}" title="${e.real ? 'Fecha confirmada' : 'Fecha calculada o informada sin confirmar'}">${e.real ? 'Real' : 'Estimada'}</span>`;
+function pcard(x) {
+  const st = pStatus(x), cs = CARD_STATES[cardState(x)], ent = stOf(x, 'entrega'), late = atraso(x);
+  return `<button class="pcard st-card${late ? ' late' : ''}" style="--c:${cs.c};--t:${cs.t}" data-act="openproj" data-id="${x.id}">
+    <div class="top"><span class="t">${esc(x.nombre)}</span><span class="muted small">Abrir →</span></div>
+    <span class="muted small">${esc(x.ciudad)} · ${esc(x.comuna)} · ${x.canchas} × ${esc(model(x.modelo).nombre)}${x.instal ? ' · ' + esc(x.instal) : ''}</span>
+    <div class="bar">${x.etapas.map(e => { const s = stState(e); return `<i class="${s === 'completada' ? 'done' : s === 'en_curso' ? 'cur' : ''}"></i>`; }).join('')}</div>
+    <div class="top"><span class="pill">${st.txt}</span><span class="small muted">${isClosed(x) ? `Habilitada <span class="mono">${fmt(stOf(x, 'habilitada').inicio)}</span>` : `Entrega en obra <span class="mono">${fmt(ent.inicio)}</span>${ent.real ? '' : ' (est.)'}`}</span></div></button>`;
 }
 function vProyectos() {
   const open = UI.projOpen && project(UI.project);
   if (open) return `<div><button class="btn ghost sm" data-act="projback">← Todos los proyectos</button></div>${projectDetail(open)}`;
-  const count = k => S.projects.filter(x => cardState(x) === k).length;
-  const kpis = ['construccion', 'transito', 'instalacion', 'fin', 'atraso'].map(k => [CARD_STATES[k].label, count(k), k === 'fin' ? 'st-ok' : k === 'atraso' && count(k) ? 'st-bad' : '']);
-  return `<div class="head"><div><h1>Proyectos y <em>entregas</em></h1><p>Cada venta cerrada se convierte en un proyecto con nombre, fechas y ubicación. Abre un proyecto para ver su línea de tiempo, etapas, cancha y trazabilidad.</p></div></div>
-  <div class="kpis">${kpis.map(([n, v, c]) => `<div class="kpi"><span class="label">${n}</span><b class="${c}">${v}</b></div>`).join('')}</div>
-  <div class="cardlegend">${Object.values(CARD_STATES).map(s => `<span><i style="background:${s.c}"></i>${s.label}</span>`).join('')}</div>
-  ${S.projects.length ? `<div class="pgrid">${S.projects.map(x => { const st = pStatus(x), cs = CARD_STATES[cardState(x)], c = current(x), ent = x.etapas.find(e => e.key === 'entrega');
-    return `<button class="pcard st-card" style="--c:${cs.c};--t:${cs.t}" data-act="openproj" data-id="${x.id}">
-      <div class="top"><span class="t">${esc(x.nombre)}</span><span class="muted small">Abrir →</span></div>
-      <span class="muted small">${esc(x.ciudad)} · ${esc(x.comuna)} · ${x.canchas} × ${esc(model(x.modelo).nombre)}${x.instal ? ' · ' + esc(x.instal) : ''}</span>
-      <div class="bar">${x.etapas.map(e => `<i class="${e.estado === 'completada' ? 'done' : isLate(e) ? 'late' : e.estado === 'en_curso' ? 'cur' : ''}"></i>`).join('')}</div>
-      <div class="top"><span class="pill">${st.txt}</span><span class="small muted">${c ? `Entrega en obra <span class="mono">${fmt(ent.fin)}</span>` : 'Entregada'}</span></div></button>`; }).join('')}</div>`
-    : '<div class="panel"><div class="empty">Aún no hay proyectos. Cierra una venta en la bandeja.</div></div>'}`;
+  const byEntrega = (a, b) => stOf(a, 'entrega').inicio.localeCompare(stOf(b, 'entrega').inicio);
+  const abiertos = S.projects.filter(p => !isClosed(p)).sort(byEntrega), cerrados = S.projects.filter(isClosed).sort(byEntrega).reverse();
+  const pend = abiertos.filter(p => stOf(p, 'entrega').inicio >= TODAY), pendC = pend.reduce((a, p) => a + (+p.canchas || 0), 0);
+  const count = k => abiertos.filter(x => cardState(x) === k).length, late = abiertos.filter(x => atraso(x)).length;
+  const kpis = [['Pendientes de entrega', pend.length, '', `${pendC} cancha${pendC === 1 ? '' : 's'} en total`], ['Diseño / por iniciar', count('espera')], ['En producción', count('construccion')],
+    ['En tránsito', count('transito')], ['En instalación', count('instalacion')], ['Con atraso', late, late ? 'st-bad' : '', 'instalación después de lo comprometido'], ['Cerrados', cerrados.length, 'st-ok']];
+  return `<div class="head"><div><h1>Proyectos y <em>entregas</em></h1><p>Cada venta cerrada se convierte en un proyecto. El estado de cada proyecto se calcula con las fechas de su cronograma: los contadores, las tarjetas, el Gantt y el calendario usan la misma regla.</p></div></div>
+  <div class="kpis">${kpis.map(([n, v, c, sub]) => `<div class="kpi"><span class="label">${n}</span><b class="${c || ''}">${v}</b>${sub ? `<span class="small muted">${sub}</span>` : ''}</div>`).join('')}</div>
+  <div class="panel"><div class="ph"><h3>Cronograma consolidado · ${abiertos.length} proyecto${abiertos.length === 1 ? '' : 's'} abierto${abiertos.length === 1 ? '' : 's'}</h3></div><div class="pb">${ganttAll(abiertos)}</div></div>
+  <div class="cardlegend">${Object.values(CARD_STATES).map(s => `<span><i style="background:${s.c}"></i>${s.label}</span>`).join('')}<span><i style="background:transparent;outline:2px solid var(--bad)"></i>Con atraso</span></div>
+  ${abiertos.length ? `<div class="pgrid">${abiertos.map(pcard).join('')}</div>` : `<div class="panel"><div class="empty">${S.projects.length ? 'No hay proyectos abiertos.' : 'Aún no hay proyectos. Cierra una venta en la bandeja.'}</div></div>`}
+  ${cerrados.length ? `<details class="panel closedsec"${UI.showClosed ? ' open' : ''}><summary class="ph"><h3>Proyectos cerrados · ${cerrados.length}</h3><span class="muted small">Cancha habilitada</span></summary><div class="pb"><div class="pgrid">${cerrados.map(pcard).join('')}</div></div></details>` : ''}`;
+}
+// Gantt de todos los proyectos abiertos: muestra si se pisan las instalaciones y la fecha comprometida al cierre de cada venta.
+function ganttAll(list) {
+  if (!list.length) return '<div class="empty">No hay proyectos abiertos.</div>';
+  let a = list.reduce((m, p) => stOf(p, 'diseno').inicio < m ? stOf(p, 'diseno').inicio : m, TODAY), b = TODAY;
+  list.forEach(p => { const h = stOf(p, 'habilitada').fin; if (h > b) b = h; if (p.instalBase && p.instalBase > b) b = p.instalBase; });
+  if (a < addDays(TODAY, -60)) a = addDays(TODAY, -60);
+  a = addDays(a, -3); b = addDays(b, 7);
+  const span = diffDays(a, b) + 1, pct = iso => Math.min(100, Math.max(0, diffDays(a, iso) / span * 100));
+  const ticks = []; for (let d = new Date(+a.slice(0, 4), +a.slice(5, 7), 1); isoOf(d) <= b; d.setMonth(d.getMonth() + 1)) ticks.push(isoOf(d));
+  const ins = list.map(p => ({ p, a: stOf(p, 'instalacion').inicio, b: stOf(p, 'instalacion').fin }));
+  const clashes = []; ins.forEach((x, i) => ins.slice(i + 1).forEach(y => { if (x.a <= y.b && y.a <= x.b) clashes.push([x, y]); }));
+  const inClash = new Set(clashes.flatMap(([x, y]) => [x.p.id, y.p.id]));
+  const rows = [...list].sort((x, y) => stOf(x, 'instalacion').inicio.localeCompare(stOf(y, 'instalacion').inicio));
+  return `<div class="gantt gall">
+    ${rows.map(p => `<div class="grow"><button class="glabel" data-act="openproj" data-id="${p.id}" title="${esc(p.nombre)}"><span>${esc(p.nombre)}</span><span class="muted small">${p.canchas} cancha${p.canchas === 1 ? '' : 's'} · entrega ${fmt(stOf(p, 'entrega').inicio)}</span></button>
+      <div class="gtrack"><div class="gtoday" style="left:${pct(TODAY)}%"></div>
+        ${p.etapas.filter(e => e.key !== 'venta' && e.fin >= a).map(e => { const l = pct(e.inicio), w = Math.max(pct(addDays(e.fin, 1)) - l, 0.6);
+          return `<div class="gbar gs${e.real ? '' : ' est'}${e.key === 'instalacion' && inClash.has(p.id) ? ' clash' : ''}" style="left:${l}%;width:${w}%;background-color:${stageColor(e.key)}" title="${esc(p.nombre)} · ${stageName(e.key)}: ${fmtY(e.inicio)} → ${fmtY(e.fin)} (${e.real ? 'real' : 'estimada'})"></div>`; }).join('')}
+        ${p.instalBase ? `<div class="gbase" style="left:${pct(p.instalBase)}%" title="Instalación comprometida al cierre de la venta: ${fmtY(p.instalBase)}"></div>` : ''}</div></div>`).join('')}
+    <div class="gaxis"><i></i><div>${ticks.map(t => `<span style="left:${pct(t)}%">${MESES[+t.slice(5, 7) - 1].slice(0, 3)} ${t.slice(2, 4)}</span>`).join('')}</div></div>
+  </div>
+  <div class="legend" style="margin-top:10px">${STAGES.filter(s => s.key !== 'venta').map(s => `<span><i style="background:${s.color}"></i>${s.nombre}</span>`).join('')}<span><i class="hatch"></i>Rayado: fecha estimada</span><span><i style="background:var(--bad);width:3px"></i>Instalación comprometida al cierre</span><span><i style="background:var(--lamp);width:3px"></i>Hoy</span></div>
+  ${clashes.length ? `<div class="clashes" role="alert"><b>Instalaciones que se pisan</b><ul>${clashes.map(([x, y]) => `<li>${esc(x.p.nombre)} y ${esc(y.p.nombre)}: ${fmtY(x.a > y.a ? x.a : y.a)} – ${fmtY(x.b < y.b ? x.b : y.b)}</li>`).join('')}</ul></div>` : '<p class="small muted" style="margin:8px 0 0">Ninguna instalación se superpone con otra.</p>'}`;
 }
 function gantt(p) {
   let a = p.etapas[0].inicio, b = p.etapas[p.etapas.length - 1].fin;
+  p.etapas.forEach(e => { if (e.inicio < a) a = e.inicio; if (e.fin > b) b = e.fin; });
+  if (p.instalBase && p.instalBase > b) b = p.instalBase;
   if (TODAY < a) a = TODAY; if (TODAY > b) b = TODAY;
   a = addDays(a, -2); b = addDays(b, 3);
   const span = diffDays(a, b) + 1, pct = iso => (diffDays(a, iso) / span * 100);
   const ticks = []; for (let i = 0; i <= span; i += Math.max(7, Math.round(span / 6))) ticks.push(addDays(a, i));
-  const todayL = pct(TODAY) + (0.5 / span * 100);
+  const todayL = pct(TODAY) + (0.5 / span * 100), late = atraso(p);
   return `<div class="gantt">
-    ${p.etapas.map(e => { const cls = e.estado === 'completada' ? 'done' : isLate(e) ? 'late' : e.estado === 'en_curso' ? 'cur' : '';
+    ${p.etapas.map(e => { const s = stState(e), cls = (s === 'completada' ? 'done' : s === 'en_curso' ? 'cur' : '') + (e.key === 'instalacion' && late ? ' late' : '') + (e.real ? '' : ' est');
       const w = Math.max((diffDays(e.inicio, e.fin) + 1) / span * 100, 1.2);
-      return `<div class="grow"><span class="small">${stageName(e.key)}</span><div class="gtrack"><div class="gtoday" style="left:${todayL}%"></div>
-        <div class="gbar ${cls}" style="left:${pct(e.inicio)}%;width:${w}%" title="${fmtY(e.inicio)} → ${fmtY(e.fin)}">${w > 16 ? fmt(e.inicio) + ' – ' + fmt(e.fin) : ''}</div></div></div>`; }).join('')}
+      const base = e.key === 'instalacion' && p.instalBase ? `<div class="gbase" style="left:${pct(p.instalBase)}%" title="Instalación comprometida al cierre de la venta: ${fmtY(p.instalBase)}"></div>` : '';
+      return `<div class="grow"><span class="small">${stageName(e.key)}</span><div class="gtrack"><div class="gtoday" style="left:${todayL}%"></div>${base}
+        <div class="gbar ${cls}" style="left:${pct(e.inicio)}%;width:${w}%" title="${fmtY(e.inicio)} → ${fmtY(e.fin)} · fecha ${e.real ? 'real' : 'estimada'}">${w > 16 ? fmt(e.inicio) + ' – ' + fmt(e.fin) : ''}</div></div></div>`; }).join('')}
     <div class="gaxis"><i></i><div>${ticks.map(t => `<span style="left:${pct(t)}%">${fmt(t)}</span>`).join('')}</div></div>
   </div>`;
 }
@@ -1209,31 +1371,47 @@ function projFiles(p) {
     </div></div>`;
 }
 function projectDetail(p) {
-  const m = model(p.modelo), st = pStatus(p);
-  const firstOpen = p.etapas.findIndex(e => e.estado !== 'completada');
+  const st = pStatus(p), late = atraso(p), by = k => stOf(p, k), v = by('venta'), ds = by('diseno'), pr = by('construccion'), sa = by('salida'), en = by('entrega');
+  const editable = e => e.key === 'venta' || e.key === 'salida' || e.real || (e.key === 'entrega' && !sa.real);
+  const avisos = [
+    v.real && ds.inicio < v.inicio ? 'Con este plazo el diseño definitivo debía empezar antes del cierre de la venta: posterga el retiro de carga o acorta la producción.' : '',
+    pr.fin >= sa.inicio ? 'La producción termina después de la fecha de retiro de carga.' : '',
+    late ? `La instalación empieza ${late} día${late === 1 ? '' : 's'} después de lo comprometido al cierre de la venta (${fmtY(p.instalBase)}).` : ''].filter(Boolean);
+  const hint = {
+    venta: v.real ? '' : 'Fecha estimada: no hay una fecha de venta confirmada (por ejemplo, el Excel no la informa).',
+    diseno: `Fecha límite para tener el diseño definitivo: ${fmtY(ds.fin)}. Se calcula hacia atrás desde el arranque de producción.`,
+    construccion: 'El arranque de producción se calcula hacia atrás desde el retiro de carga.',
+    salida: 'Fecha de retiro de carga: la definen ustedes según el plazo de entrega. Desde aquí se calculan producción y diseño hacia atrás, y entrega, instalación y habilitación hacia adelante.',
+    entrega: sa.real ? '' : 'Entrega en obra = retiro de carga + días de transporte. Si cambias esta fecha se mueve el retiro de carga.',
+    instalacion: p.instalBase ? `Comprometida al cierre de la venta: ${fmtY(p.instalBase)}.` : '', habilitada: '' };
   return `<div style="display:grid;gap:16px;min-width:0">
   <div class="panel"><div class="ph"><div><h2>${esc(p.nombre)}</h2><span class="muted small">${esc(p.cliente)} · ${esc(p.ciudad)}, ${esc(p.prov)} · ${esc(p.comuna)}</span></div><span class="pill ${st.cls}">${st.txt}</span></div>
-    <div class="pb" style="display:grid;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Línea de tiempo</h3><span class="legend"><span><i style="background:var(--lamp)"></i>Hoy ${fmt(TODAY)}</span><span><i style="background:var(--ok)"></i>Completada</span><span><i style="background:var(--accent)"></i>En curso</span><span><i style="background:var(--bad)"></i>Atrasada</span></span></div>${gantt(p)}</div></div>
+    <div class="pb" style="display:grid;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Línea de tiempo</h3><span class="legend"><span><i style="background:var(--lamp)"></i>Hoy ${fmt(TODAY)}</span><span><i style="background:var(--ok)"></i>Completada</span><span><i style="background:var(--accent)"></i>En curso</span><span><i class="hatch"></i>Fecha estimada</span><span><i style="background:var(--bad)"></i>Instalación comprometida</span></span></div>${gantt(p)}</div></div>
   <div class="two">
-    <div class="panel"><div class="ph"><h3>Etapas de la entrega</h3></div><div class="pb"><ul class="stages">
-      ${p.etapas.map((e, i) => { const late = isLate(e), cls = e.estado === 'completada' ? 'done' : late ? 'late' : e.estado === 'en_curso' ? 'cur' : '';
-        let action = '';
-        if (e.estado === 'en_curso') action = `<button class="btn sm primary" data-act="stage-done" data-id="${p.id}" data-i="${i}">Completar</button>`;
-        else if (e.estado === 'pendiente' && i === firstOpen) action = `<button class="btn sm" data-act="stage-start" data-id="${p.id}" data-i="${i}">Iniciar</button>`;
-        else if (e.estado === 'completada' && i === firstOpen - 1) action = `<button class="btn sm ghost" data-act="stage-undo" data-id="${p.id}" data-i="${i}">Deshacer</button>`;
-        return `<li class="stg ${cls}" style="--sc:${stageColor(e.key)}"><span class="dot ${cls}">${e.estado === 'completada' ? '✓' : i + 1}</span><div><b>${stageName(e.key)}</b> ${late ? '<span class="pill st-bad">Atrasada</span>' : ''}
-          <div class="dates"><input type="date" id="d-${p.id}-${i}-a" value="${e.inicio}" data-field="inicio" data-id="${p.id}" data-i="${i}" aria-label="Inicio ${stageName(e.key)}"><span class="muted">→</span><input type="date" id="d-${p.id}-${i}-b" value="${e.fin}" data-field="fin" data-id="${p.id}" data-i="${i}" aria-label="Fin ${stageName(e.key)}">
-          ${e.hecho ? `<span class="muted small">hecho ${fmt(e.hecho)}</span>` : ''}</div></div>${action}</li>`; }).join('')}
+    <div class="panel"><div class="ph"><h3>Etapas de la entrega</h3></div><div class="pb" style="display:grid;gap:10px">
+      <div class="plan"><div><span class="label">Retiro de carga</span><b class="mono">${fmtY(sa.inicio)}</b></div><div><span class="label">Diseño definitivo hasta</span><b class="mono">${fmtY(ds.fin)}</b></div>
+        <div><span class="label">Arranque de producción</span><b class="mono">${fmtY(pr.inicio)}</b></div><div><span class="label">Entrega en obra</span><b class="mono">${fmtY(en.inicio)}</b></div></div>
+      ${avisos.map(a => `<p class="st-bad small" role="alert" style="margin:0">${a}</p>`).join('')}
+      <ul class="stages">
+      ${p.etapas.map((e, i) => { const s = stState(e), cls = s === 'completada' ? 'done' : s === 'en_curso' ? 'cur' : '';
+        const action = e.real ? `<button class="btn sm ghost" data-act="st-est" data-id="${p.id}" data-i="${i}">Volver a estimada</button>`
+          : e.inicio <= TODAY ? `<button class="btn sm${sinConfirmar(e) ? ' primary' : ''}" data-act="st-real" data-id="${p.id}" data-i="${i}">Confirmar real</button>` : '';
+        return `<li class="stg ${cls}" style="--sc:${stageColor(e.key)}"><span class="dot ${cls}">${s === 'completada' ? '✓' : i + 1}</span><div><b>${stageName(e.key)}</b> ${estTag(e)}${e.key === 'salida' ? ' <span class="tag">Fecha ancla</span>' : ''}${sinConfirmar(e) ? ' <span class="pill st-warn">Pasó sin confirmar</span>' : ''}
+          <div class="dates"><input type="date" id="st-${p.id}-${i}" value="${e.inicio}" data-field="st-fecha" data-id="${p.id}" data-i="${i}" ${editable(e) ? '' : 'disabled'} ${e.real ? `max="${TODAY}"` : ''} aria-label="Fecha de ${stageName(e.key)}">
+            ${MILESTONE(e.key) ? '' : `<input type="number" id="sd-${p.id}-${i}" min="1" max="365" value="${e.dur}" data-field="st-dur" data-id="${p.id}" data-i="${i}" aria-label="Duración de ${stageName(e.key)} en días" style="width:68px"><span class="muted small">días · hasta ${fmtY(e.fin)}</span>`}</div>
+          ${hint[e.key] ? `<span class="muted small">${hint[e.key]}</span>` : ''}</div>${action}</li>`; }).join('')}
     </ul></div></div>
     <div style="display:grid;gap:16px;min-width:0;align-content:start">
       <div class="panel"><div class="ph"><h3>Cancha</h3><span class="tag">Solo lectura</span></div>
         <div class="pb" style="display:grid;gap:10px">${viewer3d(projDz(p), { small: true })}
         ${specList(projDz(p), p)}
-        <dl class="kv">${p.estadoObra ? `<dt>Status</dt><dd>${esc(p.estadoObra)}</dd>` : ''}${p.obs ? `<dt>Observaciones</dt><dd class="small">${esc(p.obs)}</dd>` : ''}</dl>
-        <span class="muted small">Las características de la cancha se definen en la bandeja de negocios antes del cierre. Aquí solo se hace el seguimiento.</span></div></div>
+        <dl class="kv"><dt>Status</dt><dd><span class="pill ${st.cls}">${st.txt}</span></dd>${p.obs ? `<dt>Observaciones</dt><dd class="small">${esc(p.obs)}</dd>` : ''}</dl>
+        <span class="muted small">El status sale de las etapas del cronograma. Las características de la cancha se definen en la bandeja de negocios antes del cierre; aquí solo se hace el seguimiento.</span></div></div>
       ${projFiles(p)}
-      <div class="panel"><div class="ph"><h3>Trazabilidad</h3></div><div class="pb"><ul class="log">${[...p.traza].sort((a, b) => b.f.localeCompare(a.f)).map(h => `<li><span class="d">${fmtY(h.f).slice(0, 5)}</span><span>${esc(h.t)}</span></li>`).join('')}</ul>
-        <form class="check" data-form="pnote" data-id="${p.id}" style="margin-top:10px"><input type="text" id="pn-${p.id}" name="t" placeholder="Agregar novedad…" required><button class="btn">Agregar</button></form></div></div>
+      <div class="panel"><div class="ph"><h3>Trazabilidad</h3></div><div class="pb" style="display:grid;gap:12px">
+        <dl class="kv fechas">${p.etapas.map(e => `<dt>${stageName(e.key)}</dt><dd><span class="mono">${fmtY(e.inicio)}</span> ${estTag(e)}</dd>`).join('')}</dl>
+        <ul class="log">${[...p.traza].sort((a, b) => b.f.localeCompare(a.f)).map(h => `<li><span class="d">${fmtY(h.f).slice(0, 5)}</span><span>${esc(h.t)}</span></li>`).join('')}</ul>
+        <form class="check" data-form="pnote" data-id="${p.id}"><input type="text" id="pn-${p.id}" name="t" placeholder="Agregar novedad…" required><button class="btn">Agregar</button></form></div></div>
     </div>
   </div></div>`;
 }
@@ -1311,25 +1489,17 @@ function vAgenda() {
       <text class="mlabel sub" x="10" y="19" style="fill:${colorOf(p)}">${esc(st.txt)}</text></g></g>`; }).join('');
   const cityDots = CITIES.map(c => `<g class="city ${inProv.some(p => p.ciudad === c.ciudad) ? 'has' : ''}" data-x="${MX(c.lon).toFixed(2)}" data-y="${MY(c.lat).toFixed(2)}"><circle r="1.8"/><text x="4" y="3">${esc(c.ciudad)}</text></g>`).join('');
 
-  // Calendario
-  const [y, mo] = UI.cal.split('-').map(Number);
-  const first = new Date(y, mo - 1, 1), start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
-  const events = {};
-  const push = (iso, ev) => (events[iso] = events[iso] || []).push(ev);
-  shown.forEach(p => p.etapas.forEach(e => {
-    const short = p.nombre.split(' — ')[0];
-    if (e.inicio === e.fin) push(e.inicio, { p, e, t: `${stageName(e.key)} · ${short}` });
-    else { push(e.inicio, { p, e, t: `▶ ${stageName(e.key)} · ${short}` }); push(e.fin, { p, e, t: `■ Fin ${stageName(e.key).toLowerCase()} · ${short}` }); }
-  }));
-  const cells = [];
-  for (let i = 0; i < 42; i++) { const d = new Date(start); d.setDate(start.getDate() + i); cells.push(d); if (i >= 34 && d.getMonth() !== mo - 1 && d.getDay() === 0) break; }
+  // Calendario anual: cada proyecto aparece una vez, en su fecha de entrega en obra.
+  const y = UI.calY || +TODAY.slice(0, 4);
+  const ents = shown.map(p => ({ p, e: stOf(p, 'entrega') })).filter(x => x.e.inicio.startsWith(y + '-')).sort((a, b) => a.e.inicio.localeCompare(b.e.inicio));
+  const nEnt = ents.reduce((a, x) => a + (+x.p.canchas || 0), 0);
 
-  return `<div class="head"><div><h1>Calendario y <em>mapa</em></h1><p>Dónde y cuándo: todos los proyectos en el mapa de Argentina y sus hitos de entrega en el calendario. Haz zoom en el mapa para leer cada proyecto con su cantidad de canchas.</p></div>
+  return `<div class="head"><div><h1>Calendario y <em>mapa</em></h1><p>Dónde y cuándo: todos los proyectos en el mapa y, en el calendario anual, la fecha de entrega en obra de cada uno. Haz zoom en el mapa para leer cada proyecto con su cantidad de canchas.</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <select id="ag-prov" data-field="mapProv" aria-label="Filtrar por provincia" style="width:auto"><option value="">Todas las provincias / países</option>${PROVINCIAS.map(p => `<option ${UI.mapProv === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
       <select id="ag-proj" data-field="calProject" aria-label="Filtrar por proyecto" style="width:auto"><option value="">Todos los proyectos</option>${inProv.map(p => `<option value="${p.id}" ${UI.calProject === p.id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select>
     </div></div>
-  <div class="legend">${STAGES.map(s => `<span><i style="background:${s.color}"></i>${s.nombre}</span>`).join('')}</div>
+  <div class="legend">${Object.entries(CARD_STATES).map(([k, s]) => `<span><i style="background:${k === 'fin' ? '#2ea86a' : stageColor({ espera: 'diseno', transito: 'salida' }[k] || k)}"></i>${s.label}</span>`).join('')}</div>
   <div class="agenda">
     <div style="display:grid;gap:12px;min-width:0;align-content:start">
       <div class="panel map"><div class="mapctl" role="group" aria-label="Zoom del mapa">
@@ -1347,15 +1517,13 @@ function vAgenda() {
     </div>
     <div style="display:grid;gap:10px;min-width:0;align-content:start">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn" data-act="calprev" aria-label="Mes anterior">←</button><b style="min-width:150px;text-align:center;font-family:var(--f-display);font-size:20px;text-transform:capitalize">${MESES[mo - 1]} ${y}</b><button class="btn" data-act="calnext" aria-label="Mes siguiente">→</button>
-        <button class="btn ghost" data-act="caltoday">Hoy</button>
-        <span class="muted small">${sel ? `Mostrando solo ${esc(sel.nombre)}` : `${shown.length} proyecto${shown.length === 1 ? '' : 's'}`}</span></div>
-      <div class="cal">${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => `<div class="dh">${d}</div>`).join('')}
-        ${cells.map(d => { const iso = isoOf(d), evs = events[iso] || [];
-          return `<div class="dc ${d.getMonth() !== mo - 1 ? 'out' : ''} ${iso === TODAY ? 'today' : ''}"><span class="n">${d.getDate()}</span>
-            ${evs.slice(0, 4).map(ev => `<button class="ev" style="background:${stageColor(ev.e.key)}${ev.e.estado === 'completada' ? ';opacity:.55' : ''}" data-act="openproj" data-id="${ev.p.id}" title="${esc(ev.t)}">${esc(ev.t)}</button>`).join('')}
-            ${evs.length > 4 ? `<span class="small muted">+${evs.length - 4} más</span>` : ''}</div>`; }).join('')}
-      </div>
+        <button class="btn" data-act="calprev" aria-label="Año anterior">←</button><b style="min-width:80px;text-align:center;font-family:var(--f-display);font-size:20px">${y}</b><button class="btn" data-act="calnext" aria-label="Año siguiente">→</button>
+        <button class="btn ghost" data-act="caltoday">Este año</button>
+        <span class="muted small">${ents.length} entrega${ents.length === 1 ? '' : 's'} en obra en ${y} · ${nEnt} cancha${nEnt === 1 ? '' : 's'}${sel ? ` · solo ${esc(sel.nombre)}` : ''}</span></div>
+      <div class="calyear">${MESES.map((m, i) => { const mm = `${y}-${pad(i + 1)}`, its = ents.filter(x => x.e.inicio.startsWith(mm)), nc = its.reduce((a, x) => a + (+x.p.canchas || 0), 0);
+        return `<div class="mc ${TODAY.startsWith(mm) ? 'today' : ''}"><div class="mh"><b>${m}</b>${nc ? `<span class="small muted">${nc} cancha${nc === 1 ? '' : 's'}</span>` : ''}</div>
+          ${its.map(x => `<button class="ev" style="border-left-color:${colorOf(x.p)}" data-act="openproj" data-id="${x.p.id}" title="${esc(x.p.nombre)} — entrega en obra ${fmtY(x.e.inicio)} (${x.e.real ? 'real' : 'estimada'}) — ${x.p.canchas} cancha${x.p.canchas === 1 ? '' : 's'}">${x.e.inicio.slice(8)} · ${esc(x.p.nombre)}${x.e.real ? '' : ' ≈'}</button>`).join('') || '<span class="small muted">—</span>'}</div>`; }).join('')}</div>
+      <span class="muted small">Cada proyecto aparece una vez, en su fecha de entrega en obra (≈ fecha estimada). El color indica el estado del proyecto.</span>
     </div>
   </div>`;
 }
@@ -1495,7 +1663,8 @@ function dealFields(d, portal) {
     <label class="field"><span>Nombre de contacto</span><input type="text" name="contacto" id="df-contacto" value="${portal ? esc(cliUser.nombre) : v('contacto')}" required></label>
     <label class="field"><span>Correo</span><input type="email" name="email" id="df-email" value="${portal ? esc(cliUser.email) : v('email')}" ${portal ? 'readonly' : ''}></label>
     <label class="field"><span>Teléfono / WhatsApp</span><input type="tel" name="telefono" id="df-tel" value="${portal ? esc(cliUser.telefono || '') : v('telefono')}" placeholder="+54 9 11 ..."></label>
-    <label class="field"><span>Ciudad</span><select name="ciudad" id="df-ciudad">${CITIES.map(c => `<option ${(d ? d.ciudad : (cliUser && cliUser.ciudad)) === c.ciudad ? 'selected' : ''}>${esc(c.ciudad)}</option>`).join('')}</select></label>
+    <label class="field"><span>Provincia</span><select name="prov" id="df-prov" required>${(() => { const pv = d ? d.prov : (cliUser && cliUser.ciudad ? locate('', cliUser.ciudad).prov : 'Buenos Aires'); return PROVINCIAS.map(x => `<option ${pv === x ? 'selected' : ''}>${esc(x)}</option>`).join(''); })()}</select></label>
+    <label class="field"><span>Ciudad / localidad</span><input type="text" name="ciudad" id="df-ciudad" list="df-ciudades" value="${esc(d ? d.ciudad : (cliUser && cliUser.ciudad) || '')}" placeholder="Escribe la ciudad" required autocomplete="off"><datalist id="df-ciudades">${CITIES.map(c => `<option value="${esc(c.ciudad)}">`).join('')}</datalist></label>
     <label class="field"><span>Comuna / partido / barrio</span><input type="text" name="comuna" id="df-comuna" value="${v('comuna')}"></label>
     <label class="field"><span>Cantidad de canchas</span><input type="number" min="1" name="canchas" id="df-canchas" value="${v('canchas', 1)}" required></label>
     <label class="field"><span>Instalación</span><select name="instal" id="df-instal" data-field="dz-instal">${['Outdoor', 'Indoor'].map(o => `<option ${d && d.instal === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
@@ -1505,9 +1674,9 @@ function dealFields(d, portal) {
   </div>`;
 }
 function readDeal(fd, base) {
-  const c = cityOf(fd.ciudad);
+  const c = locate(fd.prov, fd.ciudad);
   return Object.assign(base, { cliente: fd.cliente.trim(), contacto: fd.contacto.trim(), email: (fd.email || '').trim(), telefono: (fd.telefono || '').trim(),
-    prov: c.prov, ciudad: c.ciudad, comuna: (fd.comuna || '').trim() || '—', canchas: Math.max(1, +fd.canchas || 1), instal: fd.instal, comentario: (fd.comentario || '').trim(),
+    prov: c.prov, ciudad: c.ciudad, lat: c.lat, lon: c.lon, comuna: (fd.comuna || '').trim() || '—', canchas: Math.max(1, +fd.canchas || 1), instal: fd.instal, comentario: (fd.comentario || '').trim(),
     modelo: UI.dz.modelo, dz: { ...UI.dz, instal: fd.instal } });
 }
 
@@ -1573,6 +1742,8 @@ function closeForm(d) {
     <div class="form">
       <label class="field full"><span>Nombre del proyecto</span><input type="text" name="nombre" id="cf-nombre" value="${esc(d.cliente)} — ${d.canchas > 1 ? d.canchas + ' canchas' : 'Cancha 1'}" required></label>
       <label class="field"><span>Fecha de cierre</span><input type="date" name="fecha" id="cf-fecha" value="${TODAY}" required></label>
+      <label class="field"><span>Entrega en obra deseada</span><input type="date" name="entrega" id="cf-entrega" value="${addDays(TODAY, 1 + STAGES.find(s => s.key === 'diseno').dur + STAGES.find(s => s.key === 'construccion').dur + STAGES.find(s => s.key === 'salida').dur)}" required></label>
+      <span class="muted small full">Con la entrega deseada se fija el retiro de carga; producción y diseño definitivo se calculan hacia atrás. La fecha de instalación que resulte queda como fecha comprometida.</span>
     </div>
     <span class="muted small">El proyecto toma el diseño de este negocio (${esc(model(d.modelo).nombre)}, colores, logo y mapa). En Proyectos ya no se podrá modificar; solo se hará el seguimiento.</span>
     <div class="row"><button class="btn primary">Confirmar cierre</button><button type="button" class="btn ghost" data-act="closecancel">Cancelar</button></div>
@@ -1843,15 +2014,13 @@ document.addEventListener('click', ev => {
     // proyectos
     case 'openproj': if (!canModule('proyectos')) { toast('No tienes acceso al módulo Proyectos y entregas.'); break; } UI.profile = 'atila'; UI.view = 'proyectos'; UI.project = id; UI.projOpen = true; saveUI(); render(); window.scrollTo(0, 0); break;
     case 'projback': UI.projOpen = false; render(); window.scrollTo(0, 0); break;
-    case 'stage-start': case 'stage-done': case 'stage-undo': {
+    case 'st-real': case 'st-est': {
       const p = project(id), e = p.etapas[+b.dataset.i];
-      if (act === 'stage-start') { e.estado = 'en_curso'; logP(p, `Etapa iniciada: ${stageName(e.key)}.`); }
-      if (act === 'stage-done') { e.estado = 'completada'; e.hecho = TODAY; logP(p, `Etapa completada: ${stageName(e.key)}.`);
-        const nx = p.etapas[+b.dataset.i + 1]; if (nx && nx.inicio <= TODAY) { nx.estado = 'en_curso'; logP(p, `Etapa iniciada: ${stageName(nx.key)}.`); } }
-      if (act === 'stage-undo') { e.estado = 'en_curso'; e.hecho = ''; p.etapas.slice(+b.dataset.i + 1).forEach(n => n.estado = 'pendiente'); logP(p, `Etapa reabierta: ${stageName(e.key)}.`); }
-      commit(act === 'stage-done' ? `${stageName(e.key)}: completada` : null); break; }
-    case 'calprev': case 'calnext': { const [y, m] = UI.cal.split('-').map(Number); const d = new Date(y, m - 1 + (act === 'calnext' ? 1 : -1), 1); UI.cal = isoOf(d).slice(0, 7); render(); break; }
-    case 'caltoday': UI.cal = TODAY.slice(0, 7); render(); break;
+      if (act === 'st-real') { e.real = true; if (e.inicio > TODAY) e.inicio = TODAY; replan(p); logP(p, `Fecha real confirmada: ${stageName(e.key)} el ${fmtY(e.inicio)}.` + who()); }
+      else { e.real = false; replan(p); logP(p, `${stageName(e.key)}: vuelve a fecha estimada (${fmtY(e.inicio)}).` + who()); }
+      commit(act === 'st-real' ? `${stageName(e.key)}: fecha real` : `${stageName(e.key)}: fecha estimada`); break; }
+    case 'calprev': case 'calnext': UI.calY = (UI.calY || +TODAY.slice(0, 4)) + (act === 'calnext' ? 1 : -1); render(); break;
+    case 'caltoday': UI.calY = +TODAY.slice(0, 4); render(); break;
     case 'mapsel': UI.calProject = UI.calProject === id ? '' : id; if (UI.calProject) mapFocus(project(id)); render(); break;
     case 'mapzoom': if (id === 'all') UI.map = { z: 1, cx: MAPW / 2, cy: MAPH / 2 }; else UI.map.z *= id === 'in' ? 2 : 0.5; applyMap(); break;
     case 'mapclear': UI.calProject = ''; render(); break;
@@ -1862,10 +2031,16 @@ document.addEventListener('change', ev => {
   if (ev.target.dataset.field === 'ses-u') { UI.sesF.u = ev.target.value; render(); return; }
   if (ev.target.dataset.field === 'ses-dias') { UI.sesF.dias = +ev.target.value; render(); return; }
   const t = ev.target, f = t.dataset.field; if (!f) return;
-  if (f === 'inicio' || f === 'fin') {
-    const p = project(t.dataset.id), e = p.etapas[+t.dataset.i]; if (!t.value) return;
-    const old = e[f]; e[f] = t.value; if (e.fin < e.inicio) e[f === 'inicio' ? 'fin' : 'inicio'] = t.value;
-    logP(p, `Reprogramada ${stageName(e.key).toLowerCase()}: ${f} ${fmtY(old)} → ${fmtY(t.value)}.`); commit('Fecha actualizada'); return;
+  if (f === 'st-fecha' || f === 'st-dur') {
+    const p = project(t.dataset.id), e = p.etapas[+t.dataset.i];
+    if (f === 'st-dur') { const nv = Math.max(1, Math.min(365, Math.round(+t.value || 1))), old = e.dur; if (nv === old) return; e.dur = nv; replan(p);
+      logP(p, `Duración de ${stageName(e.key).toLowerCase()}: ${old} → ${nv} días; fechas recalculadas (estimadas).` + who()); commit('Cronograma recalculado'); return; }
+    if (!t.value) return;
+    const old = e.inicio;
+    if (e.key === 'entrega' && !e.real) { const sa = stOf(p, 'salida'); sa.inicio = addDays(t.value, -sa.dur); } else e.inicio = t.value;
+    replan(p);
+    logP(p, `${stageName(e.key)}: ${fmtY(old)} → ${fmtY(e.inicio)} (fecha ${e.real ? 'real' : 'estimada'}).` + (['salida', 'entrega'].includes(e.key) ? ` Retiro de carga ${fmtY(stOf(p, 'salida').inicio)}; producción y diseño recalculados hacia atrás.` : '') + who());
+    commit('Cronograma actualizado'); return;
   }
   if (f.startsWith('u-')) {
     const u = USERS.find(x => x.id === t.dataset.id);
@@ -1991,13 +2166,16 @@ document.addEventListener('submit', async ev => {
     d.cotizaciones = [...(d.cotizaciones || []), q]; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Cotización ${q.numero} generada por ${money(qTotal(q), q.moneda)}.` + who() });
     UI.quoteForm = null; UI.quoteOpen = q.id; commit(`Cotización ${q.numero} generada`); return;
   }
-  if (kind === 'close') { const d = S.deals.find(x => x.id === f.dataset.id), c = cityOf(d.ciudad), dz = dzOf(d);
+  if (kind === 'close') { const d = S.deals.find(x => x.id === f.dataset.id), c = d.lat != null ? d : locate(d.prov, d.ciudad), dz = dzOf(d);
+    if (fd.entrega <= fd.fecha) { toast('La entrega en obra debe ser posterior a la fecha de cierre.'); return; }
+    const plan = newPlan(fd.fecha, fd.entrega); stOf(plan, 'venta').real = true;
     const p = { id: uid('p'), dealId: d.id, clienteId: d.clienteId || null, nombre: fd.nombre, cliente: d.cliente, prov: c.prov, ciudad: c.ciudad, comuna: d.comuna, lat: c.lat, lon: c.lon,
       modelo: d.modelo, canchas: d.canchas, instal: d.instal, cesped: colorName(dz.pasto), diseno: { pasto: dz.pasto, postes: dz.postes, amort: dz.amort },
-      archivos: { logo: dz.logo, logoAmort: dz.logoAmort, logoPuertas: dz.logoPuertas, mapa: dz.mapa }, obs: d.comentario || '', etapas: schedule(fd.fecha), traza: [] };
-    p.etapas[0].estado = 'completada'; p.etapas[0].hecho = fd.fecha;
+      archivos: { logo: dz.logo, logoAmort: dz.logoAmort, logoPuertas: dz.logoPuertas, mapa: dz.mapa }, obs: d.comentario || '', etapas: plan.etapas, plan: 2, traza: [] };
+    p.instalBase = stOf(p, 'instalacion').inicio;
     d.hist.forEach(h => p.traza.push({ f: h.f, t: `[Bandeja] ${h.t}` }));
-    p.traza.push({ f: fd.fecha, t: 'Venta cerrada. Proyecto creado desde la bandeja de negocios.' + who() });
+    p.traza.push({ f: fd.fecha, t: 'Venta cerrada (fecha real). Proyecto creado desde la bandeja de negocios.' + who() });
+    p.traza.push({ f: TODAY, t: `Plan inicial (fechas estimadas): diseño definitivo hasta ${fmtY(stOf(p, 'diseno').fin)}, producción desde ${fmtY(stOf(p, 'construccion').inicio)}, retiro de carga ${fmtY(stOf(p, 'salida').inicio)}, entrega en obra ${fmtY(stOf(p, 'entrega').inicio)}, instalación comprometida ${fmtY(p.instalBase)}.` });
     d.etapa = 'cerrada'; d.actualizado = TODAY; d.proyectoId = p.id; d.hist.push({ f: TODAY, t: `Venta cerrada; pasa a Proyectos como «${fd.nombre}».` + who() });
     S.projects.unshift(p); UI.closing = false; UI.view = 'proyectos'; UI.project = p.id; UI.projOpen = true; saveUI(); commit('Venta cerrada. Proyecto creado con su línea de tiempo'); window.scrollTo(0, 0); }
 });

@@ -17,9 +17,9 @@ del mes de logística + instalación).
 | Registro de sesiones | Solo super administrador: cuándo ingresa y sale cada usuario (equipo y clientes), cuántas veces ingresa, tiempo conectado, quién está conectado ahora, equipo y navegador. Filtros por usuario y período. |
 | Clientes | Mantenedor de clientes del portal (nombre, club/empresa, correo, teléfono, ciudad, negocio). Al crear el acceso el sistema propone una clave simple (por ejemplo `Volea-4821`) que se puede cambiar; luego se comparte por WhatsApp, correo o copiando el mensaje. Nueva clave, activar/desactivar y eliminar. |
 | Portal de clientes | El cliente diseña su cancha en el visor 3D (tipo, césped, postes de luz, amortiguadores, logo y mapa), envía la solicitud, sigue su estado en «Mis solicitudes» y ve y acepta sus cotizaciones en «Mis cotizaciones». Solo ve lo suyo. |
-| Bandeja de negocios | Etapas: nuevo contacto → propuesta enviada → negociación → venta cerrada / perdida. Las solicitudes del portal llegan marcadas como nuevas: se aceptan o modifican y se ubican en una etapa. También se cargan negocios a mano con todos los datos del cliente y el diseño de su cancha. Cotizaciones con número, ítems, moneda y validez; se envían por WhatsApp, correo o se publican en el portal del cliente. |
-| Proyectos y entregas | Al cerrar la venta se crea el proyecto con el diseño del negocio. Las características de la cancha quedan de solo lectura (visor 3D + especificaciones); se hace el seguimiento de etapas, fechas y atrasos. Tarjetas coloreadas por estado. |
-| Calendario y mapa | Mapa de Argentina con zoom y etiquetas por proyecto (canchas, modelo, etapa) y calendario mensual de hitos. |
+| Bandeja de negocios | Al cargar un negocio se elige la provincia (las 23 provincias, CABA y Uruguay) y la ciudad se escribe libremente; si es una ciudad conocida se ubica en el mapa con sus coordenadas, si no, en la capital de la provincia. Etapas: nuevo contacto → propuesta enviada → negociación → venta cerrada / perdida. Las solicitudes del portal llegan marcadas como nuevas: se aceptan o modifican y se ubican en una etapa. También se cargan negocios a mano con todos los datos del cliente y el diseño de su cancha. Cotizaciones con número, ítems, moneda y validez; se envían por WhatsApp, correo o se publican en el portal del cliente. |
+| Proyectos y entregas | Al cerrar la venta se indica la entrega en obra deseada y se crea el proyecto con el diseño del negocio. Contadores (pendientes de entrega con su total de canchas, por etapa, con atraso y cerrados), Gantt consolidado de los proyectos abiertos con la instalación comprometida al cierre y aviso de instalaciones que se superponen, tarjetas por estado y sección aparte de proyectos cerrados (cancha habilitada). El menú muestra el total de proyectos. |
+| Calendario y mapa | Mapa de Argentina con zoom y etiquetas por proyecto (canchas, modelo, etapa) y calendario anual: cada proyecto aparece una sola vez, en su fecha de entrega en obra, con el total de canchas por mes. |
 | Tipos de cancha | Dos tipos: Atila Competition PRO (panorámica) y Atila Semi Panoramic, con nombre y descripción editables y su vista 3D. Lo que estaba como «Atila Estándar» pasa a Competition PRO. |
 
 ## Visor 3D
@@ -35,6 +35,24 @@ de transición blancos y tubo circular de 2,5" en las cuatro esquinas. Se rota a
 rueda o pellizcando y doble clic vuelve a la vista inicial (de frente al lateral, con la cancha completa). Colores editables: césped, postes de
 luz y amortiguadores. El logo del cliente se dibuja en ambas caras de cada puerta y en las caras de los amortiguadores, siempre al derecho y sin espejarse, desde cualquier ángulo de giro. Escenario según la instalación: **Outdoor** con cielo y sol (sombras suaves) e **Indoor**
 oscuro con la luz de los cuatro focos LED y sombras leves.
+
+## Cronograma de cada proyecto
+
+Etapas: venta cerrada, definición de diseño definitivo, producción, salida y transporte, entrega en obra, instalación
+y cancha habilitada. Cada etapa tiene **una fecha y una duración** (por defecto: diseño 7 días, producción 20, transporte 5,
+instalación 14). La **fecha de retiro de carga** (salida y transporte) es el ancla: la define el equipo según el plazo de
+entrega y desde ahí se calculan hacia atrás el arranque de producción y la fecha límite del diseño definitivo, y hacia
+adelante la entrega en obra, la instalación y la habilitación. Cambiar la entrega en obra mueve el retiro de carga.
+
+Cada fecha es **estimada** o **real**: «Confirmar real» la fija (no se recalcula) y queda registrado en la trazabilidad;
+en el Gantt las fechas estimadas se ven rayadas. La venta importada del Excel sin fecha queda como estimada.
+
+El estado del proyecto (status, tarjetas, contadores, Gantt y calendario) sale **solo de las fechas**; ya no hay botones
+«Iniciar» / «Completar». La fecha de instalación que resulta al cerrar la venta queda como **comprometida**: si la
+instalación se corre después de esa fecha, el proyecto figura con atraso.
+
+Al cargar los datos, la página corrige textos guardados con la codificación equivocada (por ejemplo «ChascomÃºs») y pasa
+los proyectos del formato anterior a este cronograma; si quien ingresa es del equipo de Atila, la corrección se guarda.
 
 ## Sesiones e inactividad
 
