@@ -449,7 +449,13 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .tl-chip.late { --sc: var(--bad) }
 .tl-group { padding: 12px 0 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line) }
 .tl-group b { color: var(--fg); font-weight: 500 }
-.tl-cap { background: color-mix(in srgb, var(--fg) 2%, transparent) }
+.tl-cap { background: color-mix(in srgb, #3b9bea 13%, var(--surface)); border-top: 2px solid #3b9bea; border-bottom: 2px solid #3b9bea; margin-top: 10px }
+.tl-cap .tl-lbl { padding-left: 12px }
+.tl-cap .tl-lbl b { color: #3b9bea; text-transform: uppercase; letter-spacing: .04em; font-size: 11px }
+.tl-cap .tl-lbl b::before { content: '⇄ '; font-weight: 700 }
+.tl-cap .tl-band { background: transparent }
+.tl-cap .tl-cell.n1 { background: color-mix(in srgb, #41d7a7 45%, var(--surface)) }
+.tl-cap .tl-cell.n2 { background: color-mix(in srgb, #e9a23b 60%, var(--surface)) }
 .tl-cell { position: absolute; top: 12px; height: 28px; border-radius: 4px; display: grid; place-items: center; font: 600 12px var(--f-mono); font-style: normal; color: var(--fg) }
 .tl-cell.n1 { background: color-mix(in srgb, #41d7a7 28%, transparent) }
 .tl-cell.n2 { background: color-mix(in srgb, #e9a23b 40%, transparent) }
@@ -1531,7 +1537,7 @@ function ganttAll(list) {
     const l = w.x(s < a ? a : s), r = w.x(addDays(e > b ? b : e, 1));
     cells += `<i class="tl-cell n${Math.min(on.length, 3)}" style="left:calc(${l}% + 1px);width:calc(${r - l}% - 2px)" title="Semana del ${fmtY(s)}: ${on.map(p => p.nombre).join(', ')}">${on.length}</i>`;
   }
-  h += `<div class="tl-row tl-cap"><div class="tl-lbl"><b>Instalaciones en paralelo</b><span class="muted small">por semana · 3 o más en rojo</span></div><div class="tl-track">${bands}${cells}</div>
+  h += `<div class="tl-row tl-cap"><div class="tl-lbl"><b>Instalaciones en paralelo</b><span class="muted small">todos los proyectos, por semana</span></div><div class="tl-track">${bands}${cells}</div>
     <div class="tl-right">${rojas ? `<span class="tl-chip late">⚠ ${rojas} semana${rojas === 1 ? '' : 's'} con 3 o más</span>` : '<span class="muted small">Sin superposiciones de 3 o más</span>'}</div></div>`;
   return `<div class="tl">${h}</div>${tlLegend()}`;
 }
