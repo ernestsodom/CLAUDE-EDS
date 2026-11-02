@@ -39,7 +39,10 @@ module.exports = handler(async (req, res) => {
     select x.tipo, x.id, x.data, now() from jsonb_to_recordset(${JSON.stringify(ok)}::jsonb) as x(tipo text, id text, data jsonb)
     on conflict (tipo, id) do update set data = excluded.data, actualizado = now()`;
   if (staff) {
-    const del = deletes.filter(d => d && TIPOS.includes(d.tipo) && d.id);
+    // eliminar proyectos: solo el super administrador o quien tenga el permiso «Puede eliminar proyectos»
+    const delProj = me.rol === 'superadmin' || me.eliminarProyectos === true;
+    const del = deletes.filter(d => d && TIPOS.includes(d.tipo) && d.id && (d.tipo !== 'proyecto' || delProj));
+    skipped += deletes.length - del.length;
     if (del.length) await sql`delete from entidades e using jsonb_to_recordset(${JSON.stringify(del)}::jsonb) as x(tipo text, id text) where e.tipo = x.tipo and e.id = x.id`;
     if (Number.isInteger(quoteSeq)) await sql`insert into meta (clave, valor) values ('quoteSeq', ${JSON.stringify(quoteSeq)}::jsonb)
       on conflict (clave) do update set valor = greatest((meta.valor)::int, (excluded.valor)::int)::text::jsonb`;

@@ -496,6 +496,10 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .provcard .pc-p:last-child { border-bottom: 0 }
 .provcard .pc-p:hover { background: var(--surface2) }
 .provcard .sw { width: 10px; height: 10px; border-radius: 50% }
+
+.delbox { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 6%, var(--surface)) }
+.btn.primary.danger { background: var(--bad); border-color: var(--bad); color: #fff }
+.btn.primary.danger:disabled { opacity: .4; cursor: not-allowed }
 </style>
 
 <div class="app">
@@ -1194,6 +1198,9 @@ async function initUsers() {
 }
 const me = () => USERS.find(u => u.id === UI.userId && u.activo) || null;
 const isSuper = () => me()?.rol === 'superadmin';
+// Eliminar proyectos: siempre el super administrador; otros usuarios solo si se les dio el permiso.
+const canDelProj = () => !!me() && (isSuper() || (me().rol === 'usuario' && !!me().eliminarProyectos));
+const nomCmp = t => String(t || '').toLowerCase().replace(/[—–-]/g, '-').replace(/\s+/g, ' ').trim();
 const canSee = neg => !!me() && (isSuper() || me().negocios.includes(neg));
 const allowedNegocios = () => Object.keys(NEGOCIOS).filter(canSee);
 const activeSupers = () => USERS.filter(u => u.rol === 'superadmin' && u.activo);
@@ -1286,7 +1293,7 @@ function vUsuarios() {
       ${UI.formError ? `<p class="st-bad small full" role="alert" style="margin:0">${esc(UI.formError)}</p>` : ''}
       <div class="full"><button class="btn primary">Crear usuario</button></div>
     </div></form>` : ''}
-  <div class="panel tablewrap"><table class="models users"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Negocios</th><th>Módulos</th><th>Activo</th><th></th></tr></thead><tbody>
+  <div class="panel tablewrap"><table class="models users"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Negocios</th><th>Módulos</th><th>Eliminar proyectos</th><th>Activo</th><th></th></tr></thead><tbody>
   ${USERS.filter(u => u.rol !== 'cliente').map(u => { const self = u.id === me().id;
     return `<tr><td class="mono">${esc(u.usuario)}${self ? ' <span class="muted small">(tú)</span>' : ''}</td><td>${esc(u.nombre)}</td>
     <td><select id="ur-${u.id}" data-field="u-rol" data-id="${u.id}" ${self ? 'disabled' : ''} aria-label="Rol de ${esc(u.usuario)}">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${u.rol === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
@@ -1294,6 +1301,7 @@ function vUsuarios() {
     <td>${u.rol === 'superadmin' ? '<span class="muted small">Todos los módulos</span>' : `<div style="display:grid;gap:4px">
       <select id="up-${u.id}" data-field="u-perfil" data-id="${u.id}" aria-label="Perfil de acceso de ${esc(u.usuario)}">${Object.entries(PERFILES).map(([k, p]) => `<option value="${k}" ${perfilDe(userModulos(u)) === k ? 'selected' : ''}>${p.nombre}</option>`).join('')}<option value="personalizado" ${perfilDe(userModulos(u)) === 'personalizado' ? 'selected' : ''} disabled>Personalizado</option></select>
       ${Object.entries(MODULOS).map(([k, n]) => `<label class="check small"><input type="checkbox" id="um-${u.id}-${k}" data-field="u-mod" data-id="${u.id}" data-mod="${k}" ${userModulos(u).includes(k) ? 'checked' : ''}> ${n}</label>`).join('')}</div>`}</td>
+    <td>${u.rol === 'superadmin' ? '<span class="muted small">Siempre</span>' : `<label class="check small"><input type="checkbox" id="ud-${u.id}" data-field="u-delproj" data-id="${u.id}" ${u.eliminarProyectos ? 'checked' : ''}> Puede eliminar</label>`}</td>
     <td><input type="checkbox" id="ua-${u.id}" data-field="u-activo" data-id="${u.id}" ${u.activo ? 'checked' : ''} ${self ? 'disabled' : ''} aria-label="Activo"></td>
     <td><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn sm" data-act="ureset" data-id="${u.id}">Nueva contraseña</button>
@@ -1534,7 +1542,14 @@ function projectDetail(p) {
     entrega: sa.real ? '' : 'Entrega en obra = retiro de carga + días de transporte. Si cambias esta fecha se mueve el retiro de carga.',
     instalacion: p.instalBase ? `Comprometida al cierre de la venta: ${fmtY(p.instalBase)}.` : '', habilitada: '' };
   return `<div style="display:grid;gap:16px;min-width:0">
-  <div class="panel"><div class="ph"><div><h2>${esc(p.nombre)}</h2><span class="muted small">${esc(p.cliente)} · ${esc(p.ciudad)}, ${esc(p.prov)} · ${esc(p.comuna)}</span></div><span class="pill ${st.cls}">${st.txt}</span></div>
+  ${UI.delProj === p.id && canDelProj() ? (() => { const d = p.dealId && S.deals.find(x => x.id === p.dealId);
+    return `<form class="panel delbox" data-form="delproj" data-id="${p.id}"><div class="pb" style="display:grid;gap:10px">
+      <b class="st-bad">Eliminar el proyecto «${esc(p.nombre)}»</b>
+      <p class="small" style="margin:0">Se borra el proyecto con su cronograma, archivos y trazabilidad.${d ? ` El negocio «${esc(d.cliente)}» vuelve a la bandeja en negociación, con su historial.` : ''} Esta acción no se puede deshacer.</p>
+      <label class="field"><span>Para confirmar, escribe el nombre del proyecto: <b>${esc(p.nombre)}</b>${/[—–]/.test(p.nombre) ? ' (puedes escribir la raya como un guion)' : ''}</span><input type="text" name="confirma" id="dp-${p.id}" autocomplete="off" required data-field="delproj-txt" data-id="${p.id}"></label>
+      <div class="row"><button class="btn primary danger" id="dp-ok" disabled>Eliminar definitivamente</button><button type="button" class="btn ghost" data-act="delproj-cancel">Cancelar</button></div>
+    </div></form>`; })() : ''}
+  <div class="panel"><div class="ph"><div><h2>${esc(p.nombre)}</h2><span class="muted small">${esc(p.cliente)} · ${esc(p.ciudad)}, ${esc(p.prov)} · ${esc(p.comuna)}</span></div><div class="row" style="gap:8px"><span class="pill ${st.cls}">${st.txt}</span>${canDelProj() && UI.delProj !== p.id ? `<button class="btn sm ghost danger" data-act="delproj" data-id="${p.id}">Eliminar proyecto</button>` : ''}</div></div>
     <div class="pb" style="display:grid;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Línea de tiempo</h3><span class="muted small">Hoy ${fmtY(TODAY)}</span></div>${gantt(p)}</div></div>
   <div class="two">
     <div class="panel"><div class="ph"><h3>Etapas de la entrega</h3></div><div class="pb" style="display:grid;gap:10px">
@@ -2168,7 +2183,9 @@ document.addEventListener('click', ev => {
     case 'p-sel': UI.pSel = id; render(); break;
     // proyectos
     case 'openproj': if (!canModule('proyectos')) { toast('No tienes acceso al módulo Proyectos y entregas.'); break; } UI.profile = 'atila'; UI.view = 'proyectos'; UI.project = id; UI.projOpen = true; saveUI(); render(); window.scrollTo(0, 0); break;
-    case 'projback': UI.projOpen = false; render(); window.scrollTo(0, 0); break;
+    case 'projback': UI.projOpen = false; UI.delProj = null; render(); window.scrollTo(0, 0); break;
+    case 'delproj': if (!canDelProj()) break; UI.delProj = id; render(); window.scrollTo(0, 0); setTimeout(() => { const i = document.getElementById('dp-' + id); if (i) i.focus(); }, 30); break;
+    case 'delproj-cancel': UI.delProj = null; render(); break;
     case 'st-real': case 'st-est': {
       const p = project(id), e = p.etapas[+b.dataset.i];
       if (act === 'st-real') { e.real = true; if (e.inicio > TODAY) e.inicio = TODAY; replan(p); logP(p, `Fecha real confirmada: ${stageName(e.key)} el ${fmtY(e.inicio)}.` + who()); }
@@ -2184,6 +2201,9 @@ document.addEventListener('click', ev => {
   }
 });
 
+document.addEventListener('input', ev => {
+  if (ev.target.dataset && ev.target.dataset.field === 'delproj-txt') { const p = project(ev.target.dataset.id), ok = document.getElementById('dp-ok'); if (p && ok) ok.disabled = nomCmp(ev.target.value) !== nomCmp(p.nombre); }
+});
 document.addEventListener('change', ev => {
   if (ev.target.dataset.field === 'ses-u') { UI.sesF.u = ev.target.value; render(); return; }
   if (ev.target.dataset.field === 'ses-dias') { UI.sesF.dias = +ev.target.value; render(); return; }
@@ -2203,6 +2223,7 @@ document.addEventListener('change', ev => {
     const u = USERS.find(x => x.id === t.dataset.id);
     if (f === 'u-mod') { const cur = userModulos(u); u.modulos = t.checked ? [...new Set([...cur, t.dataset.mod])] : cur.filter(m => m !== t.dataset.mod); }
     if (f === 'u-perfil' && PERFILES[t.value]) u.modulos = [...PERFILES[t.value].modulos];
+    if (f === 'u-delproj') u.eliminarProyectos = t.checked;
     if (f === 'u-neg') u.negocios = t.checked ? [...new Set([...u.negocios, t.dataset.neg])] : u.negocios.filter(n => n !== t.dataset.neg);
     if (f === 'u-rol') { if (u.rol === 'superadmin' && t.value !== 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.rol = t.value; }
     if (f === 'u-activo') { if (!t.checked && u.rol === 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.activo = t.checked; }
@@ -2322,6 +2343,16 @@ document.addEventListener('submit', async ev => {
       estado: 'emitida', portal: false, canales: [], dz: dzOf(d) };
     d.cotizaciones = [...(d.cotizaciones || []), q]; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Cotización ${q.numero} generada por ${money(qTotal(q), q.moneda)}.` + who() });
     UI.quoteForm = null; UI.quoteOpen = q.id; commit(`Cotización ${q.numero} generada`); return;
+  }
+  if (kind === 'delproj') {
+    const p = project(f.dataset.id);
+    if (!p || !canDelProj()) { toast('No tienes permiso para eliminar proyectos.'); return; }
+    if (nomCmp(fd.confirma) !== nomCmp(p.nombre)) { toast('El nombre no coincide. El proyecto no se eliminó.'); return; }
+    const d = p.dealId && S.deals.find(x => x.id === p.dealId);
+    S.projects = S.projects.filter(x => x.id !== p.id);
+    if (d) { d.proyectoId = null; d.etapa = 'negociacion'; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Proyecto «${p.nombre}» eliminado; el negocio vuelve a negociación.` + who() }); }
+    UI.delProj = null; UI.projOpen = false; UI.project = null; saveUI();
+    commit(`Proyecto «${p.nombre}» eliminado`); window.scrollTo(0, 0); return;
   }
   if (kind === 'close') { const d = S.deals.find(x => x.id === f.dataset.id), c = d.lat != null ? d : locate(d.prov, d.ciudad), dz = dzOf(d);
     if (fd.entrega <= fd.fecha) { toast('La entrega en obra debe ser posterior a la fecha de cierre.'); return; }

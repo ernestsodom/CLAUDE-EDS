@@ -35,7 +35,7 @@ function readToken(req) {
 }
 
 const fromRow = r => ({ id: r.id, usuario: r.usuario, email: r.email || '', nombre: r.nombre, empresa: r.empresa || '', telefono: r.telefono || '',
-  ciudad: r.ciudad || '', rol: r.rol, negocios: r.negocios || [], modulos: r.modulos || undefined, activo: r.activo });
+  ciudad: r.ciudad || '', rol: r.rol, negocios: r.negocios || [], modulos: r.modulos || undefined, activo: r.activo, eliminarProyectos: !!r.eliminar_proyectos });
 
 // Registro de sesiones: cada ingreso abre una fila; la salida, o una hora sin actividad, la cierra.
 const ipOf = req => String(req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || '').split(',')[0].trim() || null;
