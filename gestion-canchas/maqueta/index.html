@@ -500,6 +500,26 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .delbox { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 6%, var(--surface)) }
 .btn.primary.danger { background: var(--bad); border-color: var(--bad); color: #fff }
 .btn.primary.danger:disabled { opacity: .4; cursor: not-allowed }
+
+/* Retiro de carga: hito clave */
+.tl-bar.k-salida { top: calc(50% - 9px); height: 18px; border-radius: 4px }
+.tl-ret { position: absolute; top: 3px; bottom: 3px; width: 4px; margin-left: -2px; border-radius: 2px; background: #8b6cf0; z-index: 4; box-shadow: 0 0 0 2px var(--surface) }
+.tl-ret.est { background: repeating-linear-gradient(180deg, #8b6cf0 0 5px, color-mix(in srgb, #8b6cf0 45%, transparent) 5px 8px) }
+.tl-retlab { position: absolute; top: 2px; transform: translateX(-100%); margin-left: -5px; background: #8b6cf0; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; white-space: nowrap; z-index: 5 }
+.tl-retlab.est { background: color-mix(in srgb, #8b6cf0 82%, var(--surface)) }
+.tl-row.ret { background: color-mix(in srgb, #8b6cf0 7%, transparent) }
+.tl-row.ret .tl-lbl b { color: #8b6cf0 }
+.tl-right .d.ret { font-size: 16px; font-weight: 600; color: #8b6cf0 }
+.tl-legend .ret { color: var(--fg); font-weight: 600 }
+.tl-k.ret { width: 4px; height: 16px; border-radius: 2px; background: #8b6cf0; margin-right: 8px }
+.pc-ret { font-size: 14px; font-weight: 700 }
+.plan > div.ancla { grid-column: 1 / -1; background: color-mix(in srgb, #8b6cf0 16%, var(--surface2)); border-left: 4px solid #8b6cf0 }
+.plan > div.ancla b { font-size: 24px; color: #8b6cf0 }
+.stages li.stg.ancla { border-left: 4px solid #8b6cf0; background: color-mix(in srgb, #8b6cf0 10%, transparent); padding-top: 14px; padding-bottom: 14px }
+.stages li.stg.ancla > div > b { font-size: 15px; color: #8b6cf0 }
+.stages li.stg.ancla input[type=date] { font-size: 14px; font-weight: 600; border-color: #8b6cf0 }
+.tag.ret { color: #8b6cf0; border-color: #8b6cf0; font-weight: 600 }
+.kpi b.kret { color: #8b6cf0 }
 </style>
 
 <div class="app">
@@ -1416,7 +1436,7 @@ function pcard(x) {
     <div class="top"><span class="t">${esc(x.nombre)}</span><span class="muted small">Abrir →</span></div>
     <span class="muted small">${esc(x.ciudad)} · ${esc(x.comuna)} · ${x.canchas} × ${esc(model(x.modelo).nombre)}${x.instal ? ' · ' + esc(x.instal) : ''}</span>
     <div class="bar">${x.etapas.map(e => { const s = stState(e); return `<i class="${s === 'completada' ? 'done' : s === 'en_curso' ? 'cur' : ''}"></i>`; }).join('')}</div>
-    <div class="top"><span class="pill">${st.txt}</span><span class="small muted">${isClosed(x) ? `Habilitada <span class="mono">${fmt(stOf(x, 'habilitada').inicio)}</span>` : `Entrega en obra <span class="mono">${fmt(ent.inicio)}</span>${ent.real ? '' : ' (est.)'}`}</span></div></button>`;
+    <div class="top"><span class="pill">${st.txt}</span><span class="small muted">${isClosed(x) ? `Habilitada <span class="mono">${fmt(stOf(x, 'habilitada').inicio)}</span>` : `<b class="pc-ret">Retiro ${fmt(stOf(x, 'salida').inicio)}${stOf(x, 'salida').real ? '' : ' ≈'}</b><br>entrega en obra <span class="mono">${fmt(ent.inicio)}</span>`}</span></div></button>`;
 }
 function vProyectos() {
   const open = UI.projOpen && project(UI.project);
@@ -1425,7 +1445,8 @@ function vProyectos() {
   const abiertos = S.projects.filter(p => !isClosed(p)).sort(byEntrega), cerrados = S.projects.filter(isClosed).sort(byEntrega).reverse();
   const pend = abiertos.filter(p => stOf(p, 'entrega').inicio >= TODAY), pendC = pend.reduce((a, p) => a + (+p.canchas || 0), 0);
   const count = k => abiertos.filter(x => cardState(x) === k).length, late = abiertos.filter(x => atraso(x)).length;
-  const kpis = [['Pendientes de entrega', pend.length, '', `${pendC} cancha${pendC === 1 ? '' : 's'} en total`], ['Diseño / por iniciar', count('espera')], ['En producción', count('construccion')],
+  const prox = abiertos.filter(p => stOf(p, 'salida').inicio >= TODAY).sort(porRetiro)[0];
+  const kpis = [['Próximo retiro de carga', prox ? fmt(stOf(prox, 'salida').inicio) : '—', 'kret', prox ? `${prox.nombre}${stOf(prox, 'salida').real ? '' : ' · estimada'}` : 'sin retiros pendientes'], ['Pendientes de entrega', pend.length, '', `${pendC} cancha${pendC === 1 ? '' : 's'} en total`], ['Diseño / por iniciar', count('espera')], ['En producción', count('construccion')],
     ['En tránsito', count('transito')], ['En instalación', count('instalacion')], ['Con atraso', late, late ? 'st-bad' : '', 'instalación después de lo comprometido'], ['Cerrados', cerrados.length, 'st-ok']];
   return `<div class="head"><div><h1>Proyectos y <em>entregas</em></h1><p>Cada venta cerrada se convierte en un proyecto. El estado de cada proyecto se calcula con las fechas de su cronograma: los contadores, las tarjetas, el Gantt y el calendario usan la misma regla.</p></div></div>
   <div class="kpis">${kpis.map(([n, v, c, sub]) => `<div class="kpi"><span class="label">${n}</span><b class="${c || ''}">${v}</b>${sub ? `<span class="small muted">${sub}</span>` : ''}</div>`).join('')}</div>
@@ -1440,6 +1461,7 @@ function vProyectos() {
 // bandas por mes, semanas marcadas y la línea de hoy. La usan el cronograma consolidado y el de cada proyecto.
 const TL_RANGOS = { mes: [-7, 35], trimestre: [-21, 100], semestre: [-30, 185] };
 const porEntrega = (x, y) => stOf(x, 'entrega').inicio.localeCompare(stOf(y, 'entrega').inicio);
+const porRetiro = (x, y) => stOf(x, 'salida').inicio.localeCompare(stOf(y, 'salida').inicio);
 function tlWin(a, b) {
   const span = diffDays(a, b) + 1, cl = v => Math.min(100, Math.max(0, v));
   return { a, b, x: iso => cl(diffDays(a, iso) / span * 100), mid: iso => cl((diffDays(a, iso) + 0.5) / span * 100), inside: iso => iso >= a && iso <= b };
@@ -1460,7 +1482,13 @@ function tlHead(w) {
 function tlBar(w, e) {
   if (e.fin < w.a || e.inicio > w.b) return '';
   const l = w.x(e.inicio), r = w.x(addDays(e.fin, 1));
-  return `<i class="tl-bar${e.real ? '' : ' est'}" style="left:${l}%;width:${Math.max(r - l - 0.15, 0.35)}%;background:${stageColor(e.key)}" title="${stageName(e.key)}: ${fmtY(e.inicio)} → ${fmtY(e.fin)} · fecha ${e.real ? 'real' : 'estimada'}"></i>`;
+  return `<i class="tl-bar k-${e.key}${e.real ? '' : ' est'}" style="left:${l}%;width:${Math.max(r - l - 0.15, 0.35)}%;background:${stageColor(e.key)}" title="${stageName(e.key)}: ${fmtY(e.inicio)} → ${fmtY(e.fin)} · fecha ${e.real ? 'real' : 'estimada'}"></i>`;
+}
+// Retiro de carga (inicio de salida y transporte): el hito que define el cumplimiento; se marca más grande que los demás.
+function tlRetiro(w, e) {
+  if (!w.inside(e.inicio)) return '';
+  const x = w.mid(e.inicio);
+  return `<i class="tl-ret${e.real ? '' : ' est'}" style="left:${x}%" title="Retiro de carga (salida y transporte): ${fmtY(e.inicio)} · fecha ${e.real ? 'real' : 'estimada'}"></i><span class="tl-retlab${e.real ? '' : ' est'}" style="left:${x}%">Retiro ${fmt(e.inicio)}${e.real ? '' : ' ≈'}</span>`;
 }
 function tlHito(w, e, conFecha) {
   if (!w.inside(e.inicio)) return '';
@@ -1473,7 +1501,7 @@ function tlBase(w, p) {
   const late = atraso(p);
   return `<i class="tl-base${late ? ' late' : ''}" style="left:${w.mid(p.instalBase)}%" title="Instalación comprometida al cierre de la venta: ${fmtY(p.instalBase)}"></i>${late ? `<span class="tl-late" style="left:${w.mid(p.instalBase)}%">+${late} d</span>` : ''}`;
 }
-const tlLegend = () => `<div class="tl-legend">${['diseno', 'construccion', 'salida', 'instalacion'].map(k => `<span><i style="background:${stageColor(k)}"></i>${stageName(k)}</span>`).join('')}
+const tlLegend = () => `<div class="tl-legend"><span class="ret"><b class="tl-k ret"></b>Retiro de carga · hito clave</span><span class="sep"></span>${['diseno', 'construccion', 'salida', 'instalacion'].map(k => `<span><i style="background:${stageColor(k)}"></i>${stageName(k)}</span>`).join('')}
   <span class="sep"></span><span><i style="background:${stageColor('construccion')};opacity:.42"></i>Fecha estimada</span><span><i style="background:${stageColor('construccion')}"></i>Fecha real</span>
   <span class="sep"></span><span><b class="tl-k dia"></b>Entrega en obra</span><span><b class="tl-k hab">✓</b>Cancha habilitada</span><span><b class="tl-k base"></b>Instalación comprometida al cierre</span></div>`;
 // Cronograma consolidado: proyectos abiertos agrupados por mes de entrega y carril de instalaciones en paralelo por semana.
@@ -1484,15 +1512,15 @@ function ganttAll(list) {
   if (TL_RANGOS[R]) { a = addDays(TODAY, TL_RANGOS[R][0]); b = addDays(TODAY, TL_RANGOS[R][1]); }
   else { a = list.reduce((m, p) => stOf(p, 'diseno').inicio < m ? stOf(p, 'diseno').inicio : m, TODAY); b = list.reduce((m, p) => stOf(p, 'habilitada').fin > m ? stOf(p, 'habilitada').fin : m, TODAY); a = addDays(a, -3); b = addDays(b, 7); }
   const w = tlWin(a, b), bands = tlBands(w), groups = {};
-  [...list].sort(porEntrega).forEach(p => { const m = stOf(p, 'entrega').inicio.slice(0, 7); (groups[m] = groups[m] || []).push(p); });
-  let h = `<div class="tl-row tl-head"><div class="tl-lbl"><span class="tl-cap-t">Proyecto</span></div><div class="tl-track">${tlHead(w)}</div><div class="tl-right"><span class="tl-cap-t">Entrega en obra</span></div></div>`;
+  [...list].sort(porRetiro).forEach(p => { const m = stOf(p, 'salida').inicio.slice(0, 7); (groups[m] = groups[m] || []).push(p); });
+  let h = `<div class="tl-row tl-head"><div class="tl-lbl"><span class="tl-cap-t">Proyecto</span></div><div class="tl-track">${tlHead(w)}</div><div class="tl-right"><span class="tl-cap-t">Retiro de carga</span></div></div>`;
   for (const [m, ps] of Object.entries(groups)) {
     const nc = ps.reduce((t, p) => t + (+p.canchas || 0), 0);
-    h += `<div class="tl-group">Entregas de <b>${MESES[+m.slice(5) - 1]} ${m.slice(0, 4)}</b> · ${ps.length} proyecto${ps.length === 1 ? '' : 's'} · ${nc} cancha${nc === 1 ? '' : 's'}</div>`;
-    h += ps.map(p => { const st = pStatus(p), en = stOf(p, 'entrega'), c = current(p);
+    h += `<div class="tl-group">Retiros de carga de <b>${MESES[+m.slice(5) - 1]} ${m.slice(0, 4)}</b> · ${ps.length} proyecto${ps.length === 1 ? '' : 's'} · ${nc} cancha${nc === 1 ? '' : 's'}</div>`;
+    h += ps.map(p => { const st = pStatus(p), en = stOf(p, 'entrega'), sa = stOf(p, 'salida'), c = current(p);
       return `<div class="tl-row"><button class="tl-lbl glabel" data-act="openproj" data-id="${p.id}" title="${esc(p.nombre)}"><span>${esc(p.nombre)}</span><span class="muted small">${p.canchas} cancha${p.canchas === 1 ? '' : 's'} · ${esc(p.ciudad)}</span></button>
-        <div class="tl-track">${bands}${['diseno', 'construccion', 'salida', 'instalacion'].map(k => tlBar(w, stOf(p, k))).join('')}${tlHito(w, en, true)}${tlHito(w, stOf(p, 'habilitada'))}${tlBase(w, p)}</div>
-        <div class="tl-right"><span class="d">${fmt(en.inicio)}${en.real ? '' : ' <span class="muted small">est.</span>'}</span><span class="tl-chip${atraso(p) ? ' late' : ''}" style="--sc:${stageColor(c.key)}">${st.txt}</span></div></div>`; }).join('');
+        <div class="tl-track">${bands}${['diseno', 'construccion', 'salida', 'instalacion'].map(k => tlBar(w, stOf(p, k))).join('')}${tlRetiro(w, sa)}${tlHito(w, en, true)}${tlHito(w, stOf(p, 'habilitada'))}${tlBase(w, p)}</div>
+        <div class="tl-right"><span class="d ret">${fmt(sa.inicio)}${sa.real ? '' : ' <span class="muted small">est.</span>'}</span><span class="muted small">entrega en obra ${fmt(en.inicio)}</span><span class="tl-chip${atraso(p) ? ' late' : ''}" style="--sc:${stageColor(c.key)}">${st.txt}</span></div></div>`; }).join('');
   }
   // instalaciones en paralelo, por semana (de lunes a domingo)
   let s0 = a; while (parse(s0).getDay() !== 1) s0 = addDays(s0, -1);
@@ -1513,8 +1541,8 @@ function gantt(p) {
   if (p.instalBase && p.instalBase > b) b = p.instalBase;
   const w = tlWin(addDays(a, -4), addDays(b, 6)), bands = tlBands(w);
   return `<div class="tl one"><div class="tl-row tl-head"><div class="tl-lbl"></div><div class="tl-track">${tlHead(w)}</div></div>
-    ${p.etapas.map(e => `<div class="tl-row"><div class="tl-lbl"><b>${stageName(e.key)}</b><span class="muted small">${fmtY(e.inicio)}${MILESTONE(e.key) ? '' : ' → ' + fmtY(e.fin)} · ${e.real ? 'real' : 'estimada'}</span></div>
-      <div class="tl-track">${bands}${MILESTONE(e.key) ? tlHito(w, e, e.key === 'entrega') : tlBar(w, e)}${e.key === 'instalacion' ? tlBase(w, p) : ''}</div></div>`).join('')}
+    ${p.etapas.map(e => `<div class="tl-row${e.key === 'salida' ? ' ret' : ''}"><div class="tl-lbl"><b>${e.key === 'salida' ? 'Retiro de carga · ' : ''}${stageName(e.key)}</b><span class="muted small">${fmtY(e.inicio)}${MILESTONE(e.key) ? '' : ' → ' + fmtY(e.fin)} · ${e.real ? 'real' : 'estimada'}</span></div>
+      <div class="tl-track">${bands}${MILESTONE(e.key) ? tlHito(w, e, e.key === 'entrega') : tlBar(w, e)}${e.key === 'salida' ? tlRetiro(w, e) : ''}${e.key === 'instalacion' ? tlBase(w, p) : ''}</div></div>`).join('')}
   </div>${tlLegend()}`;
 }
 function projFiles(p) {
@@ -1553,14 +1581,14 @@ function projectDetail(p) {
     <div class="pb" style="display:grid;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Línea de tiempo</h3><span class="muted small">Hoy ${fmtY(TODAY)}</span></div>${gantt(p)}</div></div>
   <div class="two">
     <div class="panel"><div class="ph"><h3>Etapas de la entrega</h3></div><div class="pb" style="display:grid;gap:10px">
-      <div class="plan"><div><span class="label">Retiro de carga</span><b class="mono">${fmtY(sa.inicio)}</b></div><div><span class="label">Diseño definitivo hasta</span><b class="mono">${fmtY(ds.fin)}</b></div>
+      <div class="plan"><div class="ancla"><span class="label">Retiro de carga · hito clave</span><b class="mono">${fmtY(sa.inicio)}</b><span class="small">${sa.real ? 'Fecha real' : 'Fecha estimada'} · ${sa.inicio < TODAY ? `hace ${diffDays(sa.inicio, TODAY)} días` : sa.inicio === TODAY ? 'hoy' : `faltan ${diffDays(TODAY, sa.inicio)} días`}</span></div><div><span class="label">Diseño definitivo hasta</span><b class="mono">${fmtY(ds.fin)}</b></div>
         <div><span class="label">Arranque de producción</span><b class="mono">${fmtY(pr.inicio)}</b></div><div><span class="label">Entrega en obra</span><b class="mono">${fmtY(en.inicio)}</b></div></div>
       ${avisos.map(a => `<p class="st-bad small" role="alert" style="margin:0">${a}</p>`).join('')}
       <ul class="stages">
       ${p.etapas.map((e, i) => { const s = stState(e), cls = s === 'completada' ? 'done' : s === 'en_curso' ? 'cur' : '';
         const action = e.real ? `<button class="btn sm ghost" data-act="st-est" data-id="${p.id}" data-i="${i}">Volver a estimada</button>`
           : e.inicio <= TODAY ? `<button class="btn sm${sinConfirmar(e) ? ' primary' : ''}" data-act="st-real" data-id="${p.id}" data-i="${i}">Confirmar real</button>` : '';
-        return `<li class="stg ${cls}" style="--sc:${stageColor(e.key)}"><span class="dot ${cls}">${s === 'completada' ? '✓' : i + 1}</span><div><b>${stageName(e.key)}</b> ${estTag(e)}${e.key === 'salida' ? ' <span class="tag">Fecha ancla</span>' : ''}${sinConfirmar(e) ? ' <span class="pill st-warn">Pasó sin confirmar</span>' : ''}
+        return `<li class="stg ${cls}${e.key === 'salida' ? ' ancla' : ''}" style="--sc:${stageColor(e.key)}"><span class="dot ${cls}">${s === 'completada' ? '✓' : i + 1}</span><div><b>${stageName(e.key)}</b> ${estTag(e)}${e.key === 'salida' ? ' <span class="tag ret">Hito clave · retiro de carga</span>' : ''}${sinConfirmar(e) ? ' <span class="pill st-warn">Pasó sin confirmar</span>' : ''}
           <div class="dates"><input type="date" id="st-${p.id}-${i}" value="${e.inicio}" data-field="st-fecha" data-id="${p.id}" data-i="${i}" ${editable(e) ? '' : 'disabled'} ${e.real ? `max="${TODAY}"` : ''} aria-label="Fecha de ${stageName(e.key)}">
             ${MILESTONE(e.key) ? '' : `<input type="number" id="sd-${p.id}-${i}" min="1" max="365" value="${e.dur}" data-field="st-dur" data-id="${p.id}" data-i="${i}" aria-label="Duración de ${stageName(e.key)} en días" style="width:68px"><span class="muted small">días · hasta ${fmtY(e.fin)}</span>`}</div>
           ${hint[e.key] ? `<span class="muted small">${hint[e.key]}</span>` : ''}</div>${action}</li>`; }).join('')}

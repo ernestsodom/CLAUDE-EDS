@@ -40,7 +40,7 @@ oscuro con la luz de los cuatro focos LED y sombras leves.
 
 Etapas: venta cerrada, definición de diseño definitivo, producción, salida y transporte, entrega en obra, instalación
 y cancha habilitada. Cada etapa tiene **una fecha y una duración** (por defecto: diseño 7 días, producción 20, transporte 5,
-instalación 14). La **fecha de retiro de carga** (salida y transporte) es el ancla: la define el equipo según el plazo de
+instalación 14). La **fecha de retiro de carga** (salida y transporte) es el **hito clave**, el que define el cumplimiento: en el cronograma consolidado, en el de cada proyecto, en las tarjetas y en los contadores (próximo retiro) se marca más grande y en violeta, y el consolidado se agrupa y ordena por mes de retiro. Es el ancla: la define el equipo según el plazo de
 entrega y desde ahí se calculan hacia atrás el arranque de producción y la fecha límite del diseño definitivo, y hacia
 adelante la entrega en obra, la instalación y la habilitación. Cambiar la entrega en obra mueve el retiro de carga.
 
