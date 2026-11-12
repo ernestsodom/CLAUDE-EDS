@@ -532,6 +532,8 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .logo-pos > span { font-size: 11px }
 .tag.fija { color: var(--accent); border-color: var(--accent); border-style: dashed }
 .plan > div.ancla .ancla-in { font: 600 22px var(--f-mono); color: #8b6cf0; background: transparent; border: 1px solid color-mix(in srgb, #8b6cf0 50%, transparent); border-radius: 6px; padding: 2px 8px; width: auto; max-width: 240px }
+
+.ent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 12px }
 </style>
 
 <div class="app">
@@ -926,6 +928,10 @@ const POSTES_DEF = '#1b1b1b', REJAS_DEF = '#202020', PERFIL_DEF = '#202020', NEG
 // Césped de partida: gris para Competition PRO, terracota para Semi Panoramic y azul para Atila Club.
 const PASTO_INI = { panoramica: '#8e949a', semi: '#c4553a', club: PASTO_CLUB };
 const pastoIni = modelo => PASTO_INI[(S.models.find(m => m.id === modelo) || {}).tipo] || '#8e949a';
+// Entorno de la cancha (se puede agregar o quitar cada elemento) y espuma protectora en el contorno de las puertas.
+const ENTORNO = { admin: 'Administración (contenedor oficina)', terraza: 'Terraza con mesas y sombrillas', gradas: 'Graderías', bancos: 'Bancos de jugadores junto a las puertas', sillas: 'Sillas de jugador en los fondos', plantas: 'Plantas y maceteros' };
+const entornoDef = instal => instal === 'Indoor' ? { admin: false, terraza: false, gradas: false, bancos: true, sillas: true, plantas: false } : { admin: true, terraza: true, gradas: false, bancos: true, sillas: true, plantas: false };
+const ESPUMA_COL = [['Negro', '#1b1b1b'], ['Menta ATILA', '#41d7a7'], ['Azul', '#1f6fd1'], ['Rojo', '#e5564b'], ['Amarillo', '#edff21'], ['Gris', '#8e949a']];
 const LOGOS_VACIOS = { amortA: '', amortB: '', puertaA: '', puertaB: '', foco: '' };
 const dzDefault = (modelo = 'm1') => normDz({ modelo, instal: 'Outdoor', pasto: pastoIni(modelo), postes: POSTES_DEF, rejas: REJAS_DEF, perfiles: PERFIL_DEF, amort: { ...AMORT_DEF }, amortOn: true, pastoCustom: false,
   logo: null, logos: { ...LOGOS_VACIOS }, mapa: null });
@@ -935,6 +941,8 @@ const isClub = modelo => (S.models.find(m => m.id === modelo) || {}).tipo === 'c
 function normDz(dz) {
   const legacy = { amortA: dz.logoAmort ? 'club' : '', amortB: dz.logoAmort ? 'club' : '', puertaA: dz.logoPuertas ? 'club' : '', puertaB: dz.logoPuertas ? 'club' : '', foco: '' };
   const o = { rejas: REJAS_DEF, perfiles: PERFIL_DEF, amortOn: true, pastoCustom: false, ...dz, logos: { ...LOGOS_VACIOS, ...(dz.logos || legacy) } };
+  o.entorno = { ...entornoDef(o.instal), ...(dz.entorno || {}) };
+  o.espuma = { on: false, color: '#1b1b1b', ...(dz.espuma || {}) };
   if (!o.logo || !String(o.logo.type || '').startsWith('image/')) Object.keys(o.logos).forEach(k => { if (o.logos[k] === 'club') o.logos[k] = ''; });
   if (isClub(o.modelo)) {
     o.postes = o.rejas = o.perfiles = NEGRO_CLUB; if (!o.pastoCustom) o.pasto = PASTO_CLUB;
@@ -953,6 +961,11 @@ function logoSrc(dz, sel, claro = true) {
   if (sel === 'club' && dz.logo && String(dz.logo.type).startsWith('image/')) return dz.logo.data;
   return null;
 }
+// Resumen de una cancha en texto, para la trazabilidad.
+function specTxt(dz0) { const dz = normDz(dz0), m = model(dz.modelo);
+  return [m.nombre, dz.instal, `césped ${colorName(dz.pasto)}`, isClub(dz.modelo) ? 'estructura negra' : `postes ${colorName(dz.postes)}, rejas ${colorName(dz.rejas)}, perfiles ${colorName(dz.perfiles)}`,
+    dz.amortOn ? `amortiguadores ${dz.amort.ral}` : 'sin amortiguadores', logosDesc(dz) ? `logos: ${logosDesc(dz)}` : '', `entorno: ${Object.entries(ENTORNO).filter(([k]) => dz.entorno[k]).map(([, n]) => n.split(' (')[0].toLowerCase()).join(', ') || 'ninguno'}`,
+    dz.espuma.on ? 'espuma en puertas' : ''].filter(Boolean).join(' · '); }
 function logosDesc(dz) {
   const l = normDz(dz).logos, parts = Object.entries(LOGO_POS).filter(([k]) => l[k]).map(([k, n]) => `${n}: ${LOGO_OPC[l[k]]}${k.startsWith('amort') ? ' (calado)' : ''}`);
   return parts.length ? parts.join(' · ') : '';
@@ -1088,6 +1101,10 @@ function createCourt3D(el, dz, opts) {
       [DOOR[0], DOOR[1]].forEach(z => { vbar(x, z, 0, H, 0.045, mats.white); });
       hbar(x, DOOR[0], x, DOOR[1], DH, 0.045, 0.045, mats.white);
       hbar(x, DOOR[0], x, DOOR[1], 0.03, 0.045, 0.03, mats.white);
+      // espuma protectora: acolchado que envuelve el marco de la puerta (laterales y dintel)
+      if (d.espuma.on) { const fm = new T.MeshStandardMaterial({ color: d.espuma.color, roughness: 0.95, metalness: 0 });
+        [DOOR[0], DOOR[1]].forEach(z => box(0.13, DH - 0.05, 0.11, fm, x, (DH - 0.05) / 2 + 0.05, z));
+        box(0.13, 0.11, DOOR[1] - DOOR[0] + 0.11, fm, x, DH, 0); }
       for (const z of [-6, -4, -2, 2, 4, 6]) {
         const trans = Math.abs(z) === 6;
         // pilar de transición: continúa el poste de luz, así el poste se pinta completo (en Semi Panoramic es la columna blanca)
@@ -1137,15 +1154,17 @@ function createCourt3D(el, dz, opts) {
     // Logo sobre la puerta: uno por lateral (A = x negativo, el que se ve de frente en la vista inicial; B = el opuesto)
     [-5, 5].forEach(x => { const src = logoSrc(d, d.logos[x < 0 ? 'puertaA' : 'puertaB'], !indoorNow); if (src) [1, -1].forEach(n => logoFace(built, src, x + n * 0.012, 2.6, 0, n * Math.PI / 2, 0, 1.3, 0.5)); });
     // Exterior: contenedor de administración tipo oficina, terraza con mesas y sombrillas y bancos para los jugadores
-    if (!indoorNow) entorno();
+    entorno(d);
   }
   const canvasTxt = (w, h, paint) => { const c = document.createElement('canvas'); c.width = w; c.height = h; paint(c.getContext('2d'), w, h); return new T.CanvasTexture(c); };
   let contTex = null;
-  function entorno() {
+  function entorno(d) {
+    const E = d.entorno; if (!Object.values(E).some(Boolean)) return;
     const g = new T.Group(); built.add(g);
     const M = (color, o = {}) => new T.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0.1, ...o });
     const b = (w, h, dd, m, x, y, z, p = g) => box(w, h, dd, m, x, y, z, p);
     // contenedor de 6 m (20 pies) tipo oficina, con ventanas, puerta y alero, mirando a la cancha
+    if (E.admin) {
     const C = new T.Group(); C.position.set(12.4, 0, -4.5); g.add(C);
     const chapa = M('#2b2f33', { metalness: 0.35, roughness: 0.55 }), vid = M('#9cc7e3', { metalness: 0.2, roughness: 0.1 }), menta = M('#41d7a7');
     b(2.44, 2.59, 6.06, chapa, 0, 1.295 + 0.15, 0, C);
@@ -1159,7 +1178,9 @@ function createCourt3D(el, dz, opts) {
     contTex = contTex || canvasTxt(512, 96, (x, w, h) => { x.fillStyle = '#2b2f33'; x.fillRect(0, 0, w, h); x.fillStyle = '#f2f2f2'; x.font = '600 46px Saira, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('ADMINISTRACIÓN', w / 2, h / 2 + 2); });
     const cart = new T.Mesh(new T.PlaneGeometry(2.6, 0.48), new T.MeshBasicMaterial({ map: contTex })); cart.position.set(-1.29, 2.25, 0); cart.rotation.y = -Math.PI / 2; C.add(cart);
     logoFace(C, ATILA_LOGOS.logo_blanco, 1.235, 1.6, 0, Math.PI / 2, 0, 3.6, 0.7);
+    }
     // terraza: deck de madera, mesas con sombrilla y sillas
+    if (E.terraza) {
     const deck = new T.Mesh(new T.PlaneGeometry(6, 9), M('#8a6a4a', { roughness: 0.9 })); deck.rotation.x = -Math.PI / 2; deck.position.set(12.2, 0.02, 5); deck.receiveShadow = true; g.add(deck);
     const mesa = (x, z, col) => { const t = new T.Group(); t.position.set(x, 0, z); g.add(t);
       const top = new T.Mesh(new T.CylinderGeometry(0.45, 0.45, 0.04, 20), M('#f2f2f2')); top.position.y = 0.74; top.castShadow = true; t.add(top);
@@ -1167,10 +1188,17 @@ function createCourt3D(el, dz, opts) {
       const som = new T.Mesh(new T.ConeGeometry(1.35, 0.45, 8), M(col, { side: T.DoubleSide })); som.position.y = 2.35; som.castShadow = true; t.add(som);
       [[0.75, 0, -Math.PI / 2], [-0.75, 0, Math.PI / 2], [0, 0.75, Math.PI], [0, -0.75, 0]].forEach(([cx, cz, ry]) => silla(t, cx, cz, ry, '#2b2f33')); };
     mesa(11.2, 2.6, '#41d7a7'); mesa(13.4, 4.8, '#f2f2f2'); mesa(11.2, 7.2, '#41d7a7');
+    }
     // bancos para los jugadores, afuera de la cancha junto a cada puerta
-    [-6.75, 6.75].forEach(x => [-2.7, 2.7].forEach(z => banco(g, x, z, x < 0 ? Math.PI / 2 : -Math.PI / 2)));
+    if (E.bancos) [-6.75, 6.75].forEach(x => [-2.7, 2.7].forEach(z => banco(g, x, z, x < 0 ? Math.PI / 2 : -Math.PI / 2)));
     // sillas para los jugadores en los fondos
-    [-12, 12].forEach(z => [-2.5, -1.8, 1.8, 2.5].forEach(x => silla(g, x, z, z < 0 ? 0 : Math.PI, '#41d7a7')));
+    if (E.sillas) [-11.6, 11.6].forEach(z => [-2.5, -1.8, 1.8, 2.5].forEach(x => silla(g, x, z, z < 0 ? 0 : Math.PI, '#41d7a7')));
+    // graderías: 4 escalones con asientos detrás de un fondo
+    if (E.gradas) { const G = new T.Group(); G.position.set(0, 0, 13.1); g.add(G); const horm = M('#a3a3a3', { roughness: 0.9 }), asiento = M('#41d7a7');
+      for (let i = 0; i < 4; i++) { b(9, 0.42 * (i + 1), 0.75, horm, 0, 0.21 * (i + 1), i * 0.75, G); b(9, 0.06, 0.34, asiento, 0, 0.42 * (i + 1) + 0.03, i * 0.75 - 0.12, G); }
+      b(9, 0.06, 0.06, M('#d9d9d9'), 0, 2.6, 2.6, G); [-4.4, 0, 4.4].forEach(x => b(0.06, 0.9, 0.06, M('#d9d9d9'), x, 2.15, 2.6, G)); }
+    // plantas en maceteros a lo largo del lateral opuesto
+    if (E.plantas) [-9, -6, -3, 3, 6, 9].forEach(z => { b(0.55, 0.55, 0.55, M('#3a3a3a'), 8.1, 0.275, z); const hoja = new T.Mesh(new T.SphereGeometry(0.5, 12, 10), M('#2e7d4f', { roughness: 0.9 })); hoja.position.set(8.1, 1.0, z); hoja.scale.y = 1.25; g.add(hoja); });
     g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   }
   function silla(p, x, z, ry, col) { const s = new T.Group(); s.position.set(x, 0, z); s.rotation.y = ry; p.add(s); const m = new T.MeshStandardMaterial({ color: col, roughness: 0.6 });
@@ -1248,7 +1276,7 @@ function createCourt3D(el, dz, opts) {
 
   cur = normDz(dz); syncRejas(cur); mats.grass.color.set(cur.pasto); mats.poles.color.set(cur.postes); mats.rejas.color.set(cur.rejas); mats.perfiles.color.set(cur.perfiles); mats.amort.color.set(cur.amort.hex);
   return {
-    set(d0) { const d = normDz(d0); const rebuild = d.modelo !== cur.modelo || d.logo !== cur.logo || JSON.stringify(d.logos) !== JSON.stringify(cur.logos) || d.amortOn !== cur.amortOn || d.instal !== cur.instal;
+    set(d0) { const d = normDz(d0); const rebuild = d.modelo !== cur.modelo || d.logo !== cur.logo || JSON.stringify([d.logos, d.entorno, d.espuma]) !== JSON.stringify([cur.logos, cur.entorno, cur.espuma]) || d.amortOn !== cur.amortOn || d.instal !== cur.instal;
       if (d.instal !== cur.instal) { cur = d; applyEnv(d.instal); } cur = d;
       mats.grass.color.set(d.pasto); mats.poles.color.set(d.postes); mats.rejas.color.set(d.rejas); mats.perfiles.color.set(d.perfiles); mats.amort.color.set(d.amort.hex); syncRejas(d);
       if (rebuild) build(d); cutMats.forEach(m => m.color.set(d.amort.hex)); requestRender(); },
@@ -1344,6 +1372,8 @@ async function initUsers() {
 const me = () => USERS.find(u => u.id === UI.userId && u.activo) || null;
 const isSuper = () => me()?.rol === 'superadmin';
 // Eliminar proyectos: siempre el super administrador; otros usuarios solo si se les dio el permiso.
+// Editar la cancha de un proyecto en cualquier momento: el super administrador y quien tenga el permiso.
+const canEditCancha = () => !!me() && (isSuper() || (me().rol === 'usuario' && !!me().editarCanchas));
 const canDelProj = () => !!me() && (isSuper() || (me().rol === 'usuario' && !!me().eliminarProyectos));
 const nomCmp = t => String(t || '').toLowerCase().replace(/[—–-]/g, '-').replace(/\s+/g, ' ').trim();
 const canSee = neg => !!me() && (isSuper() || me().negocios.includes(neg));
@@ -1438,7 +1468,7 @@ function vUsuarios() {
       ${UI.formError ? `<p class="st-bad small full" role="alert" style="margin:0">${esc(UI.formError)}</p>` : ''}
       <div class="full"><button class="btn primary">Crear usuario</button></div>
     </div></form>` : ''}
-  <div class="panel tablewrap"><table class="models users"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Negocios</th><th>Módulos</th><th>Eliminar proyectos</th><th>Activo</th><th></th></tr></thead><tbody>
+  <div class="panel tablewrap"><table class="models users"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Negocios</th><th>Módulos</th><th>Permisos especiales</th><th>Activo</th><th></th></tr></thead><tbody>
   ${USERS.filter(u => u.rol !== 'cliente').map(u => { const self = u.id === me().id;
     return `<tr><td class="mono">${esc(u.usuario)}${self ? ' <span class="muted small">(tú)</span>' : ''}</td><td>${esc(u.nombre)}</td>
     <td><select id="ur-${u.id}" data-field="u-rol" data-id="${u.id}" ${self ? 'disabled' : ''} aria-label="Rol de ${esc(u.usuario)}">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${u.rol === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
@@ -1446,7 +1476,8 @@ function vUsuarios() {
     <td>${u.rol === 'superadmin' ? '<span class="muted small">Todos los módulos</span>' : `<div style="display:grid;gap:4px">
       <select id="up-${u.id}" data-field="u-perfil" data-id="${u.id}" aria-label="Perfil de acceso de ${esc(u.usuario)}">${Object.entries(PERFILES).map(([k, p]) => `<option value="${k}" ${perfilDe(userModulos(u)) === k ? 'selected' : ''}>${p.nombre}</option>`).join('')}<option value="personalizado" ${perfilDe(userModulos(u)) === 'personalizado' ? 'selected' : ''} disabled>Personalizado</option></select>
       ${Object.entries(MODULOS).map(([k, n]) => `<label class="check small"><input type="checkbox" id="um-${u.id}-${k}" data-field="u-mod" data-id="${u.id}" data-mod="${k}" ${userModulos(u).includes(k) ? 'checked' : ''}> ${n}</label>`).join('')}</div>`}</td>
-    <td>${u.rol === 'superadmin' ? '<span class="muted small">Siempre</span>' : `<label class="check small"><input type="checkbox" id="ud-${u.id}" data-field="u-delproj" data-id="${u.id}" ${u.eliminarProyectos ? 'checked' : ''}> Puede eliminar</label>`}</td>
+    <td>${u.rol === 'superadmin' ? '<span class="muted small">Todos, siempre</span>' : `<div style="display:grid;gap:4px"><label class="check small"><input type="checkbox" id="ud-${u.id}" data-field="u-delproj" data-id="${u.id}" ${u.eliminarProyectos ? 'checked' : ''}> Eliminar proyectos</label>
+      <label class="check small"><input type="checkbox" id="ue-${u.id}" data-field="u-editcancha" data-id="${u.id}" ${u.editarCanchas ? 'checked' : ''}> Editar canchas</label></div>`}</td>
     <td><input type="checkbox" id="ua-${u.id}" data-field="u-activo" data-id="${u.id}" ${u.activo ? 'checked' : ''} ${self ? 'disabled' : ''} aria-label="Activo"></td>
     <td><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn sm" data-act="ureset" data-id="${u.id}">Nueva contraseña</button>
@@ -1706,6 +1737,8 @@ function projectDetail(p) {
     </div></form>`; })() : ''}
   <div class="panel"><div class="ph"><div><h2>${esc(lugar(p))}</h2><span class="small"><b>${esc(p.nombre)}</b> · ${esc(p.cliente)} · <span class="muted">${esc(p.ciudad)}, ${esc(p.prov)} · ${esc(p.comuna)}</span></span></div><div class="row" style="gap:8px"><span class="pill ${st.cls}">${st.txt}</span>${canDelProj() && UI.delProj !== p.id ? `<button class="btn sm ghost danger" data-act="delproj" data-id="${p.id}">Eliminar proyecto</button>` : ''}</div></div>
     <div class="pb" style="display:grid;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Línea de tiempo</h3><span class="muted small">Hoy ${fmtY(TODAY)}</span></div>${gantt(p)}</div></div>
+  ${UI.editProj === p.id && canEditCancha() ? `<form class="panel" data-form="projcancha" data-id="${p.id}"><div class="ph"><h3>Editar cancha</h3><div class="row"><button class="btn primary sm">Guardar cambios</button><button type="button" class="btn ghost sm" data-act="editcancha-cancel">Cancelar</button></div></div>
+    <div class="pb" style="display:grid;gap:12px"><label class="field" style="max-width:220px"><span>Instalación</span><select id="pc-instal" data-field="dz-instal">${['Outdoor', 'Indoor'].map(o => `<option ${UI.dz.instal === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>${designer()}</div></form>` : ''}
   <div class="two">
     <div class="panel"><div class="ph"><h3>Etapas de la entrega</h3></div><div class="pb" style="display:grid;gap:10px">
       <div class="plan"><div class="ancla"><span class="label">Retiro de carga · hito clave</span><input type="date" class="ancla-in" id="st-${p.id}-ret" value="${sa.inicio}" data-field="st-fecha" data-id="${p.id}" data-i="${p.etapas.indexOf(sa)}" ${sa.real ? `max="${TODAY}"` : ''} aria-label="Fecha de retiro de carga"><span class="small">${sa.real ? 'Fecha real' : 'Fecha estimada'} · ${sa.inicio < TODAY ? `hace ${diffDays(sa.inicio, TODAY)} días` : sa.inicio === TODAY ? 'hoy' : `faltan ${diffDays(TODAY, sa.inicio)} días`}</span></div><div><span class="label">Diseño definitivo hasta</span><b class="mono">${fmtY(ds.fin)}</b></div>
@@ -1721,11 +1754,11 @@ function projectDetail(p) {
           ${hint[e.key] ? `<span class="muted small">${hint[e.key]}</span>` : ''}</div>${action}</li>`; }).join('')}
     </ul></div></div>
     <div style="display:grid;gap:16px;min-width:0;align-content:start">
-      <div class="panel"><div class="ph"><h3>Cancha</h3><span class="tag">Solo lectura</span></div>
+      <div class="panel"><div class="ph"><h3>Cancha</h3>${canEditCancha() ? (UI.editProj === p.id ? '<span class="tag">Editando arriba</span>' : `<button class="btn sm" data-act="editcancha" data-id="${p.id}">Editar cancha</button>`) : '<span class="tag">Solo lectura</span>'}</div>
         <div class="pb" style="display:grid;gap:10px">${viewer3d(projDz(p), { small: true })}
         ${specList(projDz(p), p)}
         <dl class="kv"><dt>Status</dt><dd><span class="pill ${st.cls}">${st.txt}</span></dd>${p.obs ? `<dt>Observaciones</dt><dd class="small">${esc(p.obs)}</dd>` : ''}</dl>
-        <span class="muted small">El status sale de las etapas del cronograma. Las características de la cancha se definen en la bandeja de negocios antes del cierre; aquí solo se hace el seguimiento.</span></div></div>
+        <span class="muted small">El status sale de las etapas del cronograma. ${canEditCancha() ? 'Tienes permiso para editar la cancha de este proyecto en cualquier momento.' : 'Las características de la cancha se definen en la bandeja de negocios antes del cierre; aquí solo se hace el seguimiento.'}</span></div></div>
       ${projFiles(p)}
       <div class="panel"><div class="ph"><h3>Trazabilidad</h3></div><div class="pb" style="display:grid;gap:12px">
         <dl class="kv fechas">${p.etapas.map(e => `<dt>${stageName(e.key)}</dt><dd><span class="mono">${fmtY(e.inicio)}</span> ${estTag(e)}</dd>`).join('')}</dl>
@@ -1963,12 +1996,19 @@ function dzFiles() {
       <span class="muted small">Imagen, PDF o plano DWG/DXF. Máximo 2 MB por archivo.</span></div>
     <span class="muted small">Todo lo que elijas aquí (modelo, colores, logos y archivos) queda grabado en la solicitud al guardarla.</span>`;
 }
+function dzEntorno() {
+  const d = UI.dz = normDz(UI.dz);
+  return `<div class="ent-grid">${Object.entries(ENTORNO).map(([k, n]) => `<label class="check small"><input type="checkbox" id="dz-e-${k}" data-field="dz-ent" data-k="${k}" ${d.entorno[k] ? 'checked' : ''}> ${n}</label>`).join('')}</div>
+    <label class="check small" style="margin-top:6px"><input type="checkbox" id="dz-esp" data-field="dz-espuma" ${d.espuma.on ? 'checked' : ''}> Espuma protectora en el contorno de las puertas</label>
+    ${d.espuma.on ? `<div class="chips">${ESPUMA_COL.map(([n, h]) => `<button type="button" class="chip" style="background:${h}" data-act="dz-espuma-color" data-hex="${h}" aria-pressed="${d.espuma.color === h}" title="Espuma ${n}" aria-label="Espuma ${n}"></button>`).join('')}</div>` : ''}`;
+}
 function designer() {
   return `<div class="designer" id="dz">
     <div class="dz-view">${viewer3d(UI.dz)}</div>
     <div class="dz-side">
       <div class="field"><span>Tipo de cancha</span><div class="seg" id="dz-tipos">${dzTipos()}</div></div>
       <div class="field"><span>Colores</span><div id="dz-pal">${dzPalette()}</div></div>
+      <div class="field"><span>Entorno y extras</span><div id="dz-ent">${dzEntorno()}</div></div>
       <div id="dz-files" style="display:grid;gap:12px">${dzFiles()}</div>
     </div></div>`;
 }
@@ -1980,6 +2020,7 @@ function dzRefresh(what) {
   if (what.includes('name')) { const n = $('#dz-name'); if (n) n.innerHTML = `<b>${PARTS[UI.dzPart]}:</b> ${esc(partName(UI.dz, UI.dzPart))}`; }
   if (what.includes('tipos') && !what.includes('files')) $('#dz-files').innerHTML = dzFiles();
   if (what.includes('files')) $('#dz-files').innerHTML = dzFiles();
+  if (what.includes('ent') && $('#dz-ent')) $('#dz-ent').innerHTML = dzEntorno();
   const cv = $('#dz-amortcv'); if (cv) paintAmort(cv, UI.dz.amort.hex, amortLogo(UI.dz));
 }
 function specList(dz0, d) {
@@ -1992,6 +2033,8 @@ function specList(dz0, d) {
     ${club ? `<dt>Estructura</dt><dd><i class="sw-i" style="background:${NEGRO_CLUB}"></i>Negra: postes, rejas y perfiles (sin personalización)</dd>` : `<dt>Postes de luz</dt><dd>${sw(dz.postes)}</dd><dt>Rejas</dt><dd>${sw(dz.rejas)}</dd><dt>Perfiles traseros sup.</dt><dd>${sw(dz.perfiles)}</dd>`}
     <dt>Amortiguadores</dt><dd>${dz.amortOn ? `<i class="sw-i" style="background:${dz.amort.hex}"></i>${esc(dz.amort.ral)} · ${esc(dz.amort.nombre)}` : '<span class="muted">Sin amortiguadores</span>'}</dd>
     ${club ? '' : `<dt>Logos</dt><dd class="small">${lg ? esc(lg) : '<span class="muted">Sin logos</span>'}${dz.logo ? `<br><span class="muted">Logo del club: ${esc(dz.logo.name)}</span>` : ''}</dd>`}
+    <dt>Entorno</dt><dd class="small">${Object.entries(ENTORNO).filter(([k]) => dz.entorno[k]).map(([, n]) => esc(n)).join(' · ') || '<span class="muted">Sin elementos</span>'}</dd>
+    <dt>Espuma en puertas</dt><dd>${dz.espuma.on ? `<i class="sw-i" style="background:${dz.espuma.color}"></i>${esc((ESPUMA_COL.find(([, h]) => h === dz.espuma.color) || ['Color'])[0])}` : '<span class="muted">No</span>'}</dd>
     <dt>Mapa</dt><dd>${dz.mapa ? esc(dz.mapa.name) : '<span class="muted">Sin mapa</span>'}</dd></dl>`;
 }
 const dzOf = d => normDz({ ...dzDefault(d.modelo), ...(d.dz || {}), modelo: d.modelo, instal: d.instal || 'Outdoor' });
@@ -2354,14 +2397,17 @@ document.addEventListener('click', ev => {
       UI.dz.modelo = id; UI.dz = normDz(UI.dz); dzRefresh(['tipos', 'pal', 'view', 'files']); break; }
     case 'dz-part': UI.dzPart = id; dzRefresh(['pal']); break;
     case 'dz-color': setPart(UI.dzPart, b.dataset.hex, b.dataset.ral); dzRefresh(['pal', 'view']); break;
+    case 'dz-espuma-color': UI.dz = normDz(UI.dz); UI.dz.espuma = { ...UI.dz.espuma, color: b.dataset.hex }; dzRefresh(['ent', 'view']); break;
     case 'dz-filedel': UI.dz[id] = null; if (id === 'logo') { UI.dz.logoAmort = UI.dz.logoPuertas = false; UI.dz = normDz(UI.dz); } dzRefresh(['files', 'view']); break;
     // portal
     case 'p-sel': UI.pSel = id; render(); break;
     // proyectos
     case 'openproj': if (!canModule('proyectos')) { toast('No tienes acceso al módulo Proyectos y entregas.'); break; } UI.profile = 'atila'; UI.view = 'proyectos'; UI.project = id; UI.projOpen = true; saveUI(); render(); window.scrollTo(0, 0); break;
-    case 'projback': UI.projOpen = false; UI.delProj = null; render(); window.scrollTo(0, 0); break;
+    case 'projback': UI.projOpen = false; UI.delProj = null; UI.editProj = null; render(); window.scrollTo(0, 0); break;
     case 'delproj': if (!canDelProj()) break; UI.delProj = id; render(); window.scrollTo(0, 0); setTimeout(() => { const i = document.getElementById('dp-' + id); if (i) i.focus(); }, 30); break;
     case 'delproj-cancel': UI.delProj = null; render(); break;
+    case 'editcancha': if (!canEditCancha()) break; UI.editProj = id; UI.dz = projDz(project(id)); UI.dzPart = 'pasto'; render(); break;
+    case 'editcancha-cancel': UI.editProj = null; render(); break;
     case 'st-real': case 'st-est': {
       const p = project(id), e = p.etapas[+b.dataset.i];
       if (act === 'st-real') { e.real = true; if (e.inicio > TODAY) e.inicio = TODAY; replan(p); logP(p, `Fecha real confirmada: ${stageName(e.key)} el ${fmtY(e.inicio)}.` + who()); }
@@ -2401,6 +2447,7 @@ document.addEventListener('change', ev => {
     if (f === 'u-mod') { const cur = userModulos(u); u.modulos = t.checked ? [...new Set([...cur, t.dataset.mod])] : cur.filter(m => m !== t.dataset.mod); }
     if (f === 'u-perfil' && PERFILES[t.value]) u.modulos = [...PERFILES[t.value].modulos];
     if (f === 'u-delproj') u.eliminarProyectos = t.checked;
+    if (f === 'u-editcancha') u.editarCanchas = t.checked;
     if (f === 'u-neg') u.negocios = t.checked ? [...new Set([...u.negocios, t.dataset.neg])] : u.negocios.filter(n => n !== t.dataset.neg);
     if (f === 'u-rol') { if (u.rol === 'superadmin' && t.value !== 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.rol = t.value; }
     if (f === 'u-activo') { if (!t.checked && u.rol === 'superadmin' && activeSupers().length <= 1) { toast('Debe quedar al menos un super administrador activo.'); render(); return; } u.activo = t.checked; }
@@ -2414,7 +2461,9 @@ document.addEventListener('change', ev => {
     d.etapa = t.value; d.aceptada = true; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Etapa cambiada a «${s.nombre}».` + who() }); commit('Etapa actualizada'); return; }
   if (f === 'dz-ral') { if (!t.value) return; const r = RAL.find(x => x.ral === t.value); setPart(UI.dzPart, r.hex, r.ral); dzRefresh(['pal', 'view']); return; }
   if (f === 'dz-libre') { dzRefresh(['pal']); return; }
-  if (f === 'dz-instal') { if (UI.dz) { UI.dz.instal = t.value; dzRefresh(['view']); } return; }
+  if (f === 'dz-instal') { if (UI.dz) { UI.dz.instal = t.value; dzRefresh(['view', 'ent']); } return; }
+  if (f === 'dz-ent') { UI.dz = normDz(UI.dz); UI.dz.entorno = { ...UI.dz.entorno, [t.dataset.k]: t.checked }; dzRefresh(['view']); return; }
+  if (f === 'dz-espuma') { UI.dz = normDz(UI.dz); UI.dz.espuma = { ...UI.dz.espuma, on: t.checked }; dzRefresh(['view', 'ent']); return; }
   if (f === 'dz-logoAmort' || f === 'dz-logoPuertas') { UI.dz[f.slice(3)] = t.checked; dzRefresh(['view']); return; }
   if (f === 'dz-logoSel') { UI.dz = normDz(UI.dz); UI.dz.logos = { ...UI.dz.logos, [t.dataset.pos]: t.value }; dzRefresh(['view', 'pal']); return; }
   if (f === 'dz-pastoCustom') { UI.dz.pastoCustom = t.checked; if (!t.checked) UI.dz.pasto = PASTO_CLUB; dzRefresh(['pal', 'view']); return; }
@@ -2525,6 +2574,17 @@ document.addEventListener('submit', async ev => {
     d.cotizaciones = [...(d.cotizaciones || []), q]; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Cotización ${q.numero} generada por ${money(qTotal(q), q.moneda)}.` + who() });
     UI.quoteForm = null; UI.quoteOpen = q.id; commit(`Cotización ${q.numero} generada`); return;
   }
+  if (kind === 'projcancha') {
+    const p = project(f.dataset.id);
+    if (!p || !canEditCancha()) { toast('No tienes permiso para editar canchas.'); return; }
+    const dz = normDz(UI.dz), antes = specTxt(projDz(p));
+    p.modelo = dz.modelo; p.instal = dz.instal; p.cesped = colorName(dz.pasto);
+    p.diseno = { pasto: dz.pasto, postes: dz.postes, rejas: dz.rejas, perfiles: dz.perfiles, amort: dz.amort, amortOn: dz.amortOn, pastoCustom: dz.pastoCustom, logos: dz.logos, entorno: dz.entorno, espuma: dz.espuma };
+    p.archivos = { logo: dz.logo, mapa: dz.mapa };
+    const despues = specTxt(projDz(p));
+    logP(p, `Cancha editada${despues !== antes ? `: ${despues}` : ' (sin cambios)'}.` + who());
+    UI.editProj = null; commit('Cancha actualizada'); return;
+  }
   if (kind === 'delproj') {
     const p = project(f.dataset.id);
     if (!p || !canDelProj()) { toast('No tienes permiso para eliminar proyectos.'); return; }
@@ -2539,7 +2599,7 @@ document.addEventListener('submit', async ev => {
     if (fd.entrega <= fd.fecha) { toast('La entrega en obra debe ser posterior a la fecha de cierre.'); return; }
     const plan = newPlan(fd.fecha, fd.entrega); stOf(plan, 'venta').real = true;
     const p = { id: uid('p'), dealId: d.id, clienteId: d.clienteId || null, nombre: fd.nombre, cliente: d.cliente, prov: c.prov, ciudad: c.ciudad, comuna: d.comuna, lat: c.lat, lon: c.lon,
-      modelo: d.modelo, canchas: d.canchas, instal: d.instal, cesped: colorName(dz.pasto), diseno: { pasto: dz.pasto, postes: dz.postes, rejas: dz.rejas, perfiles: dz.perfiles, amort: dz.amort, amortOn: dz.amortOn, pastoCustom: dz.pastoCustom, logos: dz.logos },
+      modelo: d.modelo, canchas: d.canchas, instal: d.instal, cesped: colorName(dz.pasto), diseno: { pasto: dz.pasto, postes: dz.postes, rejas: dz.rejas, perfiles: dz.perfiles, amort: dz.amort, amortOn: dz.amortOn, pastoCustom: dz.pastoCustom, logos: dz.logos, entorno: dz.entorno, espuma: dz.espuma },
       archivos: { logo: dz.logo, logoAmort: dz.logoAmort, logoPuertas: dz.logoPuertas, mapa: dz.mapa }, obs: d.comentario || '', etapas: plan.etapas, plan: 2, traza: [] };
     p.instalBase = stOf(p, 'instalacion').inicio;
     d.hist.forEach(h => p.traza.push({ f: h.f, t: `[Bandeja] ${h.t}` }));

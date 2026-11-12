@@ -1,5 +1,5 @@
 const { sql, hashPassword, checkPassword, currentUser, visibleUsers, send, handler } = require('./_lib');
-const FIELDS = ['usuario', 'email', 'nombre', 'empresa', 'telefono', 'ciudad', 'rol', 'negocios', 'modulos', 'activo', 'eliminarProyectos'];
+const FIELDS = ['usuario', 'email', 'nombre', 'empresa', 'telefono', 'ciudad', 'rol', 'negocios', 'modulos', 'activo', 'eliminarProyectos', 'editarCanchas'];
 // op 'mypw': cambia la propia contraseña. op 'sync': aplica la lista de usuarios editada en pantalla, con permisos:
 // el super administrador administra a todos; el equipo solo crea, edita y elimina clientes. `_clave` fija una contraseña nueva.
 module.exports = handler(async (req, res) => {
@@ -32,20 +32,21 @@ module.exports = handler(async (req, res) => {
     const v = { ...Object.fromEntries(FIELDS.map(k => [k, u[k]])), rol };
     v.usuario = String(v.usuario || v.email || '').trim();
     const delProj = isSuper && rol === 'usuario' && v.eliminarProyectos === true; // solo el super administrador da este permiso
+    const editCancha = isSuper && rol === 'usuario' && v.editarCanchas === true;
     if (!v.usuario || !v.nombre) { errors.push(`Faltan datos de ${v.usuario || 'un usuario'}.`); continue; }
     const hash = u._clave ? hashPassword(String(u._clave)) : null;
     if (!prev) {
       if (!hash) { errors.push(`Falta la contraseña inicial de ${v.usuario}.`); continue; }
       const [dup] = await sql`select 1 from usuarios where lower(usuario) = lower(${v.usuario}) or (email <> '' and lower(email) = lower(${v.email || ''}))`;
       if (dup) { errors.push(`Ya existe un acceso con ${v.usuario}.`); continue; }
-      await sql`insert into usuarios (id, usuario, email, nombre, empresa, telefono, ciudad, rol, negocios, modulos, activo, hash, eliminar_proyectos)
+      await sql`insert into usuarios (id, usuario, email, nombre, empresa, telefono, ciudad, rol, negocios, modulos, activo, hash, eliminar_proyectos, editar_canchas)
         values (${u.id}, ${v.usuario}, ${v.email || ''}, ${v.nombre}, ${v.empresa || ''}, ${v.telefono || ''}, ${v.ciudad || ''}, ${rol},
-        ${JSON.stringify(v.negocios || [])}::jsonb, ${v.modulos ? JSON.stringify(v.modulos) : null}::jsonb, ${v.activo !== false}, ${hash}, ${delProj})`;
+        ${JSON.stringify(v.negocios || [])}::jsonb, ${v.modulos ? JSON.stringify(v.modulos) : null}::jsonb, ${v.activo !== false}, ${hash}, ${delProj}, ${editCancha})`;
     } else {
       await sql`update usuarios set nombre = ${v.nombre}, email = ${v.email || ''}, empresa = ${v.empresa || ''}, telefono = ${v.telefono || ''}, ciudad = ${v.ciudad || ''},
         rol = ${rol}, negocios = ${JSON.stringify(v.negocios || [])}::jsonb, modulos = ${v.modulos ? JSON.stringify(v.modulos) : null}::jsonb, activo = ${v.activo !== false}
         where id = ${u.id}`;
-      if (isSuper) await sql`update usuarios set eliminar_proyectos = ${delProj} where id = ${u.id}`;
+      if (isSuper) await sql`update usuarios set eliminar_proyectos = ${delProj}, editar_canchas = ${editCancha} where id = ${u.id}`;
       if (hash) await sql`update usuarios set hash = ${hash} where id = ${u.id}`;
     }
   }

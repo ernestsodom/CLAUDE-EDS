@@ -35,6 +35,14 @@ module.exports = handler(async (req, res) => {
       ok[i].data = next;
     }
   }
+  // la cancha de un proyecto (modelo, instalación, diseño y archivos) solo la cambia el super administrador o quien tenga «Puede editar canchas»
+  if (staff && me.rol !== 'superadmin' && !me.editarCanchas) {
+    const pids = ok.filter(u => u.tipo === 'proyecto').map(u => u.id);
+    if (pids.length) {
+      const prevP = Object.fromEntries((await sql`select id, data from entidades where tipo = 'proyecto' and id = any(${pids})`).map(r => [r.id, r.data]));
+      for (const u of ok) if (u.tipo === 'proyecto' && prevP[u.id]) for (const k of ['modelo', 'instal', 'cesped', 'diseno', 'archivos']) { if (k in prevP[u.id]) u.data[k] = prevP[u.id][k]; else delete u.data[k]; }
+    }
+  }
   if (ok.length) await sql`insert into entidades (tipo, id, data, actualizado)
     select x.tipo, x.id, x.data, now() from jsonb_to_recordset(${JSON.stringify(ok)}::jsonb) as x(tipo text, id text, data jsonb)
     on conflict (tipo, id) do update set data = excluded.data, actualizado = now()`;
