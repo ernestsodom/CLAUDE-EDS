@@ -534,6 +534,14 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .plan > div.ancla .ancla-in { font: 600 22px var(--f-mono); color: #8b6cf0; background: transparent; border: 1px solid color-mix(in srgb, #8b6cf0 50%, transparent); border-radius: 6px; padding: 2px 8px; width: auto; max-width: 240px }
 
 .ent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 12px }
+
+table.pk td { padding: 4px 6px }
+table.pk input[type=text], table.pk input[type=number] { padding: 4px 6px; font-size: 13px; width: 100% }
+table.pk tr.pk-sec td { background: var(--surface2); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; padding: 6px 8px }
+table.pk tr.pk-ok td { opacity: .6 }
+.pk-add { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.pk-add input[type=text] { flex: 1 1 160px; width: auto }
+.pk-add select { width: auto }
 </style>
 
 <div class="app">
@@ -960,6 +968,120 @@ function logoSrc(dz, sel, claro = true) {
   if (sel === 'iso') return ATILA_LOGOS[claro ? 'iso_oscuro' : 'iso_blanco'];
   if (sel === 'club' && dz.logo && String(dz.logo.type).startsWith('image/')) return dz.logo.data;
   return null;
+}
+// Packing list: piezas que deben venir para el proyecto, calculadas desde el diseño y la cantidad de canchas. Es editable.
+const PK_SECS = ['Estructura', 'Cerramientos', 'Césped y juego', 'Iluminación', 'Amortiguación', 'Personalización', 'Insumos', 'Entorno', 'Otros'];
+function packingAuto(p) {
+  const dz = projDz(p), m = model(dz.modelo), n = Math.max(1, +p.canchas || 1), semi = m.tipo === 'semi', col = colorName, L = [];
+  const add = (sec, pieza, det, porCancha, uni = 'u', porProyecto) => L.push({ id: uid('k'), sec, pieza, det, cant: porProyecto ? porCancha : porCancha * n, uni, ok: false, auto: true });
+  add('Estructura', 'Pilares laterales de fierro 3 m', `Color ${col(dz.rejas)}`, 8);
+  add('Estructura', semi ? 'Columnas de transición blancas' : 'Columnas de transición (base del poste de luz)', semi ? 'Blanco' : `Color ${col(dz.postes)}`, 4);
+  if (semi) add('Estructura', 'Tubo circular 2,5" de esquina', 'Hasta la reja superior (4 m)', 4);
+  add('Estructura', 'Perfil anillo superior 150×50', 'Blanco', 60, 'm');
+  add('Estructura', 'Tubo estructural inferior 80×40', '', 60, 'm');
+  add('Estructura', 'Perfiles traseros superiores (corchete)', `Color ${col(dz.perfiles)}`, 14);
+  add('Cerramientos', 'Vidrio templado 2×3 m', 'Sin marco, con pinzas', 18);
+  add('Cerramientos', 'Pinzas / herrajes de vidrio', '4 por vidrio', 72);
+  add('Cerramientos', 'Reja 3×2 m (malla electrosoldada)', `Laterales · color ${col(dz.rejas)}`, 8);
+  add('Cerramientos', 'Reja 3×1 m', `Junto a las puertas · color ${col(dz.rejas)}`, 4);
+  add('Cerramientos', 'Reja 2×1 m (reja superior)', `Fondos y vértices · color ${col(dz.rejas)}`, 14);
+  add('Cerramientos', 'Puerta de acceso con marco', '1,9 × 2,2 m · marco blanco', 2);
+  if (dz.espuma.on) add('Cerramientos', 'Espuma protectora de puerta', `Contorno del marco · ${(ESPUMA_COL.find(([, h]) => h === dz.espuma.color) || ['color a definir'])[0]}`, 2, 'kit');
+  add('Césped y juego', 'Césped sintético', `Color ${col(dz.pasto)} · 10 × 20 m`, 200, 'm²');
+  add('Césped y juego', 'Líneas de juego', 'Blancas', 1, 'kit');
+  add('Césped y juego', 'Arena de sílice', 'Relleno del césped (aprox. 12 kg/m²)', 2400, 'kg');
+  add('Césped y juego', 'Adhesivo y cinta de unión de césped', '', 1, 'kit');
+  add('Césped y juego', 'Red de juego', '10 m', 1);
+  add('Césped y juego', 'Postes de red', '', 2);
+  add('Iluminación', 'Poste de luz con brazo curvo', `Color ${col(dz.postes)} (poste completo)`, 4);
+  add('Iluminación', 'Luminaria LED (cabezal de 3 focos)', '', 4);
+  add('Iluminación', 'Focos / módulos LED', '3 por cabezal', 12);
+  add('Iluminación', 'Cableado y tablero eléctrico', '', 1, 'kit');
+  if (dz.amortOn) {
+    add('Amortiguación', 'Resortes / amortiguadores', `${dz.amort.ral} · ${dz.amort.nombre}`, 8);
+    add('Amortiguación', 'Cubre resortes', `${dz.amort.ral}`, 8);
+  }
+  const l = dz.logos, conLogo = (l.amortA ? 4 : 0) + (l.amortB ? 4 : 0) + (l.puertaA ? 1 : 0) + (l.puertaB ? 1 : 0) + (l.foco ? 4 : 0), lg = logosDesc(dz);
+  add('Personalización', 'Logo diseño', lg ? `Sí · ${lg}${dz.logo ? ' · archivo del club: ' + dz.logo.name : ''}` : 'No lleva logos', conLogo, 'piezas');
+  add('Personalización', 'Acrílicos (placa de logo sobre puerta)', (l.puertaA || l.puertaB) ? 'Uno por puerta con logo' : 'No corresponde (completar si se agrega)', (l.puertaA ? 1 : 0) + (l.puertaB ? 1 : 0));
+  add('Insumos', 'Kit de tornillería y bulones de anclaje', '', 1, 'kit');
+  add('Insumos', 'Tornillos autoperforantes', 'Rejas y perfiles', 200);
+  add('Insumos', 'Silicona estructural', 'Cartuchos', 12);
+  add('Insumos', 'Burletes / gomas para vidrio', '', 1, 'kit');
+  add('Insumos', 'Pintura de retoque', 'Colores de la cancha', 1, 'kit');
+  const E = dz.entorno;
+  if (E.admin) add('Entorno', 'Contenedor de administración 20 pies (oficina)', '', 1, 'u', true);
+  if (E.terraza) { add('Entorno', 'Mesas de terraza', '', 3, 'u', true); add('Entorno', 'Sombrillas', '', 3, 'u', true); add('Entorno', 'Sillas de terraza', '', 12, 'u', true); }
+  if (E.gradas) add('Entorno', 'Gradería de 4 escalones (9 m)', '', 1, 'u', true);
+  if (E.bancos) add('Entorno', 'Bancos de jugadores', 'Junto a las puertas', 4);
+  if (E.sillas) add('Entorno', 'Sillas de jugador', 'En los fondos', 8);
+  if (E.plantas) add('Entorno', 'Maceteros con plantas', '', 6, 'u', true);
+  return L;
+}
+function packingPanel(p) {
+  const pk = p.packing, items = pk ? pk.items : [], ok = items.filter(i => i.ok).length;
+  const fila = (it, n) => `<tr class="${it.ok ? 'pk-ok' : ''}"><td><input type="checkbox" id="pk-ok-${it.id}" data-field="pk-ok" data-id="${p.id}" data-k="${it.id}" ${it.ok ? 'checked' : ''} aria-label="Cargado"></td><td class="mono small">${n}</td>
+    <td><input type="text" id="pk-pz-${it.id}" data-field="pk-pieza" data-id="${p.id}" data-k="${it.id}" value="${esc(it.pieza)}" aria-label="Pieza"></td>
+    <td><input type="text" id="pk-dt-${it.id}" data-field="pk-det" data-id="${p.id}" data-k="${it.id}" value="${esc(it.det)}" aria-label="Detalle"></td>
+    <td><input type="number" min="0" step="any" id="pk-c-${it.id}" data-field="pk-cant" data-id="${p.id}" data-k="${it.id}" value="${it.cant}" aria-label="Cantidad" style="width:84px"></td>
+    <td><input type="text" id="pk-u-${it.id}" data-field="pk-uni" data-id="${p.id}" data-k="${it.id}" value="${esc(it.uni)}" aria-label="Unidad" style="width:64px"></td>
+    <td><button class="btn sm ghost danger" data-act="pk-del" data-id="${p.id}" data-k="${it.id}" aria-label="Quitar ${esc(it.pieza)}">✕</button></td></tr>`;
+  let n = 0;
+  return `<div class="panel"><div class="ph"><div><h3>Packing list · orden de trabajo</h3><span class="muted small">${pk ? `${items.length} ítems · ${ok} cargados${pk.rev ? ` · última OT revisión ${pk.rev}` : ''}` : 'Todas las piezas que deben venir para este proyecto'}</span></div>
+    <div class="row">${pk ? `<button class="btn sm" data-act="pk-recalc" data-id="${p.id}">Recalcular desde el diseño</button><button class="btn sm primary" data-act="pk-pdf" data-id="${p.id}">Descargar PDF (orden de trabajo)</button>` : `<button class="btn sm primary" data-act="pk-gen" data-id="${p.id}">Generar packing list</button>`}</div></div>
+    ${pk ? `<div class="pb" style="display:grid;gap:10px">
+      <span class="muted small">Cantidades calculadas desde el diseño de la cancha y la cantidad de canchas (${p.canchas}). Revísalas, ajústalas y agrega lo que falte; marca cada ítem al cargarlo. Los cambios se guardan solos.</span>
+      <div class="tablewrap"><table class="models pk"><thead><tr><th>✓</th><th>#</th><th>Pieza</th><th>Detalle (medida, color, ubicación)</th><th>Cant.</th><th>Unidad</th><th></th></tr></thead><tbody>
+      ${PK_SECS.filter(sec => items.some(i => i.sec === sec)).map(sec => `<tr class="pk-sec"><td colspan="7">${sec}</td></tr>${items.filter(i => i.sec === sec).map(it => fila(it, ++n)).join('')}`).join('')}
+      </tbody></table></div>
+      <form class="pk-add" data-form="pk-add" data-id="${p.id}"><select name="sec" id="pk-new-sec" aria-label="Sección">${PK_SECS.map(x => `<option ${x === 'Otros' ? 'selected' : ''}>${x}</option>`).join('')}</select>
+        <input type="text" name="pieza" id="pk-new-pz" placeholder="Nueva pieza" required><input type="text" name="det" id="pk-new-dt" placeholder="Detalle"><input type="number" name="cant" id="pk-new-c" min="0" step="any" value="1" style="width:84px" aria-label="Cantidad"><input type="text" name="uni" id="pk-new-u" value="u" style="width:64px" aria-label="Unidad"><button class="btn sm">Agregar</button></form>
+      <label class="field"><span>Notas para la orden de trabajo</span><textarea id="pk-nota" data-field="pk-nota" data-id="${p.id}" rows="2">${esc(pk.nota || '')}</textarea></label>
+    </div>` : ''}</div>`;
+}
+// Orden de trabajo en PDF (jsPDF + AutoTable, cargados al momento desde cdnjs).
+const loadScript = src => new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = src; sc.onload = res; sc.onerror = () => rej(new Error('No se pudo cargar el generador de PDF. Revisa la conexión.')); document.head.appendChild(sc); });
+async function pdfLib() {
+  if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  if (!window.jspdf.jsPDF.API.autoTable) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+  return window.jspdf.jsPDF;
+}
+// las fuentes estándar del PDF solo tienen caracteres latinos: se reemplazan los demás
+const pdfTxt = t => String(t ?? '').replace(/[—–]/g, '-').replace(/[“”«»]/g, '"').replace(/[‘’]/g, "'").replace(/≈/g, '~').replace(/→/g, '->').replace(/[^\x00-\xff]/g, '');
+async function packingPdf(p) {
+  const jsPDF = await pdfLib(), doc = new jsPDF({ unit: 'mm', format: 'a4' }), W = 210, M = 14, pk = p.packing, dz = projDz(p);
+  pk.rev = (pk.rev || 0) + 1; pk.ultimaOT = TODAY;
+  const ot = `OT-${p.id.replace(/^p/, '').toUpperCase()}-R${pk.rev}`;
+  doc.addImage(ATILA_LOGOS.logo_oscuro, 'PNG', M, 12, 48, 48 * 76 / 576);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('ORDEN DE TRABAJO', W - M, 16, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.text('Packing list de despacho', W - M, 22, { align: 'right' });
+  doc.text(pdfTxt(`${ot} · Emitida ${fmtY(TODAY)}`), W - M, 27, { align: 'right' });
+  const sa = stOf(p, 'salida'), en = stOf(p, 'entrega');
+  doc.autoTable({ startY: 34, theme: 'plain', styles: { fontSize: 9, cellPadding: 1.2 }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 38 }, 2: { fontStyle: 'bold', cellWidth: 34 } },
+    body: [
+      ['Proyecto', pdfTxt(lugar(p)), 'Retiro de carga', pdfTxt(`${fmtY(sa.inicio)} (${sa.real ? 'real' : 'estimada'})`)],
+      ['Nombre', pdfTxt(p.nombre), 'Entrega en obra', pdfTxt(`${fmtY(en.inicio)} (${en.real ? 'real' : 'estimada'})`)],
+      ['Cliente', pdfTxt(p.cliente || ''), 'Canchas', pdfTxt(`${p.canchas} × ${model(dz.modelo).nombre}`)],
+      ['Ubicación', pdfTxt(`${p.ciudad}, ${p.prov}${p.comuna ? ' · ' + p.comuna : ''}`), 'Instalación', pdfTxt(dz.instal)]] });
+  doc.setFontSize(8.5); doc.setTextColor(80);
+  const res = doc.splitTextToSize(pdfTxt('Diseño: ' + specTxt(dz)), W - 2 * M); doc.text(res, M, doc.lastAutoTable.finalY + 4); doc.setTextColor(0);
+  let n = 0; const body = [];
+  PK_SECS.filter(sec => pk.items.some(i => i.sec === sec)).forEach(sec => {
+    body.push([{ content: pdfTxt(sec).toUpperCase(), colSpan: 6, styles: { fillColor: [235, 235, 235], fontStyle: 'bold', textColor: 30, halign: 'left' } }]);
+    pk.items.filter(i => i.sec === sec).forEach(i => body.push([++n, pdfTxt(i.pieza), pdfTxt(i.det), String(i.cant), pdfTxt(i.uni), i.ok ? 'X' : '']));
+  });
+  doc.autoTable({ startY: doc.lastAutoTable.finalY + 6 + res.length * 3.6, head: [['#', 'Pieza', 'Detalle (medida, color, ubicación)', 'Cant.', 'Unidad', 'OK']], body, theme: 'grid',
+    styles: { fontSize: 8.5, cellPadding: 1.6, lineColor: [200, 200, 200] }, headStyles: { fillColor: [13, 13, 13], textColor: 255 },
+    columnStyles: { 0: { cellWidth: 8, halign: 'right' }, 1: { cellWidth: 52 }, 3: { cellWidth: 16, halign: 'right' }, 4: { cellWidth: 16 }, 5: { cellWidth: 11, halign: 'center' } }, margin: { left: M, right: M } });
+  let y = doc.lastAutoTable.finalY + 8;
+  if (pk.nota) { const t = doc.splitTextToSize(pdfTxt('Notas: ' + pk.nota), W - 2 * M); if (y + t.length * 4 > 270) { doc.addPage(); y = 20; } doc.setFontSize(9); doc.text(t, M, y); y += t.length * 4 + 6; }
+  if (y > 250) { doc.addPage(); y = 30; }
+  const firmas = ['Preparó', 'Controló', 'Despachó (transporte)', 'Recibió conforme (obra)'], fw = (W - 2 * M - 9) / 4;
+  doc.setFontSize(8.5); firmas.forEach((f, i) => { const x = M + i * (fw + 3); doc.line(x, y + 14, x + fw, y + 14); doc.text(f, x, y + 18); doc.text('Fecha:', x, y + 23); });
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) { doc.setPage(i); doc.setFontSize(7.5); doc.setTextColor(120); doc.text(pdfTxt(`${ot} · ${lugar(p)} · Página ${i} de ${pages}`), W / 2, 290, { align: 'center' }); doc.setTextColor(0); }
+  doc.save(pdfTxt(`${ot}_${lugar(p)}.pdf`).replace(/[^\w.-]+/g, '_'));
+  logP(p, `Orden de trabajo ${ot} generada en PDF (${pk.items.length} ítems, ${pk.items.filter(i => i.ok).length} cargados).` + who());
 }
 // Resumen de una cancha en texto, para la trazabilidad.
 function specTxt(dz0) { const dz = normDz(dz0), m = model(dz.modelo);
@@ -1477,7 +1599,7 @@ function vUsuarios() {
       <select id="up-${u.id}" data-field="u-perfil" data-id="${u.id}" aria-label="Perfil de acceso de ${esc(u.usuario)}">${Object.entries(PERFILES).map(([k, p]) => `<option value="${k}" ${perfilDe(userModulos(u)) === k ? 'selected' : ''}>${p.nombre}</option>`).join('')}<option value="personalizado" ${perfilDe(userModulos(u)) === 'personalizado' ? 'selected' : ''} disabled>Personalizado</option></select>
       ${Object.entries(MODULOS).map(([k, n]) => `<label class="check small"><input type="checkbox" id="um-${u.id}-${k}" data-field="u-mod" data-id="${u.id}" data-mod="${k}" ${userModulos(u).includes(k) ? 'checked' : ''}> ${n}</label>`).join('')}</div>`}</td>
     <td>${u.rol === 'superadmin' ? '<span class="muted small">Todos, siempre</span>' : `<div style="display:grid;gap:4px"><label class="check small"><input type="checkbox" id="ud-${u.id}" data-field="u-delproj" data-id="${u.id}" ${u.eliminarProyectos ? 'checked' : ''}> Eliminar proyectos</label>
-      <label class="check small"><input type="checkbox" id="ue-${u.id}" data-field="u-editcancha" data-id="${u.id}" ${u.editarCanchas ? 'checked' : ''}> Editar canchas</label></div>`}</td>
+      <label class="check small"><input type="checkbox" id="ue-${u.id}" data-field="u-editcancha" data-id="${u.id}" ${u.editarCanchas ? 'checked' : ''}> Editar proyectos y canchas</label></div>`}</td>
     <td><input type="checkbox" id="ua-${u.id}" data-field="u-activo" data-id="${u.id}" ${u.activo ? 'checked' : ''} ${self ? 'disabled' : ''} aria-label="Activo"></td>
     <td><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn sm" data-act="ureset" data-id="${u.id}">Nueva contraseña</button>
@@ -1737,8 +1859,18 @@ function projectDetail(p) {
     </div></form>`; })() : ''}
   <div class="panel"><div class="ph"><div><h2>${esc(lugar(p))}</h2><span class="small"><b>${esc(p.nombre)}</b> · ${esc(p.cliente)} · <span class="muted">${esc(p.ciudad)}, ${esc(p.prov)} · ${esc(p.comuna)}</span></span></div><div class="row" style="gap:8px"><span class="pill ${st.cls}">${st.txt}</span>${canDelProj() && UI.delProj !== p.id ? `<button class="btn sm ghost danger" data-act="delproj" data-id="${p.id}">Eliminar proyecto</button>` : ''}</div></div>
     <div class="pb" style="display:grid;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Línea de tiempo</h3><span class="muted small">Hoy ${fmtY(TODAY)}</span></div>${gantt(p)}</div></div>
-  ${UI.editProj === p.id && canEditCancha() ? `<form class="panel" data-form="projcancha" data-id="${p.id}"><div class="ph"><h3>Editar cancha</h3><div class="row"><button class="btn primary sm">Guardar cambios</button><button type="button" class="btn ghost sm" data-act="editcancha-cancel">Cancelar</button></div></div>
-    <div class="pb" style="display:grid;gap:12px"><label class="field" style="max-width:220px"><span>Instalación</span><select id="pc-instal" data-field="dz-instal">${['Outdoor', 'Indoor'].map(o => `<option ${UI.dz.instal === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>${designer()}</div></form>` : ''}
+  ${UI.editProj === p.id && canEditCancha() ? `<form class="panel" data-form="projcancha" data-id="${p.id}"><div class="ph"><h3>Editar proyecto y cancha</h3><div class="row"><button class="btn primary sm">Guardar cambios</button><button type="button" class="btn ghost sm" data-act="editcancha-cancel">Cancelar</button></div></div>
+    <div class="pb" style="display:grid;gap:12px">
+      <div class="form">
+        <label class="field"><span>Nombre del proyecto</span><input type="text" name="nombre" id="pd-nombre" value="${esc(p.nombre)}" required></label>
+        <label class="field"><span>Ubicación (como lo llama el equipo)</span><input type="text" name="lugar" id="pd-lugar" value="${esc(lugar(p))}" required></label>
+        <label class="field"><span>Cliente / club</span><input type="text" name="cliente" id="pd-cliente" value="${esc(p.cliente || '')}" required></label>
+        <label class="field"><span>Cantidad de canchas</span><input type="number" min="1" max="99" name="canchas" id="pd-canchas" value="${p.canchas}" required></label>
+        <label class="field"><span>Provincia</span><select name="prov" id="pd-prov">${PROVINCIAS.map(x => `<option ${p.prov === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
+        <label class="field"><span>Ciudad / localidad</span><input type="text" name="ciudad" id="pd-ciudad" list="df-ciudades" value="${esc(p.ciudad)}" required><datalist id="df-ciudades">${CITIES.map(c => `<option value="${esc(c.ciudad)}">`).join('')}</datalist></label>
+        <label class="field"><span>Comuna / partido / barrio</span><input type="text" name="comuna" id="pd-comuna" value="${esc(p.comuna || '')}"></label>
+      </div>
+      <label class="field" style="max-width:220px"><span>Instalación</span><select id="pc-instal" data-field="dz-instal">${['Outdoor', 'Indoor'].map(o => `<option ${UI.dz.instal === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>${designer()}</div></form>` : ''}
   <div class="two">
     <div class="panel"><div class="ph"><h3>Etapas de la entrega</h3></div><div class="pb" style="display:grid;gap:10px">
       <div class="plan"><div class="ancla"><span class="label">Retiro de carga · hito clave</span><input type="date" class="ancla-in" id="st-${p.id}-ret" value="${sa.inicio}" data-field="st-fecha" data-id="${p.id}" data-i="${p.etapas.indexOf(sa)}" ${sa.real ? `max="${TODAY}"` : ''} aria-label="Fecha de retiro de carga"><span class="small">${sa.real ? 'Fecha real' : 'Fecha estimada'} · ${sa.inicio < TODAY ? `hace ${diffDays(sa.inicio, TODAY)} días` : sa.inicio === TODAY ? 'hoy' : `faltan ${diffDays(TODAY, sa.inicio)} días`}</span></div><div><span class="label">Diseño definitivo hasta</span><b class="mono">${fmtY(ds.fin)}</b></div>
@@ -1754,7 +1886,7 @@ function projectDetail(p) {
           ${hint[e.key] ? `<span class="muted small">${hint[e.key]}</span>` : ''}</div>${action}</li>`; }).join('')}
     </ul></div></div>
     <div style="display:grid;gap:16px;min-width:0;align-content:start">
-      <div class="panel"><div class="ph"><h3>Cancha</h3>${canEditCancha() ? (UI.editProj === p.id ? '<span class="tag">Editando arriba</span>' : `<button class="btn sm" data-act="editcancha" data-id="${p.id}">Editar cancha</button>`) : '<span class="tag">Solo lectura</span>'}</div>
+      <div class="panel"><div class="ph"><h3>Cancha</h3>${canEditCancha() ? (UI.editProj === p.id ? '<span class="tag">Editando arriba</span>' : `<button class="btn sm" data-act="editcancha" data-id="${p.id}">Editar proyecto y cancha</button>`) : '<span class="tag">Solo lectura</span>'}</div>
         <div class="pb" style="display:grid;gap:10px">${viewer3d(projDz(p), { small: true })}
         ${specList(projDz(p), p)}
         <dl class="kv"><dt>Status</dt><dd><span class="pill ${st.cls}">${st.txt}</span></dd>${p.obs ? `<dt>Observaciones</dt><dd class="small">${esc(p.obs)}</dd>` : ''}</dl>
@@ -1765,7 +1897,8 @@ function projectDetail(p) {
         <ul class="log">${[...p.traza].sort((a, b) => b.f.localeCompare(a.f)).map(h => `<li><span class="d">${fmtY(h.f).slice(0, 5)}</span><span>${esc(h.t)}</span></li>`).join('')}</ul>
         <form class="check" data-form="pnote" data-id="${p.id}"><input type="text" id="pn-${p.id}" name="t" placeholder="Agregar novedad…" required><button class="btn">Agregar</button></form></div></div>
     </div>
-  </div></div>`;
+  </div>
+  ${packingPanel(p)}</div>`;
 }
 
 /* ---------- Mapa con zoom ---------- */
@@ -2408,6 +2541,12 @@ document.addEventListener('click', ev => {
     case 'delproj-cancel': UI.delProj = null; render(); break;
     case 'editcancha': if (!canEditCancha()) break; UI.editProj = id; UI.dz = projDz(project(id)); UI.dzPart = 'pasto'; render(); break;
     case 'editcancha-cancel': UI.editProj = null; render(); break;
+    case 'pk-gen': case 'pk-recalc': { const p = project(id), manual = p.packing ? p.packing.items.filter(i => !i.auto) : [];
+      p.packing = { ...(p.packing || {}), items: [...packingAuto(p), ...manual], actualizado: TODAY };
+      logP(p, `Packing list ${act === 'pk-gen' ? 'generado' : 'recalculado'} desde el diseño (${p.canchas} cancha${p.canchas === 1 ? '' : 's'}).` + who()); commit(act === 'pk-gen' ? 'Packing list generado' : 'Packing list recalculado'); break; }
+    case 'pk-del': { const p = project(id); p.packing.items = p.packing.items.filter(i => i.id !== b.dataset.k); commit('Ítem quitado'); break; }
+    case 'pk-pdf': { const p = project(id); b.disabled = true; b.textContent = 'Generando PDF…';
+      packingPdf(p).then(() => commit('Orden de trabajo descargada')).catch(e => { toast(e.message || 'No se pudo generar el PDF.'); render(); }); break; }
     case 'st-real': case 'st-est': {
       const p = project(id), e = p.etapas[+b.dataset.i];
       if (act === 'st-real') { e.real = true; if (e.inicio > TODAY) e.inicio = TODAY; replan(p); logP(p, `Fecha real confirmada: ${stageName(e.key)} el ${fmtY(e.inicio)}.` + who()); }
@@ -2430,6 +2569,12 @@ document.addEventListener('change', ev => {
   if (ev.target.dataset.field === 'ses-u') { UI.sesF.u = ev.target.value; render(); return; }
   if (ev.target.dataset.field === 'ses-dias') { UI.sesF.dias = +ev.target.value; render(); return; }
   const t = ev.target, f = t.dataset.field; if (!f) return;
+  if (f && f.startsWith('pk-') && t.dataset.k) {
+    const p = project(t.dataset.id), it = p.packing.items.find(i => i.id === t.dataset.k); if (!it) return;
+    if (f === 'pk-ok') it.ok = t.checked; else if (f === 'pk-cant') it.cant = Math.max(0, +t.value || 0); else it[f.slice(3) === 'pieza' ? 'pieza' : f.slice(3) === 'det' ? 'det' : 'uni'] = t.value;
+    if (f !== 'pk-ok') it.auto = false; save(); if (f === 'pk-ok') render(); return;
+  }
+  if (f === 'pk-nota') { const p = project(t.dataset.id); p.packing.nota = t.value; save(); return; }
   if (f === 'st-fecha' || f === 'st-dur') {
     const p = project(t.dataset.id), e = p.etapas[+t.dataset.i];
     if (f === 'st-dur') { const nv = Math.max(1, Math.min(365, Math.round(+t.value || 1))), old = e.dur; if (nv === old) return; e.dur = nv; replan(p);
@@ -2574,16 +2719,30 @@ document.addEventListener('submit', async ev => {
     d.cotizaciones = [...(d.cotizaciones || []), q]; d.actualizado = TODAY; d.hist.push({ f: TODAY, t: `Cotización ${q.numero} generada por ${money(qTotal(q), q.moneda)}.` + who() });
     UI.quoteForm = null; UI.quoteOpen = q.id; commit(`Cotización ${q.numero} generada`); return;
   }
+  if (kind === 'pk-add') {
+    const p = project(f.dataset.id); if (!fd.pieza.trim()) return;
+    p.packing.items.push({ id: uid('k'), sec: fd.sec, pieza: fd.pieza.trim(), det: (fd.det || '').trim(), cant: Math.max(0, +fd.cant || 0), uni: (fd.uni || 'u').trim(), ok: false, auto: false });
+    commit('Ítem agregado'); return;
+  }
   if (kind === 'projcancha') {
     const p = project(f.dataset.id);
     if (!p || !canEditCancha()) { toast('No tienes permiso para editar canchas.'); return; }
-    const dz = normDz(UI.dz), antes = specTxt(projDz(p));
+    const dz = normDz(UI.dz), antes = specTxt(projDz(p)), cambios = [];
+    const nC = Math.max(1, Math.min(99, Math.round(+fd.canchas || p.canchas)));
+    if (fd.nombre.trim() !== p.nombre) { cambios.push(`nombre «${p.nombre}» → «${fd.nombre.trim()}»`); p.nombre = fd.nombre.trim(); }
+    if (fd.lugar.trim() !== lugar(p)) { cambios.push(`ubicación «${lugar(p)}» → «${fd.lugar.trim()}»`); p.ubicExcel = fd.lugar.trim(); }
+    if (fd.cliente.trim() !== (p.cliente || '')) { cambios.push(`cliente «${p.cliente || ''}» → «${fd.cliente.trim()}»`); p.cliente = fd.cliente.trim(); }
+    if (nC !== +p.canchas) { cambios.push(`canchas ${p.canchas} → ${nC}`); p.canchas = nC; }
+    if (fd.prov !== p.prov || fd.ciudad.trim() !== p.ciudad) { const c = locate(fd.prov, fd.ciudad); cambios.push(`ubicación ${p.ciudad}, ${p.prov} → ${c.ciudad}, ${c.prov}`); Object.assign(p, { prov: c.prov, ciudad: c.ciudad, lat: c.lat, lon: c.lon }); }
+    if ((fd.comuna || '').trim() !== (p.comuna || '')) { cambios.push(`comuna → «${(fd.comuna || '').trim()}»`); p.comuna = (fd.comuna || '').trim(); }
+    if (cambios.length) logP(p, `Datos del proyecto editados: ${cambios.join('; ')}.` + who());
+    if (cambios.some(c => c.startsWith('canchas')) && p.packing) toast('Cambió la cantidad de canchas: recalcula el packing list.');
     p.modelo = dz.modelo; p.instal = dz.instal; p.cesped = colorName(dz.pasto);
     p.diseno = { pasto: dz.pasto, postes: dz.postes, rejas: dz.rejas, perfiles: dz.perfiles, amort: dz.amort, amortOn: dz.amortOn, pastoCustom: dz.pastoCustom, logos: dz.logos, entorno: dz.entorno, espuma: dz.espuma };
     p.archivos = { logo: dz.logo, mapa: dz.mapa };
     const despues = specTxt(projDz(p));
-    logP(p, `Cancha editada${despues !== antes ? `: ${despues}` : ' (sin cambios)'}.` + who());
-    UI.editProj = null; commit('Cancha actualizada'); return;
+    if (despues !== antes) logP(p, `Cancha editada: ${despues}.` + who());
+    UI.editProj = null; commit(cambios.length || despues !== antes ? 'Proyecto actualizado' : 'Sin cambios'); return;
   }
   if (kind === 'delproj') {
     const p = project(f.dataset.id);
