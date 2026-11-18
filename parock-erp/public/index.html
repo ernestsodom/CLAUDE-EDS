@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PAROCK · Sistema de gestión</title>
+<link rel="icon" href="assets/logo-parock.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div id="loading">Cargando…</div>
+
+<!-- ===== LOGIN ===== -->
+<div id="login" style="display:none">
+  <div class="side">
+    <img src="assets/logo-parock-white.png" alt="PAROCK Group">
+    <div>
+      <div class="eyebrow" style="color:var(--gold-2)">Sistema de gestión</div>
+      <h1 style="margin-top:16px">Cada evento <b>se registra una vez</b> y se convierte en decisión.</h1>
+      <p>OC, despachos, nivel de servicio, cobranza, inventario ROVAL y forecast en una sola plataforma exclusiva para el equipo PAROCK.</p>
+    </div>
+    <small>Acceso exclusivo personal PAROCK · Conexión cifrada</small>
+    <div class="swirl"></div>
+  </div>
+  <div class="form">
+    <form class="box" id="loginForm" autocomplete="on">
+      <div class="eyebrow">Bienvenido</div>
+      <h2>Ingresa a <b>PAROCK</b></h2>
+      <div class="fieldset">
+        <label>Usuario<input name="user" autocomplete="username" placeholder="marcelo o kevin" required></label>
+        <label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+      </div>
+      <div class="err" id="loginErr"></div>
+      <button class="btn btn-gold" style="width:100%;justify-content:center;padding:14px;margin-top:8px" type="submit">Ingresar al sistema</button>
+      <p class="tiny muted" style="margin-top:16px;text-align:center">La sesión expira tras 8 horas sin actividad</p>
+    </form>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="app" id="app" style="display:none">
+  <aside id="side">
+    <div class="brand"><img src="assets/logo-parock-white.png" alt="PAROCK Group"><span>Sistema de gestión</span></div>
+    <nav id="nav"></nav>
+    <div class="foot">Última carga ROVAL<br><b id="cutoff">—</b></div>
+  </aside>
+  <main>
+    <div class="top">
+      <button class="iconbtn burger" id="burger" aria-label="Menú"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <div><div class="crumb" id="crumb">PAROCK</div><h1 id="title">Inicio</h1></div>
+      <div class="sp"></div>
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Buscar OC, cliente, SKU, folio…"></div>
+      <button class="iconbtn" id="bell" aria-label="Alertas"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg><span class="dot" id="bellDot"></span></button>
+      <div class="user" id="userbtn"><img id="uimg" src="" alt=""><div><strong id="uname"></strong><span id="urole"></span></div></div>
+      <div class="menu-pop" id="umenu"><button id="mPass">Cambiar contraseña</button><button id="mOut">Cerrar sesión</button></div>
+    </div>
+    <div class="content" id="view"></div>
+  </main>
+</div>
+
+<div class="ov" id="ov"></div>
+<div class="drawer" id="drawer"></div>
+<div class="modal" id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="app.js"></script>
+</body>
+</html>
