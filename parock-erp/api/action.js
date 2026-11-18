@@ -36,7 +36,12 @@ const ENT = {
     fields: { name: { t: 'text', req: 1, l: 'Razón social' }, rut: { t: 'text', req: 1, l: 'RUT' }, com: { t: 'text', req: 1, l: 'Nombre comercial' },
       term: { t: 'int', l: 'Plazo de pago' }, cds: { t: 'list', l: 'CD / sucursales' },
       stage: { t: 'enum', opts: ['prospecto', 'contactado', 'reunión', 'negociación', 'aprobado', 'activo', 'inactivo'], l: 'Etapa' },
-      owner: { t: 'text', l: 'Responsable' }, contact: { t: 'text', l: 'Contacto' }, phone: { t: 'text', l: 'Teléfono' }, mail: { t: 'text', l: 'Email' } } },
+      owner: { t: 'text', l: 'Responsable' }, contact: { t: 'text', l: 'Contacto' }, phone: { t: 'text', l: 'Teléfono' }, mail: { t: 'text', l: 'Email' },
+      rooms: { t: 'int', l: 'Salas' } } },
+  supplier: { table: 'suppliers', pk: 'id', serial: 1, mod: 'proveedores', label: 'Proveedor',
+    fields: { name: { t: 'text', req: 1, l: 'Nombre' }, rut: { t: 'text', l: 'RUT / Tax ID' }, country: { t: 'text', l: 'País' }, category: { t: 'text', l: 'Categoría' },
+      contact: { t: 'text', l: 'Contacto' }, phone: { t: 'text', l: 'Teléfono' }, mail: { t: 'text', l: 'Email' }, term: { t: 'int', l: 'Plazo de pago' },
+      currency: { t: 'enum', opts: ['CLP', 'USD', 'EUR', 'BRL', 'ARS', 'CNY'], l: 'Moneda' }, active: { t: 'bool', l: 'Activo' }, notes: { t: 'text', l: 'Notas' } } },
   product: { table: 'products', pk: 'sku', pkInput: true, mod: 'productos', label: 'SKU',
     fields: { name: { t: 'text', req: 1 }, brand: { t: 'text', req: 1 }, cat: { t: 'text', req: 1 }, ean: { t: 'text' }, dun: { t: 'text' }, grams: { t: 'text' },
       ucj: { t: 'int' }, cjp: { t: 'int' }, cost: { t: 'int', req: 1, perm: ['costos', 'editar'] }, price: { t: 'int', req: 1, perm: ['precios', 'editar'] },
@@ -48,7 +53,7 @@ const ENT = {
       requested: { t: 'int', req: 1 }, dispatched: { t: 'int' }, accepted: { t: 'int' }, reason: { t: 'text' },
       status: { t: 'enum', req: 1, opts: ['En preparación', 'Despachado', 'Recibido OK', 'Recibido con diferencia', 'Parcial 1/2', 'Rechazado'] } } },
   purchase: { table: 'purchases', pk: 'id', serial: 1, mod: 'finanzas', label: 'Gasto/compra',
-    fields: { supplier: { t: 'text', req: 1 }, supplier_rut: { t: 'text' }, folio: { t: 'int' }, dte: { t: 'int', req: 1 }, issued: { t: 'date', req: 1 }, due: { t: 'date' },
+    fields: { supplier_id: { t: 'int' }, supplier: { t: 'text', req: 1 }, supplier_rut: { t: 'text' }, folio: { t: 'int' }, dte: { t: 'int', req: 1 }, issued: { t: 'date', req: 1 }, due: { t: 'date' },
       category: { t: 'text', req: 1 }, net: { t: 'int', req: 1 }, iva: { t: 'int' }, total: { t: 'int' }, paid: { t: 'bool' } },
     compute: v => { if (v.net != null) { if (v.iva == null) v.iva = Math.round(v.net * 0.19); v.total = v.net + v.iva; } } },
   opportunity: { table: 'crm_opportunities', pk: 'id', serial: 1, mod: 'crm', label: 'Oportunidad',
@@ -133,13 +138,64 @@ async function save(u, b) {
   return { id };
 }
 
+/* Dependencias que impiden eliminar: [tabla, columna, etiqueta, módulo, acción requerida para borrarlas] */
+const DEPS = {
+  client: [['purchase_orders', 'client_id', 'órdenes de compra', 'oc', 'eliminar'], ['invoices', 'client_id', 'facturas / notas de crédito', 'facturas', 'eliminar'],
+    ['dispatches', 'client_id', 'despachos', 'despachos', 'eliminar'], ['forecast_lines', 'client_id', 'filas de forecast', 'forecast', 'editar'],
+    ['client_prices', 'client_id', 'precios diferenciados', 'precios', 'editar'], ['sales_monthly', 'client_id', 'meses de ventas históricas', 'crm', 'eliminar']],
+  product: [['po_lines', 'sku', 'líneas de órdenes de compra', 'oc', 'eliminar'], ['supplier_order_lines', 'sku', 'líneas de OC a proveedor', 'proveedores', 'eliminar'],
+    ['forecast_lines', 'sku', 'filas de forecast', 'forecast', 'editar'], ['client_prices', 'sku', 'precios diferenciados', 'precios', 'editar'],
+    ['stock', 'sku', 'registro de stock', 'inventario', 'editar']],
+  supplier: [['supplier_orders', 'supplier_id', 'OC a proveedor', 'proveedores', 'eliminar']]
+};
+async function depCounts(entity, id) {
+  const out = [];
+  for (const [t, c, l, m, a] of DEPS[entity] || []) {
+    const [{ n }] = await sql(`select count(*)::int n from ${t} where ${c} = $1`, [id]);
+    if (n) out.push({ table: t, label: l, count: n, mod: m, act: a });
+  }
+  return out;
+}
+async function cascadeDelete(u, entity, id) {
+  const deps = await depCounts(entity, id);
+  const miss = deps.filter(d => !can(u, d.mod, d.act));
+  if (miss.length) fail(403, 'Tu rol no puede eliminar: ' + miss.map(d => d.label).join(', '));
+  const q = [];
+  if (entity === 'client') {
+    const pos = await sql`select id from purchase_orders where client_id = ${id}`;
+    for (const p of pos) await releaseReserve(p.id);
+    q.push(sql`delete from payments where invoice_id in (select id from invoices where client_id = ${id})`,
+      sql`delete from invoices where client_id = ${id}`, sql`delete from dispatches where client_id = ${id}`,
+      sql`delete from purchase_orders where client_id = ${id}`, sql`delete from forecast_lines where client_id = ${id}`,
+      sql`delete from client_prices where client_id = ${id}`, sql`delete from sales_monthly where client_id = ${id}`);
+  } else if (entity === 'product') {
+    q.push(sql`delete from po_lines where sku = ${id}`,
+      sql`delete from purchase_orders po where not exists (select 1 from po_lines l where l.po_id = po.id)`,
+      sql`delete from supplier_order_lines where sku = ${id}`,
+      sql`delete from supplier_orders so where not exists (select 1 from supplier_order_lines l where l.order_id = so.id)`,
+      sql`delete from forecast_lines where sku = ${id}`, sql`delete from client_prices where sku = ${id}`, sql`delete from stock where sku = ${id}`);
+  } else if (entity === 'supplier') {
+    q.push(sql`delete from supplier_orders where supplier_id = ${Number(id)}`);
+  }
+  if (q.length) await sql.transaction(q);
+  return deps;
+}
+
 async function remove(u, b) {
   const E = ENT[b.entity];
   if (!E) fail(400, 'Entidad desconocida');
   if (E.noDelete) fail(400, 'Este registro no se puede eliminar');
   need(u, E.mod, 'eliminar');
   const id = E.serial ? int(b.id, 'id') : txt(b.id, 'id', 60);
+  let cascaded = [];
+  if (b.cascade && DEPS[b.entity]) cascaded = await cascadeDelete(u, b.entity, id);
+  else if (DEPS[b.entity]) {
+    const deps = (await depCounts(b.entity, id)).filter(d => !(b.entity === 'product' && d.table === 'stock'));
+    if (deps.length) { const e = new HttpError(409, 'Tiene registros asociados: ' + deps.map(d => `${d.count} ${d.label}`).join(', ')); e.deps = deps; throw e; }
+    if (b.entity === 'product') await sql`delete from stock where sku = ${id}`;
+  }
   if (E.beforeDelete) await E.beforeDelete(id);
+  if (cascaded.length) await audit(u, `${E.label} ${b.name || id}`, 'Eliminados datos asociados: ' + cascaded.map(d => `${d.count} ${d.label}`).join(', '));
   try {
     const r = await sql(`delete from ${E.table} where ${E.pk} = $1 returning ${E.pk}`, [id]);
     if (!r.length) fail(404, 'Registro no encontrado');
@@ -489,6 +545,105 @@ const ACTIONS = {
     return {};
   },
 
+  /* ---------- Dependencias antes de eliminar ---------- */
+  async dependencies(u, b) {
+    const E = ENT[b.entity];
+    if (!E || !DEPS[b.entity]) return { deps: [] };
+    need(u, E.mod, 'ver');
+    const id = E.serial ? int(b.id, 'id') : txt(b.id, 'id', 60);
+    const deps = await depCounts(b.entity, id);
+    return { deps: deps.map(d => ({ ...d, allowed: can(u, d.mod, d.act) })) };
+  },
+
+  /* ---------- OC a proveedor ---------- */
+  async saveSO(u, b) {
+    const isNew = !b.id;
+    need(u, 'proveedores', isNew ? 'crear' : 'editar');
+    const supplier = int(b.supplier_id, 'proveedor', { min: 1 });
+    const ST = ['borrador', 'enviada', 'confirmada', 'en tránsito', 'recibida', 'cancelada'];
+    const status = ST.includes(b.status) ? b.status : 'borrador';
+    const lines = (Array.isArray(b.lines) ? b.lines : []).filter(l => String(l.qty || '').replace(/\D/g, ''));
+    if (!lines.length) fail(400, 'Agrega al menos una línea con cantidad');
+    const skus = new Set((await sql`select sku from products`).map(r => r.sku));
+    const ls = lines.map((l, i) => {
+      if (!skus.has(l.sku)) fail(400, `SKU desconocido en línea ${i + 1}`);
+      const cost = Number(String(l.unit_cost ?? 0).replace(/\./g, '').replace(',', '.'));
+      if (!Number.isFinite(cost) || cost < 0) fail(400, `Costo inválido en línea ${i + 1}`);
+      return { sku: l.sku, qty: int(l.qty, 'cantidad', { min: 1, max: 1e8 }), cost };
+    });
+    const issued = date(b.issued || new Date().toISOString().slice(0, 10), 'emisión'), eta = b.eta ? date(b.eta, 'ETA') : null;
+    const cur = ['CLP', 'USD', 'EUR', 'BRL', 'ARS', 'CNY'].includes(b.currency) ? b.currency : 'CLP';
+    let id = Number(b.id), number;
+    if (isNew) {
+      const [{ n }] = await sql`select coalesce(max(nullif(regexp_replace(number, '\\D', '', 'g'), '')::int), 0) + 1 as n from supplier_orders`;
+      number = 'OCP-' + String(n).padStart(4, '0');
+      [{ id }] = await sql`insert into supplier_orders(number, supplier_id, issued, eta, status, currency, notes, created_by)
+        values (${number}, ${supplier}, ${issued}, ${eta}, ${status}, ${cur}, ${String(b.notes || '').slice(0, 500) || null}, ${u.id}) returning id`;
+    } else {
+      const [r] = await sql`update supplier_orders set supplier_id = ${supplier}, issued = ${issued}, eta = ${eta}, status = ${status}, currency = ${cur},
+        notes = ${String(b.notes || '').slice(0, 500) || null}, updated_at = now() where id = ${id} returning number`;
+      if (!r) fail(404, 'OC a proveedor no encontrada');
+      number = r.number;
+      await sql`delete from supplier_order_lines where order_id = ${id}`;
+    }
+    await sql.transaction(ls.map((l, i) => sql`insert into supplier_order_lines(order_id, line, sku, qty, unit_cost) values (${id}, ${i + 1}, ${l.sku}, ${l.qty}, ${l.cost})`));
+    await audit(u, `OC proveedor ${number}`, `${isNew ? 'Creada' : 'Editada'} · ${ls.length} líneas · estado ${status}`);
+    return { id, number };
+  },
+  async deleteSO(u, b) {
+    need(u, 'proveedores', 'eliminar');
+    const id = int(b.id, 'id', { min: 1 });
+    const [r] = await sql`delete from supplier_orders where id = ${id} returning number`;
+    if (!r) fail(404, 'No encontrada');
+    await audit(u, `OC proveedor ${r.number}`, 'Eliminada');
+    return {};
+  },
+
+  /* ---------- Imágenes ---------- */
+  async uploadImage(u, b) {
+    if (!can(u, 'productos', 'crear') && !can(u, 'productos', 'editar')) fail(403, 'Tu rol no puede subir imágenes');
+    const m = String(b.data || '').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+    if (!m) fail(400, 'Formato de imagen no soportado (usa JPG, PNG o WEBP)');
+    const buf = Buffer.from(m[2], 'base64');
+    if (buf.length > 2.5e6) fail(400, 'La imagen supera 2,5 MB después de optimizarla');
+    const [{ id }] = await sql`insert into images(mime, data, name, created_by) values (${m[1]}, ${'\\x' + buf.toString('hex')}, ${String(b.name || '').slice(0, 120)}, ${u.id}) returning id`;
+    await audit(u, `Imagen ${id}`, `Subida · ${String(b.name || '').slice(0, 80)} · ${Math.round(buf.length / 1024)} KB`);
+    return { id, url: `/api/img?id=${id}` };
+  },
+  async deleteImage(u, b) {
+    need(u, 'productos', 'editar');
+    const id = int(b.id, 'id', { min: 1 });
+    const url = `/api/img?id=${id}`;
+    const used = await sql`select sku from products where img = ${url} limit 1`;
+    if (used.length) fail(409, `La imagen está en uso por el SKU ${used[0].sku}`);
+    await sql`delete from images where id = ${id}`;
+    return {};
+  },
+
+  /* ---------- Reiniciar datos (administración) ---------- */
+  async resetData(u, b) {
+    need(u, 'admin', 'editar');
+    if (b.confirm !== 'BORRAR') fail(400, 'Escribe BORRAR para confirmar');
+    const g = new Set(Array.isArray(b.groups) ? b.groups : []);
+    if (g.has('clientes')) { g.add('ventas'); g.add('forecast'); }
+    if (g.has('productos')) { g.add('ventas'); g.add('forecast'); g.add('compras'); }
+    if (g.has('proveedores')) g.add('compras');
+    if (!g.size) fail(400, 'Selecciona qué datos borrar');
+    const q = [];
+    if (g.has('ventas')) q.push(sql`delete from payments`, sql`delete from invoices`, sql`delete from dispatches`, sql`delete from po_lines`,
+      sql`delete from purchase_orders`, sql`delete from sales_monthly`, sql`update stock set reserved = 0`);
+    if (g.has('forecast')) q.push(sql`delete from forecast_lines`, sql`delete from forecast_versions`, sql`insert into forecast_versions(version, status) values ('v1', 'borrador')`);
+    if (g.has('inventario')) q.push(sql`delete from stock_loads`, sql`update stock set assigned = 0, reserved = 0, transit = 0, eta = null, plan = '{}'`);
+    if (g.has('compras')) q.push(sql`delete from supplier_orders`, sql`delete from purchases`);
+    if (g.has('productos')) q.push(sql`delete from client_prices`, sql`delete from stock`, sql`delete from products`);
+    if (g.has('clientes')) q.push(sql`delete from client_prices`, sql`delete from clients`);
+    if (g.has('crm')) q.push(sql`delete from crm_opportunities`, sql`delete from crm_activities`);
+    if (g.has('proveedores')) q.push(sql`delete from suppliers`);
+    await sql.transaction(q);
+    await audit(u, 'Reinicio de datos', 'Borrado: ' + [...g].join(', '));
+    return { groups: [...g] };
+  },
+
   /* ---------- Cuenta ---------- */
   async changePassword(u, b) {
     const next = String(b.next || '');
@@ -511,7 +666,7 @@ export default async function handler(req, res) {
     if (!fn) return res.status(400).json({ error: 'Acción desconocida' });
     res.json({ ok: true, ...(await fn(u, b)) });
   } catch (e) {
-    if (e instanceof HttpError) return res.status(e.status).json({ error: e.message });
+    if (e instanceof HttpError) return res.status(e.status).json({ error: e.message, deps: e.deps });
     console.error(e);
     res.status(500).json({ error: 'Error interno' });
   }

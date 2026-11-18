@@ -27,6 +27,8 @@ const I={
  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
  ai:'<path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4zM18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z"/>',
  money:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+ factory:'<path d="M3 21V9l6 4V9l6 4V5h6v16z"/><path d="M3 21h18"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
  tax:'<path d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 9h6M9 13h4"/>'
 };
 const ic=(n,s='')=>`<svg viewBox="0 0 24 24" ${s}>${I[n]}</svg>`;
@@ -67,7 +69,7 @@ async function load(){
   const r=await fetch('/api/bootstrap',{credentials:'same-origin'});
   if(r.status===401){showLogin();return false}
   if(!r.ok){el('loading').textContent='No se pudo cargar el sistema. Reintenta en unos segundos.';return false}
-  DB=await r.json();U=DB.me;derive();
+  const first=!DB;DB=await r.json();U=DB.me;derive();if(first)loadUI();
   el('loading').style.display='none';el('login').style.display='none';el('app').style.display='';
   el('uimg').src=U.img||'assets/logo-parock.png';el('uname').textContent=U.name;el('urole').textContent=U.role;
   route();return true;
@@ -115,7 +117,7 @@ const hl=(l,k)=>`<div class="hl"><div class="l">${l}</div><div class="k num">${k
 const kv=(k,v)=>`<div><div class="tiny muted" style="font-family:var(--fh);font-weight:600;letter-spacing:.06em;text-transform:uppercase">${k}</div><div class="small" style="margin-top:2px">${v}</div></div>`;
 const hlc=(l,k,s)=>`<div class="card"><div class="lbl" style="font-family:var(--fh);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600">${l}</div><div class="num" style="font-family:var(--fh);font-weight:800;font-size:1.35rem;color:var(--navy);margin:6px 0 2px">${k}</div><div class="tiny muted">${s}</div></div>`;
 const inp=(l,v,raw,attrs='')=>`<div><label class="tiny muted" style="font-family:var(--fh);font-weight:600;letter-spacing:.06em;text-transform:uppercase">${l}</label><div style="margin-top:4px">${raw?v:`<input class="inp" style="width:100%" value="${esc(v)}" ${attrs}>`}</div></div>`;
-const clientOpts=(sel,filter=()=>true)=>CLIENTS.filter(filter).map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${esc(c.name)}</option>`).join('');
+const clientOpts=(sel,filter=()=>true)=>CLIENTS.filter(filter).map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${esc(c.com)}</option>`).join('');
 
 /* =========================================================
    PERMISOS Y FORMULARIOS GENÉRICOS (crear / editar / eliminar)
@@ -123,7 +125,7 @@ const clientOpts=(sel,filter=()=>true)=>CLIENTS.filter(filter).map(c=>`<option v
 const can=(m,a='ver')=>!!(U&&U.perms&&(U.perms[m]||[]).includes(a));
 const toIso=s=>{if(!s||s==='—')return '';const m=String(s).match(/^(\d{2})-(\d{2})-(\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:String(s)};
 const userOpts=(blank=true)=>[...(blank?[['','—']]:[]),...DB.users.filter(u=>u.active!==false).map(u=>[u.id,u.name])];
-const cliOptsArr=()=>CLIENTS.map(c=>[c.id,c.name]);
+const cliOptsArr=()=>CLIENTS.map(c=>[c.id,c.com]);
 const btnEdit=(fn,l='Editar')=>`<button class="btn btn-line btn-sm" onclick="${fn}">${ic('cog','style="width:14px;height:14px"')}${l}</button>`;
 const btnDel=(fn,l='Eliminar')=>`<button class="btn btn-line btn-sm" style="color:var(--bad);border-color:#EBC3C3" onclick="${fn}">${l}</button>`;
 let FORM=null;
@@ -133,6 +135,7 @@ function formModal({eyebrow='Registro',title,fields,values={},onSave,onDelete,sa
     if(f.t==='select')ctl=`<select class="inp" style="width:100%" id="${id}" ${f.dis?'disabled':''}>${f.opts.map(([a,b])=>`<option value="${esc(a)}" ${String(a)===String(v??f.def??'')?'selected':''}>${esc(b)}</option>`).join('')}</select>`;
     else if(f.t==='bool')ctl=`<label class="row small" style="gap:8px;font-family:var(--fb);text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink)"><input type="checkbox" id="${id}" ${(v??f.def)?'checked':''} style="width:18px;height:18px;accent-color:var(--gold)"> ${esc(f.cb||'Sí')}</label>`;
     else if(f.t==='textarea')ctl=`<textarea class="inp" style="width:100%;min-height:80px" id="${id}">${esc(v??'')}</textarea>`;
+    else if(f.t==='image')ctl=imgPicker(id,v||'');
     else{const type=f.t==='date'?'date':f.t==='time'?'time':'text';const val=f.t==='date'?toIso(v):Array.isArray(v)?v.join(', '):(v??f.def??'');
       ctl=`<input class="inp" style="width:100%" id="${id}" type="${type}" value="${esc(val)}" ${f.t==='int'?'inputmode="numeric"':''} ${f.dis?'disabled':''} placeholder="${esc(f.ph||'')}" maxlength="${f.max||200}">`}
     return `<div style="${f.full?'grid-column:1/-1':''}"><label class="tiny muted" style="font-family:var(--fh);font-weight:600;letter-spacing:.06em;text-transform:uppercase">${esc(f.l)}${f.req?' *':''}</label><div style="margin-top:4px">${ctl}</div>${f.help?`<div class="tiny muted" style="margin-top:3px">${f.help}</div>`:''}</div>`};
@@ -142,12 +145,48 @@ function formModal({eyebrow='Registro',title,fields,values={},onSave,onDelete,sa
     <div class="row between"><div>${onDelete?btnDel('formDelete()'):''}</div><div class="row"><button class="btn btn-line" onclick="closeAll()">Cancelar</button><button class="btn btn-gold" id="fSave" onclick="formSave()">${ic('check')}${esc(saveLabel)}</button></div></div></div>`);
 }
 function formData(){const d={};for(const f of FORM.fields){const e=el('f_'+f.k);if(!e||f.dis)continue;let v=f.t==='bool'?e.checked:e.value;if(f.t==='int')v=String(v).replace(/[^\d-]/g,'');d[f.k]=typeof v==='string'?v.trim():v}return d}
-async function formSave(){const d=formData();const miss=FORM.fields.find(f=>f.req&&!f.dis&&(d[f.k]===''||d[f.k]==null));if(miss)return toast('Falta: '+miss.l,true);
-  const b=el('fSave');b.disabled=true;try{const r=await FORM.onSave(d);if(r)closeAll()}finally{if(el('fSave'))el('fSave').disabled=false}}
+async function formSave(){const d=formData();document.querySelectorAll('#modal .inp.bad').forEach(x=>x.classList.remove('bad'));
+  const miss=FORM.fields.filter(f=>f.req&&!f.dis&&(d[f.k]===''||d[f.k]==null));if(miss.length){miss.forEach(f=>el('f_'+f.k)&&el('f_'+f.k).classList.add('bad'));el('f_'+miss[0].k)?.focus();return toast('Completa: '+miss.map(f=>f.l).join(', '),true)}
+  const b=el('fSave');const h=b.innerHTML;b.disabled=true;b.textContent='Guardando…';try{const r=await FORM.onSave(d);if(r)closeAll()}finally{const x=el('fSave');if(x){x.disabled=false;x.innerHTML=h}}}
 async function formDelete(){const r=await FORM.onDelete();if(r)closeAll()}
-const confirmDel=w=>confirm(`¿Eliminar ${w}?\n\nEsta acción no se puede deshacer y queda registrada en la auditoría.`);
+const confirmDel=w=>ask(`¿Eliminar ${w}?\n\nEsta acción no se puede deshacer y queda registrada en la auditoría.`,{ok:'Eliminar',danger:true});
 async function saveEnt(entity,id,data,msg){return act('save',{entity,id,data},msg||'Guardado · registrado en auditoría')}
-async function delEnt(entity,id,name){if(!confirmDel(name))return null;const r=await act('remove',{entity,id,name},'Eliminado');if(r)closeAll();return r}
+async function delEnt(entity,id,name){
+  if(['client','product','supplier'].includes(entity)){const r=await api('dependencies',{entity,id}).catch(()=>null);if(!r)return null;if(r.deps.length){depModal(entity,id,name,r.deps);return null}}
+  if(!await confirmDel(name))return null;const r=await act('remove',{entity,id,name},'Eliminado');if(r)closeAll();return r}
+function depModal(entity,id,name,deps){const blocked=deps.filter(d=>!d.allowed);const alt={client:'cambiar su etapa a "inactivo"',product:'desmarcarlo como activo',supplier:'desmarcarlo como activo'}[entity];
+  modal(`<div><div class="eyebrow" style="color:var(--gold-2)">Eliminar con datos asociados</div><h2>${esc(name)}</h2></div>`,`<div style="padding:22px 26px;display:grid;gap:14px">
+   <p class="small">No se puede eliminar directamente porque todavía tiene estos registros asociados:</p>
+   <div class="card" style="padding:12px 18px"><div class="list">${deps.map(d=>`<div><span class="ic" style="background:${d.allowed?'var(--cream)':'var(--bad-bg)'};color:${d.allowed?'var(--gold)':'var(--bad)'}">${ic(d.allowed?'doc':'lock')}</span><div style="flex:1"><strong class="small">${N(d.count)} ${esc(d.label)}</strong>${d.allowed?'':'<div class="tiny down">Tu rol no puede eliminarlos</div>'}</div></div>`).join('')}</div></div>
+   ${blocked.length?`<div class="alert a-bad">${ic('lock')}<div>Pide a un administrador que lo elimine, o como alternativa puedes ${alt}.</div></div>`:`<div class="alert a-warn">${ic('warn')}<div>Puedes eliminarlo <b>junto con todos esos registros</b>. Es irreversible y queda en la auditoría. Si solo quieres dejar de usarlo, es mejor ${alt}.</div></div>`}
+   <div class="row" style="justify-content:flex-end"><button class="btn btn-line" onclick="closeAll()">Cancelar</button>${blocked.length?'':`<button class="btn btn-danger" id="cascOk">Eliminar todo</button>`}</div></div>`);
+  const b=el('cascOk');if(b)b.onclick=async()=>{if(!await ask(`Se eliminará ${name} y ${deps.map(d=>d.count+' '+d.label).join(', ')}.\n\n¿Confirmas?`,{ok:'Sí, eliminar todo',danger:true}))return;b.disabled=true;b.textContent='Eliminando…';const r=await act('remove',{entity,id,name,cascade:true},'Eliminado junto con sus datos asociados');if(r)closeAll();else b.disabled=false}}
+/* Diálogo de confirmación propio (reemplaza confirm/prompt del navegador) */
+function ask(msg,{ok='Confirmar',danger=false,input=null}={}){return new Promise(res=>{const w=document.createElement('div');w.className='ask-ov';
+  w.innerHTML=`<div class="ask" role="alertdialog" aria-modal="true"><p>${esc(msg).replace(/\n/g,'<br>')}</p>${input!=null?`<input class="inp" style="width:100%;margin-top:12px" placeholder="${esc(input)}">`:''}<div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn btn-line" data-r="0">Cancelar</button><button class="btn ${danger?'btn-danger':'btn-gold'}" data-r="1">${esc(ok)}</button></div></div>`;
+  document.body.appendChild(w);const i=w.querySelector('input');(i||w.querySelector('[data-r="1"]')).focus();
+  const done=v=>{w.remove();res(v)};w.onclick=e=>{const b=e.target.closest('[data-r]');if(b)done(b.dataset.r==='1'?(i?i.value:true):(i?null:false));else if(e.target===w)done(i?null:false)};
+  w.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape')done(i?null:false);if(e.key==='Enter')done(i?i.value:true)}})}
+/* Filtro rápido y exportación de cualquier tabla o lista */
+const tf=(t,ph='Filtrar…')=>`<input class="inp" style="min-width:200px" placeholder="${ph}" oninput="listFilter(this,'${t}')">`;
+const csvBtn=(t,n)=>`<button class="btn btn-line btn-sm" onclick="tblCsv('${t}','${n}')">${ic('dl')}CSV</button>`;
+function listFilter(inp,t){const q=inp.value.toLowerCase().trim();const box=el(t);if(!box)return;const items=box.tBodies?[...box.tBodies[0].rows]:[...box.children];let n=0;
+  items.forEach(r=>{const show=!q||r.textContent.toLowerCase().includes(q);r.style.display=show?'':'none';if(show)n++});inp.title=n+' resultados'}
+function tblCsv(t,name){const tb=el(t);if(!tb)return;const rows=[...tb.rows].filter(r=>r.style.display!=='none').map(r=>[...r.cells].map(c=>c.innerText.replace(/\s+/g,' ').trim()));download(`${name}_PAROCK_${isoToday()}.csv`,rows)}
+/* Selector de imagen: subir desde el equipo o elegir de la biblioteca */
+const allImgs=()=>[...DB.images.map(i=>i.url),...IMGS.filter(i=>!i.includes('logo'))];
+function imgPicker(id,v){return `<div class="imgpick"><img id="${id}_prev" src="${esc(v)}" style="${v?'':'visibility:hidden'}" alt=""><div style="flex:1;min-width:0"><input type="hidden" id="${id}" value="${esc(v)}">
+  <div class="row"><label class="btn btn-gold btn-sm" style="cursor:pointer">${ic('up')}Subir desde mi equipo<input type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="imgUpload(this,'${id}')"></label><button type="button" class="btn btn-line btn-sm" onclick="imgPick('${id}','')">Quitar imagen</button></div>
+  <div class="tiny muted" style="margin:8px 0 4px">O elige de tu biblioteca:</div><div class="imglib" id="${id}_lib">${allImgs().map(u=>`<img src="${esc(u)}" data-u="${esc(u)}" class="${u===v?'on':''}" onclick="imgPick('${id}',this.dataset.u)" alt="">`).join('')}</div>
+  <div class="tiny muted">JPG, PNG o WEBP. Se optimiza automáticamente a máx. 1000 px.</div></div></div>`}
+function imgPick(id,u){el(id).value=u;const p=el(id+'_prev');p.src=u;p.style.visibility=u?'visible':'hidden';el(id+'_lib').querySelectorAll('img').forEach(i=>i.classList.toggle('on',i.dataset.u===u))}
+async function imgUpload(inp,id){const f=inp.files[0];if(!f)return;if(f.size>15e6)return toast('La imagen es demasiado grande (máx. 15 MB)',true);
+  const lab=inp.parentElement;const h=lab.innerHTML;lab.classList.add('disabled');lab.firstChild&&(lab.childNodes[1].textContent='Subiendo…');
+  try{const bmp=await createImageBitmap(f);const k=Math.min(1,1000/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);
+    const r=await api('uploadImage',{data:c.toDataURL('image/jpeg',.86),name:f.name});DB.images.unshift({id:r.id,name:f.name,url:r.url});
+    el(id+'_lib').insertAdjacentHTML('afterbegin',`<img src="${r.url}" data-u="${r.url}" onclick="imgPick('${id}',this.dataset.u)" alt="">`);imgPick(id,r.url);toast('Imagen subida')}
+  catch(e){if(e.name!=='Error')toast('No se pudo leer la imagen. Prueba con un archivo JPG o PNG.',true)}finally{lab.innerHTML=h;lab.classList.remove('disabled')}}
 const IMGS=['assets/minino-4kg.jpg','assets/super-chunk.jpg','assets/creamy-treats.jpg','assets/crunchy-biscuits.jpg','assets/balance-nutrition.jpg','assets/logo-parock.png'];
 
 /* =========================================================
@@ -156,7 +195,7 @@ const IMGS=['assets/minino-4kg.jpg','assets/super-chunk.jpg','assets/creamy-trea
 function barLine(bars,line,labels,{w=640,h=220,barColor='var(--navy)',lineColor='var(--gold)',barFmt=v=>v,lineMax=40,lineMin=25,hiLast=true}={}){
   const pl=34,pr=34,pt=14,pb=26,ih=h-pt-pb,iw=w-pl-pr,n=bars.length||1,bw=iw/n*.56;
   const max=Math.max(10,Math.ceil(Math.max(...bars,0)/10)*10);let g='';
-  for(let i=0;i<=4;i++){const y=pt+ih*i/4;g+=`<line x1="${pl}" x2="${w-pr}" y1="${y}" y2="${y}" stroke="#EFEAE1"/><text x="${pl-6}" y="${y+3}" text-anchor="end">${Math.round(max*(1-i/4))}</text>`}
+  for(let i=0;i<=4;i++){const y=pt+ih*i/4;g+=`<line x1="${pl}" x2="${w-pr}" y1="${y}" y2="${y}" stroke="#EFEAE1"/><text x="${pl-6}" y="${y+3}" text-anchor="end">${(+(max*(1-i/4)).toFixed(1)).toLocaleString('es-CL')}</text>`}
   bars.forEach((v,i)=>{const x=pl+iw*(i+.5)/n-bw/2,bh=ih*Math.max(0,v)/max;g+=`<rect x="${x}" y="${pt+ih-bh}" width="${bw}" height="${bh}" rx="4" fill="${hiLast&&i===n-1?'var(--gold-2)':barColor}"><title>${labels[i]}: ${barFmt(v)}</title></rect><text x="${pl+iw*(i+.5)/n}" y="${h-8}" text-anchor="middle">${labels[i]}</text>`});
   if(line){const pts=line.map((v,i)=>[pl+iw*(i+.5)/n,pt+ih*(1-(Math.min(lineMax,Math.max(lineMin,v))-lineMin)/(lineMax-lineMin))]);
     g+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${lineColor}" stroke-width="2.4" stroke-linejoin="round"/>`;
@@ -183,9 +222,11 @@ function projection(sku){
   const s=S(sku),st=STOCK[sku];if(!st)return null;
   const dem=FCK.map((_,i)=>fcRows(FCCUR).filter(r=>r.s===sku).reduce((a,r)=>a+r.m[i],0));
   const etaK=st.eta?ymOf(st.eta):null;let stock=st.disp;const arr=[],inc=[];
-  FCK.forEach((k,i)=>{const add=(k===etaK?st.tr:0)+(Number(st.plan[k])||0);inc.push(add);stock+=add-dem[i];arr.push(stock)});
+  FCK.forEach((k,i)=>{const add=(k===etaK?st.tr:0)+(Number(st.plan[k])||0)+soIn(sku,k,i);inc.push(add);stock+=add-dem[i];arr.push(stock)});
   return {s,st,dem,arr,inc};
 }
+const SO_OPEN=['enviada','confirmada','en tránsito'];
+function soIn(sku,k,i){return (DB.sorders||[]).filter(o=>SO_OPEN.includes(o.status)&&o.eta&&(ymOf(o.eta)===k||(i===0&&ymOf(o.eta)<k))).reduce((a,o)=>a+o.lines.filter(l=>l.sku===sku).reduce((x,l)=>x+l.qty,0),0)}
 function projChart(P){
   const {s,arr,inc}=P,w=640,h=220,pl=46,pr=12,pt=14,pb=26,ih=h-pt-pb,iw=w-pl-pr,n=12;
   const mx=Math.max(...arr,P.st.disp,s.ss,1)*1.1,mn=Math.min(0,...arr)*1.1;const Y=v=>pt+ih*(1-(v-mn)/(mx-mn));let g='';
@@ -206,11 +247,11 @@ const NAV=[
  ['General',[['inicio','Inicio','home']]],
  ['Comercial',[['crm','Clientes y CRM','crm'],['productos','Productos y tarifas','box']]],
  ['Operación',[['oc','Órdenes de compra','doc',()=>OCS.filter(o=>['pendiente validación','borrador'].includes(o.st)).length],['despachos','Despachos y servicio','truck'],['inventario','Inventario ROVAL','stock']]],
- ['Planificación',[['forecast','Forecast','fc'],['abastecimiento','Abastecimiento','cart',()=>riskSkus().length]]],
+ ['Planificación',[['forecast','Forecast','fc'],['abastecimiento','Abastecimiento','cart',()=>riskSkus().length],['proveedores','Proveedores','factory',()=>(DB.sorders||[]).filter(o=>o.status==='borrador').length]]],
  ['Finanzas',[['facturas','Facturas y cobranza','inv'],['finanzas','Finanzas e IVA','fin',null,'fin']]],
  ['Sistema',[['admin','Administración','cog',null,'admin']]]
 ];
-const TITLES={inicio:['Panel general','Inicio'],crm:['Comercial','Clientes y CRM'],productos:['Comercial','Productos y tarifas'],oc:['Operación','Órdenes de compra'],despachos:['Operación','Despachos y nivel de servicio'],inventario:['Operación','Inventario ROVAL'],forecast:['Planificación','Forecast 12 meses'],abastecimiento:['Planificación','Abastecimiento'],facturas:['Finanzas','Facturas y cobranza'],finanzas:['Finanzas','Finanzas gerenciales e IVA'],admin:['Sistema','Administración']};
+const TITLES={inicio:['Panel general','Inicio'],crm:['Comercial','Clientes y CRM'],productos:['Comercial','Productos y tarifas'],oc:['Operación','Órdenes de compra'],despachos:['Operación','Despachos y nivel de servicio'],inventario:['Operación','Inventario ROVAL'],forecast:['Planificación','Forecast 12 meses'],abastecimiento:['Planificación','Abastecimiento'],facturas:['Finanzas','Facturas y cobranza'],finanzas:['Finanzas','Finanzas gerenciales e IVA'],admin:['Sistema','Administración'],proveedores:['Planificación','Proveedores y OC a proveedor']};
 function renderNav(cur){
   el('nav').innerHTML=NAV.map(([g,items])=>{const vis=items.filter(([id])=>can(id));return vis.length?`<div class="grp">${g}</div>`+vis.map(([id,l,i,b])=>{const n=b&&b();return `<a href="#${id}" class="${cur===id?'on':''}">${ic(i)}${l}${n?`<span class="bdg">${n}</span>`:''}</a>`}).join(''):''}).join('');
 }
@@ -222,7 +263,7 @@ function route(){
   const changed=v!==CUR;CUR=v;
   renderNav(v);const [c,t]=TITLES[v];el('crumb').textContent='PAROCK · '+c;el('title').textContent=t;
   el('view').innerHTML=VIEWS[v]();(AFTER[v]||(()=>{}))();el('side').classList.remove('open');if(changed)window.scrollTo(0,0);
-  el('bellDot').style.display=alerts().length?'':'none';
+  el('bellDot').style.display=alerts().length?'':'none';saveUI();
 }
 window.addEventListener('hashchange',route);
 const VIEWS={},AFTER={};
@@ -258,7 +299,7 @@ VIEWS.inicio=()=>{
   const sol=ds.reduce((a,d)=>a+d.sol,0),fr=sol?ds.reduce((a,d)=>a+d.acc,0)/sol*100:null;
   const otifN=ds.filter(d=>d.acc>=d.sol&&pd(d.ent)<=pd(d.comp)).length,otif=ds.length?otifN/ds.length*100:null;
   const ar=INVS.filter(f=>sel.has(f.cli)).reduce((a,f)=>a+f.saldo,0),over=INVS.filter(f=>sel.has(f.cli)&&f.est==='Vencida');
-  const act=CLIENTS.filter(c=>sel.has(c.id)&&c.stage==='activo').length;
+  const act=CLIENTS.filter(c=>sel.has(c.id)&&c.stage==='activo').length;const rooms=CLIENTS.filter(c=>sel.has(c.id)&&c.stage==='activo').reduce((a,c)=>a+(c.rooms||0),0);
   const covs=Object.values(STOCK).filter(s=>s.cov!=null),cov=covs.length?covs.reduce((a,s)=>a+s.cov,0)/covs.length:null;
   const chartMs=months.length===1?Array.from({length:12},(_,i)=>ymAdd(months[0],i-11)):months;
   const bars=chartMs.map(k=>sum([k],s=>s.net)/1e6),mline=U.fin?chartMs.map(k=>{const n=sum([k],s=>s.net),c=sum([k],s=>s.cost);return n?(n-c)/n*100:0}):null;
@@ -275,7 +316,7 @@ VIEWS.inicio=()=>{
       <optgroup label="Mes">${monthsOpts.map(k=>`<option value="m:${k}" ${DF.period==='m:'+k?'selected':''}>${ymLabel(k,true)}</option>`).join('')}</optgroup></select>
     <label>Clientes</label>
     <details class="ms" id="fCli"><summary>${esc(cliLabel)}</summary><div class="pop">
-      ${CLIENTS.map(c=>`<label><input type="checkbox" value="${c.id}" ${sel.has(c.id)?'checked':''}>${esc(c.name)}</label>`).join('')}
+      ${CLIENTS.map(c=>`<label><input type="checkbox" value="${c.id}" ${sel.has(c.id)?'checked':''}>${esc(c.com)}</label>`).join('')}
       <div class="acts"><button type="button" data-all="1">Todos</button><button type="button" data-all="0">Ninguno</button></div></div></details>
     <span style="flex:1"></span><span class="tiny muted">${esc(periodLabel(DF.period))} · netos CLP</span>
   </div>
@@ -285,14 +326,14 @@ VIEWS.inicio=()=>{
     ${kpi('OC abiertas',open.length+' <small>'+MM(open.reduce((a,o)=>a+o.net,0))+'</small>',`${open.filter(o=>o.st==='pendiente validación').length} por validar · ${open.filter(o=>o.st==='parcial').length} parcial`,'oc')}
     ${kpi('Fill Rate (unidades)',pct(fr),sol?`${N(ds.reduce((a,d)=>a+d.acc,0))} de ${N(sol)} un · meta 95%`:'Sin despachos en el periodo','despachos')}
     ${kpi('OTIF',pct(otif,0),ds.length?`${otifN} de ${ds.length} despachos evaluables`:'Sin despachos en el periodo','despachos')}
-    ${kpi('Clientes activos',act+` <small>de ${sel.size} seleccionados</small>`,'Pipeline CRM: '+(DB.cfg.pipeline||[]).reduce((a,c)=>a+(c.st==='activo'?0:c.items.length),0)+' oportunidades','crm')}
+    ${kpi('Clientes activos · salas',act+` <small>clientes · ${N(rooms)} salas</small>`,`${DB.opps.filter(o=>!['activo','perdido'].includes(o.stage)).length} oportunidades abiertas en el pipeline`,'crm')}
     ${kpi('Facturas por cobrar',MM(ar),over.length?`<span class="down">${over.length} vencidas · ${MM(over.reduce((a,f)=>a+f.saldo,0))}</span>`:'Sin facturas vencidas','facturas')}
     ${kpi('Cobertura stock',(cov==null?'N/D':cov.toLocaleString('es-CL',{maximumFractionDigits:1}))+' <small>meses prom.</small>',riskSkus().length?`<span class="down">${riskSkus().length} SKU con quiebre proyectado</span>`:'Sin quiebres proyectados','inventario')}
   </div>
   <div class="grid g21" style="margin-top:20px">
     <div class="card"><div class="card-h"><div><h3>Venta neta${U.fin?' y margen bruto':''} mensual</h3><div class="sub">Facturas − notas de crédito · MM CLP netos · ${esc(cliLabel)}</div></div>
       <div class="legend"><span><i style="background:var(--navy)"></i>Venta neta</span>${U.fin?'<span><i style="background:var(--gold)"></i>Margen %</span>':''}</div></div>
-      ${barLine(bars,mline,chartMs.map(k=>ymLabel(k).split(' ')[0]),{barFmt:v=>'$'+v.toLocaleString('es-CL',{maximumFractionDigits:1})+' MM'})}
+      ${bars.some(v=>v>0)?barLine(bars,mline,chartMs.map(k=>ymLabel(k).split(' ')[0]),{barFmt:v=>'$'+v.toLocaleString('es-CL',{maximumFractionDigits:1})+' MM'}):`<div class="empty">${ic('inv','style="width:36px;height:36px;stroke:var(--gold);fill:none;stroke-width:1.5"')}<p style="margin-top:8px">Aún no hay ventas en este periodo.</p><p class="tiny">Las ventas se calculan desde las facturas registradas (facturas − notas de crédito).</p>${can('facturas','crear')?`<button class="btn btn-gold btn-sm" style="margin-top:12px" onclick="location.hash='facturas';setTimeout(()=>openInvoice(),50)">Registrar factura</button>`:''}</div>`}
     </div>
     <div class="card"><div class="card-h"><div><h3>Alertas</h3><div class="sub">Requieren acción</div></div><span class="pill ${al.length?'p-bad':'p-ok'}">${al.length}</span></div>
       <div class="list">${al.slice(0,6).map(x=>alertRow(...x)).join('')||'<p class="muted small">Todo en orden.</p>'}</div>
@@ -338,20 +379,21 @@ function crmBody(){
   if(crmTab==='pipeline')return `<div class="kanban">${STAGES.map(st=>{const items=DB.opps.filter(o=>o.stage===st);return `<div class="col"><h4>${esc(st)}<span>${items.length}</span></h4>${items.map(d=>`<div class="deal" style="cursor:pointer" onclick="oppForm(${d.id})"><strong>${esc(d.name)}</strong><span class="muted tiny">${esc(d.note)||'&nbsp;'}</span><div class="row"><span class="tag">${esc(d.value||'—')}</span>${av(d.owner)}</div></div>`).join('')}</div>`}).join('')}</div><p class="tiny muted" style="margin-top:8px">Haz clic en una oportunidad para editarla, cambiarla de etapa o eliminarla.</p>`;
   if(crmTab==='actividades')return `<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Cliente / oportunidad</th><th>Descripción</th><th>Responsable</th><th>Estado</th></tr></thead><tbody>
     ${DB.acts.map(r=>`<tr class="click" onclick="actForm(${r.id})"><td class="num">${r.d}${r.time?' '+esc(r.time):''}</td><td><span class="tag">${esc(r.kind)}</span></td><td><strong>${esc(r.target)}</strong></td><td>${esc(r.description)}</td><td><div class="row">${av(r.owner)}${esc(USERS[r.owner]?.name||'')}</div></td><td>${pill(r.status,r.status==='Hecha'?'p-ok':r.status==='Programada'?'p-info':r.status==='Cancelada'?'p-mute':'p-warn')}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Sin actividades</td></tr>'}</tbody></table></div></div>`;
-  return `<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Cliente</th><th>RUT</th><th>Etapa</th><th>Lista de precios</th><th>Plazo pago</th><th>CD / sucursales</th><th class="r">Venta ${esc(ymLabel(CURM))}</th><th class="r">Por cobrar</th><th class="r">Fill Rate</th><th>Resp.</th></tr></thead><tbody>
-  ${CLIENTS.map(c=>`<tr class="click" onclick="openClient('${c.id}')"><td><strong>${esc(c.name)}</strong><div class="tiny muted">${esc(c.contact)}</div></td><td class="num">${esc(c.rut)}</td><td>${pill(c.stage,c.stage==='activo'?'p-ok':c.stage==='inactivo'?'p-mute':'p-info')}</td><td>${pill(c.priceMode==='especial'?'Diferenciada':'Regular',c.priceMode==='especial'?'p-gold':'p-mute')}</td><td>${c.term} días</td><td class="small">${esc((c.cds||[]).join(', '))}</td><td class="r num">${c.sales?MM(c.sales):'—'}</td><td class="r num">${c.ar?MM(c.ar):'—'}</td><td class="r num">${pct(c.fr)}</td><td>${av(c.owner)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  const tr=CLIENTS.filter(c=>c.stage==='activo').reduce((a,c)=>a+(c.rooms||0),0);
+  return `<div class="card"><div class="card-h"><div><h3>${CLIENTS.length} clientes</h3><div class="sub">Presencia en <b>${N(tr)} salas</b> de clientes activos</div></div><div class="row">${tf('tCli')}${csvBtn('tCli','Clientes')}</div></div><div class="tbl-wrap"><table id="tCli"><thead><tr><th>Nombre comercial</th><th>RUT</th><th class="r">Salas</th><th>Etapa</th><th>Lista de precios</th><th>Plazo pago</th><th>CD / sucursales</th><th class="r">Venta ${esc(ymLabel(CURM))}</th><th class="r">Por cobrar</th><th class="r">Fill Rate</th><th>Resp.</th></tr></thead><tbody>
+  ${CLIENTS.map(c=>`<tr class="click" onclick="openClient('${c.id}')"><td><strong>${esc(c.com)}</strong><div class="tiny muted">${esc(c.name)}</div></td><td class="num">${esc(c.rut)}</td><td class="r num">${N(c.rooms||0)}</td><td>${pill(c.stage,c.stage==='activo'?'p-ok':c.stage==='inactivo'?'p-mute':'p-info')}</td><td>${pill(c.priceMode==='especial'?'Diferenciada':'Regular',c.priceMode==='especial'?'p-gold':'p-mute')}</td><td>${c.term} días</td><td class="small">${esc((c.cds||[]).join(', '))}</td><td class="r num">${c.sales?MM(c.sales):'—'}</td><td class="r num">${c.ar?MM(c.ar):'—'}</td><td class="r num">${pct(c.fr)}</td><td>${av(c.owner)}</td></tr>`).join('')}</tbody></table></div></div>`;
 }
 AFTER.crm=()=>el('crmseg').onclick=e=>{const t=e.target.dataset.t;if(!t)return;crmTab=t;route()};
 function openClient(id){const c=C(id);const ocs=OCS.filter(o=>o.cli===id);
-  drawer(`<div><div class="eyebrow" style="color:var(--gold-2)">Ficha cliente · ${c.id}</div><h2>${esc(c.name)}</h2><div class="small" style="color:#C4CCD6">${esc(c.rut)} · Nombre comercial: ${esc(c.com)}</div></div>`,`
+  drawer(`<div><div class="eyebrow" style="color:var(--gold-2)">Ficha cliente · ${c.id}</div><h2>${esc(c.com)}</h2><div class="small" style="color:#C4CCD6">${esc(c.name)} · ${esc(c.rut)} · ${N(c.rooms||0)} salas</div></div>`,`
   <div class="row" style="justify-content:flex-end">${can('crm','editar')?btnEdit(`clientForm('${c.id}')`):''}${can('crm','eliminar')?btnDel(`delEnt('client','${c.id}','el cliente ${esc(c.com).replace(/'/g,'')}')`):''}</div>
   <div class="grid g3">${hl('Venta '+ymLabel(CURM),c.sales?MM(c.sales):'—')}${hl('Por cobrar',c.ar?MM(c.ar):'—')}${hl('Fill Rate / OTIF',c.fr!=null?pct(c.fr)+' / '+pct(c.otif,0):'N/D')}</div>
   <div class="card"><h3>Contacto y condiciones</h3><div class="grid g2" style="margin-top:12px;gap:12px">
-    ${kv('Contacto',esc(c.contact))}${kv('Teléfono',esc(c.phone))}${kv('Email',esc(c.mail))}${kv('Plazo de pago',c.term+' días')}${kv('Sucursales / CD',esc((c.cds||[]).join(' · ')))}${kv('Lista de precios',c.priceMode==='especial'?'Diferenciada · <a href="#productos" onclick="PT.tab=\'listas\';PT.cli=\''+c.id+'\';closeAll()">ver precios</a>':'Regular')}${kv('Responsable',esc(USERS[c.owner]?.name||'—'))}${kv('Etapa',esc(c.stage))}</div></div>
+    ${kv('Contacto',esc(c.contact))}${kv('Teléfono',esc(c.phone))}${kv('Email',esc(c.mail))}${kv('Plazo de pago',c.term+' días')}${kv('Sucursales / CD',esc((c.cds||[]).join(' · ')))}${kv('Lista de precios',c.priceMode==='especial'?'Diferenciada · <a href="#productos" onclick="PT.tab=\'listas\';PT.cli=\''+c.id+'\';closeAll()">ver precios</a>':'Regular')}${kv('Responsable',esc(USERS[c.owner]?.name||'—'))}${kv('Etapa',esc(c.stage))}${kv('Salas',N(c.rooms||0))}</div></div>
   <div class="card"><h3>Órdenes de compra</h3><div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>OC</th><th>Fecha</th><th>Estado</th><th class="r">Neto</th></tr></thead><tbody>${ocs.map(o=>`<tr class="click" onclick="openOC(${o.id})"><td><strong>${esc(o.n)}</strong></td><td class="num">${o.f}</td><td>${pill(o.st,ST[o.st])}</td><td class="r num">${$$(o.net)}</td></tr>`).join('')||'<tr><td colspan=4 class="muted">Sin OC</td></tr>'}</tbody></table></div></div>`)}
 function clientForm(id){const c=id?C(id):null;
-  formModal({eyebrow:'Clientes',title:c?'Editar cliente':'Nuevo cliente',values:c?{...c,cds:c.cds}:{term:30,stage:'prospecto',owner:U.id},
-    fields:[{k:'name',l:'Razón social',req:1,full:1},{k:'rut',l:'RUT',req:1,ph:'76.123.456-7'},{k:'com',l:'Nombre comercial',req:1},{k:'term',l:'Plazo de pago (días)',t:'int'},{k:'stage',l:'Etapa',t:'select',opts:CSTAGES.map(s=>[s,s])},
+  formModal({eyebrow:'Clientes',title:c?'Editar cliente':'Nuevo cliente',values:c?{...c,cds:c.cds}:{term:30,stage:'prospecto',owner:U.id,rooms:0},
+    fields:[{k:'com',l:'Nombre comercial',req:1},{k:'name',l:'Razón social',req:1},{k:'rut',l:'RUT',req:1,ph:'76.123.456-7'},{k:'rooms',l:'N° de salas',t:'int',help:'Salas donde están presentes los productos PAROCK'},{k:'term',l:'Plazo de pago (días)',t:'int'},{k:'stage',l:'Etapa',t:'select',opts:CSTAGES.map(s=>[s,s])},
       {k:'cds',l:'CD / sucursales',full:1,help:'Separados por coma'},{k:'owner',l:'Responsable',t:'select',opts:userOpts()},{k:'contact',l:'Contacto'},{k:'phone',l:'Teléfono'},{k:'mail',l:'Email'}],
     onSave:d=>saveEnt('client',id,d,c?'Cliente actualizado':'Cliente creado'),
     onDelete:c&&can('crm','eliminar')?()=>delEnt('client',id,'el cliente '+c.com):null})}
@@ -371,17 +413,17 @@ function actForm(id){const a=id?DB.acts.find(x=>x.id===id):null;if(id&&!can('crm
 const PT={tab:'catalogo',cli:null};
 VIEWS.productos=()=>{
   const tabs=`<div class="tabs" id="ptabs"><button data-t="catalogo" class="${PT.tab==='catalogo'?'on':''}">Catálogo y tarifa regular</button><button data-t="listas" class="${PT.tab==='listas'?'on':''}">Listas de precio por cliente<span class="c">${CLIENTS.filter(c=>c.priceMode==='especial').length} diferenciadas</span></button></div>`;
-  if(PT.tab==='catalogo')return tabs+`${can('productos','crear')?`<div class="row" style="justify-content:flex-end;margin-bottom:16px"><button class="btn btn-gold" onclick="productForm()">${ic('plus')}Nuevo SKU</button></div>`:''}
-  <div class="prod">${SKUS.map(s=>`<div class="card" onclick="openSku('${s.sku}')" style="${s.active===false?'opacity:.55':''}"><div class="ph"><img src="${esc(s.img)}" alt=""></div><div class="bd"><div class="brandtag" style="color:${s.brand==='Minino'?'var(--minino)':'var(--petmetro)'}">${esc(s.brand)} · ${esc(s.cat)}${s.active===false?' · INACTIVO':''}</div><h3 style="margin:6px 0 4px;font-size:.98rem">${esc(s.name)}</h3><div class="tiny muted">${esc(s.sku)} · EAN ${esc(s.ean)}</div>
+  if(PT.tab==='catalogo')return tabs+`<div class="row between" style="margin-bottom:16px">${tf('pGrid','Buscar SKU, marca, categoría…')}${can('productos','crear')?`<button class="btn btn-gold" onclick="productForm()">${ic('plus')}Nuevo SKU</button>`:''}</div>
+  <div class="prod" id="pGrid">${SKUS.map(s=>`<div class="card" onclick="openSku('${s.sku}')" style="${s.active===false?'opacity:.55':''}"><div class="ph"><img src="${esc(s.img)}" alt=""></div><div class="bd"><div class="brandtag" style="color:${s.brand==='Minino'?'var(--minino)':'var(--petmetro)'}">${esc(s.brand)} · ${esc(s.cat)}${s.active===false?' · INACTIVO':''}</div><h3 style="margin:6px 0 4px;font-size:.98rem">${esc(s.name)}</h3><div class="tiny muted">${esc(s.sku)} · EAN ${esc(s.ean)}</div>
   <div class="row between" style="margin-top:12px"><div><div class="tiny muted">Tarifa regular</div><strong class="num" style="color:var(--navy)">${$$(s.price)}</strong></div><div style="text-align:right"><div class="tiny muted">Costo neto</div><strong class="num">${U.fin?$$(s.cost):fin('$0.000')}</strong></div></div></div></div>`).join('')}</div>`;
   if(!PT.cli||!CLIENTS.find(c=>c.id===PT.cli))PT.cli=CLIENTS[0]?.id;
   const c=C(PT.cli),esp=c.priceMode==='especial';
   const hist=DB.clientPrices.filter(p=>p.cli===c.id);
   return tabs+`<div class="grid g12">
     <div class="card"><h3>Clientes</h3><div class="sub">Por defecto todos usan la tarifa regular</div><div class="cl-list" style="margin-top:10px" id="plist">
-      ${CLIENTS.map(x=>`<button data-c="${x.id}" class="${x.id===c.id?'on':''}"><span>${esc(x.name)}</span>${pill(x.priceMode==='especial'?'Diferenciada':'Regular',x.priceMode==='especial'?'p-gold':'p-mute')}</button>`).join('')}</div></div>
+      ${CLIENTS.map(x=>`<button data-c="${x.id}" class="${x.id===c.id?'on':''}"><span>${esc(x.com)}</span>${pill(x.priceMode==='especial'?'Diferenciada':'Regular',x.priceMode==='especial'?'p-gold':'p-mute')}</button>`).join('')}</div></div>
     <div class="grid" style="gap:20px;align-content:start">
-      <div class="card"><div class="card-h"><div><h3>${esc(c.name)}</h3><div class="sub">${esp?'Lista diferenciada: solo se editan los precios de este cliente. Los SKU sin precio propio usan la tarifa regular.':'Este cliente usa la tarifa regular. Asígnale una lista diferenciada para editar solo sus precios.'}</div></div>
+      <div class="card"><div class="card-h"><div><h3>${esc(c.com)}</h3><div class="sub">${esp?'Lista diferenciada: solo se editan los precios de este cliente. Los SKU sin precio propio usan la tarifa regular.':'Este cliente usa la tarifa regular. Asígnale una lista diferenciada para editar solo sus precios.'}</div></div>
         <div class="seg" id="pmode"><button data-m="regular" class="${!esp?'on':''}">Tarifa regular</button><button data-m="especial" class="${esp?'on':''}">Lista diferenciada</button></div></div>
         <div class="tbl-wrap"><table><thead><tr><th>SKU</th><th class="r">Tarifa regular</th><th class="r">Precio cliente</th><th class="r">Dif.</th><th>Vigente desde</th>${U.fin?'<th class="r">Margen</th>':''}</tr></thead><tbody>
         ${SKUS.map(s=>{const pi=priceInfo(c.id,s.sku);const d=(pi.price-s.price)/s.price*100;return `<tr><td>${skuCell(s.sku)}</td><td class="r num">${$$(s.price)}</td>
@@ -399,7 +441,7 @@ AFTER.productos=()=>{
   const pl=el('plist');if(!pl)return;
   pl.onclick=e=>{const b=e.target.closest('button');if(!b)return;PT.cli=b.dataset.c;route()};
   el('pmode').onclick=async e=>{const m=e.target.dataset.m;if(!m||m===C(PT.cli).priceMode)return;
-    if(m==='regular'&&!confirm('El cliente volverá a usar la tarifa regular. Sus precios diferenciados quedan guardados en el historial. ¿Continuar?'))return;
+    if(m==='regular'&&!await ask('El cliente volverá a usar la tarifa regular. Sus precios diferenciados quedan guardados en el historial. ¿Continuar?'))return;
     await act('setPriceMode',{client:PT.cli,mode:m},m==='especial'?'Lista diferenciada asignada':'Cliente asignado a tarifa regular')};
   document.querySelectorAll('.price-in').forEach(i=>i.oninput=()=>{const v=Number(i.value.replace(/\D/g,''))||0;i.classList.toggle('chg',v!==Number(i.dataset.orig));const s=S(i.dataset.sku);const d=(v-s.price)/s.price*100;const td=document.querySelector(`[data-dif="${i.dataset.sku}"]`);if(td){td.textContent=Math.abs(d)<.05?'—':(d>0?'+':'')+pct(d);td.className='r num '+(d<0?'down':d>0?'up':'')}});
   const sv=el('psave');if(sv)sv.onclick=async()=>{
@@ -412,7 +454,7 @@ function productForm(sku){const s=sku?S(sku):null;
   const f=[{k:'sku',l:'SKU',req:1,dis:!!s,ph:'PM-XXX-000'},{k:'name',l:'Descripción',req:1},{k:'brand',l:'Marca',req:1},{k:'cat',l:'Categoría',req:1},{k:'ean',l:'EAN'},{k:'dun',l:'DUN'},{k:'grams',l:'Gramaje'},{k:'ucj',l:'Unidades por caja',t:'int'},{k:'cjp',l:'Cajas por pallet',t:'int'}];
   if(can('precios','editar')||!s)f.push({k:'price',l:'Tarifa regular neta',t:'int',req:1});
   if(can('costos','editar'))f.push({k:'cost',l:'Costo neto',t:'int',req:1});
-  f.push({k:'lead_days',l:'Lead time (días)',t:'int'},{k:'moq',l:'MOQ',t:'int'},{k:'mult',l:'Múltiplo',t:'int'},{k:'ss',l:'Stock de seguridad',t:'int'},{k:'supplier',l:'Proveedor'},{k:'img',l:'Imagen',t:'select',opts:[['','Sin imagen'],...IMGS.map(i=>[i,i.split('/')[1]])]},{k:'active',l:'Estado',t:'bool',cb:'Activo (visible en OC y forecast)',def:true});
+  f.push({k:'lead_days',l:'Lead time (días)',t:'int'},{k:'moq',l:'MOQ',t:'int'},{k:'mult',l:'Múltiplo',t:'int'},{k:'ss',l:'Stock de seguridad',t:'int'},{k:'supplier',l:'Proveedor',t:'select',opts:[['','—'],...DB.suppliers.map(x=>[x.name,x.name]),...(s&&s.prov&&!DB.suppliers.some(x=>x.name===s.prov)?[[s.prov,s.prov]]:[])],help:'¿No aparece? Créalo en Proveedores'},{k:'img',l:'Imagen del producto',t:'image',full:1},{k:'active',l:'Estado',t:'bool',cb:'Activo (visible en OC y forecast)',def:true});
   formModal({eyebrow:'Productos',title:s?'Editar SKU':'Nuevo SKU',values:s?{...s,grams:s.g,lead_days:s.lead,supplier:s.prov}:{active:true,ucj:1,cjp:1,lead_days:60,moq:0,mult:1,ss:0},fields:f,
     onSave:d=>{if(s)delete d.sku;return saveEnt('product',s?s.sku:null,d,s?'SKU actualizado':'SKU creado')},
     onDelete:s&&can('productos','eliminar')?()=>delEnt('product',s.sku,'el SKU '+s.sku):null,
@@ -435,9 +477,9 @@ const sortFns={
  'cli-asc':(a,b)=>C(a.cli).com.localeCompare(C(b.cli).com,'es')||pd(b.f)-pd(a.f),'cli-desc':(a,b)=>C(b.cli).com.localeCompare(C(a.cli).com,'es')||pd(b.f)-pd(a.f),
  'net-desc':(a,b)=>b.net-a.net,'net-asc':(a,b)=>a.net-b.net
 };
-const groupFns={none:null,cli:o=>C(o.cli).name,st:o=>o.st,mes:o=>ymLabel(ymOf(o.f),true),req:o=>'Entrega '+ymLabel(ymOf(o.req),true)};
+const groupFns={none:null,cli:o=>C(o.cli).com,st:o=>o.st,mes:o=>ymLabel(ymOf(o.f),true),req:o=>'Entrega '+ymLabel(ymOf(o.req),true)};
 VIEWS.oc=()=>{const sts=['todas','pendiente validación','aprobada','preparación','parcial','entregada','cerrada','cancelada','borrador'];
-  const q=(el('q').value||'').toLowerCase();
+  const q=(OCV.q||'').toLowerCase();
   let list=OCS.filter(o=>(OCV.tab==='todas'||o.st===OCV.tab)&&(!q||(o.n+' '+C(o.cli).name).toLowerCase().includes(q))).slice().sort(sortFns[OCV.sort]);
   const gf=groupFns[OCV.group];const groups=[];
   if(gf){const m=new Map();list.forEach(o=>{const k=gf(o);if(!m.has(k))m.set(k,[]);m.get(k).push(o)});m.forEach((v,k)=>groups.push([k,v]))}else groups.push([null,list]);
@@ -448,7 +490,7 @@ VIEWS.oc=()=>{const sts=['todas','pendiente validación','aprobada','preparació
   <div class="filters">
     <label>Ordenar por</label><select id="ocSort">${[['f-desc','Fecha emisión · más reciente'],['f-asc','Fecha emisión · más antigua'],['req-asc','Fecha solicitada · más próxima'],['req-desc','Fecha solicitada · más lejana'],['cli-asc','Cliente A → Z'],['cli-desc','Cliente Z → A'],['net-desc','Monto neto · mayor'],['net-asc','Monto neto · menor']].map(([k,l])=>`<option value="${k}" ${OCV.sort===k?'selected':''}>${l}</option>`).join('')}</select>
     <label>Agrupar por</label><select id="ocGroup">${[['none','Sin agrupar'],['cli','Cliente'],['st','Estado'],['mes','Mes de emisión'],['req','Mes de entrega']].map(([k,l])=>`<option value="${k}" ${OCV.group===k?'selected':''}>${l}</option>`).join('')}</select>
-    <span style="flex:1"></span><span class="tiny muted">${list.length} OC · ${N(list.reduce((a,o)=>a+o.units,0))} un · ${MM(list.reduce((a,o)=>a+o.net,0))}</span>
+    <input class="inp" id="ocQ" placeholder="N° OC o cliente…" value="${esc(OCV.q||'')}"><span style="flex:1"></span>${csvBtn('octbl','OC')}<span class="tiny muted">${list.length} OC · ${N(list.reduce((a,o)=>a+o.units,0))} un · ${MM(list.reduce((a,o)=>a+o.net,0))}</span>
   </div>
   <div class="card"><div class="tbl-wrap"><table id="octbl"><thead><tr><th>N° OC</th>${th('Cliente','cli')}${th('Emisión','f')}${th('Fecha solicitada','req')}<th>CD destino</th><th class="r">Líneas</th><th class="r">Unidades</th>${th('Neto','net','r')}<th>Estado</th></tr></thead><tbody>
   ${groups.map(([k,os])=>(k!=null?`<tr class="grp"><td colspan="6">${esc(k)} <span class="tiny muted" style="font-weight:500">· ${os.length} OC</span></td><td class="r num">${N(os.reduce((a,o)=>a+o.units,0))}</td><td class="r num">${$$(os.reduce((a,o)=>a+o.net,0))}</td><td></td></tr>`:'')+os.map(row).join('')).join('')||'<tr><td colspan="9" class="empty">Sin OC para el filtro</td></tr>'}</tbody></table></div></div>`};
@@ -456,6 +498,7 @@ AFTER.oc=()=>{
   el('octabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;OCV.tab=b.dataset.s;route()};
   el('ocSort').onchange=e=>{OCV.sort=e.target.value;route()};
   el('ocGroup').onchange=e=>{OCV.group=e.target.value;route()};
+  const oq=el('ocQ');oq.oninput=()=>{OCV.q=oq.value;const pos=oq.selectionStart;route();const n=el('ocQ');n.focus();n.setSelectionRange(pos,pos)};
   el('octbl').querySelectorAll('th.sort').forEach(t=>t.onclick=()=>{const k=t.dataset.k;const def=k==='cli'?'asc':k==='req'?'asc':'desc';OCV.sort=OCV.sort.startsWith(k+'-')?(k+'-'+(OCV.sort.endsWith('asc')?'desc':'asc')):(k+'-'+def);route()});
 };
 function openOC(id){const o=OCS.find(x=>x.id===id);if(!o)return;
@@ -514,7 +557,7 @@ function ocStatusForm(id){const o=OCS.find(x=>x.id===id);if(!o)return;
     note:'Pasar a entregada, cerrada o cancelada libera la reserva de stock. Para registrar unidades aceptadas usa "Editar".',
     fields:[{k:'status',l:'Nuevo estado',t:'select',opts:OC_STATES.filter(s=>s!=='aprobada'||can('oc','aprobar')).map(s=>[s,s])},{k:'reason',l:'Motivo / observación',full:1}],
     onSave:d=>act('setOCStatus',{id,status:d.status,reason:d.reason||null},'Estado actualizado')})}
-async function deleteOC(id){const o=OCS.find(x=>x.id===id);if(!o||!confirmDel('la OC '+o.n))return;const r=await act('deleteOC',{id},'OC eliminada');if(r)closeAll()}
+async function deleteOC(id){const o=OCS.find(x=>x.id===id);if(!o||!await confirmDel('la OC '+o.n))return;const r=await act('deleteOC',{id},'OC eliminada');if(r)closeAll()}
 function _unusedOCEnd(){
 }
 
@@ -539,7 +582,7 @@ function openReview(id){
     const lines=o.lines.map(l=>{const q=document.querySelector(`.rq[data-line="${l[3]}"]`).value.replace(/\D/g,''),p=document.querySelector(`.rp[data-line="${l[3]}"]`).value.replace(/\D/g,'');return {line:l[3],qty:q,price:p,changed:+q!==l[1]||+p!==l[2]}}).filter(l=>l.changed);
     el('rOk').disabled=true;const r=await act('approveOC',{id:o.id,lines,cd:el('rCd').value});el('rOk').disabled=false;
     if(r){closeAll();toast(r.short&&r.short.length?`OC aprobada · reserva parcial: ${r.short.join(', ')}`:`OC ${o.n} aprobada por ${U.name} · stock reservado`)}};
-  el('rCancel').onclick=async()=>{const why=prompt('Motivo de cancelación');if(why==null)return;const r=await act('cancelOC',{id:o.id,reason:why},'OC cancelada');if(r)closeAll()};
+  el('rCancel').onclick=async()=>{const why=await ask('Motivo de cancelación de la OC',{ok:'Cancelar OC',danger:true,input:'Motivo'});if(why==null)return;const r=await act('cancelOC',{id:o.id,reason:why},'OC cancelada');if(r)closeAll()};
 }
 
 /* =========================================================
@@ -554,7 +597,7 @@ VIEWS.despachos=()=>{const ev=DESP.filter(d=>d.desp);const solE=ev.reduce((a,d)=
   <div class="card kpi" style="cursor:default"><div class="lbl">Despachos pendientes</div><div class="val">${pend.length}</div><div class="delta ${pend.some(d=>pd(d.comp)<TODAY())?'down':''}">${pend.map(d=>esc(d.oc)).join(', ')||'—'}</div></div>
  </div>
  <div class="grid g21" style="margin-top:20px">
-  <div class="card"><div class="card-h"><div><h3>Despachos</h3><div class="sub">Solicitado · despachado · recibido/aceptado · faltante</div></div></div><div class="tbl-wrap"><table><thead><tr><th>Despacho</th><th>OC</th><th>Cliente</th><th>Compromiso</th><th>Entrega real</th><th class="r">Solic.</th><th class="r">Desp.</th><th class="r">Acept.</th><th class="r">Faltante</th><th>Estado</th></tr></thead><tbody>
+  <div class="card"><div class="card-h"><div><h3>Despachos</h3><div class="sub">Solicitado · despachado · recibido/aceptado · faltante</div></div><div class="row">${tf('tDesp')}${csvBtn('tDesp','Despachos')}</div></div><div class="tbl-wrap"><table id="tDesp"><thead><tr><th>Despacho</th><th>OC</th><th>Cliente</th><th>Compromiso</th><th>Entrega real</th><th class="r">Solic.</th><th class="r">Desp.</th><th class="r">Acept.</th><th class="r">Faltante</th><th>Estado</th></tr></thead><tbody>
   ${DESP.map(d=>{const late=d.ent!=='—'&&pd(d.ent)>pd(d.comp);const o=OCS.find(x=>x.n===d.oc&&x.cli===d.cli);return `<tr class="click" onclick="dispatchForm('${d.id}')"><td><strong>${esc(d.id)}</strong></td><td>${esc(d.oc)}</td><td>${esc(C(d.cli).com)}</td><td class="num">${d.comp}</td><td class="num ${late?'down':''}">${d.ent}${late?' ⚑':''}</td><td class="r num">${N(d.sol)}</td><td class="r num">${N(d.desp)}</td><td class="r num">${N(d.acc)}</td><td class="r num ${d.sol-d.acc&&d.desp?'down':''}">${d.desp?N(d.sol-d.acc):'—'}</td><td>${pill(d.st,d.st.includes('OK')?'p-ok':d.st.includes('prep')?'p-gold':'p-warn')}${d.mot?`<div class="tiny muted" style="margin-top:3px;max-width:200px">${esc(d.mot)}</div>`:''}</td></tr>`}).join('')}</tbody></table></div></div>
   <div class="card"><div class="card-h"><div><h3>Nivel de servicio por cliente</h3><div class="sub">Fill Rate unidades · OTIF</div></div></div>
    ${CLIENTS.filter(c=>c.fr!=null).map(c=>`<div style="margin:14px 0"><div class="row between small"><strong>${esc(c.com)}</strong><span class="num">${pct(c.fr)} · OTIF ${pct(c.otif,0)}</span></div><div class="bar" style="margin-top:6px"><i class="${c.fr>=95?'ok':c.fr>=92?'warn':'bad'}" style="width:${c.fr}%"></i></div></div>`).join('')}
@@ -646,14 +689,14 @@ VIEWS.forecast=()=>{
  ${k!==1?`<div class="alert a-warn" style="margin-bottom:16px">${ic('info')}<div>Viendo escenario ${k>1?'optimista':'conservador'} (${k>1?'+':'−'}10% sobre la versión). Para editar, vuelve al escenario base.</div></div>`:''}
  <div class="card"><div class="card-h"><div><h3>Matriz cliente × SKU × mes</h3><div class="sub">Horizonte 12 meses · ${editable?'celdas editables · cada cambio se guarda y queda en auditoría':'solo lectura'}</div></div><div class="row">${editable?`<button class="btn btn-line btn-sm" onclick="fcAdd()">${ic('plus')}Agregar fila</button>`:''}<span class="tag">${FV.mode==='u'?'Unidades':'CLP netos (precio vigente del cliente)'}</span></div></div>
  <div class="tbl-wrap"><table class="fc"><thead><tr><th class="sticky">Cliente · SKU</th>${FCM.map(m=>`<th class="r">${m}</th>`).join('')}<th class="r">Total</th></tr></thead><tbody>
- ${CLIENTS.map(c=>{const rows=data.filter(r=>r.c===c.id);if(!rows.length)return '';return `<tr><td class="sticky" colspan="14" style="background:#FCFBF8;font-family:var(--fh);font-weight:700;color:var(--navy);font-size:.78rem">${esc(c.name)}</td></tr>`+rows.map(r=>`<tr><td class="sticky"><div class="small row between" style="flex-wrap:nowrap"><strong>${esc(S(r.s).name)}</strong>${editable?`<button class="btn btn-line btn-sm" style="padding:2px 8px;color:var(--bad)" title="Eliminar fila" onclick="fcDel('${r.c}','${r.s}')">×</button>`:''}</div></td>${r.m.map((v,i)=>`<td class="r">${editable?`<input class="cell-in" data-c="${r.c}" data-s="${r.s}" data-i="${i}" value="${N(v)}">`:`<span class="num small">${fmt(val(r,i))}</span>`}</td>`).join('')}<td class="r num small"><strong>${fmt(r.m.reduce((a,_,i)=>a+val(r,i),0))}</strong></td></tr>`).join('')}).join('')}
+ ${CLIENTS.map(c=>{const rows=data.filter(r=>r.c===c.id);if(!rows.length)return '';return `<tr><td class="sticky" colspan="14" style="background:#FCFBF8;font-family:var(--fh);font-weight:700;color:var(--navy);font-size:.78rem">${esc(c.com)}</td></tr>`+rows.map(r=>`<tr><td class="sticky"><div class="small row between" style="flex-wrap:nowrap"><strong>${esc(S(r.s).name)}</strong>${editable?`<button class="btn btn-line btn-sm" style="padding:2px 8px;color:var(--bad)" title="Eliminar fila" onclick="fcDel('${r.c}','${r.s}')">×</button>`:''}</div></td>${r.m.map((v,i)=>`<td class="r">${editable?`<input class="cell-in" data-c="${r.c}" data-s="${r.s}" data-i="${i}" value="${N(v)}">`:`<span class="num small">${fmt(val(r,i))}</span>`}</td>`).join('')}<td class="r num small"><strong>${fmt(r.m.reduce((a,_,i)=>a+val(r,i),0))}</strong></td></tr>`).join('')}).join('')}
  </tbody></table></div></div>
  <div class="card" style="margin-top:20px"><div class="card-h"><div><h3>Consolidado por SKU · vista ROVAL</h3><div class="sub">Sin desglose de clientes ni precios · esto es lo que se exporta</div></div></div><div class="tbl-wrap"><table class="fc"><thead><tr><th class="sticky">SKU</th>${FCM.map(m=>`<th class="r">${m}</th>`).join('')}<th class="r">Total</th></tr></thead><tbody>
  ${cons.map(x=>`<tr><td class="sticky small"><strong>${esc(x.s.sku)}</strong></td>${x.m.map(v=>`<td class="r num small">${N(v)}</td>`).join('')}<td class="r num small"><strong>${N(x.m.reduce((a,b)=>a+b,0))}</strong></td></tr>`).join('')}
  <tr class="tot"><td class="sticky">Total unidades</td>${FCM.map((_,i)=>`<td class="r num small">${N(cons.reduce((a,x)=>a+x.m[i],0))}</td>`).join('')}<td class="r num small">${N(cons.reduce((a,x)=>a+x.m.reduce((p,q)=>p+q,0),0))}</td></tr></tbody></table></div></div>`};
 function fcAdd(){formModal({eyebrow:'Forecast '+FV.ver,title:'Agregar fila cliente × SKU',saveLabel:'Agregar',fields:[{k:'client',l:'Cliente',t:'select',opts:cliOptsArr()},{k:'sku',l:'SKU',t:'select',opts:SKUS.filter(s=>s.active!==false).map(s=>[s.sku,s.name])}],
   onSave:d=>act('fcRow',{version:FV.ver,client:d.client,sku:d.sku},'Fila agregada · completa los meses')})}
-async function fcDel(c,sk){if(!confirmDel(`la fila ${C(c).com} · ${S(sk).name} del forecast ${FV.ver}`))return;await act('fcRow',{op:'delete',version:FV.ver,client:c,sku:sk},'Fila eliminada')}
+async function fcDel(c,sk){if(!await confirmDel(`la fila ${C(c).com} · ${S(sk).name} del forecast ${FV.ver}`))return;await act('fcRow',{op:'delete',version:FV.ver,client:c,sku:sk},'Fila eliminada')}
 AFTER.forecast=()=>{
  el('fcver').onchange=e=>{FV.ver=e.target.value;route()};
  el('fcmode').onclick=e=>{const m=e.target.dataset.m;if(m){FV.mode=m;route()}};
@@ -665,7 +708,7 @@ AFTER.forecast=()=>{
    SKUS.forEach(s=>rows.push([s.sku,s.name,...FCM.map((_,i)=>Math.round(data.filter(r=>r.s===s.sku).reduce((a,r)=>a+r.m[i],0)*FV.scen))]));
    download(`Forecast_PAROCK_${FV.ver}_ROVAL.csv`,rows);
    const vinfo=FCV.find(v=>v.version===FV.ver);
-   if(vinfo&&vinfo.status==='borrador'&&FV.scen===1&&can('forecast','congelar')&&confirm(`¿Congelar ${FV.ver} como versión enviada a ROVAL? Se creará una nueva versión de trabajo.`)){const r=await act('freezeForecast',{version:FV.ver},`${FV.ver} congelada`);if(r){FV.ver=r.next}}
+   if(vinfo&&vinfo.status==='borrador'&&FV.scen===1&&can('forecast','congelar')&&await ask(`¿Congelar ${FV.ver} como versión enviada a ROVAL? Se creará una nueva versión de trabajo.`)){const r=await act('freezeForecast',{version:FV.ver},`${FV.ver} congelada`);if(r){FV.ver=r.next}}
  };
 };
 
@@ -684,12 +727,12 @@ VIEWS.abastecimiento=()=>{
  <div class="card"><div class="card-h"><div><h3>Proyección de inventario mensual</h3><div class="sub">Disponible + tránsito + pedidos confirmados − demanda forecast ${FCCUR}</div></div><select id="absku">${SKUS.map(x=>`<option value="${x.sku}" ${x.sku===abSku?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
   ${projChart(P)}
   <div class="legend" style="margin-top:8px"><span><i style="background:var(--navy)"></i>Sobre stock seguridad</span><span><i style="background:#D69E2E"></i>Bajo stock seguridad</span><span><i style="background:var(--bad)"></i>Quiebre</span></div></div>
- <div class="card"><h3>Supuestos</h3><div class="grid g2" style="margin-top:12px;gap:12px">${kv('Stock disponible',N(st.disp)+' un')}${kv('Tránsito',st.tr?N(st.tr)+' un · ETA '+st.eta:'Sin tránsito')}${kv('Lead time',s.lead+' días')}${kv('Stock seguridad',N(s.ss)+' un')}${kv('MOQ / múltiplo',N(s.moq)+' / '+N(s.mult))}${kv('Demanda '+FCM[0],N(P.dem[0])+' un')}${kv('Pedidos confirmados',plan.map(([k,q])=>ymLabel(k)+': '+N(q)).join(' · ')||'—')}</div>
+ <div class="card"><h3>Supuestos</h3><div class="grid g2" style="margin-top:12px;gap:12px">${kv('Stock disponible',N(st.disp)+' un')}${kv('Tránsito',st.tr?N(st.tr)+' un · ETA '+st.eta:'Sin tránsito')}${kv('Lead time',s.lead+' días')}${kv('Stock seguridad',N(s.ss)+' un')}${kv('MOQ / múltiplo',N(s.moq)+' / '+N(s.mult))}${kv('Demanda '+FCM[0],N(P.dem[0])+' un')}${kv('OC a proveedor abiertas',(DB.sorders||[]).filter(o=>SO_OPEN.includes(o.status)&&o.lines.some(l=>l.sku===s.sku)).map(o=>`${esc(o.number)} · ${o.eta||'sin ETA'}`).join('<br>')||'—')}${kv('Pedidos confirmados',plan.map(([k,q])=>ymLabel(k)+': '+N(q)).join(' · ')||'—')}</div>
   ${firstBreak>=0?`<div class="alert a-bad" style="margin-top:16px">${ic('warn')}<div><b>Quiebre proyectado en ${FCM[firstBreak]}</b>. Con lead time ${s.lead} días, la orden debía emitirse antes del ${(d=>{d.setDate(d.getDate()-s.lead);return d.toLocaleDateString('es-CL')})(monthStart(firstBreak))}.</div></div>`:firstSS>=0?`<div class="alert a-warn" style="margin-top:16px">${ic('warn')}<div>Bajo stock de seguridad desde <b>${FCM[firstSS]}</b>.</div></div>`:`<div class="alert a-ok" style="margin-top:16px">${ic('check')}<div>Sin riesgo en 12 meses.</div></div>`}
  </div></div>
  <div class="card" style="margin-top:20px"><div class="card-h"><div><h3>Sugerencias de reposición</h3><div class="sub">Sujetas a confirmación de ROVAL · redondeadas a MOQ y múltiplo</div></div><button class="btn btn-line btn-sm" id="abExp">${ic('dl')}Exportar</button></div>
- <div class="tbl-wrap"><table><thead><tr><th>SKU</th><th>Riesgo desde</th><th class="r">Cantidad sugerida</th><th>Emitir pedido antes de</th><th>Proveedor</th><th>Estado</th></tr></thead><tbody>
- ${recs.map(r=>{const late=r.order<TODAY();return `<tr><td>${skuCell(r.x.sku)}</td><td>${pill((r.brk?'Quiebre ':'Bajo SS ')+FCM[r.b],r.brk?'p-bad':'p-warn')}</td><td class="r num"><strong>${N(r.need)}</strong> <span class="tiny muted">un</span></td><td class="num ${late?'down':''}">${r.order.toLocaleDateString('es-CL')}${late?' · urgente':''}</td><td class="small">${esc(r.x.prov)}</td><td>${pill('Por confirmar ROVAL','p-warn')}</td></tr>`}).join('')||'<tr><td colspan="6" class="empty">Sin sugerencias: ningún SKU baja de su stock de seguridad.</td></tr>'}</tbody></table></div></div>`};
+ <div class="tbl-wrap"><table><thead><tr><th>SKU</th><th>Riesgo desde</th><th class="r">Cantidad sugerida</th><th>Emitir pedido antes de</th><th>Proveedor</th><th>Estado</th><th></th></tr></thead><tbody>
+ ${recs.map(r=>{const late=r.order<TODAY();return `<tr><td>${skuCell(r.x.sku)}</td><td>${pill((r.brk?'Quiebre ':'Bajo SS ')+FCM[r.b],r.brk?'p-bad':'p-warn')}</td><td class="r num"><strong>${N(r.need)}</strong> <span class="tiny muted">un</span></td><td class="num ${late?'down':''}">${r.order.toLocaleDateString('es-CL')}${late?' · urgente':''}</td><td class="small">${esc(r.x.prov)}</td><td>${pill('Por confirmar ROVAL','p-warn')}</td><td>${can('proveedores','crear')?`<button class="btn btn-navy btn-sm" onclick="soForm(null,{sku:'${r.x.sku}',qty:${r.need}})">Crear OC proveedor</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="6" class="empty">Sin sugerencias: ningún SKU baja de su stock de seguridad.</td></tr>'}</tbody></table></div></div>`};
 AFTER.abastecimiento=()=>{el('absku').onchange=e=>{abSku=e.target.value;route()};
  el('abExp').onclick=()=>{const rows=[['SKU','Descripción','Riesgo desde','Cantidad sugerida','Emitir antes de','Proveedor']];SKUS.forEach(x=>{const p=projection(x.sku);if(!p)return;const b=p.arr.findIndex(v=>v<x.ss);if(b<0)return;const need=Math.max(x.moq,Math.ceil((x.ss-p.arr[b]+p.dem[b])/x.mult)*x.mult);const [y,m]=FCK[b].split('-').map(Number);const d=new Date(y,m-1,1);d.setDate(d.getDate()-x.lead);rows.push([x.sku,x.name,FCM[b],need,d.toLocaleDateString('es-CL'),x.prov])});download(`Reposicion_PAROCK_${isoToday()}.csv`,rows)}};
 
@@ -709,8 +752,9 @@ VIEWS.facturas=()=>{const list=INVS.filter(f=>fTab==='todas'||f.est===fTab);cons
  </div>
  <div class="grid g21" style="margin-top:20px">
  <div class="card"><div class="card-h"><div><h3>Documentos registrados (emitidos en SII)</h3><div class="sub">Unicidad: folio + tipo DTE + emisor</div></div>${can('facturas','crear')?`<button class="btn btn-gold btn-sm" onclick="openInvoice()">${ic('plus')}Registrar documento</button>`:''}</div>
+ <div class="row" style="margin-bottom:10px">${tf('tInv','Folio, cliente…')}${csvBtn('tInv','Facturas')}</div>
  <div class="tabs" id="ftabs">${['todas','Por cobrar','Abono parcial','Vencida','Pagada'].map(s=>`<button data-s="${s}" class="${fTab===s?'on':''}">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')}</div>
- <div class="tbl-wrap"><table><thead><tr><th>Folio</th><th>DTE</th><th>Cliente</th><th>Emisión</th><th>Vence</th><th class="r">Neto</th><th class="r">IVA</th><th class="r">Total</th><th class="r">Saldo</th><th>Estado</th></tr></thead><tbody>
+ <div class="tbl-wrap"><table id="tInv"><thead><tr><th>Folio</th><th>DTE</th><th>Cliente</th><th>Emisión</th><th>Vence</th><th class="r">Neto</th><th class="r">IVA</th><th class="r">Total</th><th class="r">Saldo</th><th>Estado</th></tr></thead><tbody>
  ${list.map(f=>`<tr class="click" onclick="openInv(${f.id})"><td><strong>${f.fo}</strong></td><td><span class="tag">${f.t===33?'33 Factura':f.t===61?'61 NC':f.t}</span></td><td>${esc(C(f.cli).com)}</td><td class="num">${f.f}</td><td class="num ${f.est==='Vencida'?'down':''}">${f.v}</td><td class="r num">${$$(f.net)}</td><td class="r num">${$$(f.iva)}</td><td class="r num">${$$(f.tot)}</td><td class="r num"><strong>${f.t===61?'—':$$(f.saldo)}</strong></td><td>${pill(f.est,{'Pagada':'p-ok','Vencida':'p-bad','Abono parcial':'p-warn','Por cobrar':'p-info'}[f.est]||'p-mute')}</td></tr>`).join('')}</tbody></table></div></div>
  <div class="card"><h3>Antigüedad de saldos</h3><div class="sub">CLP con IVA</div>
   <div class="row" style="margin-top:16px;flex-wrap:nowrap;gap:18px">${donut(aging.map((a,i)=>({v:a[1]||0.001,c:['var(--ok)','var(--gold-2)','#D69E2E','var(--bad)'][i],l:a[0]})),{size:130,label:(ar/1e6).toLocaleString('es-CL',{maximumFractionDigits:1}),sub:'MM por cobrar'})}
@@ -735,7 +779,7 @@ function openInv(id){const f=INVS.find(x=>x.id===id);if(!f)return;const ncs=INVS
  const b=el('payOk');if(b)b.onclick=async()=>{b.disabled=true;const r=await act('registerPayment',{invoiceId:f.id,date:el('payD').value,amount:el('payA').value},'Pago registrado · saldo actualizado');b.disabled=false;if(r)openInv(id)};
  const n=el('ncNew');if(n)n.onclick=()=>openInvoice({dte:61,ref:f.fo,cli:f.cli,po:f.oc.join(', ')});
 }
-async function delPay(pid,fid){if(!confirmDel('este pago'))return;const r=await act('remove',{entity:'payment',id:pid,name:'pago'},'Pago eliminado · saldo actualizado');if(r)openInv(fid)}
+async function delPay(pid,fid){if(!await confirmDel('este pago'))return;const r=await act('remove',{entity:'payment',id:pid,name:'pago'},'Pago eliminado · saldo actualizado');if(r)openInv(fid)}
 function invoiceForm(id){const f=INVS.find(x=>x.id===id);if(!f)return;
   formModal({eyebrow:'Facturas',title:`Editar ${f.t===61?'NC':'factura'} ${f.fo}`,values:{folio:f.fo,dte:f.t,client_id:f.cli,issued:f.f,due:f.v,net:Math.abs(f.net),ref_folio:f.ref,po_numbers:f.oc,dispatch_ids:f.ds},
     note:'IVA y total se recalculan desde el neto. Unicidad: folio + tipo DTE.',
@@ -788,9 +832,9 @@ function gastosView(){const m=FN.m;const list=DB.purchases.filter(p=>p.m===m);
 function purchaseForm(id){const p=id?DB.purchases.find(x=>x.id===id):null;
   formModal({eyebrow:'Gastos y compras',title:p?'Editar documento':'Registrar gasto / compra',values:p?{...p,issued:p.f,due:p.v}:{dte:33,issued:todayStr(),category:'Otros',paid:false},
     note:'Si dejas el IVA vacío se calcula al 19% del neto. Para importaciones (DIN, tipo 914) ingresa el IVA pagado en aduana.',
-    fields:[{k:'supplier',l:'Proveedor',req:1},{k:'supplier_rut',l:'RUT proveedor'},{k:'dte',l:'Tipo documento',t:'select',opts:[[33,'33 · Factura'],[34,'34 · Factura exenta'],[46,'46 · Factura de compra'],[61,'61 · Nota de crédito'],[914,'914 · DIN importación'],[0,'Boleta / sin documento']]},{k:'folio',l:'Folio',t:'int'},
+    fields:[{k:'supplier_id',l:'Proveedor',t:'select',req:1,opts:[['','Selecciona…'],...DB.suppliers.map(x=>[x.id,x.name])],help:'¿No aparece? <a href="#proveedores" onclick="closeAll()">Créalo en Proveedores</a>'},{k:'dte',l:'Tipo documento',t:'select',opts:[[33,'33 · Factura'],[34,'34 · Factura exenta'],[46,'46 · Factura de compra'],[61,'61 · Nota de crédito'],[914,'914 · DIN importación'],[0,'Boleta / sin documento']]},{k:'folio',l:'Folio',t:'int'},
       {k:'issued',l:'Fecha emisión',t:'date',req:1},{k:'due',l:'Vencimiento',t:'date'},{k:'category',l:'Categoría',t:'select',opts:GCATS.map(c=>[c,c])},{k:'net',l:'Neto',t:'int',req:1},{k:'iva',l:'IVA',t:'int',ph:'Auto 19%'},{k:'paid',l:'Pago',t:'bool',cb:'Pagado'}],
-    onSave:d=>{if(d.iva==='')delete d.iva;return saveEnt('purchase',id,d,p?'Documento actualizado':'Gasto registrado')},
+    onSave:d=>{if(d.iva==='')delete d.iva;const sp=DB.suppliers.find(x=>String(x.id)===String(d.supplier_id));if(sp){d.supplier=sp.name;d.supplier_rut=sp.rut||''}return saveEnt('purchase',id,d,p?'Documento actualizado':'Gasto registrado')},
     onDelete:p&&can('finanzas','eliminar')?()=>delEnt('purchase',id,'el documento de '+p.supplier):null})}
 function resultsView(){
  const m=FN.m;const sl=DB.sales.filter(s=>s.m===m);const venta=sl.reduce((a,s)=>a+s.net,0),cmv=sl.reduce((a,s)=>a+s.cost,0);
@@ -879,9 +923,10 @@ VIEWS.admin=()=>{
  auditoria:()=>{const q=audQ.toLowerCase();const rows=DB.audit.filter(a=>!q||a.join(' ').toLowerCase().includes(q));
   return `<div class="card"><div class="card-h"><div><h3>Bitácora inalterable</h3><div class="sub">La base de datos bloquea modificar o borrar registros · ${rows.length} de ${DB.audit.length} más recientes</div></div><div class="row"><input class="inp" id="audQ" placeholder="Filtrar por usuario, registro o texto" value="${esc(audQ)}" style="min-width:240px"><button class="btn btn-line btn-sm" id="audExp">${ic('dl')}Exportar</button></div></div>
   <div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Registro</th><th>Detalle</th></tr></thead><tbody>${rows.map(a=>`<tr><td class="num small">${a[0]}</td><td>${esc(USERS[a[1]]?.name||a[1])}</td><td><strong>${esc(a[2])}</strong></td><td class="small">${esc(a[3])}</td></tr>`).join('')}</tbody></table></div></div>`},
+ datos:()=>datosView(),
  parametros:()=>{const p=DB.cfg.params||{};return `<div class="grid g2"><div class="card"><div class="card-h"><h3>Parámetros generales</h3>${E?btnEdit('paramsForm()'):''}</div><div class="grid g2" style="gap:14px">${kv('Moneda',esc(p.moneda))}${kv('Zona horaria',esc(p.zona))}${kv('IVA',p.iva+'%')}${kv('Tolerancia OTIF',p.tolerancia_otif+' días')}${kv('Meta Fill Rate',p.meta_fill+'%')}${kv('Antigüedad máx. stock ROVAL',p.max_edad_stock_dias+' días')}${kv('Expiración de sesión',p.sesion_horas+' horas')}</div></div>
   <div class="card"><h3>Respaldos y seguridad</h3><div class="alert a-ok" style="margin-top:8px">${ic('check')}<div>Base de datos en Neon (PostgreSQL) con restauración a un punto en el tiempo. Contraseñas guardadas con hash scrypt; sesiones firmadas con expiración.</div></div></div></div>`}};
- return `<div class="tabs" id="adtabs">${[['usuarios','Usuarios'],['roles','Roles y permisos'],['auditoria','Auditoría'],['parametros','Parámetros']].map(([k,l])=>`<button data-t="${k}" class="${adTab===k?'on':''}">${l}</button>`).join('')}</div>${T[adTab]()}`};
+ return `<div class="tabs" id="adtabs">${[['usuarios','Usuarios'],['roles','Roles y permisos'],['auditoria','Auditoría'],['parametros','Parámetros'],['datos','Datos y reinicio']].map(([k,l])=>`<button data-t="${k}" class="${adTab===k?'on':''}">${l}</button>`).join('')}</div>${T[adTab]()}`};
 AFTER.admin=()=>{const t=el('adtabs');if(t)t.onclick=e=>{const b=e.target.closest('button');if(!b)return;adTab=b.dataset.t;route()};
  const q=el('audQ');if(q)q.oninput=()=>{audQ=q.value;const pos=q.selectionStart;route();const n=el('audQ');n.focus();n.setSelectionRange(pos,pos)};
  const a=el('audExp');if(a)a.onclick=()=>download(`Auditoria_PAROCK_${isoToday()}.csv`,[['Fecha','Usuario','Registro','Detalle'],...DB.audit])};
@@ -895,9 +940,9 @@ function showPass(id,pw){modal(`<div><div class="eyebrow" style="color:var(--gol
   <div class="alert a-warn">${ic('warn')}<div>Esta contraseña se muestra <b>una sola vez</b>. Entrégala de forma segura y pide al usuario que la cambie al ingresar (menú de su foto → Cambiar contraseña).</div></div>
   <div class="hl row between"><code style="font-size:1.2rem;font-weight:700;color:var(--navy)" id="pwShow">${esc(pw)}</code><button class="btn btn-line btn-sm" onclick="navigator.clipboard.writeText(el('pwShow').textContent).then(()=>toast('Copiada'))">Copiar</button></div>
   <div class="row" style="justify-content:flex-end"><button class="btn btn-gold" onclick="closeAll()">Listo</button></div></div>`)}
-async function resetPass(id){if(!confirm(`¿Restablecer la contraseña de ${id}? La actual dejará de funcionar.`))return;const r=await api('resetPassword',{id}).catch(()=>null);if(r)showPass(id,r.password)}
-async function deleteUser(id){if(!confirmDel('el usuario '+id))return;await act('deleteUser',{id},'Usuario eliminado')}
-async function deleteRole(id){const r=DB.roles.find(x=>x.id===id);if(!r||!confirmDel('el rol '+r.name))return;await act('deleteRole',{id},'Rol eliminado')}
+async function resetPass(id){if(!await ask(`¿Restablecer la contraseña de ${id}? La actual dejará de funcionar.`))return;const r=await api('resetPassword',{id}).catch(()=>null);if(r)showPass(id,r.password)}
+async function deleteUser(id){if(!await confirmDel('el usuario '+id))return;await act('deleteUser',{id},'Usuario eliminado')}
+async function deleteRole(id){const r=DB.roles.find(x=>x.id===id);if(!r||!await confirmDel('el rol '+r.name))return;await act('deleteRole',{id},'Rol eliminado')}
 function roleForm(id){const r=id?DB.roles.find(x=>x.id===id):null;const P=r?r.perms:{};
   modal(`<div><div class="eyebrow" style="color:var(--gold-2)">Administración · roles</div><h2>${r?'Editar rol '+esc(r.name):'Nuevo rol'}</h2></div>`,`<div style="padding:22px 26px;display:grid;gap:16px">
    <div class="card"><div class="grid g2" style="gap:14px">${inp('Nombre del rol *',r?r.name:'','','id="rName" maxlength="60"')}${inp('Descripción',r?r.description||'':'','','id="rDesc" maxlength="300"')}</div></div>
@@ -920,6 +965,106 @@ function paramsForm(){const p=DB.cfg.params||{};
     onSave:d=>act('saveParams',{params:d},'Parámetros guardados')})}
 
 /* =========================================================
+   PROVEEDORES Y OC A PROVEEDOR
+   ========================================================= */
+const PV={tab:'prov'};
+const SO_ST=['borrador','enviada','confirmada','en tránsito','recibida','cancelada'];
+const SO_PILL={borrador:'p-mute',enviada:'p-info',confirmada:'p-gold','en tránsito':'p-warn',recibida:'p-ok',cancelada:'p-bad'};
+const SP=id=>(DB.suppliers||[]).find(x=>x.id===id)||{name:'—'};
+const money=(v,c)=>c==='CLP'?$$(v):`${c} ${Number(v).toLocaleString('es-CL',{maximumFractionDigits:2})}`;
+VIEWS.proveedores=()=>{
+ const sups=DB.suppliers||[],sos=DB.sorders||[];
+ const tabs=`<div class="tabs" id="pvtabs"><button data-t="prov" class="${PV.tab==='prov'?'on':''}">Proveedores<span class="c">${sups.length}</span></button><button data-t="oc" class="${PV.tab==='oc'?'on':''}">OC a proveedor<span class="c">${sos.length}</span></button></div>`;
+ if(PV.tab==='oc')return tabs+`<div class="row between" style="margin-bottom:16px"><div class="row">${tf('tSO','N° OC, proveedor, SKU…')}${csvBtn('tSO','OC_proveedor')}</div>${can('proveedores','crear')?`<button class="btn btn-gold" onclick="soForm()">${ic('plus')}Nueva OC a proveedor</button>`:''}</div>
+  <div class="alert a-info" style="margin-bottom:16px">${ic('info')}<div>Las OC en estado <b>enviada, confirmada o en tránsito</b> con ETA se suman a la proyección de Abastecimiento. El stock real se actualiza con la carga de ROVAL.</div></div>
+  <div class="card"><div class="tbl-wrap"><table id="tSO"><thead><tr><th>N°</th><th>Proveedor</th><th>Emisión</th><th>ETA</th><th>Productos</th><th class="r">Unidades</th><th class="r">Total</th><th>Estado</th></tr></thead><tbody>
+  ${sos.map(o=>`<tr class="click" onclick="soForm(${o.id})"><td><strong>${esc(o.number)}</strong></td><td>${esc(SP(o.supplier_id).name)}</td><td class="num">${o.f}</td><td class="num">${o.eta||'—'}</td><td class="small">${o.lines.map(l=>esc(l.sku)).join(', ')}</td><td class="r num">${N(o.lines.reduce((a,l)=>a+l.qty,0))}</td><td class="r num">${money(o.lines.reduce((a,l)=>a+l.qty*l.cost,0),o.currency)}</td><td>${pill(o.status,SO_PILL[o.status])}</td></tr>`).join('')||`<tr><td colspan="8" class="empty">Aún no hay OC a proveedor.${can('proveedores','crear')?' Crea la primera con "Nueva OC a proveedor" o desde Abastecimiento.':''}</td></tr>`}</tbody></table></div></div>`;
+ return tabs+`<div class="row between" style="margin-bottom:16px"><div class="row">${tf('tSup','Nombre, RUT, país…')}${csvBtn('tSup','Proveedores')}</div>${can('proveedores','crear')?`<button class="btn btn-gold" onclick="supplierForm()">${ic('plus')}Nuevo proveedor</button>`:''}</div>
+  <div class="card"><div class="tbl-wrap"><table id="tSup"><thead><tr><th>Proveedor</th><th>RUT / Tax ID</th><th>País</th><th>Categoría</th><th>Contacto</th><th>Moneda</th><th class="r">Plazo</th><th class="r">OC</th><th>Estado</th></tr></thead><tbody>
+  ${sups.map(x=>`<tr class="click" onclick="supplierForm(${x.id})"><td><strong>${esc(x.name)}</strong></td><td class="num">${esc(x.rut||'—')}</td><td>${esc(x.country||'—')}</td><td class="small">${esc(x.category||'—')}</td><td class="small">${esc(x.contact||'')}${x.mail?`<div class="tiny muted">${esc(x.mail)}</div>`:''}</td><td>${esc(x.currency)}</td><td class="r">${x.term} d</td><td class="r">${sos.filter(o=>o.supplier_id===x.id).length}</td><td>${pill(x.active?'Activo':'Inactivo',x.active?'p-ok':'p-mute')}</td></tr>`).join('')||`<tr><td colspan="9" class="empty">Sin proveedores. Crea el primero con "Nuevo proveedor".</td></tr>`}</tbody></table></div></div>`;
+};
+AFTER.proveedores=()=>{el('pvtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;PV.tab=b.dataset.t;route()}};
+function supplierForm(id){const x=id?SP(id):null;if(id&&!can('proveedores','editar'))return;
+  formModal({eyebrow:'Proveedores',title:x?'Editar proveedor':'Nuevo proveedor',values:x||{country:'Chile',currency:'CLP',term:30,active:true},
+    fields:[{k:'name',l:'Nombre / razón social',req:1,full:1},{k:'rut',l:'RUT / Tax ID'},{k:'country',l:'País'},{k:'category',l:'Categoría',ph:'Mercadería, flete, servicios…'},{k:'currency',l:'Moneda',t:'select',opts:['CLP','USD','EUR','BRL','ARS','CNY'].map(c=>[c,c])},
+      {k:'contact',l:'Contacto'},{k:'phone',l:'Teléfono'},{k:'mail',l:'Email'},{k:'term',l:'Plazo de pago (días)',t:'int'},{k:'active',l:'Estado',t:'bool',cb:'Activo'},{k:'notes',l:'Notas',t:'textarea',full:1}],
+    onSave:d=>saveEnt('supplier',id,d,x?'Proveedor actualizado':'Proveedor creado'),
+    onDelete:x&&can('proveedores','eliminar')?()=>delEnt('supplier',id,'el proveedor '+x.name):null})}
+function soForm(id,pre){
+  const o=id?(DB.sorders||[]).find(x=>x.id===id):null;const ro=id&&!can('proveedores','editar');
+  if(!(DB.suppliers||[]).length){toast('Primero crea un proveedor',true);PV.tab='prov';location.hash='proveedores';return}
+  const preSup=pre?(DB.suppliers.find(x=>x.name===S(pre.sku).prov)||{}).id:null;
+  modal(`<div><div class="eyebrow" style="color:var(--gold-2)">OC a proveedor${o?' · '+esc(o.status):''}</div><h2>${o?esc(o.number):'Nueva OC a proveedor'}</h2></div>`,`<div style="padding:22px 26px;display:grid;gap:16px">
+   <div class="card"><div class="grid g3" style="gap:14px">
+    ${inp('Proveedor *',`<select class="inp" style="width:100%" id="soSup">${DB.suppliers.filter(x=>x.active||x.id===o?.supplier_id).map(x=>`<option value="${x.id}" ${x.id===(o?o.supplier_id:preSup)?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`,1)}
+    ${inp('Estado',`<select class="inp" style="width:100%" id="soSt">${SO_ST.map(x=>`<option ${x===(o?o.status:'borrador')?'selected':''}>${x}</option>`).join('')}</select>`,1)}
+    ${inp('Moneda',`<select class="inp" style="width:100%" id="soCur">${['CLP','USD','EUR','BRL','ARS','CNY'].map(c=>`<option ${c===(o?o.currency:'CLP')?'selected':''}>${c}</option>`).join('')}</select>`,1)}
+    ${inp('Fecha emisión',`<input type="date" class="inp" style="width:100%" id="soIss" value="${o?toIso(o.f):isoToday()}">`,1)}
+    ${inp('ETA (llegada estimada)',`<input type="date" class="inp" style="width:100%" id="soEta" value="${o?toIso(o.eta):''}">`,1)}
+    ${inp('Notas',o?o.notes||'':'','','id="soNotes"')}</div></div>
+   <div class="card"><div class="card-h"><h3>Productos</h3><button class="btn btn-line btn-sm" id="soAdd">${ic('plus')}Agregar línea</button></div>
+    <div class="tbl-wrap"><table class="lines-ed"><thead><tr><th style="min-width:220px">SKU</th><th class="r" style="width:130px">Cantidad</th><th class="r" style="width:150px">Costo unitario</th><th class="r">Subtotal</th><th></th></tr></thead><tbody id="soLines"></tbody>
+    <tfoot><tr><td><strong>Total</strong></td><td class="r num" id="soU"></td><td></td><td class="r num" id="soT"></td><td></td></tr></tfoot></table></div></div>
+   <div class="row between"><div>${o&&can('proveedores','eliminar')?btnDel(`deleteSO(${o.id})`):''}</div><div class="row"><button class="btn btn-line" onclick="closeAll()">Cerrar</button>${ro?'':`<button class="btn btn-gold" id="soSave">${ic('check')}Guardar</button>`}</div></div></div>`);
+  const cur=()=>el('soCur').value;
+  const calc=()=>{let u=0,t=0;el('soLines').querySelectorAll('tr').forEach(tr=>{const q=+tr.querySelector('.sq').value.replace(/\D/g,'')||0,c=Number(String(tr.querySelector('.sc').value).replace(/\./g,'').replace(',','.'))||0;tr.querySelector('.ss').textContent=money(q*c,cur());u+=q;t+=q*c});el('soU').textContent=N(u);el('soT').textContent=money(t,cur())};
+  const add=(sku=SKUS.find(x=>x.active!==false)?.sku,q='',c='')=>{const tr=document.createElement('tr');tr.innerHTML=`<td><select class="inp sk">${SKUS.filter(x=>x.active!==false||x.sku===sku).map(x=>`<option value="${x.sku}" ${x.sku===sku?'selected':''}>${esc(x.sku)} · ${esc(x.name)}</option>`).join('')}</select></td><td><input class="inp sq r" inputmode="numeric" value="${q}"></td><td><input class="inp sc r" inputmode="decimal" value="${c}"></td><td class="r num ss"></td><td><button class="btn btn-line btn-sm sx" title="Quitar">×</button></td>`;
+    el('soLines').appendChild(tr);tr.querySelectorAll('input').forEach(i=>i.oninput=calc);tr.querySelector('.sx').onclick=()=>{tr.remove();calc()};
+    tr.querySelector('.sk').onchange=e=>{if(cur()==='CLP'&&U.fin)tr.querySelector('.sc').value=S(e.target.value).cost||'';calc()};calc()};
+  el('soAdd').onclick=()=>add();el('soCur').onchange=calc;
+  if(o)o.lines.forEach(l=>add(l.sku,l.qty,String(l.cost).replace('.',',')));else if(pre)add(pre.sku,pre.qty,U.fin?S(pre.sku).cost||'':'');else add();
+  const b=el('soSave');if(b)b.onclick=async()=>{const lines=[...el('soLines').querySelectorAll('tr')].map(tr=>({sku:tr.querySelector('.sk').value,qty:tr.querySelector('.sq').value,unit_cost:tr.querySelector('.sc').value||0}));
+    b.disabled=true;b.textContent='Guardando…';const r=await act('saveSO',{id:o?o.id:null,supplier_id:el('soSup').value,status:el('soSt').value,currency:cur(),issued:el('soIss').value,eta:el('soEta').value,notes:el('soNotes').value,lines},o?'OC a proveedor actualizada':'OC a proveedor creada');
+    if(r){closeAll();if(!o){PV.tab='oc';if(CUR!=='proveedores')toast(`${r.number} creada · ver en Proveedores`)}}else{b.disabled=false;b.innerHTML=ic('check')+'Guardar'}};
+}
+async function deleteSO(id){const o=(DB.sorders||[]).find(x=>x.id===id);if(!o||!await confirmDel('la '+o.number))return;const r=await act('deleteSO',{id},'OC a proveedor eliminada');if(r)closeAll()}
+
+/* =========================================================
+   ADMINISTRACIÓN · DATOS Y REINICIO
+   ========================================================= */
+function datosView(){
+ const G=[['ventas','Ventas y operación',`${OCS.length} OC · ${DESP.length} despachos · ${INVS.length} facturas/NC · histórico de ventas`],
+  ['forecast','Forecast',`${FCV.length} versiones · queda una v1 vacía`],['inventario','Inventario ROVAL',`${DB.loads.length} cargas · stock queda en cero`],
+  ['compras','Compras y gastos',`${DB.purchases.length} documentos · ${(DB.sorders||[]).length} OC a proveedor`],['crm','Pipeline y actividades CRM',`${DB.opps.length} oportunidades · ${DB.acts.length} actividades`],
+  ['productos','Productos y listas de precio',`${SKUS.length} SKU · incluye ventas, forecast y compras`],['clientes','Clientes',`${CLIENTS.length} clientes · incluye ventas y forecast`],['proveedores','Proveedores',`${(DB.suppliers||[]).length} proveedores · incluye compras`]];
+ return `<div class="grid g12"><div class="card"><h3>Empezar con datos reales</h3><p class="small muted" style="margin-top:8px">Borra los datos de ejemplo por bloque. Lo recomendado para partir en real:</p>
+   <ol class="small" style="margin:10px 0 0 18px;display:grid;gap:6px"><li>Marca <b>Ventas y operación</b>, <b>Forecast</b>, <b>Inventario</b>, <b>Compras</b> y <b>CRM</b>.</li><li>Si los productos o clientes de ejemplo no sirven, marca también esos bloques.</li><li>Escribe <b>BORRAR</b> y confirma.</li><li>Luego crea tus productos, clientes y proveedores, e ingresa OC y facturas reales.</li></ol>
+   <div class="alert a-info" style="margin-top:14px">${ic('info')}<div>Usuarios, roles, parámetros y la auditoría <b>no se borran</b>. El reinicio queda registrado.</div></div></div>
+  <div class="card"><h3>Reiniciar datos</h3><div class="sub">Selecciona los bloques a borrar · irreversible</div>
+   <div class="list" style="margin-top:8px" id="rsG">${G.map(([k,l,d])=>`<div><label class="row" style="gap:12px;flex:1;cursor:pointer;flex-wrap:nowrap"><input type="checkbox" value="${k}" style="width:18px;height:18px;accent-color:var(--bad)"><span><strong class="small">${l}</strong><span class="tiny muted" style="display:block">${d}</span></span></label></div>`).join('')}</div>
+   <div class="row" style="margin-top:14px"><input class="inp" id="rsC" placeholder="Escribe BORRAR" style="flex:1"><button class="btn btn-danger" id="rsOk" onclick="doReset()">Borrar seleccionados</button></div></div></div>`}
+async function doReset(){const g=[...document.querySelectorAll('#rsG input:checked')].map(i=>i.value);if(!g.length)return toast('Selecciona al menos un bloque',true);
+  if(el('rsC').value.trim()!=='BORRAR'){el('rsC').classList.add('bad');return toast('Escribe BORRAR para confirmar',true)}
+  if(!await ask('Se borrarán definitivamente los datos seleccionados (y los que dependen de ellos).\n\n¿Continuar?',{ok:'Sí, borrar',danger:true}))return;
+  const b=el('rsOk');b.disabled=true;b.textContent='Borrando…';const r=await act('resetData',{groups:g,confirm:'BORRAR'});if(r)toast('Datos borrados: '+r.groups.join(', '));else{b.disabled=false;b.textContent='Borrar seleccionados'}}
+
+/* =========================================================
+   BÚSQUEDA GLOBAL, CREACIÓN RÁPIDA Y PREFERENCIAS
+   ========================================================= */
+function searchAll(q){q=q.toLowerCase().trim();if(q.length<2)return [];const r=[];const hit=t=>String(t||'').toLowerCase().includes(q);
+  if(can('crm'))CLIENTS.filter(c=>hit(c.com)||hit(c.name)||hit(c.rut)).slice(0,4).forEach(c=>r.push(['crm','Cliente',c.com,c.name,()=>{location.hash='crm';openClient(c.id)}]));
+  if(can('oc'))OCS.filter(o=>hit(o.n)).slice(0,4).forEach(o=>r.push(['doc','OC',o.n,C(o.cli).com+' · '+o.st,()=>{location.hash='oc';openOC(o.id)}]));
+  if(can('productos'))SKUS.filter(x=>hit(x.sku)||hit(x.name)||hit(x.ean)).slice(0,4).forEach(x=>r.push(['box','SKU',x.name,x.sku,()=>{location.hash='productos';openSku(x.sku)}]));
+  if(can('facturas'))INVS.filter(f=>hit(f.fo)).slice(0,4).forEach(f=>r.push(['inv',f.t===61?'NC':'Factura',String(f.fo),C(f.cli).com+' · '+$$(f.tot),()=>{location.hash='facturas';openInv(f.id)}]));
+  if(can('despachos'))DESP.filter(d=>hit(d.id)).slice(0,3).forEach(d=>r.push(['truck','Despacho',d.id,'OC '+d.oc,()=>{location.hash='despachos';dispatchForm(d.id)}]));
+  if(can('proveedores'))(DB.suppliers||[]).filter(x=>hit(x.name)||hit(x.rut)).slice(0,3).forEach(x=>r.push(['factory','Proveedor',x.name,x.country||'',()=>{PV.tab='prov';location.hash='proveedores';supplierForm(x.id)}]));
+  return r.slice(0,10)}
+let QR=[];
+function renderQ(){const q=el('q').value;QR=searchAll(q);const box=el('qres');
+  box.innerHTML=q.trim().length<2?'':QR.length?QR.map((x,i)=>`<button data-i="${i}">${ic(x[0])}<span><b>${esc(x[2])}</b><small>${esc(x[1])} · ${esc(x[3])}</small></span></button>`).join(''):'<div class="tiny muted" style="padding:10px 12px">Sin resultados</div>';
+  box.classList.toggle('open',q.trim().length>=2)}
+function quickMenu(){const items=[['crm','crear','Cliente',()=>{crmTab='clientes';location.hash='crm';clientForm()}],['crm','crear','Actividad CRM',()=>{crmTab='actividades';location.hash='crm';actForm()}],
+  ['oc','crear','Orden de compra',()=>{location.hash='oc';openNewOC()}],['productos','crear','Producto (SKU)',()=>{location.hash='productos';productForm()}],
+  ['despachos','crear','Despacho',()=>{location.hash='despachos';dispatchForm()}],['facturas','crear','Factura / NC',()=>{location.hash='facturas';openInvoice()}],
+  ['finanzas','crear','Gasto / compra',()=>{FN.tab='gastos';location.hash='finanzas';purchaseForm()}],['proveedores','crear','Proveedor',()=>{PV.tab='prov';location.hash='proveedores';supplierForm()}],
+  ['proveedores','crear','OC a proveedor',()=>{PV.tab='oc';location.hash='proveedores';soForm()}],['admin','editar','Usuario',()=>{adTab='usuarios';location.hash='admin';userForm()}]].filter(x=>can(x[0],x[1]));
+  QM=items;el('nmenu').innerHTML=items.length?items.map((x,i)=>`<button data-i="${i}">${esc(x[2])}</button>`).join(''):'<div class="tiny muted" style="padding:10px">Tu rol no puede crear registros</div>'}
+let QM=[];
+const UIKEY='prk_ui_v1';
+function saveUI(){try{localStorage.setItem(UIKEY,JSON.stringify({OCV:{sort:OCV.sort,group:OCV.group,tab:OCV.tab},pt:PT.tab,crm:crmTab,fn:FN.tab,ad:adTab,pv:PV.tab,period:DF.period}))}catch(e){}}
+function loadUI(){try{const u=JSON.parse(localStorage.getItem(UIKEY)||'null');if(!u)return;Object.assign(OCV,u.OCV||{});if(u.pt)PT.tab=u.pt;if(u.crm)crmTab=u.crm;if(u.fn)FN.tab=u.fn;if(u.ad)adTab=u.ad;if(u.pv)PV.tab=u.pv;if(u.period&&u.period!=='m:'+CURM)DF.period=u.period}catch(e){}}
+
+/* =========================================================
    DRAWER / MODAL / SESIÓN
    ========================================================= */
 function drawer(head,body){el('drawer').innerHTML=`<div class="dh">${head}<button class="x" onclick="closeAll()">×</button></div><div class="db">${body}</div>`;el('drawer').classList.add('open');el('ov').classList.add('open')}
@@ -928,7 +1073,14 @@ function closeAll(){['drawer','modal','ov'].forEach(i=>el(i).classList.remove('o
 el('ov').onclick=closeAll;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll()});
 el('burger').onclick=()=>{el('side').classList.add('open');el('ov').classList.add('open')};
 el('bell').onclick=()=>location.hash='inicio';
-el('q').oninput=()=>{if(CUR!=='oc')location.hash='oc';else route();el('q').focus()};
+el('q').oninput=renderQ;el('q').onfocus=renderQ;
+el('q').onkeydown=e=>{if(e.key==='Enter'&&QR[0]){QR[0][4]();el('q').value='';renderQ();el('q').blur()}if(e.key==='Escape'){el('q').value='';renderQ();el('q').blur()}};
+el('qres').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;QR[+b.dataset.i][4]();el('q').value='';renderQ()};
+document.addEventListener('click',e=>{if(!e.target.closest('.search'))el('qres').classList.remove('open');if(!e.target.closest('#qnew,#nmenu'))el('nmenu').classList.remove('open')});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();el('q').focus()}});
+el('qnew').onclick=e=>{e.stopPropagation();quickMenu();el('nmenu').classList.toggle('open');el('umenu').classList.remove('open')};
+el('nmenu').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;el('nmenu').classList.remove('open');QM[+b.dataset.i][3]()};
+el('modal').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='file'&&el('fSave')&&FORM){e.preventDefault();formSave()}});
 el('userbtn').onclick=e=>{e.stopPropagation();el('umenu').classList.toggle('open')};
 document.addEventListener('click',e=>{if(!el('umenu').contains(e.target))el('umenu').classList.remove('open')});
 el('mOut').onclick=async()=>{await fetch('/api/logout',{method:'POST'});DB=null;location.hash='';showLogin()};

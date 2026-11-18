@@ -285,3 +285,31 @@ th.sort.on{color:var(--gold)}
 .lines-ed select,.lines-ed input{width:100%}
 .empty{padding:30px;text-align:center;color:var(--muted)}
 .sku{min-width:210px}
+
+/* ===== v1.2 usabilidad ===== */
+.prod .ph{height:180px;overflow:hidden}
+.prod .ph img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.prod .bd h3{overflow-wrap:anywhere}
+.sku img{object-fit:contain;background:#F2EEE7}
+.drawer .card img{object-fit:contain}
+.imgpick{display:flex;gap:16px;align-items:flex-start}
+.imgpick>img{width:110px;height:110px;object-fit:contain;background:#F2EEE7;border-radius:12px;border:1px solid var(--line);flex:none}
+.imglib{display:flex;gap:6px;flex-wrap:wrap;max-height:116px;overflow:auto;margin-bottom:6px}
+.imglib img{width:50px;height:50px;object-fit:contain;background:#F2EEE7;border-radius:8px;cursor:pointer;border:2px solid transparent}
+.imglib img:hover,.imglib img.on{border-color:var(--gold)}
+label.disabled{opacity:.6;pointer-events:none}
+.btn-danger{background:var(--bad);color:#fff}
+.btn-danger:hover{background:#962F2F}
+.inp.bad{border-color:var(--bad)!important;box-shadow:0 0 0 3px rgba(178,58,58,.15)}
+.ask-ov{position:fixed;inset:0;background:rgba(15,29,43,.5);z-index:95;display:grid;place-items:center;padding:16px}
+.ask{background:#fff;border-radius:16px;padding:24px;max-width:460px;width:100%;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);font-size:.92rem;line-height:1.5}
+.search{position:relative}
+.qres{position:absolute;top:calc(100% + 6px);left:0;right:0;min-width:320px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:6px;z-index:45;display:none;color:var(--ink)}
+.qres.open{display:block}
+.qres button{display:flex;gap:10px;align-items:center;width:100%;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer;text-align:left}
+.qres button:hover,.qres button:first-child{background:var(--cream)}
+.qres svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:2;flex:none}
+.qres small{display:block;color:var(--muted);font-size:.72rem}
+.qres b{font-weight:600;color:var(--navy);font-size:.84rem}
+.btn:focus-visible,.inp:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (max-width:900px){#nmenu{right:16px!important}}

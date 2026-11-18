@@ -10,6 +10,7 @@ export const MODS = [
   ['inventario', 'Inventario ROVAL', ['ver', 'editar', 'importar']],
   ['forecast', 'Forecast', ['ver', 'editar', 'congelar']],
   ['abastecimiento', 'Abastecimiento', ['ver']],
+  ['proveedores', 'Proveedores y OC a proveedor', ['ver', 'crear', 'editar', 'eliminar']],
   ['facturas', 'Facturas y cobranza', ['ver', 'crear', 'editar', 'eliminar']],
   ['finanzas', 'Finanzas, gastos e IVA', ['ver', 'crear', 'editar', 'eliminar']],
   ['admin', 'Administración (usuarios, roles, auditoría)', ['ver', 'editar']]
