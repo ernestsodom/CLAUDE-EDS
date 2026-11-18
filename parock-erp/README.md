@@ -21,6 +21,9 @@ DATABASE_URL=... node scripts/seed.mjs           # crea el esquema y carga los d
 DATABASE_URL=... node scripts/seed.mjs --reset   # BORRA todo y vuelve a cargar los datos iniciales
 ```
 
+Después del seed, ejecuta `node scripts/migrate.mjs`, que crea los roles y las tablas del CRM. La migración no borra
+datos y se puede repetir.
+
 El seed genera contraseñas al azar para `marcelo` y `kevin` y guarda solo el hash (scrypt). Para escribirlas en un
 archivo en vez de mostrarlas en pantalla, define `CREDS_OUT=/ruta/archivo.json`.
 
@@ -42,6 +45,19 @@ archivo en vez de mostrarlas en pantalla, define `CREDS_OUT=/ruta/archivo.json`.
    cliente, estado, mes de emisión o mes de entrega.
 4. **Finanzas:** resumen de IVA mensual (débito, NC, crédito fiscal, IVA determinado o remanente) con detalle de ventas
    y compras exportable para cruzar con el RCV del SII.
+
+## Administración, perfiles y roles (v1.1)
+
+- **Usuarios:** crear (con contraseña inicial que se muestra una vez), editar, desactivar, restablecer la contraseña y
+  eliminar.
+- **Roles:** se crean, editan y eliminan, con una matriz de permisos por módulo y acción (ver, crear, editar,
+  eliminar, aprobar, importar, congelar). Hay 4 roles de partida: Administrador, Gerencia, Comercial y Operaciones.
+- **Protecciones:** nadie puede quitarse a sí mismo el permiso de administración ni eliminar su propio usuario. No se
+  elimina un rol con usuarios asignados, y el rol Administrador no se puede eliminar.
+- **Crear, editar y eliminar:** clientes, oportunidades y actividades del CRM, SKU, OC (editar, cambiar de estado y
+  eliminar, recalculando la reserva de stock), despachos, ajustes de inventario, filas del forecast, facturas,
+  pagos, gastos y compras, y parámetros.
+- **Al eliminar:** si un registro tiene registros asociados, el sistema lo bloquea y explica cómo proceder.
 
 ## Pendiente (fases siguientes)
 

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { can } from './perms.js';
 
 const TTL = 8 * 3600; // la sesión expira tras 8 h sin actividad (se renueva en cada carga)
 
@@ -38,6 +39,11 @@ export async function currentUser(req, sql) {
   const m = (req.headers.cookie || '').match(/(?:^|;\s*)prk_session=([^;]+)/);
   const uid = readToken(m && m[1]);
   if (!uid) return null;
-  const r = await sql`select id, name, role, fin, admin, img from users where id = ${uid} and active`;
-  return r[0] || null;
+  const r = await sql`select u.id, u.name, u.img, u.email, u.role_id, coalesce(r.name, u.role) as role, coalesce(r.perms, '{}') as perms
+    from users u left join roles r on r.id = u.role_id where u.id = ${uid} and u.active`;
+  const u = r[0];
+  if (!u) return null;
+  u.fin = can(u, 'costos', 'ver');
+  u.admin = can(u, 'admin', 'ver');
+  return u;
 }

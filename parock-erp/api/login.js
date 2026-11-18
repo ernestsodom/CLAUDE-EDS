@@ -13,6 +13,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
   }
   await sql`insert into audit_log(user_id, record, detail) values (${id}, 'Sesión', 'Inicio de sesión')`;
+  await sql`update users set last_login = now() where id = ${id}`;
   res.setHeader('Set-Cookie', sessionCookie(makeToken(id)));
   res.json({ ok: true });
 }
