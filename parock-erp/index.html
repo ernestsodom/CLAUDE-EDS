@@ -27,7 +27,7 @@ img{display:block;max-width:100%}
 /* ===== Login ===== */
 #login{position:fixed;inset:0;z-index:100;display:grid;grid-template-columns:1.1fr 1fr;background:var(--paper)}
 #login .side{background:var(--navy);color:#fff;padding:56px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
-#login .side img{height:54px;width:auto}
+#login .side img{height:54px;width:auto;align-self:flex-start}
 #login .side h1{color:#fff;font-weight:300;font-size:clamp(1.8rem,3vw,2.6rem);max-width:460px}
 #login .side h1 b{font-weight:800;color:var(--gold-2)}
 #login .side p{color:#C4CCD6;max-width:420px;margin-top:16px}
@@ -128,6 +128,8 @@ th{font-family:var(--fh);font-size:.66rem;letter-spacing:.12em;text-transform:up
 td{padding:12px;border-bottom:1px solid #F0EBE2;vertical-align:middle}
 tr.click{cursor:pointer}tr.click:hover td{background:var(--cream)}
 td.r,th.r{text-align:right}
+td.num,.tag,.pill{white-space:nowrap}
+@media (max-width:560px){svg.chart text{font-size:17px}}
 td strong{font-weight:600;color:var(--navy)}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
 .tabs button{border:0;background:none;padding:10px 14px;font-family:var(--fh);font-weight:600;font-size:.8rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
@@ -468,8 +470,8 @@ const el=id=>document.getElementById(id);
 function toast(msg){const t=el('toast');t.innerHTML=ic('check','style="width:18px;height:18px;stroke:var(--gold-2);fill:none;stroke-width:2.4"')+msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200)}
 
 /* Charts (SVG) */
-function barLine(bars,line,labels,{h=220,barColor='var(--navy)',lineColor='var(--gold)',barFmt=v=>v,lineMax=40,lineMin=25,hiLast=true}={}){
-  const w=640,pl=34,pr=34,pt=14,pb=26,ih=h-pt-pb,iw=w-pl-pr,n=bars.length,bw=iw/n*.56;
+function barLine(bars,line,labels,{w=640,h=220,barColor='var(--navy)',lineColor='var(--gold)',barFmt=v=>v,lineMax=40,lineMin=25,hiLast=true}={}){
+  const pl=34,pr=34,pt=14,pb=26,ih=h-pt-pb,iw=w-pl-pr,n=bars.length,bw=iw/n*.56;
   const max=Math.ceil(Math.max(...bars)/10)*10;
   let g='';
   for(let i=0;i<=4;i++){const y=pt+ih*i/4;g+=`<line x1="${pl}" x2="${w-pr}" y1="${y}" y2="${y}" stroke="#EFEAE1"/><text x="${pl-6}" y="${y+3}" text-anchor="end">${Math.round(max*(1-i/4))}</text>`}
@@ -501,7 +503,7 @@ function projChart(sku){
   const w=640,h=220,pl=46,pr=12,pt=14,pb=26,ih=h-pt-pb,iw=w-pl-pr,n=12;
   const mx=Math.max(...arr,st.disp,s.ss)*1.1,mn=Math.min(0,...arr)*1.1;const Y=v=>pt+ih*(1-(v-mn)/(mx-mn));let g='';
   for(let i=0;i<=4;i++){const v=mx-(mx-mn)*i/4;g+=`<line x1="${pl}" x2="${w-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#EFEAE1"/><text x="${pl-6}" y="${Y(v)+3}" text-anchor="end">${N(v)}</text>`}
-  g+=`<rect x="${pl}" y="${Y(s.ss)}" width="${iw}" height="${Y(0)-Y(s.ss)}" fill="var(--warn)" opacity=".08"/><line x1="${pl}" x2="${w-pr}" y1="${Y(s.ss)}" y2="${Y(s.ss)}" stroke="var(--warn)" stroke-dasharray="4 4"/><text x="${w-pr}" y="${Y(s.ss)-4}" text-anchor="end" style="fill:var(--warn)">Stock seguridad ${N(s.ss)}</text>`;
+  g+=`<rect x="${pl}" y="${Y(s.ss)}" width="${iw}" height="${Y(0)-Y(s.ss)}" fill="var(--warn)" opacity=".08"/><line x1="${pl}" x2="${w-pr}" y1="${Y(s.ss)}" y2="${Y(s.ss)}" stroke="var(--warn)" stroke-dasharray="4 4"/><text x="${pl+4}" y="${Y(s.ss)-4}" style="fill:var(--warn)">Stock seguridad ${N(s.ss)}</text>`;
   g+=`<line x1="${pl}" x2="${w-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--bad)"/>`;
   arr.forEach((v,i)=>{const x=pl+iw*(i+.5)/n,bw=iw/n*.5;const c=v<0?'var(--bad)':v<s.ss?'#D69E2E':'var(--navy)';g+=`<rect x="${x-bw/2}" y="${Math.min(Y(v),Y(0))}" width="${bw}" height="${Math.abs(Y(v)-Y(0))}" rx="3" fill="${c}"><title>${FCM[i]}: ${N(v)} un</title></rect><text x="${x}" y="${h-8}" text-anchor="middle">${FCM[i].split(' ')[0]}</text>`;const inc=(i===etaM?st.tr:0)+(st.plan[i]||0);if(inc)g+=`<text x="${x}" y="${Math.min(Y(v),Y(0))-6}" text-anchor="middle" style="fill:var(--gold);font-weight:700">+${N(inc)}</text>`});
   return {svg:`<svg class="chart" viewBox="0 0 ${w} ${h}">${g}</svg>`,arr,dem};
@@ -715,7 +717,7 @@ VIEWS.despachos=()=>{const sol=DESP.reduce((a,d)=>a+d.sol,0),acc=DESP.filter(d=>
   <div class="card"><div class="card-h"><div><h3>Nivel de servicio por cliente</h3><div class="sub">Fill Rate unidades · OTIF</div></div></div>
    ${CLIENTS.filter(c=>c.fr).map(c=>`<div style="margin:14px 0"><div class="row between small"><strong>${c.com}</strong><span class="num">${pct(c.fr)} · OTIF ${c.otif}%</span></div><div class="bar" style="margin-top:6px"><i class="${c.fr>=95?'ok':c.fr>=92?'warn':'bad'}" style="width:${c.fr}%"></i></div></div>`).join('')}
    <div class="alert a-info" style="margin-top:16px">${ic('info')}<div class="small"><b>Regla OTIF (por confirmar):</b> OC entregada completa y en o antes de la fecha compromiso. Tolerancia 0 días · parciales cuentan como no-OTIF.</div></div>
-   <div class="hl" style="margin-top:12px"><div class="l">Caso de aceptación</div><div class="small">OC 4500123 · 1.000 solicitadas, 950 aceptadas → <b>Fill Rate 95%</b>, faltante 50, motivo registrado ✓</div></div>
+   <div class="hl" style="margin-top:12px"><div class="l">Caso de aceptación</div><div class="small">OC 4500123 · 1.000 solicitadas, 950 aceptadas → <b>Fill Rate 95%</b>, faltante 50, <span style="white-space:nowrap">motivo registrado ✓</span></div></div>
   </div></div>`};
 function donutRow(v,l,s){return `<div class="row" style="flex-wrap:nowrap">${donut([{v,c:v>=95?'var(--ok)':v>=90?'var(--gold)':'var(--bad)',l},{v:100-v,c:'#EFEAE1',l:'resto'}],{size:92,label:pct(v),sub:''})}<div><div class="lbl" style="font-family:var(--fh);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600">${l}</div><div class="tiny muted" style="margin-top:4px">${s}</div></div></div>`}
 
@@ -849,7 +851,7 @@ VIEWS.finanzas=()=>{if(!U.fin)return lockView('Finanzas gerenciales','Tu rol (Co
  <div class="card"><h3>Estado de resultados</h3><div class="sub">Noviembre 2026</div><div style="margin-top:12px">${er.map(r=>`<div class="row between" style="padding:9px ${r[2]?'10px':'0'};${r[2]?'background:var(--cream);border-radius:8px;margin:4px 0;':'border-bottom:1px solid #F0EBE2;'}${r[2]===2?'background:var(--navy);color:#fff;':''}"><span class="small" style="${r[2]?'font-weight:700;font-family:var(--fh)':''}">${r[0]}</span><b class="num small ${r[1]<0?'down':''}">${r[1]<0?'−':''}$${Math.abs(r[1]).toLocaleString('es-CL',{minimumFractionDigits:1})}</b></div>`).join('')}</div></div>
  <div class="grid" style="gap:20px">
   <div class="grid g2"><div class="card"><h3>Gastos por categoría</h3><div class="row" style="margin-top:12px;flex-wrap:nowrap;gap:16px">${donut(gastos.map(g=>({v:g[1],c:g[2],l:g[0]})),{size:120,label:'$6,9',sub:'MM gastos'})}<div style="flex:1">${gastos.map(g=>`<div class="row between tiny" style="padding:4px 0"><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${g[2]};margin-right:6px"></i>${g[0]}</span><b>$${g[1].toLocaleString('es-CL')}</b></div>`).join('')}</div></div></div>
-  <div class="card"><h3>Flujo de caja estimado</h3><div class="sub">Saldo fin de mes · MM CLP</div>${barLine(cash,null,cashL,{h:170,barColor:'var(--gold)',hiLast:false})}</div></div>
+  <div class="card"><h3>Flujo de caja estimado</h3><div class="sub">Saldo fin de mes · MM CLP</div>${barLine(cash,null,cashL,{w:380,h:200,barColor:'var(--gold)',hiLast:false})}</div></div>
   <div class="card"><div class="card-h"><div><h3>Margen y contribución por SKU</h3><div class="sub">Costos compartidos distribuidos por unidades vendidas (regla explícita)</div></div></div><div class="tbl-wrap"><table><thead><tr><th>SKU</th><th class="r">Venta neta</th><th class="r">Costo</th><th class="r">Margen</th><th class="r">Flete</th><th class="r">Contribución</th></tr></thead><tbody>
   ${SKUS.map((s,i)=>{const v=[18.4,6.1,11.2,9.6,4.3][i];const m=(s.price-s.cost)/s.price;const fl=[.06,.09,.02,.03,.07][i];return `<tr><td>${skuCell(s.sku)}</td><td class="r num">$${v.toLocaleString('es-CL')} MM</td><td class="r num">${$$(s.cost)}</td><td class="r num">${pct(m*100)}</td><td class="r num">${pct(fl*100)}</td><td class="r"><b class="num">${pct((m-fl-.025)*100)}</b></td></tr>`}).join('')}</tbody></table></div></div>
  </div></div>
