@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { sql } from '../lib/db.js';
 import { currentUser, hashPassword, verifyPassword } from '../lib/auth.js';
 import { can, cleanPerms } from '../lib/perms.js';
+import { buildDoc, sendMail } from '../lib/docs.js';
 
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 const fail = (s, m) => { throw new HttpError(s, m); };
@@ -26,6 +27,16 @@ const txt = (v, name, max = 200) => {
 const clp = n => '$' + Number(n).toLocaleString('es-CL');
 const audit = (u, record, detail) => sql`insert into audit_log(user_id, record, detail) values (${u.id}, ${record}, ${String(detail).slice(0, 900)})`;
 const genPass = () => crypto.randomBytes(9).toString('base64url');
+const baseUrl = req => `https://${String(req?.headers?.['x-forwarded-host'] || req?.headers?.host || 'localhost').split(',')[0].trim()}`;
+const DOC_PERM = { oc: ['oc', 'ver', 'editar'], so: ['proveedores', 'ver', 'editar'], invoice: ['facturas', 'ver', 'crear'], statement: ['facturas', 'ver', 'crear'] };
+function docRef(u, b, mode) {
+  const type = String(b.docType || '');
+  const P = DOC_PERM[type];
+  if (!P) fail(400, 'Tipo de documento inválido');
+  need(u, P[0], mode === 'ver' ? P[1] : P[2]);
+  const id = type === 'statement' ? txt(b.docId, 'cliente', 10) : int(b.docId, 'documento', { min: 1 });
+  return { type, id };
+}
 
 /* =========================================================
    ENTIDADES GENÉRICAS (crear / editar / eliminar)
@@ -44,8 +55,9 @@ const ENT = {
       currency: { t: 'enum', opts: ['CLP', 'USD', 'EUR', 'BRL', 'ARS', 'CNY'], l: 'Moneda' }, active: { t: 'bool', l: 'Activo' }, notes: { t: 'text', l: 'Notas' } } },
   product: { table: 'products', pk: 'sku', pkInput: true, mod: 'productos', label: 'SKU',
     fields: { name: { t: 'text', req: 1 }, brand: { t: 'text', req: 1 }, cat: { t: 'text', req: 1 }, ean: { t: 'text' }, dun: { t: 'text' }, grams: { t: 'text' },
-      ucj: { t: 'int' }, cjp: { t: 'int' }, cost: { t: 'int', req: 1, perm: ['costos', 'editar'] }, price: { t: 'int', req: 1, perm: ['precios', 'editar'] },
+      ucj: { t: 'int' }, upd: { t: 'int' }, dpb: { t: 'int' }, cjp: { t: 'int' }, cost: { t: 'int', req: 1, perm: ['costos', 'editar'] }, price: { t: 'int', req: 1, perm: ['precios', 'editar'] },
       img: { t: 'text' }, lead_days: { t: 'int' }, moq: { t: 'int' }, mult: { t: 'int' }, ss: { t: 'int' }, supplier: { t: 'text' }, active: { t: 'bool' } },
+    compute: v => { if (v.upd && v.dpb) v.ucj = v.upd * v.dpb; else if ('upd' in v || 'dpb' in v) { v.upd = null; v.dpb = null; } if (v.ucj != null && v.ucj < 1) fail(400, 'Las unidades por caja deben ser al menos 1'); },
     after: async (id, isNew) => { if (isNew) await sql`insert into stock(sku, assigned, reserved) values (${id}, 0, 0) on conflict do nothing`; },
     beforeDelete: async id => { await sql`delete from stock where sku = ${id} and assigned = 0 and reserved = 0 and transit = 0`; } },
   dispatch: { table: 'dispatches', pk: 'id', mod: 'despachos', label: 'Despacho', autoId: { prefix: 'DSP-', pad: 4 },
@@ -223,15 +235,46 @@ async function reserve(poId) {
   if (q.length) await sql.transaction(q);
   return short;
 }
+const dec = (v, name, min = 0) => { if (typeof v === 'number') { if (!Number.isFinite(v) || v < min) fail(400, `Valor inválido: ${name}`); return v; } const n = Number(String(v ?? '').trim().replace(/\./g, '').replace(',', '.')); if (String(v ?? '').trim() === '' || !Number.isFinite(n) || n < min) fail(400, `Valor inválido: ${name}`); return n; };
 async function parseLines(b) {
   const lines = Array.isArray(b.lines) ? b.lines : [];
   if (!lines.length || lines.length > 100) fail(400, 'La OC necesita al menos una línea');
-  const skus = new Set((await sql`select sku from products`).map(r => r.sku));
+  const P = Object.fromEntries((await sql`select sku, ucj from products`).map(r => [r.sku, r.ucj || 1]));
   return lines.map((l, i) => {
-    if (!skus.has(l.sku)) fail(400, `SKU desconocido en línea ${i + 1}`);
+    if (!(l.sku in P)) fail(400, `SKU desconocido en línea ${i + 1}`);
     const acc = l.accepted == null || String(l.accepted).trim() === '' ? null : int(l.accepted, 'aceptado', { min: 0 });
-    return { sku: l.sku, qty: int(l.qty, 'unidades', { min: 1, max: 1e7 }), price: int(l.price, 'precio', { min: 1, max: 1e8 }), acc };
+    const ucj = P[l.sku];
+    if (l.boxes != null && String(l.boxes).trim() !== '') {
+      const boxes = dec(l.boxes, `cajas (línea ${i + 1})`, 0.001), bp = dec(l.box_price, `precio caja (línea ${i + 1})`, 1);
+      const qty = Math.round(boxes * ucj);
+      if (qty < 1 || qty > 1e7) fail(400, `Cantidad inválida en línea ${i + 1}`);
+      return { sku: l.sku, boxes, qty, price: bp / ucj, acc };
+    }
+    return { sku: l.sku, boxes: null, qty: int(l.qty, 'unidades', { min: 1, max: 1e7 }), price: dec(l.price, 'precio', 0.0001), acc };
   });
+}
+
+/* =========================================================
+   VISACIONES
+   ========================================================= */
+const DOC_LABEL = { oc: 'OC cliente', so: 'OC a proveedor', invoice: 'Factura / NC' };
+async function visaRules() { const [r] = await sql`select value from app_config where key = 'visa_rules'`; return r?.value || {}; }
+async function visaState(type, id) { const [a] = await sql`select status, approver from approvals where doc_type = ${type} and doc_id = ${id} order by id desc limit 1`; return a || null; }
+async function needVisa(type, id, what) {
+  const R = (await visaRules())[type];
+  if (!R?.active) return;
+  const a = await visaState(type, id);
+  if (!a || a.status !== 'visada') fail(409, `Este documento requiere visación de ${R.approver} antes de ${what}. Estado de la visación: ${a ? a.status : 'sin solicitar'}.`);
+}
+async function requestVisa(u, type, id, label) {
+  const R = (await visaRules())[type];
+  if (!R?.active) return null;
+  await sql`update approvals set status = 'anulada' where doc_type = ${type} and doc_id = ${id} and status = 'pendiente'`;
+  const self = R.approver === u.id;
+  await sql`insert into approvals(doc_type, doc_id, doc_label, requested_by, approver, status, decided_by, decided_at, comment)
+    values (${type}, ${id}, ${label}, ${u.id}, ${R.approver}, ${self ? 'visada' : 'pendiente'}, ${self ? u.id : null}, ${self ? new Date().toISOString() : null}, ${self ? 'Visada automáticamente: creada por el visador' : null})`;
+  await audit(u, label, self ? 'Visada automáticamente (creada por el visador)' : `Visación solicitada a ${R.approver}`);
+  return self ? 'visada' : 'pendiente';
 }
 
 const ACTIONS = {
@@ -246,26 +289,30 @@ const ACTIONS = {
     const ls = await parseLines(b);
     const dup = await sql`select id from purchase_orders where client_id = ${client} and number = ${number}`;
     if (dup.length && (isNew || dup[0].id !== Number(b.id))) fail(409, `La OC ${number} ya existe para este cliente. No se registró un duplicado.`);
-    let id = Number(b.id), status;
+    let id = Number(b.id), status, oldSig = null;
     if (isNew) {
       [{ id }] = await sql`insert into purchase_orders(number, client_id, issued, requested, cd, status, reason, created_by)
         values (${number}, ${client}, ${date(b.issued, 'emisión')}, ${date(b.requested, 'fecha solicitada')}, ${txt(b.cd, 'CD', 80)}, 'pendiente validación', ${b.reason || null}, ${u.id}) returning id`;
       status = 'pendiente validación';
     } else {
-      const [po] = await sql`select status from purchase_orders where id = ${id}`;
+      const [po] = await sql`select status, client_id from purchase_orders where id = ${id}`;
       if (!po) fail(404, 'OC no encontrada');
       if (po.status === 'cerrada') fail(409, 'Una OC cerrada no se puede editar');
       status = po.status;
+      oldSig = JSON.stringify((await sql`select sku, qty, price::float p from po_lines where po_id = ${id} order by line`).map(l => [l.sku, l.qty, Math.round(l.p * 100)])) + '|' + po.client_id;
       await releaseReserve(id);
       await sql`update purchase_orders set number = ${number}, client_id = ${client}, issued = ${date(b.issued, 'emisión')}, requested = ${date(b.requested, 'fecha solicitada')},
         cd = ${txt(b.cd, 'CD', 80)}, reason = ${b.reason || null}, updated_at = now() where id = ${id}`;
       await sql`delete from po_lines where po_id = ${id}`;
     }
-    await sql.transaction(ls.map((l, i) => sql`insert into po_lines(po_id, line, sku, qty, price, accepted) values (${id}, ${i + 1}, ${l.sku}, ${l.qty}, ${l.price}, ${l.acc})`));
+    await sql.transaction(ls.map((l, i) => sql`insert into po_lines(po_id, line, sku, qty, price, accepted, boxes) values (${id}, ${i + 1}, ${l.sku}, ${l.qty}, ${l.price}, ${l.acc}, ${l.boxes})`));
+    const newSig = JSON.stringify(ls.map(l => [l.sku, l.qty, Math.round(l.price * 100)])) + '|' + client;
+    const prevV = isNew ? null : await visaState('oc', id);
+    const visa = (isNew || !prevV || oldSig !== newSig) ? await requestVisa(u, 'oc', id, `OC ${number}`) : prevV.status;
     let short = [];
     if (RESERVING.includes(status)) short = await reserve(id);
     await audit(u, `OC ${number}`, isNew ? `Ingresada · ${ls.length} líneas · pendiente de validación` : `Editada · ${ls.length} líneas`);
-    return { id, short };
+    return { id, short, visa };
   },
 
   async approveOC(u, b) {
@@ -274,6 +321,7 @@ const ACTIONS = {
     const [po] = await sql`select id, number, status from purchase_orders where id = ${id}`;
     if (!po) fail(404, 'OC no encontrada');
     if (!['pendiente validación', 'borrador'].includes(po.status)) fail(409, `La OC ya está en estado "${po.status}"`);
+    await needVisa('oc', id, 'aprobarla');
     const edits = Array.isArray(b.lines) ? b.lines : [];
     const q = edits.map(e => sql`update po_lines set qty = ${int(e.qty, 'unidades', { min: 1 })}, price = ${int(e.price, 'precio', { min: 1 })} where po_id = ${id} and line = ${int(e.line, 'línea', { min: 1 })}`);
     if (b.cd) q.push(sql`update purchase_orders set cd = ${txt(b.cd, 'CD', 80)} where id = ${id}`);
@@ -293,6 +341,7 @@ const ACTIONS = {
     if (st === 'aprobada') need(u, 'oc', 'aprobar');
     const [po] = await sql`select number, status from purchase_orders where id = ${id}`;
     if (!po) fail(404, 'OC no encontrada');
+    if (!['borrador', 'pendiente validación', 'cancelada'].includes(st)) await needVisa('oc', id, `pasarla a "${st}"`);
     const wasRes = RESERVING.includes(po.status), willRes = RESERVING.includes(st);
     if (wasRes && !willRes) await releaseReserve(id);
     await sql`update purchase_orders set status = ${st}, reason = coalesce(${b.reason || null}, reason), updated_at = now() where id = ${id}`;
@@ -545,6 +594,73 @@ const ACTIONS = {
     return {};
   },
 
+  /* ---------- Visaciones ---------- */
+  async requestVisa(u, b) {
+    const type = String(b.docType || ''), id = int(b.docId, 'documento', { min: 1 });
+    if (!DOC_LABEL[type]) fail(400, 'Tipo de documento inválido');
+    const R = (await visaRules())[type];
+    if (!R?.active) fail(409, 'Este tipo de documento no requiere visación');
+    const label = String(b.label || `${DOC_LABEL[type]} ${id}`).slice(0, 120);
+    const st = await requestVisa(u, type, id, label);
+    return { visa: st };
+  },
+  async decideVisa(u, b) {
+    const id = int(b.id, 'visación', { min: 1 });
+    const [a] = await sql`select * from approvals where id = ${id}`;
+    if (!a) fail(404, 'Solicitud no encontrada');
+    if (a.status !== 'pendiente') fail(409, `La solicitud ya está ${a.status}`);
+    if (a.approver !== u.id && !can(u, 'admin', 'editar')) fail(403, `Solo ${a.approver} puede visar este documento`);
+    const st = b.decision === 'visada' ? 'visada' : b.decision === 'rechazada' ? 'rechazada' : null;
+    if (!st) fail(400, 'Decisión inválida');
+    if (st === 'rechazada' && !String(b.comment || '').trim()) fail(400, 'Indica el motivo del rechazo');
+    await sql`update approvals set status = ${st}, decided_by = ${u.id}, decided_at = now(), comment = ${String(b.comment || '').slice(0, 500) || null} where id = ${id}`;
+    await audit(u, a.doc_label, `${st === 'visada' ? 'Visada' : 'Rechazada'}${b.comment ? ' · ' + String(b.comment).slice(0, 200) : ''}`);
+    return {};
+  },
+  async saveVisaRules(u, b) {
+    need(u, 'admin', 'editar');
+    const users = new Set((await sql`select id from users where active`).map(r => r.id));
+    const out = {};
+    for (const k of Object.keys(DOC_LABEL)) {
+      const r = b.rules?.[k] || {};
+      const approver = String(r.approver || '');
+      if (r.active && !users.has(approver)) fail(400, `Selecciona un visador activo para ${DOC_LABEL[k]}`);
+      out[k] = { active: !!r.active, approver: approver || 'marcelo' };
+    }
+    await sql`insert into app_config(key, value) values ('visa_rules', ${JSON.stringify(out)}) on conflict (key) do update set value = excluded.value, updated_at = now()`;
+    await audit(u, 'Reglas de visación', Object.entries(out).map(([k, v]) => `${DOC_LABEL[k]}: ${v.active ? 'visa ' + v.approver : 'sin visación'}`).join(' · '));
+    return {};
+  },
+
+  /* ---------- Documentos: vista previa y envío por correo ---------- */
+  async docPreview(u, b, req) {
+    const { type, id } = docRef(u, b, 'ver');
+    const d = await buildDoc(type, id, baseUrl(req));
+    if (!d) fail(404, 'Documento no encontrado');
+    return { html: d.html, to: d.to || '', subject: d.subject, mailReady: !!(process.env.RESEND_API_KEY && process.env.MAIL_FROM) };
+  },
+  async sendDoc(u, b, req) {
+    const { type, id } = docRef(u, b, 'enviar');
+    if (type === 'oc') await needVisa('oc', id, 'enviarla');
+    if (type === 'so') await needVisa('so', id, 'enviarla');
+    if (type === 'invoice') await needVisa('invoice', id, 'enviarla');
+    const mails = v => String(v || '').split(/[;,\s]+/).map(x => x.trim()).filter(Boolean);
+    const to = mails(b.to), cc = mails(b.cc);
+    const bad = [...to, ...cc].find(m => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m));
+    if (!to.length) fail(400, 'Indica al menos un destinatario');
+    if (bad) fail(400, `Correo inválido: ${bad}`);
+    if (to.length + cc.length > 10) fail(400, 'Máximo 10 destinatarios');
+    const d = await buildDoc(type, id, baseUrl(req), { message: String(b.message || '').slice(0, 2000) });
+    if (!d) fail(404, 'Documento no encontrado');
+    const subject = String(b.subject || d.subject).slice(0, 200);
+    const r = await sendMail({ to, cc, subject, html: d.html, replyTo: u.email || undefined });
+    await sql`insert into emails(doc_type, doc_id, to_addr, cc, subject, status, provider_id, error, sent_by)
+      values (${type}, ${String(id)}, ${to.join(', ')}, ${cc.join(', ') || null}, ${subject}, ${r.ok ? 'enviado' : 'error'}, ${r.id || null}, ${r.error || null}, ${u.id})`;
+    if (!r.ok) fail(502, r.error);
+    await audit(u, subject, `Enviado por correo a ${to.join(', ')}${cc.length ? ' (cc ' + cc.join(', ') + ')' : ''}`);
+    return {};
+  },
+
   /* ---------- Dependencias antes de eliminar ---------- */
   async dependencies(u, b) {
     const E = ENT[b.entity];
@@ -573,7 +689,7 @@ const ACTIONS = {
     });
     const issued = date(b.issued || new Date().toISOString().slice(0, 10), 'emisión'), eta = b.eta ? date(b.eta, 'ETA') : null;
     const cur = ['CLP', 'USD', 'EUR', 'BRL', 'ARS', 'CNY'].includes(b.currency) ? b.currency : 'CLP';
-    let id = Number(b.id), number;
+    let id = Number(b.id), number, oldSig = null;
     if (isNew) {
       const [{ n }] = await sql`select coalesce(max(nullif(regexp_replace(number, '\\D', '', 'g'), '')::int), 0) + 1 as n from supplier_orders`;
       number = 'OCP-' + String(n).padStart(4, '0');
@@ -581,14 +697,26 @@ const ACTIONS = {
         values (${number}, ${supplier}, ${issued}, ${eta}, ${status}, ${cur}, ${String(b.notes || '').slice(0, 500) || null}, ${u.id}) returning id`;
     } else {
       const [r] = await sql`update supplier_orders set supplier_id = ${supplier}, issued = ${issued}, eta = ${eta}, status = ${status}, currency = ${cur},
-        notes = ${String(b.notes || '').slice(0, 500) || null}, updated_at = now() where id = ${id} returning number`;
+        notes = ${String(b.notes || '').slice(0, 500) || null}, updated_at = now() where id = ${id} returning number, (select supplier_id from supplier_orders where id = ${id}) as sid, (select currency from supplier_orders where id = ${id}) as cur`;
       if (!r) fail(404, 'OC a proveedor no encontrada');
       number = r.number;
+      oldSig = JSON.stringify((await sql`select sku, qty, unit_cost::float c from supplier_order_lines where order_id = ${id} order by line`).map(l => [l.sku, l.qty, l.c])) + '|' + r.sid + '|' + r.cur;
       await sql`delete from supplier_order_lines where order_id = ${id}`;
     }
     await sql.transaction(ls.map((l, i) => sql`insert into supplier_order_lines(order_id, line, sku, qty, unit_cost) values (${id}, ${i + 1}, ${l.sku}, ${l.qty}, ${l.cost})`));
     await audit(u, `OC proveedor ${number}`, `${isNew ? 'Creada' : 'Editada'} · ${ls.length} líneas · estado ${status}`);
-    return { id, number };
+    let visa = null;
+    if ((await visaRules()).so?.active) {
+      const curV = await visaState('so', id);
+      const newSig = JSON.stringify(ls.map(l => [l.sku, l.qty, l.cost])) + '|' + supplier + '|' + cur;
+      if (isNew || !curV || oldSig !== newSig) visa = await requestVisa(u, 'so', id, `OC proveedor ${number}`);
+      else visa = curV.status;
+      if (!['borrador', 'cancelada'].includes(status) && visa !== 'visada') {
+        await sql`update supplier_orders set status = 'borrador' where id = ${id}`;
+        return { id, number, visa, held: true };
+      }
+    }
+    return { id, number, visa };
   },
   async deleteSO(u, b) {
     need(u, 'proveedores', 'eliminar');
@@ -664,7 +792,7 @@ export default async function handler(req, res) {
     const b = req.body || {};
     const fn = Object.hasOwn(ACTIONS, b.type) ? ACTIONS[b.type] : null;
     if (!fn) return res.status(400).json({ error: 'Acción desconocida' });
-    res.json({ ok: true, ...(await fn(u, b)) });
+    res.json({ ok: true, ...(await fn(u, b, req)) });
   } catch (e) {
     if (e instanceof HttpError) return res.status(e.status).json({ error: e.message, deps: e.deps });
     console.error(e);

@@ -129,7 +129,7 @@ const cliOptsArr=()=>CLIENTS.map(c=>[c.id,c.com]);
 const btnEdit=(fn,l='Editar')=>`<button class="btn btn-line btn-sm" onclick="${fn}">${ic('cog','style="width:14px;height:14px"')}${l}</button>`;
 const btnDel=(fn,l='Eliminar')=>`<button class="btn btn-line btn-sm" style="color:var(--bad);border-color:#EBC3C3" onclick="${fn}">${l}</button>`;
 let FORM=null;
-function formModal({eyebrow='Registro',title,fields,values={},onSave,onDelete,saveLabel='Guardar',note=''}){
+function formModal({eyebrow='Registro',title,fields,values={},onSave,onDelete,saveLabel='Guardar',note='',onRender=null}){
   FORM={fields,onSave,onDelete};
   const fh=f=>{const v=values[f.k];const id='f_'+f.k;let ctl;
     if(f.t==='select')ctl=`<select class="inp" style="width:100%" id="${id}" ${f.dis?'disabled':''}>${f.opts.map(([a,b])=>`<option value="${esc(a)}" ${String(a)===String(v??f.def??'')?'selected':''}>${esc(b)}</option>`).join('')}</select>`;
@@ -138,11 +138,12 @@ function formModal({eyebrow='Registro',title,fields,values={},onSave,onDelete,sa
     else if(f.t==='image')ctl=imgPicker(id,v||'');
     else{const type=f.t==='date'?'date':f.t==='time'?'time':'text';const val=f.t==='date'?toIso(v):Array.isArray(v)?v.join(', '):(v??f.def??'');
       ctl=`<input class="inp" style="width:100%" id="${id}" type="${type}" value="${esc(val)}" ${f.t==='int'?'inputmode="numeric"':''} ${f.dis?'disabled':''} placeholder="${esc(f.ph||'')}" maxlength="${f.max||200}">`}
-    return `<div style="${f.full?'grid-column:1/-1':''}"><label class="tiny muted" style="font-family:var(--fh);font-weight:600;letter-spacing:.06em;text-transform:uppercase">${esc(f.l)}${f.req?' *':''}</label><div style="margin-top:4px">${ctl}</div>${f.help?`<div class="tiny muted" style="margin-top:3px">${f.help}</div>`:''}</div>`};
+    return `<div id="fw_${f.k}" style="${f.full?'grid-column:1/-1':''}"><label class="tiny muted" style="font-family:var(--fh);font-weight:600;letter-spacing:.06em;text-transform:uppercase">${esc(f.l)}${f.req?' *':''}</label><div style="margin-top:4px">${ctl}</div>${f.help?`<div class="tiny muted" style="margin-top:3px">${f.help}</div>`:''}</div>`};
   modal(`<div><div class="eyebrow" style="color:var(--gold-2)">${esc(eyebrow)}</div><h2>${esc(title)}</h2></div>`,`<div style="padding:22px 26px;display:grid;gap:16px">
     ${note?`<div class="alert a-info">${ic('info')}<div>${note}</div></div>`:''}
     <div class="card"><div class="grid g2" style="gap:14px">${fields.map(fh).join('')}</div></div>
     <div class="row between"><div>${onDelete?btnDel('formDelete()'):''}</div><div class="row"><button class="btn btn-line" onclick="closeAll()">Cancelar</button><button class="btn btn-gold" id="fSave" onclick="formSave()">${ic('check')}${esc(saveLabel)}</button></div></div></div>`);
+  if(onRender)onRender();
 }
 function formData(){const d={};for(const f of FORM.fields){const e=el('f_'+f.k);if(!e||f.dis)continue;let v=f.t==='bool'?e.checked:e.value;if(f.t==='int')v=String(v).replace(/[^\d-]/g,'');d[f.k]=typeof v==='string'?v.trim():v}return d}
 async function formSave(){const d=formData();document.querySelectorAll('#modal .inp.bad').forEach(x=>x.classList.remove('bad'));
@@ -187,6 +188,9 @@ async function imgUpload(inp,id){const f=inp.files[0];if(!f)return;if(f.size>15e
     const r=await api('uploadImage',{data:c.toDataURL('image/jpeg',.86),name:f.name});DB.images.unshift({id:r.id,name:f.name,url:r.url});
     el(id+'_lib').insertAdjacentHTML('afterbegin',`<img src="${r.url}" data-u="${r.url}" onclick="imgPick('${id}',this.dataset.u)" alt="">`);imgPick(id,r.url);toast('Imagen subida')}
   catch(e){if(e.name!=='Error')toast('No se pudo leer la imagen. Prueba con un archivo JPG o PNG.',true)}finally{lab.innerHTML=h;lab.classList.remove('disabled')}}
+const packTxt=s=>s.upd&&s.dpb?`Caja: ${s.dpb} displays × ${s.upd} un = ${N(s.ucj)} un`:`Caja: ${N(s.ucj||1)} un`;
+const numIn=v=>{let t=String(v??'').trim();if(!t)return 0;if(t.includes(','))t=t.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');const n=Number(t);return Number.isFinite(n)?n:0};
+const nDec=v=>Number(v).toLocaleString('es-CL',{maximumFractionDigits:2});
 const IMGS=['assets/minino-4kg.jpg','assets/super-chunk.jpg','assets/creamy-treats.jpg','assets/crunchy-biscuits.jpg','assets/balance-nutrition.jpg','assets/logo-parock.png'];
 
 /* =========================================================
@@ -244,22 +248,22 @@ const ST={borrador:'p-mute','pendiente validación':'p-warn',aprobada:'p-info',p
 const openSt=['pendiente validación','aprobada','preparación','parcial'];
 function riskSkus(){return SKUS.map(s=>projection(s.sku)).filter(P=>P&&P.arr.some(v=>v<0))}
 const NAV=[
- ['General',[['inicio','Inicio','home']]],
+ ['General',[['inicio','Inicio','home'],['visaciones','Visaciones','check',()=>myVisas().length]]],
  ['Comercial',[['crm','Clientes y CRM','crm'],['productos','Productos y tarifas','box']]],
  ['Operación',[['oc','Órdenes de compra','doc',()=>OCS.filter(o=>['pendiente validación','borrador'].includes(o.st)).length],['despachos','Despachos y servicio','truck'],['inventario','Inventario ROVAL','stock']]],
  ['Planificación',[['forecast','Forecast','fc'],['abastecimiento','Abastecimiento','cart',()=>riskSkus().length],['proveedores','Proveedores','factory',()=>(DB.sorders||[]).filter(o=>o.status==='borrador').length]]],
  ['Finanzas',[['facturas','Facturas y cobranza','inv'],['finanzas','Finanzas e IVA','fin',null,'fin']]],
  ['Sistema',[['admin','Administración','cog',null,'admin']]]
 ];
-const TITLES={inicio:['Panel general','Inicio'],crm:['Comercial','Clientes y CRM'],productos:['Comercial','Productos y tarifas'],oc:['Operación','Órdenes de compra'],despachos:['Operación','Despachos y nivel de servicio'],inventario:['Operación','Inventario ROVAL'],forecast:['Planificación','Forecast 12 meses'],abastecimiento:['Planificación','Abastecimiento'],facturas:['Finanzas','Facturas y cobranza'],finanzas:['Finanzas','Finanzas gerenciales e IVA'],admin:['Sistema','Administración'],proveedores:['Planificación','Proveedores y OC a proveedor']};
+const TITLES={inicio:['Panel general','Inicio'],crm:['Comercial','Clientes y CRM'],productos:['Comercial','Productos y tarifas'],oc:['Operación','Órdenes de compra'],despachos:['Operación','Despachos y nivel de servicio'],inventario:['Operación','Inventario ROVAL'],forecast:['Planificación','Forecast 12 meses'],abastecimiento:['Planificación','Abastecimiento'],facturas:['Finanzas','Facturas y cobranza'],finanzas:['Finanzas','Finanzas gerenciales e IVA'],admin:['Sistema','Administración'],visaciones:['General','Visaciones'],proveedores:['Planificación','Proveedores y OC a proveedor']};
 function renderNav(cur){
-  el('nav').innerHTML=NAV.map(([g,items])=>{const vis=items.filter(([id])=>can(id));return vis.length?`<div class="grp">${g}</div>`+vis.map(([id,l,i,b])=>{const n=b&&b();return `<a href="#${id}" class="${cur===id?'on':''}">${ic(i)}${l}${n?`<span class="bdg">${n}</span>`:''}</a>`}).join(''):''}).join('');
+  el('nav').innerHTML=NAV.map(([g,items])=>{const vis=items.filter(([id])=>id==='visaciones'||can(id));return vis.length?`<div class="grp">${g}</div>`+vis.map(([id,l,i,b])=>{const n=b&&b();return `<a href="#${id}" class="${cur===id?'on':''}">${ic(i)}${l}${n?`<span class="bdg">${n}</span>`:''}</a>`}).join(''):''}).join('');
 }
 let CUR='inicio';
 function route(){
   if(!DB)return;
   const id=(location.hash||'#inicio').slice(1).split('/')[0];let v=VIEWS[id]?id:'inicio';
-  if(!can(v)){const first=NAV.flatMap(g=>g[1]).map(x=>x[0]).find(x=>can(x));if(first&&first!==v){location.hash=first;return}}
+  if(v!=='visaciones'&&!can(v)){const first=NAV.flatMap(g=>g[1]).map(x=>x[0]).find(x=>can(x));if(first&&first!==v){location.hash=first;return}}
   const changed=v!==CUR;CUR=v;
   renderNav(v);const [c,t]=TITLES[v];el('crumb').textContent='PAROCK · '+c;el('title').textContent=t;
   el('view').innerHTML=VIEWS[v]();(AFTER[v]||(()=>{}))();el('side').classList.remove('open');if(changed)window.scrollTo(0,0);
@@ -279,7 +283,7 @@ function periodMonths(p){
 }
 function periodLabel(p){if(p==='ytd')return `Año a la fecha · Ene–${MN[+CURM.slice(5)-1]} ${CURM.slice(0,4)}`;if(p==='r12')return `Año móvil · ${ymLabel(ymAdd(CURM,-11))} – ${ymLabel(CURM)}`;return ymLabel(p.slice(2),true)}
 function alerts(){
-  const a=[];
+  const a=[];myVisas().forEach(v=>a.push(['warn','check',`Por visar: ${v.doc_label}`,`Solicitada por ${USERS[v.requested_by]?.name||v.requested_by} · ${v.req_at}`,'visaciones']));
   riskSkus().forEach(P=>{const i=P.arr.findIndex(v=>v<0);a.push(['bad','warn',`Quiebre proyectado · ${P.s.name}`,`Desde ${FCM[i]} · lead time ${P.s.lead} días`,'abastecimiento'])});
   const over=INVS.filter(f=>f.est==='Vencida');if(over.length)a.push(['bad','inv',`${over.length} factura${over.length>1?'s':''} vencida${over.length>1?'s':''}`,over.map(f=>`F${f.fo} ${C(f.cli).com}`).join(' · '),'facturas']);
   OCS.filter(o=>o.st==='pendiente validación').forEach(o=>a.push(['warn','doc',`OC ${o.n} pendiente de validación`,`${C(o.cli).com} · ${N(o.units)} un`,'oc']));
@@ -386,7 +390,7 @@ function crmBody(){
 AFTER.crm=()=>el('crmseg').onclick=e=>{const t=e.target.dataset.t;if(!t)return;crmTab=t;route()};
 function openClient(id){const c=C(id);const ocs=OCS.filter(o=>o.cli===id);
   drawer(`<div><div class="eyebrow" style="color:var(--gold-2)">Ficha cliente · ${c.id}</div><h2>${esc(c.com)}</h2><div class="small" style="color:#C4CCD6">${esc(c.name)} · ${esc(c.rut)} · ${N(c.rooms||0)} salas</div></div>`,`
-  <div class="row" style="justify-content:flex-end">${can('crm','editar')?btnEdit(`clientForm('${c.id}')`):''}${can('crm','eliminar')?btnDel(`delEnt('client','${c.id}','el cliente ${esc(c.com).replace(/'/g,'')}')`):''}</div>
+  <div class="row" style="justify-content:flex-end">${can('facturas','ver')?`<button class="btn btn-line btn-sm" onclick="docModal('statement','${c.id}')">${ic('inv','style="width:14px;height:14px"')}Estado de cuenta</button>`:''}${can('crm','editar')?btnEdit(`clientForm('${c.id}')`):''}${can('crm','eliminar')?btnDel(`delEnt('client','${c.id}','el cliente ${esc(c.com).replace(/'/g,'')}')`):''}</div>
   <div class="grid g3">${hl('Venta '+ymLabel(CURM),c.sales?MM(c.sales):'—')}${hl('Por cobrar',c.ar?MM(c.ar):'—')}${hl('Fill Rate / OTIF',c.fr!=null?pct(c.fr)+' / '+pct(c.otif,0):'N/D')}</div>
   <div class="card"><h3>Contacto y condiciones</h3><div class="grid g2" style="margin-top:12px;gap:12px">
     ${kv('Contacto',esc(c.contact))}${kv('Teléfono',esc(c.phone))}${kv('Email',esc(c.mail))}${kv('Plazo de pago',c.term+' días')}${kv('Sucursales / CD',esc((c.cds||[]).join(' · ')))}${kv('Lista de precios',c.priceMode==='especial'?'Diferenciada · <a href="#productos" onclick="PT.tab=\'listas\';PT.cli=\''+c.id+'\';closeAll()">ver precios</a>':'Regular')}${kv('Responsable',esc(USERS[c.owner]?.name||'—'))}${kv('Etapa',esc(c.stage))}${kv('Salas',N(c.rooms||0))}</div></div>
@@ -414,8 +418,8 @@ const PT={tab:'catalogo',cli:null};
 VIEWS.productos=()=>{
   const tabs=`<div class="tabs" id="ptabs"><button data-t="catalogo" class="${PT.tab==='catalogo'?'on':''}">Catálogo y tarifa regular</button><button data-t="listas" class="${PT.tab==='listas'?'on':''}">Listas de precio por cliente<span class="c">${CLIENTS.filter(c=>c.priceMode==='especial').length} diferenciadas</span></button></div>`;
   if(PT.tab==='catalogo')return tabs+`<div class="row between" style="margin-bottom:16px">${tf('pGrid','Buscar SKU, marca, categoría…')}${can('productos','crear')?`<button class="btn btn-gold" onclick="productForm()">${ic('plus')}Nuevo SKU</button>`:''}</div>
-  <div class="prod" id="pGrid">${SKUS.map(s=>`<div class="card" onclick="openSku('${s.sku}')" style="${s.active===false?'opacity:.55':''}"><div class="ph"><img src="${esc(s.img)}" alt=""></div><div class="bd"><div class="brandtag" style="color:${s.brand==='Minino'?'var(--minino)':'var(--petmetro)'}">${esc(s.brand)} · ${esc(s.cat)}${s.active===false?' · INACTIVO':''}</div><h3 style="margin:6px 0 4px;font-size:.98rem">${esc(s.name)}</h3><div class="tiny muted">${esc(s.sku)} · EAN ${esc(s.ean)}</div>
-  <div class="row between" style="margin-top:12px"><div><div class="tiny muted">Tarifa regular</div><strong class="num" style="color:var(--navy)">${$$(s.price)}</strong></div><div style="text-align:right"><div class="tiny muted">Costo neto</div><strong class="num">${U.fin?$$(s.cost):fin('$0.000')}</strong></div></div></div></div>`).join('')}</div>`;
+  <div class="prod" id="pGrid">${SKUS.map(s=>`<div class="card" onclick="openSku('${s.sku}')" style="${s.active===false?'opacity:.55':''}"><div class="ph"><img src="${esc(s.img)}" alt=""></div><div class="bd"><div class="brandtag" style="color:${s.brand==='Minino'?'var(--minino)':'var(--petmetro)'}">${esc(s.brand)} · ${esc(s.cat)}${s.active===false?' · INACTIVO':''}</div><h3 style="margin:6px 0 4px;font-size:.98rem">${esc(s.name)}</h3><div class="tiny muted">${esc(s.sku)} · EAN ${esc(s.ean)}</div><div class="tiny" style="margin-top:4px;color:var(--navy)">${packTxt(s)}</div>
+  <div class="row between" style="margin-top:12px"><div><div class="tiny muted">Unidad · caja</div><strong class="num" style="color:var(--navy)">${$$(s.price)}</strong> <span class="tiny muted num">· ${$$(s.price*(s.ucj||1))}</span></div><div style="text-align:right"><div class="tiny muted">Costo neto</div><strong class="num">${U.fin?$$(s.cost):fin('$0.000')}</strong></div></div></div></div>`).join('')}</div>`;
   if(!PT.cli||!CLIENTS.find(c=>c.id===PT.cli))PT.cli=CLIENTS[0]?.id;
   const c=C(PT.cli),esp=c.priceMode==='especial';
   const hist=DB.clientPrices.filter(p=>p.cli===c.id);
@@ -425,9 +429,9 @@ VIEWS.productos=()=>{
     <div class="grid" style="gap:20px;align-content:start">
       <div class="card"><div class="card-h"><div><h3>${esc(c.com)}</h3><div class="sub">${esp?'Lista diferenciada: solo se editan los precios de este cliente. Los SKU sin precio propio usan la tarifa regular.':'Este cliente usa la tarifa regular. Asígnale una lista diferenciada para editar solo sus precios.'}</div></div>
         <div class="seg" id="pmode"><button data-m="regular" class="${!esp?'on':''}">Tarifa regular</button><button data-m="especial" class="${esp?'on':''}">Lista diferenciada</button></div></div>
-        <div class="tbl-wrap"><table><thead><tr><th>SKU</th><th class="r">Tarifa regular</th><th class="r">Precio cliente</th><th class="r">Dif.</th><th>Vigente desde</th>${U.fin?'<th class="r">Margen</th>':''}</tr></thead><tbody>
+        <div class="tbl-wrap"><table><thead><tr><th>SKU</th><th class="r">Tarifa regular</th><th class="r">Precio cliente (unidad)</th><th class="r">Precio caja</th><th class="r">Dif.</th><th>Vigente desde</th>${U.fin?'<th class="r">Margen</th>':''}</tr></thead><tbody>
         ${SKUS.map(s=>{const pi=priceInfo(c.id,s.sku);const d=(pi.price-s.price)/s.price*100;return `<tr><td>${skuCell(s.sku)}</td><td class="r num">${$$(s.price)}</td>
-          <td class="r">${esp?`<input class="price-in" data-sku="${s.sku}" data-orig="${pi.price}" value="${N(pi.price)}" inputmode="numeric">`:`<span class="num">${$$(pi.price)}</span>`}</td>
+          <td class="r">${esp?`<input class="price-in" data-sku="${s.sku}" data-orig="${pi.price}" value="${N(pi.price)}" inputmode="numeric">`:`<span class="num">${$$(pi.price)}</span>`}</td><td class="r num" data-box="${s.sku}">${$$(pi.price*(s.ucj||1))}</td>
           <td class="r num ${d<0?'down':d>0?'up':''}" data-dif="${s.sku}">${Math.abs(d)<.05?'—':(d>0?'+':'')+pct(d)}</td><td class="small">${pi.src==='especial'?pi.from:'<span class="muted">Regular</span>'}</td>${U.fin?`<td class="r num">${pct((pi.price-s.cost)/pi.price*100)}</td>`:''}</tr>`}).join('')}</tbody></table></div>
         ${esp&&can('precios','editar')?`<div class="row" style="justify-content:flex-end;margin-top:14px"><label class="tiny muted" style="font-family:var(--fh);font-weight:600;letter-spacing:.06em">VIGENTE DESDE</label><input type="date" class="inp" id="pfrom" value="${isoToday()}"><button class="btn btn-gold" id="psave">${ic('check')}Guardar precios</button></div>`:''}
       </div>
@@ -443,7 +447,7 @@ AFTER.productos=()=>{
   el('pmode').onclick=async e=>{const m=e.target.dataset.m;if(!m||m===C(PT.cli).priceMode)return;
     if(m==='regular'&&!await ask('El cliente volverá a usar la tarifa regular. Sus precios diferenciados quedan guardados en el historial. ¿Continuar?'))return;
     await act('setPriceMode',{client:PT.cli,mode:m},m==='especial'?'Lista diferenciada asignada':'Cliente asignado a tarifa regular')};
-  document.querySelectorAll('.price-in').forEach(i=>i.oninput=()=>{const v=Number(i.value.replace(/\D/g,''))||0;i.classList.toggle('chg',v!==Number(i.dataset.orig));const s=S(i.dataset.sku);const d=(v-s.price)/s.price*100;const td=document.querySelector(`[data-dif="${i.dataset.sku}"]`);if(td){td.textContent=Math.abs(d)<.05?'—':(d>0?'+':'')+pct(d);td.className='r num '+(d<0?'down':d>0?'up':'')}});
+  document.querySelectorAll('.price-in').forEach(i=>i.oninput=()=>{const v=Number(i.value.replace(/\D/g,''))||0;i.classList.toggle('chg',v!==Number(i.dataset.orig));const s=S(i.dataset.sku);const d=(v-s.price)/s.price*100;const bx=document.querySelector(`[data-box="${i.dataset.sku}"]`);if(bx)bx.textContent=$$(v*(s.ucj||1));const td=document.querySelector(`[data-dif="${i.dataset.sku}"]`);if(td){td.textContent=Math.abs(d)<.05?'—':(d>0?'+':'')+pct(d);td.className='r num '+(d<0?'down':d>0?'up':'')}});
   const sv=el('psave');if(sv)sv.onclick=async()=>{
     const prices=[...document.querySelectorAll('.price-in')].filter(i=>i.classList.contains('chg')).map(i=>({sku:i.dataset.sku,price:Number(i.value.replace(/\D/g,''))}));
     if(!prices.length)return toast('No hay precios modificados',true);
@@ -451,20 +455,24 @@ AFTER.productos=()=>{
     sv.disabled=true;await act('savePrices',{client:PT.cli,validFrom:el('pfrom').value,prices},`${prices.length} precio(s) guardado(s) · registrado en auditoría`);sv.disabled=false};
 };
 function productForm(sku){const s=sku?S(sku):null;
-  const f=[{k:'sku',l:'SKU',req:1,dis:!!s,ph:'PM-XXX-000'},{k:'name',l:'Descripción',req:1},{k:'brand',l:'Marca',req:1},{k:'cat',l:'Categoría',req:1},{k:'ean',l:'EAN'},{k:'dun',l:'DUN'},{k:'grams',l:'Gramaje'},{k:'ucj',l:'Unidades por caja',t:'int'},{k:'cjp',l:'Cajas por pallet',t:'int'}];
-  if(can('precios','editar')||!s)f.push({k:'price',l:'Tarifa regular neta',t:'int',req:1});
+  const f=[{k:'sku',l:'SKU',req:1,dis:!!s,ph:'PM-XXX-000'},{k:'name',l:'Descripción',req:1},{k:'brand',l:'Marca',req:1},{k:'cat',l:'Categoría',req:1},{k:'ean',l:'EAN (unidad)'},{k:'dun',l:'DUN (caja)'},{k:'grams',l:'Gramaje'},{k:'pack',l:'Empaque',t:'select',opts:[['caja','Unidades directo en la caja'],['display','Unidades en displays dentro de la caja']]},{k:'upd',l:'Unidades por display',t:'int',help:'El display no necesita DUN'},{k:'dpb',l:'Displays por caja',t:'int'},{k:'ucj',l:'Unidades por caja (unidad de venta)',t:'int',req:1},{k:'cjp',l:'Cajas por pallet',t:'int'}];
+  if(can('precios','editar')||!s)f.push({k:'price',l:'Precio unitario neto (tarifa regular)',t:'int',req:1},{k:'box_price',l:'Precio caja (automático)',dis:1,help:'Precio unitario × unidades por caja'});
   if(can('costos','editar'))f.push({k:'cost',l:'Costo neto',t:'int',req:1});
   f.push({k:'lead_days',l:'Lead time (días)',t:'int'},{k:'moq',l:'MOQ',t:'int'},{k:'mult',l:'Múltiplo',t:'int'},{k:'ss',l:'Stock de seguridad',t:'int'},{k:'supplier',l:'Proveedor',t:'select',opts:[['','—'],...DB.suppliers.map(x=>[x.name,x.name]),...(s&&s.prov&&!DB.suppliers.some(x=>x.name===s.prov)?[[s.prov,s.prov]]:[])],help:'¿No aparece? Créalo en Proveedores'},{k:'img',l:'Imagen del producto',t:'image',full:1},{k:'active',l:'Estado',t:'bool',cb:'Activo (visible en OC y forecast)',def:true});
-  formModal({eyebrow:'Productos',title:s?'Editar SKU':'Nuevo SKU',values:s?{...s,grams:s.g,lead_days:s.lead,supplier:s.prov}:{active:true,ucj:1,cjp:1,lead_days:60,moq:0,mult:1,ss:0},fields:f,
-    onSave:d=>{if(s)delete d.sku;return saveEnt('product',s?s.sku:null,d,s?'SKU actualizado':'SKU creado')},
+  formModal({eyebrow:'Productos',title:s?'Editar SKU':'Nuevo SKU',values:s?{...s,grams:s.g,lead_days:s.lead,supplier:s.prov,pack:s.upd&&s.dpb?'display':'caja'}:{active:true,ucj:1,cjp:1,lead_days:60,moq:0,mult:1,ss:0,pack:'caja'},fields:f,
+    onRender:()=>{const sync=()=>{const disp=el('f_pack').value==='display';['upd','dpb'].forEach(k=>el('fw_'+k).style.display=disp?'':'none');const u=el('f_ucj');
+      if(disp){const a=numIn(el('f_upd').value),b=numIn(el('f_dpb').value);u.value=a&&b?a*b:'';u.disabled=true}else u.disabled=false;
+      const pr=el('f_price'),bp=el('f_box_price');if(pr&&bp){const x=numIn(pr.value)*numIn(u.value);bp.value=x?$$(x):''}};
+      ['f_pack','f_upd','f_dpb','f_ucj','f_price'].forEach(i=>{const e=el(i);if(e){e.addEventListener('input',sync);e.addEventListener('change',sync)}});sync()},
+    onSave:d=>{if(s)delete d.sku;if(d.pack!=='display'){d.upd='';d.dpb=''}delete d.pack;return saveEnt('product',s?s.sku:null,d,s?'SKU actualizado':'SKU creado')},
     onDelete:s&&can('productos','eliminar')?()=>delEnt('product',s.sku,'el SKU '+s.sku):null,
     note:s?'Si el SKU ya tiene OC, facturas o forecast, no se puede eliminar: desmárcalo como activo.':''})}
 function openSku(k){const s=S(k);
   drawer(`<div><div class="eyebrow" style="color:var(--gold-2)">${esc(s.brand)} · ${esc(s.cat)}</div><h2>${esc(s.name)}</h2><div class="small" style="color:#C4CCD6">${esc(s.sku)}${s.active===false?' · inactivo':''}</div></div>`,`
   <div class="row" style="justify-content:flex-end">${can('productos','editar')?btnEdit(`productForm('${s.sku}')`):''}${can('productos','eliminar')?btnDel(`delEnt('product','${s.sku}','el SKU ${s.sku}')`):''}</div>
-  <div class="card" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><img src="${esc(s.img)}" style="width:140px;border-radius:12px"><div class="grid g2" style="flex:1;gap:12px;min-width:240px">${kv('EAN',esc(s.ean))}${kv('DUN',esc(s.dun))}${kv('Gramaje',esc(s.g))}${kv('Unidades/caja',s.ucj)}${kv('Cajas/pallet',s.cjp)}${kv('Proveedor',esc(s.prov))}</div></div>
-  <div class="card"><h3>Precio vigente por cliente</h3><div class="sub">Tarifa regular ${$$(s.price)} · los clientes con lista diferenciada pueden tener precio propio</div><div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Cliente</th><th>Lista</th><th class="r">Precio neto</th><th>Vigencia</th>${U.fin?'<th class="r">Margen</th>':''}</tr></thead><tbody>
-  ${CLIENTS.map(c=>{const pi=priceInfo(c.id,s.sku);return `<tr><td>${esc(c.com)}</td><td>${pill(pi.src==='especial'?'Diferenciada':'Regular',pi.src==='especial'?'p-gold':'p-mute')}</td><td class="r num">${$$(pi.price)}</td><td class="small">${pi.from||'—'}</td>${U.fin?`<td class="r num">${pct((pi.price-s.cost)/pi.price*100)}</td>`:''}</tr>`}).join('')}</tbody></table></div></div>
+  <div class="card" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><img src="${esc(s.img)}" style="width:140px;border-radius:12px"><div class="grid g2" style="flex:1;gap:12px;min-width:240px">${kv('EAN',esc(s.ean))}${kv('DUN',esc(s.dun))}${kv('Gramaje',esc(s.g))}${kv('Empaque',packTxt(s))}${kv('Cajas/pallet',s.cjp)}${kv('Proveedor',esc(s.prov))}</div></div>
+  <div class="card"><h3>Precio vigente por cliente</h3><div class="sub">Tarifa regular ${$$(s.price)} · los clientes con lista diferenciada pueden tener precio propio</div><div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Cliente</th><th>Lista</th><th class="r">Precio unidad</th><th class="r">Precio caja</th><th>Vigencia</th>${U.fin?'<th class="r">Margen</th>':''}</tr></thead><tbody>
+  ${CLIENTS.map(c=>{const pi=priceInfo(c.id,s.sku);return `<tr><td>${esc(c.com)}</td><td>${pill(pi.src==='especial'?'Diferenciada':'Regular',pi.src==='especial'?'p-gold':'p-mute')}</td><td class="r num">${$$(pi.price)}</td><td class="r num">${$$(pi.price*(s.ucj||1))}</td><td class="small">${pi.from||'—'}</td>${U.fin?`<td class="r num">${pct((pi.price-s.cost)/pi.price*100)}</td>`:''}</tr>`}).join('')}</tbody></table></div></div>
   <div class="card"><h3>Parámetros de abastecimiento</h3><div class="grid g2" style="margin-top:12px;gap:12px">${kv('Lead time',s.lead+' días')}${kv('MOQ',N(s.moq)+' un')}${kv('Múltiplo',N(s.mult)+' un')}${kv('Stock de seguridad',N(s.ss)+' un')}</div></div>`)}
 
 /* =========================================================
@@ -484,7 +492,7 @@ VIEWS.oc=()=>{const sts=['todas','pendiente validación','aprobada','preparació
   const gf=groupFns[OCV.group];const groups=[];
   if(gf){const m=new Map();list.forEach(o=>{const k=gf(o);if(!m.has(k))m.set(k,[]);m.get(k).push(o)});m.forEach((v,k)=>groups.push([k,v]))}else groups.push([null,list]);
   const th=(l,k,cls='')=>{const on=OCV.sort.startsWith(k+'-');const dir=on?(OCV.sort.endsWith('asc')?' ▲':' ▼'):'';return `<th class="sort ${cls} ${on?'on':''}" data-k="${k}">${l}${dir}</th>`};
-  const row=o=>`<tr class="click" onclick="openOC(${o.id})"><td><strong>${esc(o.n)}</strong>${o.ai?' <span class="tag" title="Extraída por IA">IA</span>':''}</td><td>${esc(C(o.cli).com)}</td><td class="num">${o.f}</td><td class="num">${o.req||'—'}</td><td class="small">${esc(o.cd)}</td><td class="r">${o.lines.length}</td><td class="r num">${N(o.units)}</td><td class="r num">${$$(o.net)}</td><td>${pill(o.st,ST[o.st])}</td></tr>`;
+  const row=o=>`<tr class="click" onclick="openOC(${o.id})"><td><strong>${esc(o.n)}</strong>${o.ai?' <span class="tag" title="Extraída por IA">IA</span>':''}</td><td>${esc(C(o.cli).com)}</td><td class="num">${o.f}</td><td class="num">${o.req||'—'}</td><td class="small">${esc(o.cd)}</td><td class="r">${o.lines.length}</td><td class="r num">${N(o.units)}</td><td class="r num">${$$(o.net)}</td><td>${pill(o.st,ST[o.st])}${visaRule('oc')&&visaOf('oc',o.id)?' '+pill('visa '+visaOf('oc',o.id).status,VPILL[visaOf('oc',o.id).status]):''}</td></tr>`;
   return `<div class="row between" style="margin-bottom:6px"><p class="muted small">Una OC representa demanda: no es venta facturada. Despacho, factura y pago son eventos independientes.</p>${can('oc','crear')?`<button class="btn btn-gold" onclick="openNewOC()">${ic('plus')}Ingresar OC</button>`:''}</div>
   <div class="tabs" id="octabs">${sts.map(s=>{const n=s==='todas'?OCS.length:OCS.filter(o=>o.st===s).length;return n||s==='todas'?`<button data-s="${s}" class="${OCV.tab===s?'on':''}">${s[0].toUpperCase()+s.slice(1)}<span class="c">${n}</span></button>`:''}).join('')}</div>
   <div class="filters">
@@ -506,11 +514,12 @@ function openOC(id){const o=OCS.find(x=>x.id===id);if(!o)return;
   const flow=['borrador','pendiente validación','aprobada','preparación','parcial','entregada','cerrada'];const idx=flow.indexOf(o.st);
   const ds=DESP.filter(d=>d.oc===o.n&&d.cli===o.cli);const fs=INVS.filter(f=>f.oc.includes(o.n));
   drawer(`<div><div class="eyebrow" style="color:var(--gold-2)">Orden de compra · ${esc(C(o.cli).com)}</div><h2>OC ${esc(o.n)}</h2><div class="small" style="color:#C4CCD6">Emisión ${o.f} · Solicitada ${o.req||'—'} · ${esc(o.cd)}</div></div>`,`
-  <div class="row" style="justify-content:flex-end">${can('oc','editar')&&o.st!=='cerrada'?btnEdit(`openNewOC(${o.id})`):''}${can('oc','editar')?btnEdit(`ocStatusForm(${o.id})`,'Cambiar estado'):''}${can('oc','eliminar')?btnDel(`deleteOC(${o.id})`):''}</div>
+  <div class="row" style="justify-content:flex-end"><button class="btn btn-line btn-sm" onclick="docModal('oc',${o.id})">${ic('doc','style="width:14px;height:14px"')}Documento / enviar</button>${can('oc','editar')&&o.st!=='cerrada'?btnEdit(`openNewOC(${o.id})`):''}${can('oc','editar')?btnEdit(`ocStatusForm(${o.id})`,'Cambiar estado'):''}${can('oc','eliminar')?btnDel(`deleteOC(${o.id})`):''}</div>
+  ${visaBox('oc',o.id,'OC '+o.n,can('oc','editar'))}
   ${o.st==='cancelada'?`<div class="alert a-bad">${ic('warn')}<div><b>OC cancelada.</b> ${esc(o.motivo||'')}</div></div>`:`<div class="card"><div class="steps">${['Borrador','Validación','Aprobada','Preparación','Parcial','Entregada','Cerrada'].map((s,i)=>`<div class="${i<idx?'done':i===idx?'done cur':''}">${s}</div>`).join('')}</div></div>`}
-  <div class="card"><div class="card-h"><h3>Líneas</h3></div><div class="tbl-wrap"><table><thead><tr><th>SKU</th><th class="r">Solicitado</th><th class="r">Aceptado</th><th class="r">Faltante</th><th class="r">Precio neto</th><th class="r">Subtotal</th></tr></thead><tbody>
-  ${o.lines.map((l,i)=>{const a=o.acc?o.acc[i]:null;return `<tr><td>${skuCell(l[0])}</td><td class="r num">${N(l[1])}</td><td class="r num">${a==null?'—':N(a)}</td><td class="r num ${a!=null&&a<l[1]?'down':''}">${a==null?'—':N(l[1]-a)}</td><td class="r num">${$$(l[2])}</td><td class="r num">${$$(l[1]*l[2])}</td></tr>`}).join('')}
-  <tr><td><strong>Total neto</strong></td><td class="r num"><strong>${N(o.units)}</strong></td><td colspan=3></td><td class="r num"><strong>${$$(o.net)}</strong></td></tr></tbody></table></div>
+  <div class="card"><div class="card-h"><h3>Líneas</h3></div><div class="tbl-wrap"><table><thead><tr><th>SKU</th><th class="r">Cajas</th><th class="r">Unidades</th><th class="r">Aceptado</th><th class="r">Faltante</th><th class="r">Precio caja</th><th class="r">Subtotal</th></tr></thead><tbody>
+  ${o.lines.map((l,i)=>{const a=o.acc?o.acc[i]:null;const u=S(l[0]).ucj||1;return `<tr><td>${skuCell(l[0])}</td><td class="r num">${nDec(l[4]??l[1]/u)}</td><td class="r num">${N(l[1])}</td><td class="r num">${a==null?'—':N(a)}</td><td class="r num ${a!=null&&a<l[1]?'down':''}">${a==null?'—':N(l[1]-a)}</td><td class="r num">${$$(l[2]*u)}</td><td class="r num">${$$(l[1]*l[2])}</td></tr>`}).join('')}
+  <tr><td><strong>Total neto</strong></td><td></td><td class="r num"><strong>${N(o.units)}</strong></td><td colspan=3></td><td class="r num"><strong>${$$(o.net)}</strong></td></tr></tbody></table></div>
   ${o.acc&&o.acc.reduce((a,b)=>a+b,0)<o.units?`<div class="alert a-warn" style="margin-top:14px">${ic('info')}<div><b>Fill Rate ${pct(o.acc.reduce((a,b)=>a+b,0)/o.units*100)}</b> · faltante ${N(o.units-o.acc.reduce((a,b)=>a+b,0))} un${o.motivo?' · motivo: '+esc(o.motivo):''}</div></div>`:''}</div>
   <div class="grid g2"><div class="card"><h3>Despachos (${ds.length})</h3>${ds.map(d=>`<div class="list"><div><span class="ic" style="background:var(--cream);color:var(--gold)">${ic('truck')}</span><div style="flex:1"><strong class="small">${esc(d.id)}</strong><div class="tiny muted">${d.f} → ${d.ent} · ${N(d.acc)}/${N(d.sol)} un</div></div>${pill(d.st,d.st.includes('OK')?'p-ok':d.st.includes('prep')?'p-gold':'p-warn')}</div></div>`).join('')||'<p class="muted small" style="margin-top:8px">Sin despachos aún.</p>'}</div>
   <div class="card"><h3>Facturas asociadas (${fs.length})</h3>${fs.map(f=>`<div class="list"><div><span class="ic" style="background:var(--cream);color:var(--gold)">${ic('inv')}</span><div style="flex:1"><strong class="small">${f.t===61?'NC':'F'} ${f.fo} · DTE ${f.t}</strong><div class="tiny muted">${f.f} · ${$$(f.net)} neto</div></div>${pill(f.est,f.est==='Pagada'?'p-ok':f.est==='Vencida'?'p-bad':'p-info')}</div></div>`).join('')||'<p class="muted small" style="margin-top:8px">Sin factura registrada.</p>'}</div></div>`)}
@@ -519,8 +528,11 @@ function openOC(id){const o=OCS.find(x=>x.id===id);if(!o)return;
 function openNewOC(editId){
   const E=editId?OCS.find(x=>x.id===editId):null;const showAcc=E&&['parcial','entregada','cerrada'].includes(E.st);
   const c0=E?C(E.cli):(CLIENTS.find(c=>c.stage==='activo')||CLIENTS[0]);
+  if(!c0)return toast('Primero crea un cliente',true);
+  if(!SKUS.some(x=>x.active!==false))return toast('Primero crea un producto',true);
+  const vr=visaRule('oc');
   modal(`<div><div class="eyebrow" style="color:var(--gold-2)">${E?'Editar orden de compra · '+esc(E.st):'Nueva orden de compra'}</div><h2>${E?'OC '+esc(E.n):'Ingresar OC'}</h2></div>`,`<div style="padding:22px 26px;display:grid;gap:16px">
-   ${E?`<div class="alert a-info">${ic('info')}<div>Al guardar se reemplazan las líneas. Si la OC está aprobada, la reserva de stock se recalcula.</div></div>`:`<div class="alert a-info">${ic('ai')}<div><b>Lectura de PDF con IA:</b> se habilita al definir el proveedor de IA. Mientras tanto, ingresa la OC aquí: queda <b>pendiente de validación</b> y no reserva stock hasta que alguien la apruebe.</div></div>`}
+   <div class="alert a-info">${ic('info')}<div>Se vende <b>por caja</b>: ingresa la cantidad de cajas y el sistema calcula las unidades. El precio caja sale de la tarifa del cliente × unidades por caja.${vr?` <b>Esta OC requiere visación de ${esc(USERS[vr.approver]?.name||vr.approver)}</b> antes de aprobarse o enviarse${E?' (si cambias productos, cantidades o precios se pide una nueva visación)':''}.`:''}</div></div>
    <div class="card"><div class="grid g3" style="gap:14px">
      ${inp('Cliente',`<select class="inp" style="width:100%" id="nCli">${clientOpts(c0.id)}</select>`,1)}
      ${inp('N° OC',E?E.n:'','', 'id="nNum" placeholder="Ej: 4500132" maxlength="40"')}
@@ -528,28 +540,35 @@ function openNewOC(editId){
      ${inp('Fecha emisión',`<input type="date" class="inp" style="width:100%" id="nIss" value="${E?toIso(E.f):isoToday()}">`,1)}
      ${inp('Fecha solicitada',`<input type="date" class="inp" style="width:100%" id="nReq" value="${E?toIso(E.req):isoToday()}">`,1)}
      <div id="nDup" class="small" style="align-self:end"></div></div></div>
-   <div class="card"><div class="card-h"><h3>Líneas</h3><button class="btn btn-line btn-sm" id="nAdd">${ic('plus')}Agregar línea</button></div>
-     <div class="tbl-wrap"><table class="lines-ed"><thead><tr><th style="min-width:220px">SKU</th><th class="r" style="width:120px">Unidades</th><th class="r" style="width:140px">Precio neto</th><th class="r">Tarifa vigente</th>${showAcc?'<th class="r" style="width:110px">Aceptado</th>':''}<th class="r">Subtotal</th><th></th></tr></thead><tbody id="nLines"></tbody>
-     <tfoot><tr><td><strong>Total</strong></td><td class="r num" id="nU"></td><td></td><td></td>${showAcc?'<td></td>':''}<td class="r num" id="nT"></td><td></td></tr></tfoot></table></div></div>
-   <div class="row" style="justify-content:flex-end"><button class="btn btn-line" onclick="closeAll()">Cancelar</button><button class="btn btn-gold" id="nSave">${E?'Guardar cambios':'Guardar · enviar a validación'}</button></div></div>`);
-  const cli=()=>el('nCli').value;
+   <div class="card"><div class="card-h"><h3>Productos</h3><button class="btn btn-line btn-sm" id="nAdd">${ic('plus')}Agregar línea</button></div>
+     <div class="tbl-wrap"><table class="lines-ed"><thead><tr><th style="min-width:220px">SKU</th><th class="r" style="width:96px">Cajas</th><th class="r">Unidades</th><th class="r" style="width:130px">Precio caja</th><th class="r">Tarifa caja</th>${showAcc?'<th class="r" style="width:110px">Aceptado (un)</th>':''}<th class="r">Subtotal</th><th></th></tr></thead><tbody id="nLines"></tbody>
+     <tfoot><tr><td><strong>Total</strong></td><td class="r num" id="nB"></td><td class="r num" id="nU"></td><td></td><td></td>${showAcc?'<td></td>':''}<td class="r num" id="nT"></td><td></td></tr></tfoot></table></div>
+     <div class="tiny muted" style="margin-top:8px">Neto · el IVA se agrega en la factura. Puedes usar decimales en cajas (ej. 1,5) si el cliente pide cajas parciales.</div></div>
+   <div class="row" style="justify-content:flex-end"><button class="btn btn-line" onclick="closeAll()">Cancelar</button><button class="btn btn-gold" id="nSave">${E?'Guardar cambios':vr?'Guardar y solicitar visación':'Guardar · enviar a validación'}</button></div></div>`);
+  const cli=()=>el('nCli').value;const ucj=sku=>S(sku).ucj||1;const tarifaCaja=sku=>priceInfo(cli(),sku).price*ucj(sku);
   const fillCd=()=>{const cds=[...(C(cli()).cds||[])];if(E&&E.cli===cli()&&E.cd&&!cds.includes(E.cd))cds.unshift(E.cd);el('nCd').innerHTML=cds.map(c=>`<option ${E&&c===E.cd?'selected':''}>${esc(c)}</option>`).join('')||'<option>—</option>'};
-  const actSkus=SKUS.filter(s=>s.active!==false);
-  const addLine=(sku=actSkus[0].sku,q='',pr=null,ac='')=>{const tr=document.createElement('tr');tr.innerHTML=`<td><select class="inp ls">${SKUS.filter(s=>s.active!==false||s.sku===sku).map(s=>`<option value="${s.sku}" ${s.sku===sku?'selected':''}>${esc(s.sku)} · ${esc(s.name)}</option>`).join('')}</select></td><td><input class="inp lq r" inputmode="numeric" value="${q}"></td><td><input class="inp lp r" inputmode="numeric" value="${pr??priceInfo(cli(),sku).price}"></td><td class="r num lt"></td>${showAcc?`<td><input class="inp la r" inputmode="numeric" value="${ac}"></td>`:''}<td class="r num lsub"></td><td><button class="btn btn-line btn-sm lx" title="Quitar">×</button></td>`;el('nLines').appendChild(tr);
-    tr.querySelector('.ls').onchange=e=>{tr.querySelector('.lp').value=priceInfo(cli(),e.target.value).price;calc()};tr.querySelector('.lx').onclick=()=>{tr.remove();calc()};tr.querySelectorAll('input').forEach(i=>i.oninput=calc);calc()};
-  const calc=()=>{let u=0,t=0;el('nLines').querySelectorAll('tr').forEach(tr=>{const s=tr.querySelector('.ls').value,q=+tr.querySelector('.lq').value.replace(/\D/g,'')||0,p=+tr.querySelector('.lp').value.replace(/\D/g,'')||0;const pi=priceInfo(cli(),s);
-    tr.querySelector('.lt').innerHTML=$$(pi.price)+(p&&p!==pi.price?`<div class="tiny down">Dif. ${$$(p-pi.price)}</div>`:'');tr.querySelector('.lsub').textContent=$$(q*p);u+=q;t+=q*p});el('nU').textContent=N(u);el('nT').textContent=$$(t)};
+  const actSkus=SKUS.filter(x=>x.active!==false);
+  const calc=()=>{let b=0,u=0,t=0;el('nLines').querySelectorAll('tr').forEach(tr=>{const sku=tr.querySelector('.ls').value,bx=numIn(tr.querySelector('.lb').value),bp=numIn(tr.querySelector('.lp').value),un=Math.round(bx*ucj(sku)),tc=tarifaCaja(sku);
+    tr.querySelector('.lu').innerHTML=`${N(un)}<div class="tiny muted">${ucj(sku)} un/caja</div>`;tr.querySelector('.lt').innerHTML=$$(tc)+(bp&&Math.round(bp)!==Math.round(tc)?`<div class="tiny down">Dif. ${$$(bp-tc)}</div>`:'');tr.querySelector('.lsub').textContent=$$(bx*bp);b+=bx;u+=un;t+=bx*bp});
+    el('nB').textContent=nDec(b);el('nU').textContent=N(u);el('nT').textContent=$$(t)};
+  const addLine=(sku=actSkus[0].sku,bx='',bp=null,ac='')=>{const tr=document.createElement('tr');
+    tr.innerHTML=`<td><select class="inp ls">${SKUS.filter(x=>x.active!==false||x.sku===sku).map(x=>`<option value="${x.sku}" ${x.sku===sku?'selected':''}>${esc(x.sku)} · ${esc(x.name)}</option>`).join('')}</select></td><td><input class="inp lb r" inputmode="decimal" value="${bx}" placeholder="0"></td><td class="r num lu"></td><td><input class="inp lp r" inputmode="numeric" value="${Math.round(bp??tarifaCaja(sku))}"></td><td class="r num lt"></td>${showAcc?`<td><input class="inp la r" inputmode="numeric" value="${ac}"></td>`:''}<td class="r num lsub"></td><td><button class="btn btn-line btn-sm lx" title="Quitar">×</button></td>`;
+    el('nLines').appendChild(tr);tr.querySelector('.ls').onchange=e=>{tr.querySelector('.lp').value=Math.round(tarifaCaja(e.target.value));calc()};tr.querySelector('.lx').onclick=()=>{tr.remove();calc()};tr.querySelectorAll('input').forEach(i=>i.oninput=calc);calc()};
   const dup=()=>{const n=el('nNum').value.trim();const d=OCS.find(o=>o.cli===cli()&&o.n===n&&(!E||o.id!==E.id));el('nDup').innerHTML=d?`<span class="down">⚠ La OC ${esc(n)} ya existe para este cliente</span>`:''};
-  el('nCli').onchange=()=>{fillCd();el('nLines').querySelectorAll('tr').forEach(tr=>tr.querySelector('.lp').value=priceInfo(cli(),tr.querySelector('.ls').value).price);calc();dup()};
+  el('nCli').onchange=()=>{fillCd();el('nLines').querySelectorAll('tr').forEach(tr=>tr.querySelector('.lp').value=Math.round(tarifaCaja(tr.querySelector('.ls').value)));calc();dup()};
   el('nNum').oninput=dup;el('nAdd').onclick=()=>addLine();fillCd();
-  if(E)E.lines.forEach((l,i)=>addLine(l[0],l[1],l[2],E.acc?E.acc[i]:''));else addLine();
+  if(E)E.lines.forEach((l,i)=>addLine(l[0],nDec(l[4]??l[1]/ucj(l[0])).replace(/\./g,''),l[2]*ucj(l[0]),E.acc?E.acc[i]:''));else addLine();
   el('nSave').onclick=async()=>{
-    const lines=[...el('nLines').querySelectorAll('tr')].map(tr=>({sku:tr.querySelector('.ls').value,qty:tr.querySelector('.lq').value,price:tr.querySelector('.lp').value,accepted:tr.querySelector('.la')?tr.querySelector('.la').value:null})).filter(l=>+String(l.qty).replace(/\D/g,''));
-    if(!el('nNum').value.trim())return toast('Falta el número de OC',true);
-    if(!lines.length)return toast('Agrega al menos una línea con unidades',true);
-    el('nSave').disabled=true;
-    const r=await act('saveOC',{id:E?E.id:null,client:cli(),number:el('nNum').value.trim(),issued:el('nIss').value,requested:el('nReq').value,cd:el('nCd').value,lines},E?'OC actualizada':'OC ingresada · pendiente de validación');
-    if(el('nSave'))el('nSave').disabled=false;if(r){closeAll();if(r.short&&r.short.length)toast('Reserva parcial: '+r.short.join(', '),true);if(!E){location.hash='oc';setTimeout(()=>openReview(r.id),60)}}};
+    const lines=[...el('nLines').querySelectorAll('tr')].map(tr=>({sku:tr.querySelector('.ls').value,boxes:numIn(tr.querySelector('.lb').value),box_price:numIn(tr.querySelector('.lp').value),accepted:tr.querySelector('.la')?tr.querySelector('.la').value:null})).filter(l=>l.boxes>0);
+    if(!el('nNum').value.trim()){el('nNum').classList.add('bad');return toast('Falta el número de OC',true)}
+    if(!lines.length)return toast('Agrega al menos una línea con cajas',true);
+    if(lines.some(l=>!l.box_price))return toast('Hay líneas sin precio caja',true);
+    const b=el('nSave');b.disabled=true;b.textContent='Guardando…';
+    const r=await act('saveOC',{id:E?E.id:null,client:cli(),number:el('nNum').value.trim(),issued:el('nIss').value,requested:el('nReq').value,cd:el('nCd').value,lines});
+    if(!r){if(el('nSave')){b.disabled=false;b.textContent='Reintentar'}return}
+    closeAll();toast(r.visa==='pendiente'?`OC guardada · visación solicitada a ${USERS[vr.approver]?.name||vr.approver}`:r.visa==='visada'?'OC guardada y visada':E?'OC actualizada':'OC ingresada · pendiente de validación');
+    if(r.short&&r.short.length)setTimeout(()=>toast('Reserva parcial: '+r.short.join(', '),true),2500);
+    if(!E){location.hash='oc';setTimeout(()=>openReview(r.id),60)}};
 }
 const OC_STATES=['borrador','pendiente validación','aprobada','preparación','parcial','entregada','cerrada','cancelada'];
 function ocStatusForm(id){const o=OCS.find(x=>x.id===id);if(!o)return;
@@ -568,6 +587,7 @@ function openReview(id){
   const lastLoad=DB.loads.find(l=>l.st.startsWith('Publicada'));
   modal(`<div><div class="eyebrow" style="color:var(--gold-2)">Validación humana obligatoria · ${esc(o.st)}</div><h2>OC ${esc(o.n)} · ${esc(C(o.cli).name)}</h2><div class="small" style="color:#C4CCD6">Emisión ${o.f} · Solicitada ${o.req||'—'}</div></div>`,`
   <div style="padding:22px 26px;display:grid;gap:14px">
+    ${visaBox('oc',o.id,'OC '+o.n,can('oc','editar'))}
     ${sim.length?`<div class="alert a-warn">${ic('warn')}<div><b>Posible duplicado:</b> ${sim.map(s=>'OC '+esc(s.n)+' ('+s.f+')').join(', ')} del mismo cliente y CD en ±7 días. Revisa antes de aprobar.</div></div>`:''}
     <div class="card"><div class="grid g3" style="gap:14px">${kv('Cliente',esc(C(o.cli).name))}${inp('CD destino',`<select class="inp" style="width:100%" id="rCd">${C(o.cli).cds.map(c=>`<option ${c===o.cd?'selected':''}>${esc(c)}</option>`).join('')}</select>`,1)}${kv('Lista de precios',C(o.cli).priceMode==='especial'?'Diferenciada':'Regular')}</div></div>
     <div class="card"><h3>Líneas · contraste con tarifa vigente y stock</h3><div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th>SKU</th><th class="r">Unidades</th><th class="r">Precio OC</th><th class="r">Tarifa vigente</th><th class="r">Disponible ROVAL</th></tr></thead><tbody>
@@ -576,7 +596,7 @@ function openReview(id){
   </div>
   <div style="position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:16px 26px;display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;align-items:center">
     <span class="small muted">${o.lines.filter(l=>l[2]!==priceInfo(o.cli,l[0]).price).length} diferencia(s) de precio vs tarifa</span>
-    <div class="row">${can('oc','editar')?`<button class="btn btn-line" onclick="openNewOC(${o.id})">Editar</button>`:''}${can('oc','eliminar')?`<button class="btn btn-line" style="color:var(--bad)" onclick="deleteOC(${o.id})">Eliminar</button>`:''}<button class="btn btn-line" id="rCancel">Cancelar OC</button>${can('oc','aprobar')?`<button class="btn btn-gold" id="rOk">${ic('check')}Aprobar OC</button>`:''}</div>
+    <div class="row">${can('oc','editar')?`<button class="btn btn-line" onclick="openNewOC(${o.id})">Editar</button>`:''}${can('oc','eliminar')?`<button class="btn btn-line" style="color:var(--bad)" onclick="deleteOC(${o.id})">Eliminar</button>`:''}<button class="btn btn-line" id="rCancel">Cancelar OC</button><button class="btn btn-line" onclick="docModal('oc',${o.id})">Documento</button>${can('oc','aprobar')?`<button class="btn btn-gold" id="rOk" ${visaRule('oc')&&visaOf('oc',o.id)?.status!=='visada'?'disabled title="Requiere visación"':''}>${ic('check')}Aprobar OC</button>`:''}</div>
   </div>`);
   if(el('rOk'))el('rOk').onclick=async()=>{
     const lines=o.lines.map(l=>{const q=document.querySelector(`.rq[data-line="${l[3]}"]`).value.replace(/\D/g,''),p=document.querySelector(`.rp[data-line="${l[3]}"]`).value.replace(/\D/g,'');return {line:l[3],qty:q,price:p,changed:+q!==l[1]||+p!==l[2]}}).filter(l=>l.changed);
@@ -765,7 +785,8 @@ VIEWS.facturas=()=>{const list=INVS.filter(f=>fTab==='todas'||f.est===fTab);cons
 AFTER.facturas=()=>el('ftabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;fTab=b.dataset.s;route()};
 function openInv(id){const f=INVS.find(x=>x.id===id);if(!f)return;const ncs=INVS.filter(x=>x.t===61&&x.ref===f.fo);
  drawer(`<div><div class="eyebrow" style="color:var(--gold-2)">DTE ${f.t} · ${f.t===33?'Factura electrónica':f.t===61?'Nota de crédito':'Documento'}</div><h2>${f.t===61?'NC':'Factura'} ${f.fo}</h2><div class="small" style="color:#C4CCD6">${esc(C(f.cli).name)} · emitida en SII ${f.f}</div></div>`,`
- <div class="row" style="justify-content:flex-end">${can('facturas','editar')?btnEdit(`invoiceForm(${f.id})`):''}${can('facturas','eliminar')?btnDel(`delEnt('invoice',${f.id},'el documento ${f.fo}')`):''}</div>
+ <div class="row" style="justify-content:flex-end"><button class="btn btn-line btn-sm" onclick="docModal('invoice',${f.id})">${ic('doc','style="width:14px;height:14px"')}Documento / enviar</button>${can('facturas','editar')?btnEdit(`invoiceForm(${f.id})`):''}${can('facturas','eliminar')?btnDel(`delEnt('invoice',${f.id},'el documento ${f.fo}')`):''}</div>
+ ${visaBox('invoice',f.id,(f.t===61?'NC ':'Factura ')+f.fo,can('facturas','crear'))}
  <div class="grid g3">${hl('Neto',$$(f.net))}${hl('IVA 19%',$$(f.iva))}${hl('Total',$$(f.tot))}</div>
  <div class="card"><h3>Asociaciones</h3><div class="grid g2" style="margin-top:12px;gap:12px">${kv('OC',esc(f.oc.join(', '))||'—')}${kv('Despachos',esc(f.ds.join(', '))||'—')}${kv('Vencimiento',f.v)}${kv('Estado',esc(f.est))}</div>
  ${f.ds.length>1?`<div class="alert a-info" style="margin-top:12px">${ic('info')}<div>Factura asociada a <b>${f.ds.length} despachos</b>: el ingreso se cuenta una sola vez (por factura), no por despacho.</div></div>`:''}</div>
@@ -924,9 +945,10 @@ VIEWS.admin=()=>{
   return `<div class="card"><div class="card-h"><div><h3>Bitácora inalterable</h3><div class="sub">La base de datos bloquea modificar o borrar registros · ${rows.length} de ${DB.audit.length} más recientes</div></div><div class="row"><input class="inp" id="audQ" placeholder="Filtrar por usuario, registro o texto" value="${esc(audQ)}" style="min-width:240px"><button class="btn btn-line btn-sm" id="audExp">${ic('dl')}Exportar</button></div></div>
   <div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Registro</th><th>Detalle</th></tr></thead><tbody>${rows.map(a=>`<tr><td class="num small">${a[0]}</td><td>${esc(USERS[a[1]]?.name||a[1])}</td><td><strong>${esc(a[2])}</strong></td><td class="small">${esc(a[3])}</td></tr>`).join('')}</tbody></table></div></div>`},
  datos:()=>datosView(),
+ visas:()=>visaRulesView(),
  parametros:()=>{const p=DB.cfg.params||{};return `<div class="grid g2"><div class="card"><div class="card-h"><h3>Parámetros generales</h3>${E?btnEdit('paramsForm()'):''}</div><div class="grid g2" style="gap:14px">${kv('Moneda',esc(p.moneda))}${kv('Zona horaria',esc(p.zona))}${kv('IVA',p.iva+'%')}${kv('Tolerancia OTIF',p.tolerancia_otif+' días')}${kv('Meta Fill Rate',p.meta_fill+'%')}${kv('Antigüedad máx. stock ROVAL',p.max_edad_stock_dias+' días')}${kv('Expiración de sesión',p.sesion_horas+' horas')}</div></div>
   <div class="card"><h3>Respaldos y seguridad</h3><div class="alert a-ok" style="margin-top:8px">${ic('check')}<div>Base de datos en Neon (PostgreSQL) con restauración a un punto en el tiempo. Contraseñas guardadas con hash scrypt; sesiones firmadas con expiración.</div></div></div></div>`}};
- return `<div class="tabs" id="adtabs">${[['usuarios','Usuarios'],['roles','Roles y permisos'],['auditoria','Auditoría'],['parametros','Parámetros'],['datos','Datos y reinicio']].map(([k,l])=>`<button data-t="${k}" class="${adTab===k?'on':''}">${l}</button>`).join('')}</div>${T[adTab]()}`};
+ return `<div class="tabs" id="adtabs">${[['usuarios','Usuarios'],['roles','Roles y permisos'],['auditoria','Auditoría'],['parametros','Parámetros'],['visas','Visaciones'],['datos','Datos y reinicio']].map(([k,l])=>`<button data-t="${k}" class="${adTab===k?'on':''}">${l}</button>`).join('')}</div>${T[adTab]()}`};
 AFTER.admin=()=>{const t=el('adtabs');if(t)t.onclick=e=>{const b=e.target.closest('button');if(!b)return;adTab=b.dataset.t;route()};
  const q=el('audQ');if(q)q.oninput=()=>{audQ=q.value;const pos=q.selectionStart;route();const n=el('audQ');n.focus();n.setSelectionRange(pos,pos)};
  const a=el('audExp');if(a)a.onclick=()=>download(`Auditoria_PAROCK_${isoToday()}.csv`,[['Fecha','Usuario','Registro','Detalle'],...DB.audit])};
@@ -995,6 +1017,7 @@ function soForm(id,pre){
   if(!(DB.suppliers||[]).length){toast('Primero crea un proveedor',true);PV.tab='prov';location.hash='proveedores';return}
   const preSup=pre?(DB.suppliers.find(x=>x.name===S(pre.sku).prov)||{}).id:null;
   modal(`<div><div class="eyebrow" style="color:var(--gold-2)">OC a proveedor${o?' · '+esc(o.status):''}</div><h2>${o?esc(o.number):'Nueva OC a proveedor'}</h2></div>`,`<div style="padding:22px 26px;display:grid;gap:16px">
+   ${o?visaBox('so',o.id,o.number,can('proveedores','editar')):''}
    <div class="card"><div class="grid g3" style="gap:14px">
     ${inp('Proveedor *',`<select class="inp" style="width:100%" id="soSup">${DB.suppliers.filter(x=>x.active||x.id===o?.supplier_id).map(x=>`<option value="${x.id}" ${x.id===(o?o.supplier_id:preSup)?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`,1)}
     ${inp('Estado',`<select class="inp" style="width:100%" id="soSt">${SO_ST.map(x=>`<option ${x===(o?o.status:'borrador')?'selected':''}>${x}</option>`).join('')}</select>`,1)}
@@ -1005,7 +1028,7 @@ function soForm(id,pre){
    <div class="card"><div class="card-h"><h3>Productos</h3><button class="btn btn-line btn-sm" id="soAdd">${ic('plus')}Agregar línea</button></div>
     <div class="tbl-wrap"><table class="lines-ed"><thead><tr><th style="min-width:220px">SKU</th><th class="r" style="width:130px">Cantidad</th><th class="r" style="width:150px">Costo unitario</th><th class="r">Subtotal</th><th></th></tr></thead><tbody id="soLines"></tbody>
     <tfoot><tr><td><strong>Total</strong></td><td class="r num" id="soU"></td><td></td><td class="r num" id="soT"></td><td></td></tr></tfoot></table></div></div>
-   <div class="row between"><div>${o&&can('proveedores','eliminar')?btnDel(`deleteSO(${o.id})`):''}</div><div class="row"><button class="btn btn-line" onclick="closeAll()">Cerrar</button>${ro?'':`<button class="btn btn-gold" id="soSave">${ic('check')}Guardar</button>`}</div></div></div>`);
+   <div class="row between"><div class="row">${o&&can('proveedores','eliminar')?btnDel(`deleteSO(${o.id})`):''}${o?`<button class="btn btn-line" onclick="docModal('so',${o.id})">Documento / enviar</button>`:''}</div><div class="row"><button class="btn btn-line" onclick="closeAll()">Cerrar</button>${ro?'':`<button class="btn btn-gold" id="soSave">${ic('check')}Guardar</button>`}</div></div></div>`);
   const cur=()=>el('soCur').value;
   const calc=()=>{let u=0,t=0;el('soLines').querySelectorAll('tr').forEach(tr=>{const q=+tr.querySelector('.sq').value.replace(/\D/g,'')||0,c=Number(String(tr.querySelector('.sc').value).replace(/\./g,'').replace(',','.'))||0;tr.querySelector('.ss').textContent=money(q*c,cur());u+=q;t+=q*c});el('soU').textContent=N(u);el('soT').textContent=money(t,cur())};
   const add=(sku=SKUS.find(x=>x.active!==false)?.sku,q='',c='')=>{const tr=document.createElement('tr');tr.innerHTML=`<td><select class="inp sk">${SKUS.filter(x=>x.active!==false||x.sku===sku).map(x=>`<option value="${x.sku}" ${x.sku===sku?'selected':''}>${esc(x.sku)} · ${esc(x.name)}</option>`).join('')}</select></td><td><input class="inp sq r" inputmode="numeric" value="${q}"></td><td><input class="inp sc r" inputmode="decimal" value="${c}"></td><td class="r num ss"></td><td><button class="btn btn-line btn-sm sx" title="Quitar">×</button></td>`;
@@ -1015,7 +1038,7 @@ function soForm(id,pre){
   if(o)o.lines.forEach(l=>add(l.sku,l.qty,String(l.cost).replace('.',',')));else if(pre)add(pre.sku,pre.qty,U.fin?S(pre.sku).cost||'':'');else add();
   const b=el('soSave');if(b)b.onclick=async()=>{const lines=[...el('soLines').querySelectorAll('tr')].map(tr=>({sku:tr.querySelector('.sk').value,qty:tr.querySelector('.sq').value,unit_cost:tr.querySelector('.sc').value||0}));
     b.disabled=true;b.textContent='Guardando…';const r=await act('saveSO',{id:o?o.id:null,supplier_id:el('soSup').value,status:el('soSt').value,currency:cur(),issued:el('soIss').value,eta:el('soEta').value,notes:el('soNotes').value,lines},o?'OC a proveedor actualizada':'OC a proveedor creada');
-    if(r){closeAll();if(!o){PV.tab='oc';if(CUR!=='proveedores')toast(`${r.number} creada · ver en Proveedores`)}}else{b.disabled=false;b.innerHTML=ic('check')+'Guardar'}};
+    if(r){closeAll();if(r.held)setTimeout(()=>toast('Guardada como borrador: requiere visación antes de enviarse',true),300);else if(r.visa==='pendiente')setTimeout(()=>toast('Guardada · visación solicitada'),300);if(!o)PV.tab='oc'}else{b.disabled=false;b.innerHTML=ic('check')+'Guardar'}};
 }
 async function deleteSO(id){const o=(DB.sorders||[]).find(x=>x.id===id);if(!o||!await confirmDel('la '+o.number))return;const r=await act('deleteSO',{id},'OC a proveedor eliminada');if(r)closeAll()}
 
@@ -1063,6 +1086,75 @@ let QM=[];
 const UIKEY='prk_ui_v1';
 function saveUI(){try{localStorage.setItem(UIKEY,JSON.stringify({OCV:{sort:OCV.sort,group:OCV.group,tab:OCV.tab},pt:PT.tab,crm:crmTab,fn:FN.tab,ad:adTab,pv:PV.tab,period:DF.period}))}catch(e){}}
 function loadUI(){try{const u=JSON.parse(localStorage.getItem(UIKEY)||'null');if(!u)return;Object.assign(OCV,u.OCV||{});if(u.pt)PT.tab=u.pt;if(u.crm)crmTab=u.crm;if(u.fn)FN.tab=u.fn;if(u.ad)adTab=u.ad;if(u.pv)PV.tab=u.pv;if(u.period&&u.period!=='m:'+CURM)DF.period=u.period}catch(e){}}
+
+/* =========================================================
+   VISACIONES
+   ========================================================= */
+const DOC_TYPES={oc:'OC cliente',so:'OC a proveedor',invoice:'Factura / NC'};
+const visaRule=t=>{const r=(DB.cfg.visa_rules||{})[t];return r&&r.active?r:null};
+const visaOf=(t,id)=>(DB.approvals||[]).find(a=>a.doc_type===t&&a.doc_id===Number(id))||null;
+const VPILL={pendiente:'p-warn',visada:'p-ok',rechazada:'p-bad',anulada:'p-mute'};
+const myVisas=()=>(DB.approvals||[]).filter(a=>a.status==='pendiente'&&a.approver===U.id);
+function visaBox(t,id,label,canReq){const r=visaRule(t);if(!r)return '';const a=visaOf(t,id);const ap=USERS[r.approver]?.name||r.approver;
+  const st=a?a.status:'sin solicitar';const mine=a&&a.status==='pendiente'&&(a.approver===U.id||can('admin','editar'));
+  return `<div class="alert ${st==='visada'?'a-ok':st==='rechazada'?'a-bad':'a-warn'}" style="align-items:center">${ic(st==='visada'?'check':'lock')}<div style="flex:1"><b>Visación ${esc(ap)}:</b> ${pill(st,VPILL[st]||'p-mute')}
+    ${a?`<span class="tiny"> · solicitada por ${esc(USERS[a.requested_by]?.name||a.requested_by)} el ${a.req_at}${a.dec_at?` · resuelta ${a.dec_at}`:''}</span>`:''}${a&&a.comment?`<div class="tiny" style="margin-top:4px">“${esc(a.comment)}”</div>`:''}</div>
+    <div class="row">${mine?`<button class="btn btn-gold btn-sm" onclick="decideVisa(${a.id},'visada')">Visar</button><button class="btn btn-line btn-sm" style="color:var(--bad)" onclick="decideVisa(${a.id},'rechazada')">Rechazar</button>`:''}
+    ${canReq&&(!a||['rechazada','anulada'].includes(a.status))?`<button class="btn btn-navy btn-sm" onclick="reqVisa('${t}',${id},'${esc(label).replace(/'/g,'')}')">Solicitar visación</button>`:''}</div></div>`}
+async function reqVisa(t,id,label){const r=await act('requestVisa',{docType:t,docId:id,label},'Visación solicitada');if(r)reopenDoc(t,id)}
+async function decideVisa(id,dec){let comment='';
+  if(dec==='rechazada'){comment=await ask('Motivo del rechazo (lo verá quien solicitó la visación)',{ok:'Rechazar',danger:true,input:'Motivo'});if(comment==null)return;if(!comment.trim())return toast('Indica el motivo',true)}
+  else{const c=await ask('¿Visar este documento? Quedará habilitado para aprobarse y enviarse.',{ok:'Visar',input:'Comentario (opcional)'});if(c==null)return;comment=c}
+  const a=(DB.approvals||[]).find(x=>x.id===id);const r=await act('decideVisa',{id,decision:dec,comment},dec==='visada'?'Documento visado':'Visación rechazada');if(r&&a)reopenDoc(a.doc_type,a.doc_id)}
+function reopenDoc(t,id){if(!el('modal').classList.contains('open')&&!el('drawer').classList.contains('open'))return;closeAll();
+  if(t==='oc'){const o=OCS.find(x=>x.id===Number(id));if(o)openOC(o.id)}else if(t==='so')soForm(Number(id));else if(t==='invoice')openInv(Number(id))}
+const VV={tab:'mine'};
+VIEWS.visaciones=()=>{const A=DB.approvals||[];const mine=myVisas();const reqs=A.filter(a=>a.requested_by===U.id);
+  const list=VV.tab==='mine'?mine:VV.tab==='req'?reqs:A;
+  const rules=Object.entries(DB.cfg.visa_rules||{});
+  return `<div class="alert a-info" style="margin-bottom:16px">${ic('info')}<div>Reglas vigentes: ${rules.map(([k,r])=>`<b>${DOC_TYPES[k]}</b> ${r.active?`visa ${esc(USERS[r.approver]?.name||r.approver)}`:'sin visación'}`).join(' · ')}.${can('admin','editar')?' <a href="#admin" onclick="adTab=\'visas\'">Configurar</a>':''}</div></div>
+  <div class="tabs" id="vvtabs"><button data-t="mine" class="${VV.tab==='mine'?'on':''}">Por visar<span class="c">${mine.length}</span></button><button data-t="req" class="${VV.tab==='req'?'on':''}">Mis solicitudes<span class="c">${reqs.filter(a=>a.status==='pendiente').length}</span></button><button data-t="all" class="${VV.tab==='all'?'on':''}">Historial</button></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Documento</th><th>Tipo</th><th>Solicitado por</th><th>Fecha</th><th>Visador</th><th>Estado</th><th>Comentario</th><th></th></tr></thead><tbody>
+  ${list.map(a=>`<tr><td><strong>${esc(a.doc_label)}</strong></td><td>${esc(DOC_TYPES[a.doc_type]||a.doc_type)}</td><td>${esc(USERS[a.requested_by]?.name||a.requested_by||'')}</td><td class="num small">${a.req_at}</td><td>${esc(USERS[a.approver]?.name||a.approver)}</td><td>${pill(a.status,VPILL[a.status])}</td><td class="small">${esc(a.comment||'')}</td>
+    <td><div class="row" style="flex-wrap:nowrap;justify-content:flex-end"><button class="btn btn-line btn-sm" onclick="openVisaDoc('${a.doc_type}',${a.doc_id})">Ver</button>${a.status==='pendiente'&&(a.approver===U.id||can('admin','editar'))?`<button class="btn btn-gold btn-sm" onclick="decideVisa(${a.id},'visada')">Visar</button><button class="btn btn-line btn-sm" style="color:var(--bad)" onclick="decideVisa(${a.id},'rechazada')">Rechazar</button>`:''}</div></td></tr>`).join('')||`<tr><td colspan="8" class="empty">${VV.tab==='mine'?'No tienes documentos por visar 👌':'Sin registros'}</td></tr>`}</tbody></table></div></div>`};
+AFTER.visaciones=()=>{el('vvtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;VV.tab=b.dataset.t;route()}};
+function openVisaDoc(t,id){if(t==='oc'){const o=OCS.find(x=>x.id===id);if(o)openOC(o.id);else toast('La OC ya no existe',true)}else if(t==='so')soForm(id);else if(t==='invoice')openInv(id)}
+function visaRulesView(){const R=DB.cfg.visa_rules||{};const E=can('admin','editar');
+  return `<div class="card"><div class="card-h"><div><h3>Visaciones por tipo de documento</h3><div class="sub">El documento queda bloqueado para aprobarse o enviarse hasta que el visador lo apruebe. Si quien lo crea es el propio visador, queda visado automáticamente.</div></div></div>
+   <div class="tbl-wrap"><table><thead><tr><th>Documento</th><th>Requiere visación</th><th>Visador</th><th>Qué bloquea</th></tr></thead><tbody>
+   ${Object.entries(DOC_TYPES).map(([k,l])=>{const r=R[k]||{};return `<tr><td><strong>${l}</strong></td><td><label class="row" style="gap:8px"><input type="checkbox" data-k="${k}" class="vr-act" ${r.active?'checked':''} ${E?'':'disabled'} style="width:18px;height:18px;accent-color:var(--gold)"> ${r.active?'Sí':'No'}</label></td>
+     <td><select class="inp vr-ap" data-k="${k}" ${E?'':'disabled'}>${DB.users.filter(u=>u.active!==false).map(u=>`<option value="${u.id}" ${u.id===(r.approver||'marcelo')?'selected':''}>${esc(u.name)}</option>`).join('')}</select></td>
+     <td class="small muted">${{oc:'Aprobar la OC, pasarla a preparación/entrega y enviarla por correo',so:'Cambiarla de borrador a enviada/confirmada y enviarla por correo',invoice:'Enviarla por correo al cliente'}[k]}</td></tr>`}).join('')}</tbody></table></div>
+   ${E?`<div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn btn-gold" onclick="saveVisaRules()">${ic('check')}Guardar reglas</button></div>`:''}</div>`}
+async function saveVisaRules(){const rules={};document.querySelectorAll('.vr-act').forEach(c=>{rules[c.dataset.k]={active:c.checked,approver:document.querySelector(`.vr-ap[data-k="${c.dataset.k}"]`).value}});await act('saveVisaRules',{rules},'Reglas de visación guardadas')}
+
+/* =========================================================
+   DOCUMENTOS: VISTA PREVIA, IMPRESIÓN Y ENVÍO POR CORREO
+   ========================================================= */
+const DOCN={oc:'Orden de compra',so:'OC a proveedor',invoice:'Factura / NC',statement:'Estado de cuenta'};
+async function docModal(type,id){
+  const r=await api('docPreview',{docType:type,docId:id}).catch(()=>null);if(!r)return;
+  const log=(DB.emails||[]).filter(m=>m.doc_type===type&&String(m.doc_id)===String(id));
+  const rule=type==='statement'?null:visaRule(type);const v=rule?visaOf(type,id):null;const blocked=rule&&(!v||v.status!=='visada');
+  modal(`<div><div class="eyebrow" style="color:var(--gold-2)">Documento</div><h2>${esc(r.subject)}</h2></div>`,`<div style="padding:22px 26px;display:grid;gap:16px">
+   <div class="grid g21" style="align-items:start">
+    <div class="card" style="padding:0;overflow:hidden"><iframe id="docFrame" title="Vista previa" style="width:100%;height:62vh;border:0;background:#F4F1EA"></iframe></div>
+    <div class="grid" style="gap:14px">
+     <div class="card"><h3>Enviar por correo</h3>
+      ${!r.mailReady?`<div class="alert a-warn" style="margin-top:10px">${ic('warn')}<div>El envío de correos aún no está configurado (falta la cuenta del proveedor de correo). Mientras tanto puedes imprimir o guardar como PDF.</div></div>`:''}
+      ${blocked?`<div class="alert a-bad" style="margin-top:10px">${ic('lock')}<div>Requiere visación de <b>${esc(USERS[rule.approver]?.name||rule.approver)}</b> antes de enviarse (${v?v.status:'sin solicitar'}).</div></div>`:''}
+      <div class="grid" style="gap:10px;margin-top:12px">${inp('Para',r.to||'','','id="dTo" placeholder="correo@cliente.cl"')}${inp('CC','','','id="dCc" placeholder="Opcional, separados por coma"')}${inp('Asunto',r.subject,'','id="dSub"')}
+       ${inp('Mensaje',`<textarea class="inp" id="dMsg" style="width:100%;min-height:80px" placeholder="Se incluye en el documento"></textarea>`,1)}</div>
+      <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn btn-gold" id="dSend" ${!r.mailReady||blocked?'disabled':''}>${ic('up')}Enviar</button></div></div>
+     <div class="card"><div class="row between"><h3>Imprimir</h3><button class="btn btn-line btn-sm" id="dPrint">${ic('dl')}Imprimir / guardar PDF</button></div>
+      ${log.length?`<h3 style="margin-top:16px">Envíos</h3><div class="list">${log.map(m=>`<div><div style="flex:1"><strong class="small">${esc(m.to_addr)}</strong><div class="tiny muted">${m.at} · ${esc(USERS[m.sent_by]?.name||m.sent_by||'')}${m.error?' · '+esc(m.error):''}</div></div>${pill(m.status,m.status==='enviado'?'p-ok':'p-bad')}</div>`).join('')}</div>`:''}</div>
+    </div></div></div>`);
+  el('docFrame').srcdoc=r.html;
+  el('dPrint').onclick=()=>{const f=el('docFrame');f.contentWindow.focus();f.contentWindow.print()};
+  el('dSend').onclick=async()=>{const b=el('dSend');b.disabled=true;b.textContent='Enviando…';
+    const x=await act('sendDoc',{docType:type,docId:id,to:el('dTo').value,cc:el('dCc').value,subject:el('dSub').value,message:el('dMsg').value},'Documento enviado por correo');
+    if(x)closeAll();else{b.disabled=false;b.innerHTML=ic('up')+'Enviar'}};
+}
 
 /* =========================================================
    DRAWER / MODAL / SESIÓN
