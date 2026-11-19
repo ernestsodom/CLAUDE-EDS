@@ -24,6 +24,16 @@ del mes de logística + instalación).
 
 ## Visor 3D
 
+**Modelo «Pista 2027».** El visor usa la malla CAD de la cancha «Pista 2027» (`maqueta/pista2027.dat`, unos 685 mil
+triángulos comprimidos con gzip, 2,7 MB). La malla se separó en piezas que toman los colores de cada proyecto:
+césped, postes de luz (completos, con su pilar de transición), rejas y estructura, perfiles traseros superiores,
+amortiguadores (por lateral), además de líneas, vidrios, red, herrajes y cabezales de luz. Se carga una sola vez y la
+comparten todos los visores de la página. Los logos (puertas, focos y amortiguadores calados), la espuma de las puertas,
+el entorno y la iluminación se suman sobre el modelo. Si no se puede cargar (por ejemplo, al abrir `maqueta/index.html`
+sin servidor), se usa el modelo dibujado por código que se describe a continuación. `build.js` copia el archivo a
+`public/`.
+
+
 La cancha se dibuja con Three.js (r128, desde cdnjs) con las medidas del modelo de referencia
 (padelcourtsmaster.com/elite-padel-court): 10 × 20 m; 18 vidrios templados de 2 × 3 m sin marco con pinzas
 (5 por fondo y 2 en cada extremo lateral); anillo principal blanco a 3 m; laterales de malla electrosoldada de

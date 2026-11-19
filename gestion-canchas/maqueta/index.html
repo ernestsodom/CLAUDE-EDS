@@ -1110,6 +1110,29 @@ function mountViewers() {
 }
 
 
+// Modelo 3D «Pista 2027»: malla CAD de la cancha separada en piezas pintables (césped, líneas, postes, rejas, estructura,
+// perfiles traseros, amortiguadores por lateral, red, herrajes, vidrios y cabezales). Se carga una vez y la comparten todos los visores;
+// si no se puede cargar (por ejemplo, abriendo el archivo sin servidor), los visores usan el modelo dibujado por código.
+const PISTA_URL = 'pista2027.dat';
+let PISTA = null, pistaProm = null;
+function cargarPista() {
+  if (!pistaProm) pistaProm = (async () => {
+    if (!location.protocol.startsWith('http') || !window.DecompressionStream || !window.THREE) throw new Error('Modelo 3D detallado no disponible');
+    const r = await fetch(PISTA_URL); if (!r.ok) throw new Error('Modelo 3D no encontrado');
+    const raw = await new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    const hl = new DataView(raw).getUint32(0, true), head = JSON.parse(new TextDecoder().decode(new Uint8Array(raw, 4, hl)));
+    let off = 4 + hl; off += (4 - off % 4) % 4;
+    const q = new Uint16Array(raw, off, head.nv * 3); off += head.nv * 6; off += (4 - off % 4) % 4;
+    const pos = new Float32Array(head.nv * 3); for (let i = 0; i < pos.length; i++) pos[i] = q[i] / 1000 + head.min[i % 3];
+    const total = head.cuentas.reduce((a, b) => a + b, 0), idx = new Uint32Array(raw, off, total);
+    const T = THREE, full = new T.BufferGeometry(); full.setAttribute('position', new T.BufferAttribute(pos, 3)); full.setIndex(new T.BufferAttribute(idx, 1)); full.computeVertexNormals();
+    const geos = {}; let o = 0;
+    head.partes.forEach((k, i) => { const n = head.cuentas[i], g = new T.BufferGeometry();
+      g.setAttribute('position', full.attributes.position); g.setAttribute('normal', full.attributes.normal); g.setIndex(new T.BufferAttribute(idx.subarray(o, o + n), 1)); g.computeBoundingSphere(); geos[k] = g; o += n; });
+    return (PISTA = { geos, cabezales: head.cabezales, puerta: head.puerta });
+  })();
+  return pistaProm;
+}
 function createCourt3D(el, dz, opts) {
   // Réplica de los renders ATILA: x = ancho (10 m), z = largo (20 m), y = alto. Cámara por defecto en la esquina (-x, +z) como en las imágenes.
   const T = THREE;
@@ -1122,11 +1145,11 @@ function createCourt3D(el, dz, opts) {
 
   const mats = {
     grass: new T.MeshLambertMaterial({ color: dz.pasto }),
-    poles: new T.MeshStandardMaterial({ color: dz.postes || POSTES_DEF, roughness: 0.5, metalness: 0.3 }),
-    rejas: new T.MeshStandardMaterial({ color: dz.rejas || REJAS_DEF, roughness: 0.6, metalness: 0.4 }),
-    perfiles: new T.MeshStandardMaterial({ color: dz.perfiles || PERFIL_DEF, roughness: 0.55, metalness: 0.35 }),
-    amort: new T.MeshStandardMaterial({ color: (dz.amort || AMORT_DEF).hex, roughness: 0.5, metalness: 0.1 }),
-    steel: new T.MeshStandardMaterial({ color: '#202020', roughness: 0.6, metalness: 0.4 }),
+    poles: new T.MeshStandardMaterial({ color: dz.postes || POSTES_DEF, roughness: 0.5, metalness: 0.3, flatShading: true }),
+    rejas: new T.MeshStandardMaterial({ color: dz.rejas || REJAS_DEF, roughness: 0.6, metalness: 0.4, flatShading: true }),
+    perfiles: new T.MeshStandardMaterial({ color: dz.perfiles || PERFIL_DEF, roughness: 0.55, metalness: 0.35, flatShading: true }),
+    amort: new T.MeshStandardMaterial({ color: (dz.amort || AMORT_DEF).hex, roughness: 0.5, metalness: 0.1, flatShading: true }),
+    steel: new T.MeshStandardMaterial({ color: '#202020', roughness: 0.6, metalness: 0.4, flatShading: true }),
     white: new T.MeshStandardMaterial({ color: '#f2f2f2', roughness: 0.5 }),
     glass: new T.MeshStandardMaterial({ color: '#d6efe6', transparent: true, opacity: 0.1, roughness: 0.05, side: T.DoubleSide, depthWrite: false }),
     seam: new T.MeshBasicMaterial({ color: '#9fb3ad', transparent: true, opacity: 0.55 }),
@@ -1183,15 +1206,33 @@ function createCourt3D(el, dz, opts) {
     const fit = () => { const im = logoTex.image; if (!im || !im.width) return; const ar = im.width / im.height; let w = maxW, h = w / ar; if (h > maxH) { h = maxH; w = h * ar; } m.scale.set(w, h, 1); };
     fit(); fits.push(fit);
   };
+  // amortiguador ATILA montado en el pilar (x = ±5, z = posición del pilar), por fuera: placa al piso, cuerpo inclinado y resorte
+  function amortProc(x, z, d) {
+    const s = Math.sign(x);
+    // amortiguador ATILA montado en el pilar, por fuera: placa al piso, cuerpo inclinado y resorte al pilar
+    const a = new T.Group(); a.position.set(x + s * 0.03, 0, z); built.add(a);
+    box(0.5, 0.02, 0.14, mats.amort, s * 0.28, 0.01, 0, a);
+    // con logo: calado (logo recortado en los costados y círculos recortados arriba), como la pieza real
+    const lsel = d.logos[x < 0 ? 'amortA' : 'amortB'], lsrc = logoSrc(d, lsel);
+    let tm = mats.amort;
+    if (lsrc) { const mk = map => { const m = new T.MeshStandardMaterial({ color: (d.amort || AMORT_DEF).hex, roughness: 0.5, metalness: 0.1, map, alphaTest: 0.5, side: T.FrontSide }); cutMats.push(m); return m; };
+      const side = mk(cutTex(lsrc, 'side')), top = mk(cutTex('', 'top'));
+      tm = [s > 0 ? top : mats.amort, s > 0 ? mats.amort : top, mats.amort, mats.amort, side, side]; }
+    const tube = box(0.16, 0.56, 0.1, tm, s * 0.45, 0.02, 0, a); tube.geometry.translate(0, 0.28, 0); tube.rotation.z = s * 0.62;
+    if (lsrc) box(0.15, 0.55, 0.09, mats.spring, 0, 0.28, 0, tube); // interior oscuro: el calado se lee como letras oscuras
+    const spring = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.2, 10), mats.spring); spring.position.set(s * 0.1, 0.5, 0); spring.rotation.z = Math.PI / 2; a.add(spring);
+    box(0.05, 0.07, 0.07, mats.spring, s * 0.0, 0.5, 0, a);
+  }
   function build(d) {
     d = normDz(d);
     fits.length = 0; cutMats.length = 0;
     const indoorNow = d.instal === 'Indoor';
-    if (built) { root.remove(built); built.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !Object.values(mats).includes(o.material) && !Array.isArray(o.material)) o.material.dispose(); }); }
+    if (built) { root.remove(built); built.traverse(o => { if (o.geometry && !o.userData.cad) o.geometry.dispose(); if (o.material && !Object.values(mats).includes(o.material) && !Array.isArray(o.material)) o.material.dispose(); }); }
     built = new T.Group(); root.add(built);
     // Medidas reales (m): vidrio 3 m de alto; anillo principal blanco a 3 m; malla lateral 3 m en módulos de 2 m;
     // reja superior de 1 m solo sobre los fondos y el vértice (2 m del lateral); puerta de acceso en cada lateral.
     const semi = model(d.modelo).tipo === 'semi', H = 3, UP = 4;
+    if (PISTA) pistaCad(d, semi); else {
     const floor = new T.Mesh(new T.PlaneGeometry(10, 20), mats.grass); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.012; floor.receiveShadow = true; built.add(floor);
     [-6.95, 6.95].forEach(z => box(10, 0.006, 0.05, mats.line, 0, 0.018, z));
     box(0.05, 0.006, 13.9, mats.line, 0, 0.018, 0);
@@ -1232,19 +1273,7 @@ function createCourt3D(el, dz, opts) {
         // pilar de transición: continúa el poste de luz, así el poste se pinta completo (en Semi Panoramic es la columna blanca)
         box(trans ? 0.06 : 0.025, H, trans ? 0.16 : 0.035, trans ? (semi ? mats.white : mats.poles) : mats.rejas, x, H / 2, z);
         if (trans || !d.amortOn) continue; // 4 amortiguadores por lado, uno en cada pilar de fierro
-        // amortiguador ATILA montado en el pilar, por fuera: placa al piso, cuerpo inclinado y resorte al pilar
-        const a = new T.Group(); a.position.set(x + s * 0.03, 0, z); built.add(a);
-        box(0.5, 0.02, 0.14, mats.amort, s * 0.28, 0.01, 0, a);
-        // con logo: calado (logo recortado en los costados y círculos recortados arriba), como la pieza real
-        const lsel = d.logos[x < 0 ? 'amortA' : 'amortB'], lsrc = logoSrc(d, lsel);
-        let tm = mats.amort;
-        if (lsrc) { const mk = map => { const m = new T.MeshStandardMaterial({ color: (d.amort || AMORT_DEF).hex, roughness: 0.5, metalness: 0.1, map, alphaTest: 0.5, side: T.FrontSide }); cutMats.push(m); return m; };
-          const side = mk(cutTex(lsrc, 'side')), top = mk(cutTex('', 'top'));
-          tm = [s > 0 ? top : mats.amort, s > 0 ? mats.amort : top, mats.amort, mats.amort, side, side]; }
-        const tube = box(0.16, 0.56, 0.1, tm, s * 0.45, 0.02, 0, a); tube.geometry.translate(0, 0.28, 0); tube.rotation.z = s * 0.62;
-        if (lsrc) box(0.15, 0.55, 0.09, mats.spring, 0, 0.28, 0, tube); // interior oscuro: el calado se lee como letras oscuras
-        const spring = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.2, 10), mats.spring); spring.position.set(s * 0.1, 0.5, 0); spring.rotation.z = Math.PI / 2; a.add(spring);
-        box(0.05, 0.07, 0.07, mats.spring, s * 0.0, 0.5, 0, a);
+        amortProc(x, z, d);
       }
     });
     // anillo principal blanco a 3 m (perfil 150×50)
@@ -1272,11 +1301,35 @@ function createCourt3D(el, dz, opts) {
       const fsrc = logoSrc(d, d.logos.foco, !indoorNow);
       if (fsrc) { box(0.02, 0.3, 0.98, mats.poles, 0, 0.18, 0, head); [1, -1].forEach(n => logoFace(head, fsrc, n * 0.012, 0.18, 0, n * Math.PI / 2, 0, 0.9, 0.24)); }
     }));
+    }
     // Logo: cada cara es de un solo lado y mira hacia afuera, así se lee al derecho desde cualquier ángulo (nunca en espejo).
     // Logo sobre la puerta: uno por lateral (A = x negativo, el que se ve de frente en la vista inicial; B = el opuesto)
     [-5, 5].forEach(x => { const src = logoSrc(d, d.logos[x < 0 ? 'puertaA' : 'puertaB'], !indoorNow); if (src) [1, -1].forEach(n => logoFace(built, src, x + n * 0.012, 2.6, 0, n * Math.PI / 2, 0, 1.3, 0.5)); });
     // Exterior: contenedor de administración tipo oficina, terraza con mesas y sombrillas y bancos para los jugadores
     entorno(d);
+  }
+  // Cancha con la malla CAD «Pista 2027», pintada con los colores del proyecto
+  function pistaCad(d, semi) {
+    const M = { pasto: mats.grass, lineas: mats.line, vidrio: mats.glass, postes: mats.poles, cabezal: mats.poles, estructura: mats.rejas, rejas: mats.rejas,
+      perfiles: mats.perfiles, red: mats.spring, herrajes: mats.steel, amortA: mats.amort, amortB: mats.amort };
+    const sinSombra = { rejas: 1, amortA: 1, amortB: 1, red: 1, lineas: 1, pasto: 1, vidrio: 1, herrajes: 1 };
+    for (const [k, g] of Object.entries(PISTA.geos)) {
+      if (k.startsWith('amort') && (!d.amortOn || logoSrc(d, d.logos[k]))) continue;
+      const m = new T.Mesh(g, M[k] || mats.steel); m.position.y = 0.025; /* sobre el piso del escenario */ m.userData.cad = true; m.castShadow = !sinSombra[k]; m.receiveShadow = k !== 'vidrio'; built.add(m);
+    }
+    // con logo en los amortiguadores de un lateral: amortiguador calado en cada pilar de ese lateral
+    if (d.amortOn) [-5, 5].forEach(x => { if (logoSrc(d, d.logos[x < 0 ? 'amortA' : 'amortB'])) [-4, -2, 2, 4].forEach(z => amortProc(x, z, d)); });
+    // focos LED bajo cada cabezal y, si se eligió, placa con el logo sobre el cabezal
+    const fsrc = logoSrc(d, d.logos.foco, d.instal !== 'Indoor');
+    PISTA.cabezales.forEach(([hx, hy, hz]) => {
+      [-0.36, 0, 0.36].forEach(o => box(0.06, 0.012, 0.28, mats.led, hx, hy - 0.035, hz + o));
+      if (fsrc) { box(0.02, 0.3, 0.98, mats.poles, hx, hy + 0.2, hz); [1, -1].forEach(n => logoFace(built, fsrc, hx + n * 0.012, hy + 0.2, hz, n * Math.PI / 2, 0, 0.9, 0.24)); }
+    });
+    // espuma protectora en el contorno de las puertas del modelo
+    if (d.espuma.on) { const fm = new T.MeshStandardMaterial({ color: d.espuma.color, roughness: 0.95, metalness: 0 }), pz = PISTA.puerta;
+      [-1, 1].forEach(sx => { const x = sx * pz.x; [-pz.ancho / 2, pz.ancho / 2].forEach(z => box(0.13, pz.alto - 0.05, 0.11, fm, x, (pz.alto - 0.05) / 2 + 0.05, z)); box(0.13, 0.11, pz.ancho + 0.11, fm, x, pz.alto, 0); }); }
+    // Semi Panoramic: tubo circular de 2,5" en las esquinas
+    if (semi) [[-5, -10], [5, -10], [-5, 10], [5, 10]].forEach(([x, z]) => { const c = new T.Mesh(new T.CylinderGeometry(0.032, 0.032, 4, 16), mats.steel); c.position.set(x, 2, z); built.add(c); });
   }
   const canvasTxt = (w, h, paint) => { const c = document.createElement('canvas'); c.width = w; c.height = h; paint(c.getContext('2d'), w, h); return new T.CanvasTexture(c); };
   let contTex = null;
@@ -1352,7 +1405,7 @@ function createCourt3D(el, dz, opts) {
       // luz cenital del galpón: refuerza la iluminación pareja sobre toda la cancha
       [-6, 0, 6].forEach(z => { const pl = new T.PointLight(0xfff6e8, 0.28, 26, 1.4); pl.position.set(0, 9, z); envG.add(pl); });
       glowTex = glowTex || canvasTex(64, 64, (x, w) => { const g = x.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); g.addColorStop(0, 'rgba(255,250,235,1)'); g.addColorStop(0.25, 'rgba(255,245,220,.55)'); g.addColorStop(1, 'rgba(255,245,220,0)'); x.fillStyle = g; x.fillRect(0, 0, w, w); });
-      LED_HEADS.forEach(([hx, hy, hz]) => {
+      (PISTA ? PISTA.cabezales.map(([x, y, z]) => [x, y - 0.06, z]) : LED_HEADS).forEach(([hx, hy, hz]) => {
         const sp = new T.SpotLight(0xfff4e0, 1.3, 40, 0.95, 0.6, 1.0);
         sp.position.set(hx, hy - 0.1, hz); sp.target.position.set(hx * 0.15, 0, hz * 1.35);
         sp.castShadow = true; sp.shadow.mapSize.set(512, 512); sp.shadow.radius = 5; sp.shadow.bias = -0.0008;
@@ -1396,13 +1449,15 @@ function createCourt3D(el, dz, opts) {
   cv.addEventListener('dblclick', () => { userZoom = false; Object.assign(st, { theta: home.theta, phi: home.phi, r: fit() }); requestRender(); });
   requestRender();
 
-  cur = normDz(dz); syncRejas(cur); mats.grass.color.set(cur.pasto); mats.poles.color.set(cur.postes); mats.rejas.color.set(cur.rejas); mats.perfiles.color.set(cur.perfiles); mats.amort.color.set(cur.amort.hex);
+  cur = normDz(dz); syncRejas(cur);
+  let vivo = true;
+  if (!PISTA) cargarPista().then(() => { if (!vivo) return; applyEnv(cur.instal); build(cur); requestRender(); }).catch(() => {}); mats.grass.color.set(cur.pasto); mats.poles.color.set(cur.postes); mats.rejas.color.set(cur.rejas); mats.perfiles.color.set(cur.perfiles); mats.amort.color.set(cur.amort.hex);
   return {
     set(d0) { const d = normDz(d0); const rebuild = d.modelo !== cur.modelo || d.logo !== cur.logo || JSON.stringify([d.logos, d.entorno, d.espuma]) !== JSON.stringify([cur.logos, cur.entorno, cur.espuma]) || d.amortOn !== cur.amortOn || d.instal !== cur.instal;
       if (d.instal !== cur.instal) { cur = d; applyEnv(d.instal); } cur = d;
       mats.grass.color.set(d.pasto); mats.poles.color.set(d.postes); mats.rejas.color.set(d.rejas); mats.perfiles.color.set(d.perfiles); mats.amort.color.set(d.amort.hex); syncRejas(d);
       if (rebuild) build(d); cutMats.forEach(m => m.color.set(d.amort.hex)); requestRender(); },
-    dispose() { ro.disconnect(); cancelAnimationFrame(raf); renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); }
+    dispose() { vivo = false; ro.disconnect(); cancelAnimationFrame(raf); renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); }
   };
 }
 

@@ -15,4 +15,6 @@ ${body}
 `;
 fs.mkdirSync(path.join(__dirname, 'public'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'public/index.html'), html);
+// modelo 3D de la cancha (malla «Pista 2027»), que la página carga aparte
+fs.copyFileSync(path.join(__dirname, 'maqueta/pista2027.dat'), path.join(__dirname, 'public/pista2027.dat'));
 console.log('public/index.html listo');
