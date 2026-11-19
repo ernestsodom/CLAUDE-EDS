@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const isAdm = can(me, 'admin', 'ver');
   const [users, clients, products, cprices, pos, lines, desp, invs, pays, purch, stock, loads, fcv, fcl, sales, audit, cfg, roles, opps, acts, sups, sos, sol, imgs, apprs, mails] = await Promise.all([
     sql`select u.id, u.name, u.img, u.email, u.role_id, u.active, coalesce(r.name, u.role) as role, to_char(u.last_login at time zone 'America/Santiago','DD-MM-YYYY HH24:MI') last_login from users u left join roles r on r.id = u.role_id order by u.active desc, u.name`,
-    sql`select id, name, rut, com, term, cds, stage, owner, contact, phone, mail, price_mode, rooms from clients order by com`,
+    sql`select id, name, rut, com, term, cds, stage, owner, contact, phone, mail, price_mode, rooms, logo from clients order by com`,
     sql`select sku, name, brand, cat, ean, dun, grams, ucj, cjp, cost, price, img, lead_days, moq, mult, ss, supplier, active, upd, dpb from products order by active desc, sku`,
     sql`select client_id, sku, price, to_char(valid_from,'DD-MM-YYYY') as from_d, valid_from, created_by from client_prices order by client_id, sku, valid_from desc, id desc`,
     sql`select id, number, client_id, to_char(issued,'DD-MM-YYYY') f, to_char(requested,'DD-MM-YYYY') req, cd, status, ai, reason from purchase_orders order by issued desc, id desc`,
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     opps: opps,
     acts: acts,
     cfg: Object.fromEntries(cfg.map(r => [r.key, r.value])),
-    clients: clients.map(c => ({ rooms: c.rooms, id: c.id, name: c.name, rut: c.rut, com: c.com, term: c.term, cds: c.cds, stage: c.stage, owner: c.owner, contact: c.contact, phone: c.phone, mail: c.mail, priceMode: c.price_mode })),
+    clients: clients.map(c => ({ rooms: c.rooms, logo: c.logo, id: c.id, name: c.name, rut: c.rut, com: c.com, term: c.term, cds: c.cds, stage: c.stage, owner: c.owner, contact: c.contact, phone: c.phone, mail: c.mail, priceMode: c.price_mode })),
     skus: products.map(p => ({ sku: p.sku, name: p.name, brand: p.brand, cat: p.cat, ean: p.ean, dun: p.dun, g: p.grams, ucj: p.ucj, cjp: p.cjp, cost: me.fin ? p.cost : null, price: p.price, img: p.img, lead: p.lead_days, moq: p.moq, mult: p.mult, ss: p.ss, prov: p.supplier, active: p.active, upd: p.upd, dpb: p.dpb })),
     clientPrices: cprices.map(p => ({ cli: p.client_id, sku: p.sku, price: p.price, from: p.from_d, fromIso: p.valid_from, by: p.created_by })),
     ocs: pos.map(o => {

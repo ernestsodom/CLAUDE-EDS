@@ -48,7 +48,7 @@ const ENT = {
       term: { t: 'int', l: 'Plazo de pago' }, cds: { t: 'list', l: 'CD / sucursales' },
       stage: { t: 'enum', opts: ['prospecto', 'contactado', 'reunión', 'negociación', 'aprobado', 'activo', 'inactivo'], l: 'Etapa' },
       owner: { t: 'text', l: 'Responsable' }, contact: { t: 'text', l: 'Contacto' }, phone: { t: 'text', l: 'Teléfono' }, mail: { t: 'text', l: 'Email' },
-      rooms: { t: 'int', l: 'Salas' } } },
+      rooms: { t: 'int', l: 'Salas' }, logo: { t: 'text', l: 'Logo' } } },
   supplier: { table: 'suppliers', pk: 'id', serial: 1, mod: 'proveedores', label: 'Proveedor',
     fields: { name: { t: 'text', req: 1, l: 'Nombre' }, rut: { t: 'text', l: 'RUT / Tax ID' }, country: { t: 'text', l: 'País' }, category: { t: 'text', l: 'Categoría' },
       contact: { t: 'text', l: 'Contacto' }, phone: { t: 'text', l: 'Teléfono' }, mail: { t: 'text', l: 'Email' }, term: { t: 'int', l: 'Plazo de pago' },
@@ -729,7 +729,7 @@ const ACTIONS = {
 
   /* ---------- Imágenes ---------- */
   async uploadImage(u, b) {
-    if (!can(u, 'productos', 'crear') && !can(u, 'productos', 'editar')) fail(403, 'Tu rol no puede subir imágenes');
+    if (!['productos', 'crm'].some(m => can(u, m, 'crear') || can(u, m, 'editar'))) fail(403, 'Tu rol no puede subir imágenes');
     const m = String(b.data || '').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
     if (!m) fail(400, 'Formato de imagen no soportado (usa JPG, PNG o WEBP)');
     const buf = Buffer.from(m[2], 'base64');
