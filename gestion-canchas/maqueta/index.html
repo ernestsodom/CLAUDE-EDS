@@ -1118,8 +1118,12 @@ let PISTA = null, pistaProm = null;
 function cargarPista() {
   if (!pistaProm) pistaProm = (async () => {
     if (!location.protocol.startsWith('http') || !window.DecompressionStream || !window.THREE) throw new Error('Modelo 3D detallado no disponible');
-    const r = await fetch(PISTA_URL); if (!r.ok) throw new Error('Modelo 3D no encontrado');
-    const raw = await new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    // binario (sitio publicado) o, si no está, la misma información en base64 (maqueta publicada como artifact)
+    let r = await fetch(PISTA_URL).catch(() => null), gz;
+    if (r && r.ok) gz = r.body;
+    else { r = await fetch(PISTA_URL.replace(/\.dat$/, '.txt')); if (!r.ok) throw new Error('Modelo 3D no encontrado');
+      const b64 = (await r.text()).trim(), bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0)); gz = new Blob([bytes]).stream(); }
+    const raw = await new Response(gz.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
     const hl = new DataView(raw).getUint32(0, true), head = JSON.parse(new TextDecoder().decode(new Uint8Array(raw, 4, hl)));
     let off = 4 + hl; off += (4 - off % 4) % 4;
     const q = new Uint16Array(raw, off, head.nv * 3); off += head.nv * 6; off += (4 - off % 4) % 4;
