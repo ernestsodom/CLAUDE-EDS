@@ -542,6 +542,10 @@ table.pk tr.pk-ok td { opacity: .6 }
 .pk-add { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
 .pk-add input[type=text] { flex: 1 1 160px; width: auto }
 .pk-add select { width: auto }
+
+.v3d-tools { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 4px; z-index: 2; pointer-events: none }
+.v3d-tools button { pointer-events: auto; font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid rgb(255 255 255 / .25); background: rgb(0 0 0 / .55); color: #f2f2f2; cursor: pointer }
+.v3d-tools button:hover { border-color: var(--accent); color: var(--accent) }
 </style>
 
 <div class="app">
@@ -1097,7 +1101,7 @@ const pendingViews = [];
 function viewer3d(dz, opts = {}) {
   pendingViews.push({ dz, opts });
   return `<div class="v3d${opts.small ? ' small' : ''}" data-q="${pendingViews.length - 1}" role="img" aria-label="Vista 3D de la cancha. Arrastra para rotar y usa la rueda para acercar.">
-    <span class="v3d-hint">${opts.small ? 'Arrastra para rotar · rueda para acercar' : 'Arrastra para rotar · rueda o pellizco para acercar · doble clic para centrar'}</span></div>`;
+    <span class="v3d-hint">${opts.small ? 'Arrastra para rotar · rueda: acercar al cursor · doble clic en una pieza para verla de cerca' : 'Arrastra: rotar · clic der. o Mayús: desplazar · rueda/pellizco: acercar al cursor · doble clic: ir a la pieza'}</span></div>`;
 }
 function disposeViewers() { while (VIEWERS.length) { const v = VIEWERS.pop(); try { v.dispose(); } catch (e) {} } }
 function mountViewers() {
@@ -1318,9 +1322,12 @@ function createCourt3D(el, dz, opts) {
       perfiles: mats.perfiles, red: mats.spring, herrajes: mats.steel, amortA: mats.amort, amortB: mats.amort };
     const sinSombra = { rejas: 1, amortA: 1, amortB: 1, red: 1, lineas: 1, pasto: 1, vidrio: 1, herrajes: 1 };
     for (const [k, g] of Object.entries(PISTA.geos)) {
-      if (k.startsWith('amort') && (!d.amortOn || logoSrc(d, d.logos[k]))) continue;
+      if (k === 'lineas' || (k.startsWith('amort') && (!d.amortOn || logoSrc(d, d.logos[k])))) continue;
       const m = new T.Mesh(g, M[k] || mats.steel); m.position.y = 0.025; /* sobre el piso del escenario */ m.userData.cad = true; m.castShadow = !sinSombra[k]; m.receiveShadow = k !== 'vidrio'; built.add(m);
     }
+    // líneas de juego en blanco: dos líneas de saque a 6,95 m de la red y la línea central (5 cm de ancho), sobre el césped
+    const ly = 0.078; [-6.95, 6.95].forEach(z => box(9.98, 0.004, 0.05, mats.line, 0, ly, z)); box(0.05, 0.004, 13.9, mats.line, 0, ly, 0);
+    [-10, 10].forEach(z => box(0.05, 0.004, 0.2, mats.line, 0, ly, z - Math.sign(z) * 0.1));
     // con logo en los amortiguadores de un lateral: amortiguador calado en cada pilar de ese lateral
     if (d.amortOn) [-5, 5].forEach(x => { if (logoSrc(d, d.logos[x < 0 ? 'amortA' : 'amortB'])) [-4, -2, 2, 4].forEach(z => amortProc(x, z, d)); });
     // focos LED bajo cada cabezal y, si se eligió, placa con el logo sobre el cabezal
@@ -1436,21 +1443,69 @@ function createCourt3D(el, dz, opts) {
   let userZoom = !!opts.r;
   // Encuadre automático: distancia para que la cancha completa (≈23 m con los postes) llene el ancho del cuadro.
   const fit = () => { const tv = Math.tan(camera.fov * Math.PI / 360), th = tv * camera.aspect; return Math.max(12.6 / th, 6.6 / tv) * 1.1; };
-  const home = { ...st };
-  const place = () => { camera.position.set(st.target.x + st.r * Math.sin(st.phi) * Math.sin(st.theta), st.target.y + st.r * Math.cos(st.phi), st.target.z + st.r * Math.sin(st.phi) * Math.cos(st.theta)); camera.lookAt(st.target); };
+  const home = { theta: st.theta, phi: st.phi, r: st.r, target: st.target.clone() };
+  const place = () => {
+    camera.position.set(st.target.x + st.r * Math.sin(st.phi) * Math.sin(st.theta), st.target.y + st.r * Math.cos(st.phi), st.target.z + st.r * Math.sin(st.phi) * Math.cos(st.theta));
+    if (camera.position.y < 0.08) camera.position.y = 0.08; // la cámara nunca baja del piso
+    camera.lookAt(st.target);
+    const nr = Math.min(0.5, Math.max(0.02, st.r * 0.02)); if (Math.abs(camera.near - nr) > 1e-3) { camera.near = nr; camera.updateProjectionMatrix(); } // de cerca se ve sin recortes
+  };
   let raf = 0; const requestRender = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; place(); renderer.render(scene, camera); }); };
   const size = () => { const w = el.clientWidth || 600, h = Math.round(w * (opts.small ? 0.66 : 0.66)); renderer.setSize(w, h, false); renderer.domElement.style.width = '100%'; renderer.domElement.style.height = 'auto'; camera.aspect = w / h; camera.updateProjectionMatrix(); if (!userZoom) { st.r = home.r = fit(); } requestRender(); };
   const ro = new ResizeObserver(size); ro.observe(el); size();
-  const cv = renderer.domElement, ptrs = new Map(); let last = null, pinch = 0;
+  // Navegación libre: arrastrar rota; clic derecho, Mayús + arrastre o dos dedos desplazan; la rueda o el pellizco acercan hacia el punto
+  // que está bajo el cursor; doble clic en una pieza se acerca a ella y doble clic en el cielo vuelve a la vista inicial.
+  const cv = renderer.domElement, ptrs = new Map(), ray = new T.Raycaster(), ndc = new T.Vector2(), suelo = new T.Plane(new T.Vector3(0, 1, 0), 0);
+  let last = null, pinch = 0, mid = null, modo = 'rotar', wheelP = null, wheelT = 0, anim = 0;
+  const pick = (cx, cy, soloPiezas) => {
+    const rc = cv.getBoundingClientRect(); ndc.set(((cx - rc.left) / rc.width) * 2 - 1, -((cy - rc.top) / rc.height) * 2 + 1); place(); ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObject(root, true).find(h => !(h.object.material && h.object.material.transparent && h.object.material.opacity < 0.3)); // los vidrios no frenan el zoom
+    if (hit) return hit.point.clone(); if (soloPiezas) return null;
+    const p = new T.Vector3(); return ray.ray.intersectPlane(suelo, p) ? p : null;
+  };
+  const clampT = () => { const t = st.target; t.x = Math.max(-25, Math.min(25, t.x)); t.y = Math.max(0, Math.min(9, t.y)); t.z = Math.max(-30, Math.min(30, t.z)); };
+  const zoomAt = (p, f) => { const nr = Math.min(60, Math.max(0.3, st.r * f)), k = 1 - nr / st.r; if (p) st.target.addScaledVector(p.clone().sub(st.target), k); st.r = nr; clampT(); userZoom = true; requestRender(); };
+  const pan = (dx, dy) => { place(); const s = st.r * Math.tan(camera.fov * Math.PI / 360) * 2 / (cv.clientHeight || 400);
+    st.target.addScaledVector(new T.Vector3().setFromMatrixColumn(camera.matrix, 0), -dx * s).addScaledVector(new T.Vector3().setFromMatrixColumn(camera.matrix, 1), dy * s); clampT(); userZoom = true; requestRender(); };
+  const volar = (dest, ms = 500) => { cancelAnimationFrame(anim); const ini = { theta: st.theta, phi: st.phi, r: st.r, target: st.target.clone() }, t0 = performance.now();
+    const paso = now => { const k = Math.min(1, (now - t0) / ms), e = k * k * (3 - 2 * k);
+      st.theta = ini.theta + (dest.theta - ini.theta) * e; st.phi = ini.phi + (dest.phi - ini.phi) * e; st.r = ini.r + (dest.r - ini.r) * e; st.target.lerpVectors(ini.target, dest.target, e);
+      place(); renderer.render(scene, camera); if (k < 1) anim = requestAnimationFrame(paso); };
+    anim = requestAnimationFrame(paso); };
+  // vistas rápidas a piezas puntuales (lateral A, el que se ve de frente en la vista inicial)
+  const vista = k => {
+    const cab = PISTA ? (PISTA.cabezales.find(c => c[0] < 0 && c[2] < 0) || PISTA.cabezales[0]) : [-3.65, 6.98, -6.32], V = (x, y, z) => new T.Vector3(x, y, z);
+    userZoom = true;
+    if (k === 'amort') return { theta: -Math.PI / 2 + 0.55, phi: 1.25, r: 1.7, target: V(-5.3, 0.3, -2) };
+    if (k === 'red') return { theta: Math.PI / 2 - 0.7, phi: 1.2, r: 2.0, target: V(-4.9, 0.55, -0.1) };
+    if (k === 'foco') return { theta: Math.PI / 2 - 0.4, phi: 1.9, r: 2.6, target: V(cab[0], cab[1], cab[2]) };
+    if (k === 'logo') return { theta: Math.PI / 2 - 0.15, phi: 1.4, r: 2.0, target: V(cab[0], cab[1] + 0.2, cab[2]) };
+    if (k === 'puerta') return { theta: -Math.PI / 2, phi: 1.35, r: 5, target: V(-5, 1.4, 0) };
+    userZoom = false; return { theta: home.theta, phi: home.phi, r: fit(), target: home.target.clone() };
+  };
+  if (!opts.small) {
+    const tools = document.createElement('div'); tools.className = 'v3d-tools';
+    tools.innerHTML = Object.entries({ general: 'Vista general', amort: 'Amortiguador', red: 'Poste de red', foco: 'Foco', logo: 'Logo del foco', puerta: 'Puerta' })
+      .map(([k, n]) => `<button type="button" data-v="${k}">${n}</button>`).join('');
+    el.appendChild(tools);
+    tools.addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; e.preventDefault(); e.stopPropagation(); volar(vista(b.dataset.v)); });
+  }
+  cv.addEventListener('contextmenu', e => e.preventDefault());
   cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); last = { x: e.clientX, y: e.clientY };
-    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); } });
+    modo = e.button === 2 || e.button === 1 || e.shiftKey ? 'mover' : 'rotar'; cancelAnimationFrame(anim);
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; } });
   cv.addEventListener('pointermove', e => { if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) { userZoom = true; } if (pinch) st.r = Math.min(60, Math.max(8, st.r * pinch / d)); pinch = d; requestRender(); return; }
-    st.theta -= (e.clientX - last.x) * 0.008; st.phi = Math.min(1.52, Math.max(0.15, st.phi - (e.clientY - last.y) * 0.006)); last = { x: e.clientX, y: e.clientY }; requestRender(); });
-  const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0; const r = [...ptrs.values()][0]; if (r) last = r; };
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      if (pinch && d) zoomAt(pick(m.x, m.y), pinch / d); if (mid) pan(m.x - mid.x, m.y - mid.y); pinch = d; mid = m; return; }
+    const dx = e.clientX - last.x, dy = e.clientY - last.y; last = { x: e.clientX, y: e.clientY };
+    if (modo === 'mover') pan(dx, dy); else { st.theta -= dx * 0.008; st.phi = Math.min(2.5, Math.max(0.12, st.phi - dy * 0.006)); requestRender(); } });
+  const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) { pinch = 0; mid = null; } const r = [...ptrs.values()][0]; if (r) last = r; };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
-  cv.addEventListener('wheel', e => { e.preventDefault(); userZoom = true; st.r = Math.min(60, Math.max(8, st.r * (e.deltaY > 0 ? 1.1 : 0.9))); requestRender(); }, { passive: false });
-  cv.addEventListener('dblclick', () => { userZoom = false; Object.assign(st, { theta: home.theta, phi: home.phi, r: fit() }); requestRender(); });
+  cv.addEventListener('wheel', e => { e.preventDefault(); const now = performance.now();
+    if (!wheelP || now - wheelT > 250 || Math.hypot(e.clientX - wheelP.x, e.clientY - wheelP.y) > 4) wheelP = { x: e.clientX, y: e.clientY, p: pick(e.clientX, e.clientY) };
+    wheelT = now; zoomAt(wheelP.p, e.deltaY > 0 ? 1.15 : 1 / 1.15); }, { passive: false });
+  cv.addEventListener('dblclick', e => { const p = pick(e.clientX, e.clientY, true);
+    if (p) { userZoom = true; volar({ theta: st.theta, phi: Math.min(st.phi, 1.4), r: Math.min(st.r, 2.4), target: p }); } else volar(vista('general')); });
   requestRender();
 
   cur = normDz(dz); syncRejas(cur);
@@ -1461,7 +1516,7 @@ function createCourt3D(el, dz, opts) {
       if (d.instal !== cur.instal) { cur = d; applyEnv(d.instal); } cur = d;
       mats.grass.color.set(d.pasto); mats.poles.color.set(d.postes); mats.rejas.color.set(d.rejas); mats.perfiles.color.set(d.perfiles); mats.amort.color.set(d.amort.hex); syncRejas(d);
       if (rebuild) build(d); cutMats.forEach(m => m.color.set(d.amort.hex)); requestRender(); },
-    dispose() { vivo = false; ro.disconnect(); cancelAnimationFrame(raf); renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); }
+    dispose() { vivo = false; cancelAnimationFrame(anim); ro.disconnect(); cancelAnimationFrame(raf); renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); }
   };
 }
 

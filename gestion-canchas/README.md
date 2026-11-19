@@ -24,6 +24,12 @@ del mes de logística + instalación).
 
 ## Visor 3D
 
+**Navegación del visor.** No hay un punto fijo: la rueda (o el pellizco) acerca hacia lo que está bajo el cursor,
+el clic derecho, Mayús + arrastre o dos dedos desplazan la vista, y el doble clic sobre una pieza vuela hasta ella
+(doble clic en el cielo vuelve a la vista inicial). El visor grande tiene accesos rápidos: Vista general,
+Amortiguador, Poste de red, Foco, Logo del foco y Puerta. Las líneas de juego se dibujan en blanco sobre el césped y
+los vidrios no llevan las aristas diagonales de la malla original.
+
 **Modelo «Pista 2027».** El visor usa la malla CAD de la cancha «Pista 2027» (`maqueta/pista2027.dat`, unos 685 mil
 triángulos comprimidos con gzip, 2,7 MB). La malla se separó en piezas que toman los colores de cada proyecto:
 césped, postes de luz (completos, con su pilar de transición), rejas y estructura, perfiles traseros superiores,
